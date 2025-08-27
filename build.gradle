@@ -1,17 +1,31 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '2.2.0'
+    id 'org.jetbrains.kotlin.jvm' version '2.2.0' apply false
 }
 
-group = 'org.eventhorizonlab'
+group = 'org.eventhorizonlab.kyoriadventuredsl'
 version = '1.0-SNAPSHOT'
 
-test {
-    useJUnitPlatform()
+subprojects {
+    apply plugin: 'org.jetbrains.kotlin.jvm'
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        implementation "net.kyori:adventure-api:${versions['adventure-api']}"
+        testImplementation 'org.jetbrains.kotlin:kotlin-test'
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+
+    kotlin {
+        jvmToolchain(23)
+    }
 }
 
-kotlin {
-    jvmToolchain(23)
-}
 
 apply from: 'gradle/repositories.gradle'
 apply from: 'gradle/versions.gradle'
