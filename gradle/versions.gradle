@@ -3,5 +3,6 @@ import groovy.json.JsonSlurper
 def versionsFile = file("$rootDir/gradle/versions.json")
 def versions = new JsonSlurper().parse(versionsFile)
 
-ext.versions = []
-versions.each { k, v -> ext.versions[k as String] = v as String }
+ext.versions = [:]
+versions.each { k, v -> ext.versions[k] = v }
+println "Loaded versions: $ext.versions"
