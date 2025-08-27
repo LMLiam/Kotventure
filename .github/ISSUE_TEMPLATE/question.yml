@@ -1,0 +1,26 @@
+name: Question / Support
+description: Ask a question or get help using the project.
+title: "question: "
+labels: ["type: question", "needs triage"]
+body:
+  - type: textarea
+    attributes:
+      label: Your question
+      description: Be as specific as possible — include related configs, code, or context.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Context
+      placeholder: |
+        What are you trying to achieve? What have you tried so far?
+    validations:
+      required: false
+
+  - type: checkboxes
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues and documentation
+          required: true

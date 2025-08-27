@@ -1,0 +1,33 @@
+name: Feature Request
+description: Suggest a new feature or enhancement.
+title: "feat: "
+labels: ["type: feature", "needs triage"]
+body:
+  - type: textarea
+    attributes:
+      label: Summary
+      description: One‑sentence overview of the feature or change.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Why is this needed?
+      description: What problem does this solve? Why is it valuable for users?
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Proposed solution
+      placeholder: |
+        e.g., Add `withPalette()` method to Adventure ComponentBuilder...
+    validations:
+      required: false
+
+  - type: checkboxes
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues to avoid duplicates
+          required: true

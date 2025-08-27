@@ -1,0 +1,15 @@
+name: Refactor Proposal
+description: Propose non‑functional internal improvements.
+title: "refactor: "
+labels: ["type: refactor", "needs triage"]
+body:
+  - type: textarea
+    attributes:
+      label: What should be refactored?
+      placeholder: e.g., Extract Adventure component builders into separate class
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Why refactor?
+      description: What problem will this solve? Simpler API, better performance, etc.

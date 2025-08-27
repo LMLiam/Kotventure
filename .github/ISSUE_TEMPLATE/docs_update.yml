@@ -1,0 +1,16 @@
+name: Documentation Update
+description: Suggest edits or additions to the documentation.
+title: "docs: "
+labels: ["type: docs", "needs triage"]
+body:
+  - type: textarea
+    attributes:
+      label: What needs updating?
+      description: Be specific — is it a typo, missing section, or outdated example?
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Suggested change
+      placeholder: |
+        For example: Update Palette DSL example for Adventure 4.15 changes...

@@ -1,0 +1,10 @@
+name: Chore Task
+description: Track repository maintenance, deps updates, or CI config changes.
+title: "chore: "
+labels: ["type: chore", "needs triage"]
+body:
+  - type: textarea
+    attributes:
+      label: Task description
+    validations:
+      required: true
