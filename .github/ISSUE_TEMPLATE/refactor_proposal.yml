@@ -1,7 +1,7 @@
 name: Refactor Proposal
 description: Propose non‑functional internal improvements.
 title: "refactor: "
-labels: ["type: refactor", "needs triage"]
+labels: ["type: refactor", "status: needs triage"]
 body:
   - type: textarea
     attributes:

@@ -1,7 +1,7 @@
 name: Documentation Update
 description: Suggest edits or additions to the documentation.
 title: "docs: "
-labels: ["type: docs", "needs triage"]
+labels: ["type: docs", "status: needs triage"]
 body:
   - type: textarea
     attributes:

@@ -1,7 +1,7 @@
 name: Question / Support
 description: Ask a question or get help using the project.
 title: "question: "
-labels: ["type: question", "needs triage"]
+labels: ["type: question", "status: needs triage"]
 body:
   - type: textarea
     attributes:
