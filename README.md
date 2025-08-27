@@ -31,4 +31,4 @@ This project aims to:
 ---
 
 ## 📄 License
-Distributed under the MIT License — see [`LICENSE`](LICENSE) for details.
+Distributed under the MIT License — see [`LICENSE`](LICENSE.md) for details.
