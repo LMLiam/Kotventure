@@ -1,0 +1,15 @@
+apply from: 'gradle/versions.gradle'
+
+configurations {
+    shade
+    implementation.extendsFrom(shade)
+    testImplementation.extendsFrom annotationProcessor
+}
+
+def dep = [
+        "adventure-api" : "net.kyori:adventure-api:${versions.'adventure-api'}"
+]
+
+dependencies {
+    implementation dep."adventure-api"
+}

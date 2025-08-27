@@ -1,0 +1,18 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '2.2.0'
+}
+
+group = 'org.eventhorizonlab'
+version = '1.0-SNAPSHOT'
+
+test {
+    useJUnitPlatform()
+}
+
+kotlin {
+    jvmToolchain(23)
+}
+
+apply from: 'gradle/repositories.gradle'
+apply from: 'gradle/versions.gradle'
+apply from: 'gradle/dependencies.gradle'
