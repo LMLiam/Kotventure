@@ -1,3 +1,7 @@
-ext.versions = [
-        "adventure-api": "4.24.0"
-]
+import groovy.json.JsonSlurper
+
+def versionsFile = file("$rootDir/gradle/versions.json")
+def versions = new JsonSlurper().parse(versionsFile)
+
+ext.versions = []
+versions.each { k, v -> ext.versions[k as String] = v as String }
