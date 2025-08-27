@@ -1,0 +1,1 @@
+[![adventure-api](https://img.shields.io/badge/dynamic/json?url=https://raw.githubusercontent.com/EventHorizonLab/KyoriAdventureDSL/master/gradle/versions.json&label=adventure%20api&query=$.adventure-api&color=blue)](https://github.com/KyoriPowered/adventure/releases/)
