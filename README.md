@@ -1,6 +1,8 @@
 [![adventure-api](https://img.shields.io/badge/dynamic/json?url=https://raw.githubusercontent.com/EventHorizonLab/KyoriAdventureDSL/master/gradle/versions.json&label=adventure%20api&query=$.adventure-api&color=blue)](https://github.com/KyoriPowered/adventure/releases/)
 # KyoriAdventureDSL
 
+[🖱️ Docs](https://github.com/EventHorizonLab/KyoriAdventureDSL/tree/master/docs)
+
 KyoriAdventureDSL is a Kotlin‑focused domain‑specific language designed to provide a fluent, expressive, and type‑safe way of building rich [Kyori Adventure](https://github.com/KyoriPowered/adventure) components.
 
 This project aims to:
