@@ -12,6 +12,10 @@ subprojects {
         jvmToolchain(23)
     }
 
+    test {
+        useJUnitPlatform()
+    }
+
     apply from: rootProject.file('gradle/repositories.gradle')
     apply from: rootProject.file('gradle/versions.gradle')
     apply from: rootProject.file('gradle/dependencies.gradle')
