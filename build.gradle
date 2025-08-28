@@ -1,6 +1,7 @@
 plugins {
     id 'org.jetbrains.kotlin.jvm' version '2.2.0' apply false
     id 'io.kotest' version '6.0.1' apply false
+    id 'com.diffplug.spotless' version "7.2.1" apply false
 }
 
 group = 'org.eventhorizonlab.kyoriadventuredsl'
@@ -9,6 +10,7 @@ version = '1.0-SNAPSHOT'
 subprojects {
     apply plugin: 'org.jetbrains.kotlin.jvm'
     apply plugin: 'io.kotest'
+    apply plugin: 'com.diffplug.spotless'
 
     kotlin {
         jvmToolchain(23)
@@ -27,6 +29,8 @@ subprojects {
         archiveVersion.set(rootProject.version as String)
         destinationDirectory.set(rootProject.layout.buildDirectory.dir("libs"))
     }
+
+    apply from: rootProject.file('gradle/spotless.gradle')
 }
 
 apply from: 'gradle/tasks.gradle'

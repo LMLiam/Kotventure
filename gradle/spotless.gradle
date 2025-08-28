@@ -1,0 +1,11 @@
+spotless {
+    ratchetFrom 'origin/master'
+
+    format 'misc', {
+        target '*.gradle', '.gitattributes', '.gitignore'
+
+        trimTrailingWhitespace()
+        leadingSpacesToTabs()
+        endWithNewline()
+    }
+}
