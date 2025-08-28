@@ -1,0 +1,14 @@
+tasks.register('allJar', Jar) {
+    group = 'build'
+    description = 'Assembles a JAR with all modules included.'
+
+    archiveBaseName.set("${rootProject.name}")
+    archiveVersion.set(version)
+    destinationDirectory.set(layout.buildDirectory.dir("libs"))
+
+    dependsOn(subprojects.collect { it.tasks.named('jar') })
+
+    from {
+        subprojects.collect { it.sourceSets.main.output }
+    }
+}

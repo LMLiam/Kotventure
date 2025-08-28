@@ -8,25 +8,19 @@ version = '1.0-SNAPSHOT'
 subprojects {
     apply plugin: 'org.jetbrains.kotlin.jvm'
 
-    repositories {
-        mavenCentral()
-    }
-
-    dependencies {
-        implementation "net.kyori:adventure-api:${versions['adventure-api']}"
-        testImplementation 'org.jetbrains.kotlin:kotlin-test'
-    }
-
-    test {
-        useJUnitPlatform()
-    }
-
     kotlin {
         jvmToolchain(23)
     }
+
+    apply from: rootProject.file('gradle/repositories.gradle')
+    apply from: rootProject.file('gradle/versions.gradle')
+    apply from: rootProject.file('gradle/dependencies.gradle')
+
+    tasks.withType(Jar).configureEach {
+        archiveBaseName.set("${rootProject.name}-${project.name}")
+        archiveVersion.set(rootProject.version as String)
+        destinationDirectory.set(rootProject.layout.buildDirectory.dir("libs"))
+    }
 }
 
-
-apply from: 'gradle/repositories.gradle'
-apply from: 'gradle/versions.gradle'
-apply from: 'gradle/dependencies.gradle'
+apply from: 'gradle/tasks.gradle'
