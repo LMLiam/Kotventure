@@ -1,5 +1,6 @@
 plugins {
     id 'org.jetbrains.kotlin.jvm' version '2.2.0' apply false
+    id 'io.kotest' version '6.0.1' apply false
 }
 
 group = 'org.eventhorizonlab.kyoriadventuredsl'
@@ -7,6 +8,7 @@ version = '1.0-SNAPSHOT'
 
 subprojects {
     apply plugin: 'org.jetbrains.kotlin.jvm'
+    apply plugin: 'io.kotest'
 
     kotlin {
         jvmToolchain(23)
