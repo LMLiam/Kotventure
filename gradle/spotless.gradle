@@ -5,7 +5,16 @@ spotless {
         target '*.gradle', '.gitattributes', '.gitignore'
 
         trimTrailingWhitespace()
-        leadingSpacesToTabs()
+        indentWithSpaces(4)
         endWithNewline()
     }
+
+    kotlin {
+        ktlint()
+          .setEditorConfigPath("$rootDir/.editorconfig")
+    }
+}
+
+tasks.named("compileKotlin") {
+    dependsOn(tasks.named("spotlessApply"))
 }
