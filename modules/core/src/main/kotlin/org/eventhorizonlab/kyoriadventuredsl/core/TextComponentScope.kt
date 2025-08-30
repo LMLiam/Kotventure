@@ -5,6 +5,7 @@ import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextDecoration
 import org.eventhorizonlab.core.api.TextComponentScope
+import org.eventhorizonlab.core.api.annotations.ServiceProvider
 
 internal class TextComponentScope(
     private val builder: TextComponent.Builder
@@ -29,6 +30,7 @@ internal class TextComponentScope(
 
     fun build() = builder.build()
 
+    @ServiceProvider(TextComponentScope.Factory::class)
     class Factory : TextComponentScope.Factory {
         override fun create(init: TextComponentScope.() -> Unit): TextComponent {
             val builder = Component.text()

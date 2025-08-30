@@ -3,6 +3,7 @@ package org.eventhorizonlab.core.api
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextDecoration
+import org.eventhorizonlab.core.api.annotations.ServiceContract
 import java.util.*
 
 @DslMarker
@@ -18,6 +19,7 @@ interface TextComponentScope {
 
     fun text(init: TextComponentScope.() -> Unit)
 
+    @ServiceContract
     interface Factory {
         fun create(init: TextComponentScope.() -> Unit): TextComponent
     }

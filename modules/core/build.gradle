@@ -1,3 +1,95 @@
 dependencies {
     implementation(project(":core-api"))
 }
+
+tasks.register('generateServiceFiles') {
+    group = 'build setup'
+    description = 'Scans for @ServiceContract and @ServiceProvider across modules and generates META-INF/services entries'
+
+    // Ensure compiled classes exist before scanning
+    dependsOn ':core-api:compileKotlin', ':core-api:compileJava',
+            ':core:compileKotlin', ':core:compileJava'
+
+    doLast {
+        // 1️⃣ Merge runtime classpaths for both modules so all deps are visible
+        def runtimeClasspath = project(':core').sourceSets.main.runtimeClasspath +
+                project(':core-api').sourceSets.main.runtimeClasspath
+
+        // 2️⃣ Build a loader that can see compiled classes + all dependencies
+        def loader = new URLClassLoader(
+                runtimeClasspath.files.collect { it.toURI().toURL() } as URL[],
+                Thread.currentThread().contextClassLoader
+        )
+
+        // 3️⃣ Load annotation classes from core-api
+        def serviceContractAnn = loader.loadClass('org.eventhorizonlab.core.api.annotations.ServiceContract')
+        def serviceProviderAnn = loader.loadClass('org.eventhorizonlab.core.api.annotations.ServiceProvider')
+
+        // 4️⃣ Gather all compiled class dirs for scanning
+        def classDirs = [
+                project(':core-api').layout.buildDirectory.dir("classes/kotlin/main").get().asFile,
+                project(':core').layout.buildDirectory.dir("classes/kotlin/main").get().asFile
+        ]
+
+        // 5️⃣ Scan all .class files in both dirs
+        def allClasses = [] as List<String>
+        classDirs.each { dir ->
+            if (dir.exists()) {
+                dir.eachFileRecurse { file ->
+                    if (file.isFile() && file.name.endsWith('.class')) {
+                        def relPath = dir.toPath().relativize(file.toPath()).toString()
+                        def className = relPath.replace(File.separatorChar, '.' as char).replaceAll(/\.class$/, '')
+                        allClasses << className
+                    }
+                }
+            }
+        }
+
+        // 6️⃣ Separate contracts and providers
+        def contracts = [] as Set
+        def providers = [:].withDefault { [] as List }
+
+        allClasses.each { String className ->
+            def clazz = loader.loadClass(className)
+
+            if (clazz.isInterface() && clazz.getAnnotation(serviceContractAnn)) {
+                contracts << clazz
+            }
+
+            def providerAnn = clazz.getAnnotation(serviceProviderAnn)
+            if (providerAnn) {
+                def target = providerAnn.value()
+                providers[target] << clazz
+            }
+        }
+
+        // 7️⃣ Where to write META-INF/services (in core’s resources)
+        def resourcesDir = project(':core').layout.buildDirectory.dir("resources/main").get().asFile
+
+        // 8️⃣ Generate service files for each contract
+        contracts.each { contract ->
+            def impls = providers[contract] ?: []
+            if (impls.isEmpty()) {
+                throw new GradleException("No @ServiceProvider found for contract ${contract.name}")
+            }
+
+            def serviceFile = new File(resourcesDir, "META-INF/services/${contract.name}")
+            serviceFile.parentFile.mkdirs()
+            serviceFile.text = impls.collect { it.name }.join('\n')
+
+            println "✅ Generated service file for ${contract.name} with ${impls.size()} provider(s)"
+        }
+
+        // 9️⃣ Fail if any provider targets a non-contract
+        providers.each { target, impls ->
+            if (!contracts.contains(target)) {
+                throw new GradleException("@ServiceProvider target ${target.name} is not annotated with @ServiceContract")
+            }
+        }
+    }
+}
+
+// Hook into processResources in :core so files are packaged
+project(':core').tasks.named('processResources') {
+    dependsOn 'generateServiceFiles'
+}
