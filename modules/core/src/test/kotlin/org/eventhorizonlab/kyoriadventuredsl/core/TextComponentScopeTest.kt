@@ -1,4 +1,4 @@
-package org.eventhorizonlab.kyoriadventuredsl
+package org.eventhorizonlab.kyoriadventuredsl.core
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
@@ -7,7 +7,7 @@ import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextDecoration
 
-class DefaultTextComponentScopeTest :
+class TextComponentScopeTest :
     StringSpec({
         "builds a simple text component with content" {
             val content = "Hello World!"

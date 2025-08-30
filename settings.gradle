@@ -11,5 +11,7 @@ plugins {
 
 rootProject.name = 'KyoriAdventureDSL'
 
-include 'core'
-project(':core').projectDir = file('modules/core')
+['core', 'core-api'].forEach {
+    include it
+    project(":$it").projectDir = file("modules/$it")
+}
