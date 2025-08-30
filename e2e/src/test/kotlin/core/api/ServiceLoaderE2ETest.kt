@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.instanceOf
 import net.kyori.adventure.text.format.NamedTextColor
 import org.eventhorizonlab.core.api.TextComponentScope
+import org.eventhorizonlab.core.api.textComponent
 import java.util.*
 
 class ServiceLoaderE2ETest :
@@ -21,8 +22,17 @@ class ServiceLoaderE2ETest :
             factory.javaClass.classLoader shouldBe TextComponentScope::class.java.classLoader
             factory.javaClass.isInterface shouldBe false
 
-            val component =
+            val factoryComponent =
                 factory.create {
+                    content("Hello E2E")
+                    color(NamedTextColor.RED)
+                }
+
+            factoryComponent.content() shouldBe "Hello E2E"
+            factoryComponent.color() shouldBe NamedTextColor.RED
+
+            val component =
+                textComponent {
                     content("Hello E2E")
                     color(NamedTextColor.RED)
                 }
