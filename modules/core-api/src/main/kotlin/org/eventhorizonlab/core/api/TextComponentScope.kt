@@ -3,7 +3,7 @@ package org.eventhorizonlab.core.api
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextDecoration
-import org.eventhorizonlab.core.api.annotations.ServiceContract
+import org.eventhorizonlab.spi.ServiceContract
 import java.util.*
 
 @DslMarker

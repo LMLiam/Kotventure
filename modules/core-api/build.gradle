@@ -1,0 +1,3 @@
+dependencies {
+    compileOnly "org.eventhorizonlab:spi-tooling-annotations:1.0.0-SNAPSHOT"
+}

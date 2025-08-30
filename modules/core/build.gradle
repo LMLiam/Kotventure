@@ -1,6 +1,10 @@
+plugins {
+    id 'org.jetbrains.kotlin.kapt'
+}
+
 dependencies {
     implementation(project(":core-api"))
 
     compileOnly "org.eventhorizonlab:spi-tooling-annotations:1.0.0-SNAPSHOT"
-    annotationProcessor "org.eventhorizonlab:spi-tooling-processor:1.0.0-SNAPSHOT"
+    kapt "org.eventhorizonlab:spi-tooling-processor:1.0.0-SNAPSHOT"
 }

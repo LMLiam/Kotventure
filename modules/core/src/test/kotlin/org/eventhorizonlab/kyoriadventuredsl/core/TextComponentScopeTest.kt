@@ -11,7 +11,7 @@ class TextComponentScopeTest :
     StringSpec({
 
         // Use the concrete Factory to create components
-        val factory = TextComponentScope.Factory()
+        val factory = DefaultTextComponentScope.Factory()
 
         "builds a simple text component with content" {
             val content = "Hello World!"
