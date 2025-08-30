@@ -27,10 +27,11 @@ fun textComponent(init: TextComponentScope.() -> Unit): TextComponent {
     val loader = ServiceLoader.load(TextComponentScope.Factory::class.java)
     val apiClassLoader = TextComponentScope::class.java.classLoader
 
-    val factory = loader.firstOrNull {
-        it.javaClass.classLoader != apiClassLoader
-    } ?: loader.firstOrNull()
-    ?: error("No TextComponentScope.Factory implementation found")
+    val factory =
+        loader.firstOrNull {
+            it.javaClass.classLoader != apiClassLoader
+        } ?: loader.firstOrNull()
+            ?: error("No TextComponentScope.Factory implementation found")
 
     return factory.create(init)
 }
