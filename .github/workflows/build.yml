@@ -29,6 +29,9 @@ jobs:
       - name: Executable Gradle
         run: chmod +x gradlew
 
+      - name: Check Code Quality
+        run: ./gradlew spotlessCheck
+
       - name: Build with Gradle
         run: ./gradlew build
 
