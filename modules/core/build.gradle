@@ -2,6 +2,8 @@ dependencies {
     implementation(project(":core-api"))
 }
 
+def generatedResourcesDir = layout.buildDirectory.dir("generated-resources/main").get().asFile
+
 tasks.register('generateServiceFiles') {
     group = 'build setup'
     description = 'Scans for @ServiceContract and @ServiceProvider across modules and generates META-INF/services entries'
@@ -9,6 +11,8 @@ tasks.register('generateServiceFiles') {
     // Ensure compiled classes exist before scanning
     dependsOn ':core-api:compileKotlin', ':core-api:compileJava',
             ':core:compileKotlin', ':core:compileJava'
+
+    outputs.dir(generatedResourcesDir)
 
     doLast {
         // 1️⃣ Merge runtime classpaths for both modules so all deps are visible
@@ -63,24 +67,21 @@ tasks.register('generateServiceFiles') {
             }
         }
 
-        // 7️⃣ Where to write META-INF/services (in core’s resources)
-        def resourcesDir = project(':core').layout.buildDirectory.dir("resources/main").get().asFile
-
-        // 8️⃣ Generate service files for each contract
+        // 7️⃣ Write META-INF/services into generated-resources dir
         contracts.each { contract ->
             def impls = providers[contract] ?: []
             if (impls.isEmpty()) {
                 throw new GradleException("No @ServiceProvider found for contract ${contract.name}")
             }
 
-            def serviceFile = new File(resourcesDir, "META-INF/services/${contract.name}")
+            def serviceFile = new File(generatedResourcesDir, "META-INF/services/${contract.name}")
             serviceFile.parentFile.mkdirs()
             serviceFile.text = impls.collect { it.name }.join('\n')
 
             println "✅ Generated service file for ${contract.name} with ${impls.size()} provider(s)"
         }
 
-        // 9️⃣ Fail if any provider targets a non-contract
+        // 8️⃣ Fail if any provider targets a non-contract
         providers.each { target, impls ->
             if (!contracts.contains(target)) {
                 throw new GradleException("@ServiceProvider target ${target.name} is not annotated with @ServiceContract")
@@ -89,7 +90,10 @@ tasks.register('generateServiceFiles') {
     }
 }
 
-// Hook into processResources in :core so files are packaged
-project(':core').tasks.named('processResources') {
+// Tell processResources to include generated service files
+tasks.named('processResources', Copy) {
+    from(generatedResourcesDir) {
+        include "META-INF/services/**"
+    }
     dependsOn 'generateServiceFiles'
 }
