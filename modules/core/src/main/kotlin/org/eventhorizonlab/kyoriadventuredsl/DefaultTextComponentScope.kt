@@ -4,36 +4,37 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextDecoration
+import org.eventhorizonlab.kyoriadventuredsl.api.TextComponentScope
 
 @DslMarker
-annotation class AdventureDsl
+internal annotation class AdventureDsl
 
 @AdventureDsl
-class TextComponentScope internal constructor(
+internal class DefaultTextComponentScope(
     private val builder: TextComponent.Builder
-) {
-    fun content(content: String) {
+) : TextComponentScope {
+    override fun content(content: String) {
         builder.content(content)
     }
 
-    fun color(color: NamedTextColor) {
+    override fun color(color: NamedTextColor) {
         builder.color(color)
     }
 
-    fun decorate(vararg decorations: TextDecoration) {
+    override fun decorate(vararg decorations: TextDecoration) {
         decorations.forEach { builder.decoration(it, true) }
     }
 
-    fun text(init: TextComponentScope.() -> Unit) {
+    override fun text(init: TextComponentScope.() -> Unit) {
         val childBuilder = Component.text()
-        TextComponentScope(childBuilder).init()
+        DefaultTextComponentScope(childBuilder).init()
         builder.append(childBuilder.build())
     }
 
-    internal fun build() = builder.build()
+    fun build() = builder.build()
 }
 
 fun textComponent(init: TextComponentScope.() -> Unit): TextComponent {
     val builder = Component.text()
-    return TextComponentScope(builder).apply(init).build()
+    return DefaultTextComponentScope(builder).apply(init).build()
 }

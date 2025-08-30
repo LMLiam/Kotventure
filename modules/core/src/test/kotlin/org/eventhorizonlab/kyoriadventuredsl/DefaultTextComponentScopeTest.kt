@@ -7,7 +7,7 @@ import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextDecoration
 
-class TextComponentScopeTest :
+class DefaultTextComponentScopeTest :
     StringSpec({
         "builds a simple text component with content" {
             val content = "Hello World!"
