@@ -6,7 +6,7 @@ plugins {
     id 'idea'
 }
 
-group = 'org.eventhorizonlab.kyoriadventuredsl'
+group = 'com.github.eventhorizonlab'
 version = '0.0.1-PRE-ALPHA'
 
 subprojects {

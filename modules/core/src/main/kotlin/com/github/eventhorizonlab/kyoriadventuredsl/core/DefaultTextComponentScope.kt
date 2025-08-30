@@ -1,11 +1,11 @@
-package org.eventhorizonlab.kyoriadventuredsl.core
+package com.github.eventhorizonlab.kyoriadventuredsl.core
 
+import com.github.eventhorizonlab.core.api.TextComponentScope
+import com.github.eventhorizonlab.spi.ServiceProvider
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextDecoration
-import org.eventhorizonlab.core.api.TextComponentScope
-import org.eventhorizonlab.spi.ServiceProvider
 
 internal class DefaultTextComponentScope(
     private val builder: TextComponent.Builder

@@ -1,11 +1,11 @@
-package core.api
+package com.github.eventhorizonlab.kyoriadventuredsl.api
 
+import com.github.eventhorizonlab.core.api.TextComponentScope
+import com.github.eventhorizonlab.core.api.textComponent
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.instanceOf
 import net.kyori.adventure.text.format.NamedTextColor
-import org.eventhorizonlab.core.api.TextComponentScope
-import org.eventhorizonlab.core.api.textComponent
 import java.util.*
 
 class ServiceLoaderE2ETest :

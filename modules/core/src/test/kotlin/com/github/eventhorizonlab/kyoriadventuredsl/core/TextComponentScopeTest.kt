@@ -1,4 +1,4 @@
-package org.eventhorizonlab.kyoriadventuredsl.core
+package com.github.eventhorizonlab.kyoriadventuredsl.core
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe

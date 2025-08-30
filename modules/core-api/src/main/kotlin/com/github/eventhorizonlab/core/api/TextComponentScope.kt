@@ -1,9 +1,9 @@
-package org.eventhorizonlab.core.api
+package com.github.eventhorizonlab.core.api
 
+import com.github.eventhorizonlab.spi.ServiceContract
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextDecoration
-import org.eventhorizonlab.spi.ServiceContract
 import java.util.*
 
 @DslMarker
