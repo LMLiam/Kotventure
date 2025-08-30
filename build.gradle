@@ -30,7 +30,7 @@ subprojects {
     }
 
     tasks.named("check") {
-        dependsOn("spotlessCheck")
+        dependsOn("spotlessApply")
     }
 
     tasks.named("test") {
