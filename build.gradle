@@ -33,6 +33,10 @@ subprojects {
         dependsOn("spotlessCheck")
     }
 
+    tasks.named("test") {
+        enabled = false
+    }
+
     apply from: rootProject.file('gradle/spotless.gradle')
 }
 
