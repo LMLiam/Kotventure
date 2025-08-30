@@ -1,0 +1,8 @@
+dependencies {
+    testImplementation(project(":core-api"))
+    testRuntimeOnly(project(":core"))
+}
+
+project(":e2e").tasks.named("kotest") {
+    dependsOn(":core:jar")
+}

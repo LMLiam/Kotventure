@@ -16,4 +16,4 @@ annotation class ServiceProvider(
  */
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
-annotation class ServiceContract
+internal annotation class ServiceContract

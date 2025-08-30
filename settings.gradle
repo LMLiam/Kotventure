@@ -15,3 +15,5 @@ rootProject.name = 'KyoriAdventureDSL'
     include it
     project(":$it").projectDir = file("modules/$it")
 }
+
+include 'e2e'
