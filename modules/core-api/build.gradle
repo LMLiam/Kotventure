@@ -1,3 +1,3 @@
 dependencies {
-    compileOnly "io.github.eventhorizonlab:spi-tooling-annotations:0.1.0"
+    compileOnly "io.github.eventhorizonlab:spi-tooling-annotations:0.1.16"
 }

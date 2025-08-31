@@ -5,6 +5,6 @@ plugins {
 dependencies {
     implementation(project(":core-api"))
 
-    compileOnly "io.github.eventhorizonlab:spi-tooling-annotations:0.1.0"
-    kapt "io.github.eventhorizonlab:spi-tooling-processor:0.1.0"
+    compileOnly "io.github.eventhorizonlab:spi-tooling-annotations:0.1.16"
+    kapt "io.github.eventhorizonlab:spi-tooling-processor:0.1.16"
 }
