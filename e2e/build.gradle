@@ -1,8 +1,8 @@
 dependencies {
     testImplementation(project(":core-api"))
-    testRuntimeOnly(project(":core"))
+    testImplementation(files(project(":core").tasks.named("jar").map { it.archiveFile }))
 }
 
-project(":e2e").tasks.named("kotest") {
+tasks.named("kotest") {
     dependsOn(":core:jar")
 }

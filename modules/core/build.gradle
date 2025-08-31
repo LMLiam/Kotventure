@@ -2,9 +2,11 @@ plugins {
     id 'org.jetbrains.kotlin.kapt'
 }
 
+apply from: rootProject.file('gradle/versions.gradle')
+
 dependencies {
     implementation(project(":core-api"))
 
-    compileOnly "io.github.eventhorizonlab:spi-tooling-annotations:0.1.16"
-    kapt "io.github.eventhorizonlab:spi-tooling-processor:0.1.16"
+    compileOnly "io.github.eventhorizonlab:spi-tooling-annotations:${versions.spi}"
+    kapt "io.github.eventhorizonlab:spi-tooling-processor:${versions.spi}"
 }

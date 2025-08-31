@@ -1,4 +1,5 @@
 {
   "kotest": "6.0.1",
-  "adventure-api": "4.24.0"
+  "adventure-api": "4.24.0",
+  "spi": "0.1.17"
 }

@@ -1,3 +1,5 @@
+apply from: rootProject.file('gradle/versions.gradle')
+
 dependencies {
-    compileOnly "io.github.eventhorizonlab:spi-tooling-annotations:0.1.16"
+    compileOnly "io.github.eventhorizonlab:spi-tooling-annotations:${versions.spi}"
 }

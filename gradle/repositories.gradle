@@ -1,4 +1,14 @@
 repositories {
     mavenLocal()
     mavenCentral()
+    if (project.findProperty("gprUse") != null) {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/EventHorizonLab/SPI-Tooling")
+            credentials {
+                username = project.findProperty("gprUser") as String
+                password = project.findProperty("gprToken") as String
+            }
+        }
+    }
 }

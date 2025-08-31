@@ -11,7 +11,11 @@ import java.util.*
 class ServiceLoaderE2ETest :
     StringSpec({
         "ServiceLoader should discover and use TextComponentScope.Factory" {
-            val loader = ServiceLoader.load(TextComponentScope.Factory::class.java)
+            val loader =
+                ServiceLoader.load(
+                    TextComponentScope.Factory::class.java,
+                    Thread.currentThread().contextClassLoader
+                )
             val factories = loader.toList()
 
             factories.size shouldBe 1

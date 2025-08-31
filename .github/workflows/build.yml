@@ -7,9 +7,17 @@ on:
     types:
       - opened
       - synchronize
+
+permissions:
+  packages: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      ORG_GRADLE_PROJECT_gprUse: 'true'
+      ORG_GRADLE_PROJECT_gprUser: ${{ github.actor }}
+      ORG_GRADLE_PROJECT_gprToken: ${{ secrets.GITHUB_TOKEN }}
     permissions:
       checks: write
       pull-requests: write
