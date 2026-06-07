@@ -1,4 +1,24 @@
 def ktlintVersion = '1.5.0'
+def editorConfigFile = rootProject.file('.editorconfig')
+def spotlessKtlintRuleOverrideNames = [
+        'ktlint_standard_indent',
+        'ktlint_standard_string-template-indent'
+]
+def editorConfigValues =
+        editorConfigFile.readLines().collectEntries { line ->
+            def trimmed = line.trim()
+            def separator = trimmed.indexOf('=')
+
+            if (separator < 0 || trimmed.startsWith('#') || trimmed.startsWith(';')) {
+                [:]
+            } else {
+                [(trimmed.substring(0, separator).trim()): trimmed.substring(separator + 1).trim()]
+            }
+        }
+def spotlessKtlintRuleOverrides =
+        spotlessKtlintRuleOverrideNames.collectEntries { ruleName ->
+            editorConfigValues.containsKey(ruleName) ? [(ruleName): editorConfigValues[ruleName]] : [:]
+        }
 
 ktlint {
     version.set(ktlintVersion)
@@ -18,12 +38,9 @@ spotless {
 
     kotlin {
         ktlint(ktlintVersion)
-                // Spotless ktlint does not honor these disabled rules from .editorconfig on its own.
-                .editorConfigOverride([
-                        'ktlint_standard_indent'                : 'disabled',
-                        'ktlint_standard_string-template-indent': 'disabled'
-                ])
-                .setEditorConfigPath("$rootDir/.editorconfig")
+                // Feed Spotless the ktlint disables declared in .editorconfig; setEditorConfigPath misses them.
+                .editorConfigOverride(spotlessKtlintRuleOverrides)
+                .setEditorConfigPath(editorConfigFile.path)
     }
 }
 
