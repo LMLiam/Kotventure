@@ -9,23 +9,48 @@ if (!editorConfigFile.exists()) {
     throw new GradleException(".editorconfig not found at ${editorConfigFile.path}")
 }
 
+def normalizeEditorConfigValue = { String rawValue ->
+    def value = rawValue.trim()
+
+    ['#', ';'].each { marker ->
+        def markerIndex = value.indexOf(marker)
+
+        if (markerIndex >= 0) {
+            value = value.substring(0, markerIndex).trim()
+        }
+    }
+
+    if (
+            value.length() >= 2 &&
+                    ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'")))
+    ) {
+        value = value.substring(1, value.length() - 1)
+    }
+
+    value
+}
+
 def editorConfigValues = [:]
 def inKotlinEditorConfigSection = false
-editorConfigFile.eachLine { line ->
-    def trimmed = line.trim()
+try {
+    editorConfigFile.eachLine { line ->
+        def trimmed = line.trim()
 
-    if (trimmed && !trimmed.startsWith('#') && !trimmed.startsWith(';')) {
-        if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-            inKotlinEditorConfigSection = trimmed == kotlinEditorConfigSection
-        } else if (inKotlinEditorConfigSection) {
-            def separator = trimmed.indexOf('=')
+        if (trimmed && !trimmed.startsWith('#') && !trimmed.startsWith(';')) {
+            if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+                inKotlinEditorConfigSection = trimmed == kotlinEditorConfigSection
+            } else if (inKotlinEditorConfigSection) {
+                def separator = trimmed.indexOf('=')
 
-            if (separator >= 0) {
-                editorConfigValues[trimmed.substring(0, separator).trim()] =
-                        trimmed.substring(separator + 1).trim()
+                if (separator >= 0) {
+                    editorConfigValues[trimmed.substring(0, separator).trim()] =
+                            normalizeEditorConfigValue(trimmed.substring(separator + 1))
+                }
             }
         }
     }
+} catch (IOException exception) {
+    throw new GradleException("Unable to read .editorconfig at ${editorConfigFile.path}", exception)
 }
 
 def missingSpotlessKtlintRuleOverrides =
