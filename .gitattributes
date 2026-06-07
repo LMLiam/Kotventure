@@ -1,0 +1,17 @@
+# Normalise line endings across platforms.
+* text=auto eol=lf
+
+# Windows scripts keep CRLF.
+*.bat text eol=crlf
+
+# Shell scripts and the Gradle wrapper stay LF.
+*.sh text eol=lf
+gradlew text eol=lf
+
+# Binary assets.
+*.jar binary
+*.png binary
+
+# Keep generated/vendored files from skewing language statistics.
+gradle/wrapper/** linguist-vendored
+docs/** linguist-documentation

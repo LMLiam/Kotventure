@@ -11,5 +11,7 @@ plugins {
 
 rootProject.name = 'KyoriAdventureDSL'
 
-include 'core'
-project(':core').projectDir = file('modules/core')
+// Modules are introduced lazily, one phase at a time (see docs/DESIGN.md §4 and issue #7).
+// Each module lives under modules/<name>; re-enable entries as the modules land, e.g.:
+//   include 'core'
+//   project(':core').projectDir = file('modules/core')
