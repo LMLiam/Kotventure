@@ -6,8 +6,8 @@ plugins {
     id 'idea'
 }
 
-group = 'org.eventhorizonlab.kyoriadventuredsl'
-version = '1.0-SNAPSHOT'
+group = 'io.github.lmliam.kyoriadventuredsl'
+version = '0.0.1-SNAPSHOT'
 
 subprojects {
     apply plugin: 'org.jetbrains.kotlin.jvm'
