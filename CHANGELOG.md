@@ -13,17 +13,21 @@ once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land i
 - Project migrated to the `LMLiam` namespace (`io.github.lmliam.kotventure`).
 - Open-source community files (contributing guide, security & support policies, Dependabot).
 - [`docs/DESIGN.md`](docs/DESIGN.md) — full design and module architecture.
-- `AGENTS.md` and `.agents/skills/` — guidance and reusable playbooks for AI coding agents (Codex-compatible `SKILL.md` format).
+- `AGENTS.md` and `.agents/skills/` — guidance and reusable playbooks for AI coding agents (Codex-compatible `SKILL.md`
+  format).
 - `.gitattributes` for consistent line endings and language stats.
 - Stricter Kotlin linting: ktlint official code style, no wildcard imports, and `explicitApi()` for library modules.
-- Security workflows (SHA-pinned): Qodana Community for JVM (`qodana-jvm-community`), OpenSSF Scorecard, and Dependency Review.
+- Security workflows (SHA-pinned): Qodana Community for JVM (`qodana-jvm-community`), OpenSSF Scorecard, and Dependency
+  Review.
 - Default pull request template, alongside the existing per-type templates.
 - Auto-generated release-notes config (`.github/release.yml`) grouped by `type:`/`area:` labels.
 - PR auto-labeler (`.github/labeler.yml` + workflow) applying `area:*` labels by changed path.
 - Dependabot grouping of minor/patch updates; Gradle parallel + build cache.
 - Java 25 project baseline with Gradle Wrapper 9.5.1.
 - `core` module with the first direct `component {}` text builder slice.
-- Explicit `AdventureDsl` registry slots for MiniMessage tag providers, themes, animation drivers, and platform adapters.
-- Regression tests covering the new component builder, registry behavior, and absence of SPI wiring in production sources.
+- Explicit `AdventureDsl` registry slots for MiniMessage tag providers, themes, animation drivers, and platform
+  adapters.
+- Regression tests covering the new component builder, registry behavior, and absence of SPI wiring in production
+  sources.
 
 [Unreleased]: https://github.com/LMLiam/Kotventure/commits/master

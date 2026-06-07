@@ -7,6 +7,7 @@
 ---
 
 ## 🎯 Purpose of Pre‑Alpha
+
 - **Prove the concept** of a Kotlin DSL for [Adventure](https://github.com/PaperMC/adventure) components.
 - Establish **baseline syntax ergonomics** and builder patterns.
 - Validate **feasibility** of type‑safe, chainable component creation.
@@ -15,6 +16,7 @@
 ---
 
 ## 🧩 Scope for 0.0.x
+
 - **Minimal vertical slice** of the DSL:
     - `text` component builder with `color` and `decoration` support
     - Nesting support for child components
@@ -28,6 +30,7 @@
 ---
 
 ## 📦 Deliverables
+
 - `kotventure-core-0.0.x-PRE-ALPHA.jar`
 - `kotventure-0.0.x-PRE-ALPHA.jar`
 - Minimal `README.md` with example:
@@ -39,10 +42,10 @@
       }
   }
 
-
 ---
 
 ## ✅ Success Crieria
+
 - Can build and publish artifacts locally and via CI
 - DSL products valid Adventure `Component` objects for implemented features
 - No hard-coded, one-off logic -- architecture allows new component types to slot in without refactors
@@ -51,6 +54,7 @@
 ---
 
 ## ⚠️ Limitations & Warnings
+
 - Expected frequent **breaking changes** until Alpha
-- Limited component coverage -- not representative of final API surface 
+- Limited component coverage -- not representative of final API surface
 - No performance optimisations -- focus is on correctness and developer experience

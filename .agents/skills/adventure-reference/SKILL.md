@@ -5,11 +5,14 @@ description: Use when you need an Adventure API and must not guess its shape —
 
 # Adventure API reference
 
-A map of the API this project wraps. **Verify exact signatures against the Javadoc (https://jd.advntr.dev) or the dependency sources before use — do not invent methods.** Target is `adventure-api` 5.1.1 unless the roadmap issue explicitly says otherwise.
+A map of the API this project wraps. **Verify exact signatures against the Javadoc (https://jd.advntr.dev) or the
+dependency sources before use — do not invent methods.** Target is `adventure-api` 5.1.1 unless the roadmap issue
+explicitly says otherwise.
 
 ## Components — `net.kyori.adventure.text`
 
-- `Component.text("...")` → `TextComponent.Builder` (`.content`, `.color`, `.decoration(TextDecoration, boolean)`, `.append(Component)`, `.clickEvent`, `.hoverEvent`).
+- `Component.text("...")` → `TextComponent.Builder` (`.content`, `.color`, `.decoration(TextDecoration, boolean)`,
+  `.append(Component)`, `.clickEvent`, `.hoverEvent`).
 - `Component.translatable(key, fallback, args)` → `TranslatableComponent`.
 - `Component.keybind(key)`, `Component.score(name, objective)`, `Component.selector(pattern)`.
 - NBT: `Component.blockNBT()`, `entityNBT()`, `storageNBT()` (path, `interpret`, separator, source).
@@ -30,8 +33,10 @@ A map of the API this project wraps. **Verify exact signatures against the Javad
 
 ## Serializers
 
-- MiniMessage: `MiniMessage.miniMessage().deserialize(str, TagResolver...)` / `.serialize(component)` — `adventure-text-minimessage`.
-- `GsonComponentSerializer.gson()` (JSON), `LegacyComponentSerializer.legacyAmpersand()/legacySection()`, `PlainTextComponentSerializer.plainText()`.
+- MiniMessage: `MiniMessage.miniMessage().deserialize(str, TagResolver...)` / `.serialize(component)` —
+  `adventure-text-minimessage`.
+- `GsonComponentSerializer.gson()` (JSON), `LegacyComponentSerializer.legacyAmpersand()/legacySection()`,
+  `PlainTextComponentSerializer.plainText()`.
 - ANSI: `ANSIComponentSerializer` — `adventure-text-serializer-ansi` (build the `ansi` module on this).
 
 ## MiniMessage tags/resolvers — `net.kyori.adventure.text.minimessage`
@@ -59,4 +64,5 @@ A map of the API this project wraps. **Verify exact signatures against the Javad
 - **Fabric:** `adventure-platform-fabric` → `FabricServerAudiences`.
 - `Key` (`net.kyori.adventure.key.Key`) for namespaced ids; `Keyed`/`Pointered` for identity & locale.
 
-When in doubt: open the relevant module's sources from the Gradle dependency, or the Javadoc — never ship an API call you haven't confirmed exists.
+When in doubt: open the relevant module's sources from the Gradle dependency, or the Javadoc — never ship an API call
+you haven't confirmed exists.

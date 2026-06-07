@@ -9,28 +9,30 @@ import kotlin.io.path.isRegularFile
 import kotlin.io.path.readText
 
 class NoServiceLoaderTest :
-    StringSpec({
-        "production sources do not use ServiceLoader or SPI annotations" {
-            val forbiddenTerms =
-                listOf(
-                    "ServiceLoader",
-                    "ServiceContract",
-                    "ServiceProvider",
-                    "META-INF/services",
-                )
-            val productionFiles =
-                Files.walk(Path("src/main")).use { files ->
-                    files
-                        .filter { it.isRegularFile() }
-                        .filter { it.extension in setOf("kt", "java", "kts") }
-                        .toList()
-                }
+    StringSpec(
+        {
+            "production sources do not use ServiceLoader or SPI annotations" {
+                val forbiddenTerms =
+                    listOf(
+                        "ServiceLoader",
+                        "ServiceContract",
+                        "ServiceProvider",
+                        "META-INF/services",
+                    )
+                val productionFiles =
+                    Files.walk(Path("src/main")).use { files ->
+                        files
+                            .filter { it.isRegularFile() }
+                            .filter { it.extension in setOf("kt", "java", "kts") }
+                            .toList()
+                    }
 
-            val offenders =
-                productionFiles
-                    .filter { file -> forbiddenTerms.any { term -> file.readText().contains(term) } }
-                    .map { it.toString() }
+                val offenders =
+                    productionFiles
+                        .filter { file -> forbiddenTerms.any { term -> file.readText().contains(term) } }
+                        .map { it.toString() }
 
-            offenders.shouldBeEmpty()
-        }
-    })
+                offenders.shouldBeEmpty()
+            }
+        },
+    )

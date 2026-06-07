@@ -14,98 +14,100 @@ import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.Style
 
 class AdventureDslTest :
-    StringSpec({
-        beforeTest {
-            AdventureDsl.reset()
-        }
+    StringSpec(
+        {
+            beforeTest {
+                AdventureDsl.reset()
+            }
 
-        afterTest {
-            AdventureDsl.reset()
-        }
+            afterTest {
+                AdventureDsl.reset()
+            }
 
-        "registers and retrieves MiniMessage tag providers by name" {
-            val provider = TestMiniMessageTagProvider("player")
+            "registers and retrieves MiniMessage tag providers by name" {
+                val provider = TestMiniMessageTagProvider("player")
 
-            AdventureDsl.registerMiniMessageTag(provider)
+                AdventureDsl.registerMiniMessageTag(provider)
 
-            AdventureDsl.miniMessageTag("player") shouldBe provider
-            AdventureDsl.miniMessageTags() shouldContainExactly mapOf("player" to provider)
-        }
+                AdventureDsl.miniMessageTag("player") shouldBe provider
+                AdventureDsl.miniMessageTags() shouldContainExactly mapOf("player" to provider)
+            }
 
-        "registers and retrieves theme providers by name" {
-            val provider =
-                TestThemeProvider(
-                    name = "brand",
-                    styles = mapOf("header" to Style.style(NamedTextColor.AQUA)),
-                )
+            "registers and retrieves theme providers by name" {
+                val provider =
+                    TestThemeProvider(
+                        name = "brand",
+                        styles = mapOf("header" to Style.style(NamedTextColor.AQUA)),
+                    )
 
-            AdventureDsl.registerTheme(provider)
+                AdventureDsl.registerTheme(provider)
 
-            AdventureDsl.theme("brand") shouldBe provider
-            AdventureDsl.themes() shouldContainExactly mapOf("brand" to provider)
-        }
+                AdventureDsl.theme("brand") shouldBe provider
+                AdventureDsl.themes() shouldContainExactly mapOf("brand" to provider)
+            }
 
-        "registers and retrieves animation drivers by name" {
-            val driver = TestAnimationDriver("test")
+            "registers and retrieves animation drivers by name" {
+                val driver = TestAnimationDriver("test")
 
-            AdventureDsl.registerAnimationDriver(driver)
+                AdventureDsl.registerAnimationDriver(driver)
 
-            AdventureDsl.animationDriver("test") shouldBe driver
-            AdventureDsl.animationDrivers() shouldContainExactly mapOf("test" to driver)
-        }
+                AdventureDsl.animationDriver("test") shouldBe driver
+                AdventureDsl.animationDrivers() shouldContainExactly mapOf("test" to driver)
+            }
 
-        "registers and retrieves the active platform adapter" {
-            val adapter = TestPlatformAdapter("paper")
+            "registers and retrieves the active platform adapter" {
+                val adapter = TestPlatformAdapter("paper")
 
-            AdventureDsl.registerPlatformAdapter(adapter)
+                AdventureDsl.registerPlatformAdapter(adapter)
 
-            AdventureDsl.platformAdapter() shouldBe adapter
-        }
+                AdventureDsl.platformAdapter() shouldBe adapter
+            }
 
-        "returns null for unregistered extension lookups" {
-            AdventureDsl.miniMessageTag("missing").shouldBeNull()
-            AdventureDsl.theme("missing").shouldBeNull()
-            AdventureDsl.animationDriver("missing").shouldBeNull()
-            AdventureDsl.platformAdapter().shouldBeNull()
-        }
+            "returns null for unregistered extension lookups" {
+                AdventureDsl.miniMessageTag("missing").shouldBeNull()
+                AdventureDsl.theme("missing").shouldBeNull()
+                AdventureDsl.animationDriver("missing").shouldBeNull()
+                AdventureDsl.platformAdapter().shouldBeNull()
+            }
 
-        "returns immutable MiniMessage tag snapshots" {
-            val tagProvider = TestMiniMessageTagProvider("player")
+            "returns immutable MiniMessage tag snapshots" {
+                val tagProvider = TestMiniMessageTagProvider("player")
 
-            AdventureDsl.registerMiniMessageTag(tagProvider)
-            val snapshot = AdventureDsl.miniMessageTags()
-            AdventureDsl.reset()
+                AdventureDsl.registerMiniMessageTag(tagProvider)
+                val snapshot = AdventureDsl.miniMessageTags()
+                AdventureDsl.reset()
 
-            snapshot shouldContainExactly mapOf("player" to tagProvider)
-            AdventureDsl.miniMessageTags() shouldContainExactly emptyMap()
-        }
+                snapshot shouldContainExactly mapOf("player" to tagProvider)
+                AdventureDsl.miniMessageTags() shouldContainExactly emptyMap()
+            }
 
-        "returns immutable theme snapshots" {
-            val themeProvider =
-                TestThemeProvider(
-                    name = "brand",
-                    styles = mapOf("header" to Style.style(NamedTextColor.AQUA)),
-                )
+            "returns immutable theme snapshots" {
+                val themeProvider =
+                    TestThemeProvider(
+                        name = "brand",
+                        styles = mapOf("header" to Style.style(NamedTextColor.AQUA)),
+                    )
 
-            AdventureDsl.registerTheme(themeProvider)
-            val snapshot = AdventureDsl.themes()
-            AdventureDsl.reset()
+                AdventureDsl.registerTheme(themeProvider)
+                val snapshot = AdventureDsl.themes()
+                AdventureDsl.reset()
 
-            snapshot shouldContainExactly mapOf("brand" to themeProvider)
-            AdventureDsl.themes() shouldContainExactly emptyMap()
-        }
+                snapshot shouldContainExactly mapOf("brand" to themeProvider)
+                AdventureDsl.themes() shouldContainExactly emptyMap()
+            }
 
-        "returns immutable animation driver snapshots" {
-            val driver = TestAnimationDriver("test")
+            "returns immutable animation driver snapshots" {
+                val driver = TestAnimationDriver("test")
 
-            AdventureDsl.registerAnimationDriver(driver)
-            val snapshot = AdventureDsl.animationDrivers()
-            AdventureDsl.reset()
+                AdventureDsl.registerAnimationDriver(driver)
+                val snapshot = AdventureDsl.animationDrivers()
+                AdventureDsl.reset()
 
-            snapshot shouldContainExactly mapOf("test" to driver)
-            AdventureDsl.animationDrivers() shouldContainExactly emptyMap()
-        }
-    })
+                snapshot shouldContainExactly mapOf("test" to driver)
+                AdventureDsl.animationDrivers() shouldContainExactly emptyMap()
+            }
+        },
+    )
 
 private data class TestMiniMessageTagProvider(
     override val name: String,
