@@ -1,7 +1,7 @@
 name: Test Coverage Request
 description: Request new or improved tests.
 title: "test: "
-labels: ["type: test", "status: needs triage"]
+labels: [ "type: test", "status: needs triage" ]
 body:
   - type: textarea
     attributes:

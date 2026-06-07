@@ -6,7 +6,9 @@
 ---
 
 ## 📍 Current Stage — Pre‑Alpha (`0.0.x`)
+
 **Focus:**
+
 - Prove core DSL concept for Kotlin → Adventure component creation.
 - Ship *minimum viable* feature slice:
     - `text` component builder with `color` + `decoration`
@@ -19,7 +21,9 @@
 ---
 
 ## 🔜 Next Stage — Alpha (`0.1.x` → `0.8.x`)
+
 **Focus:**
+
 - Expand component coverage: `translate`, `keybind`, `score`, etc.
 - API surface “mostly there” but open to iteration.
 - Public pre‑release artifacts with “alpha” tag.
@@ -27,13 +31,16 @@
 - Begin collecting structured feedback via GitHub Issues
 
 **Milestone Criteria:**
+
 - Core API stable enough for hobbyist / experimental use.
 - README and module docs updated with examples and onboarding instructions.
 
 ---
 
 ## 📦 Beta (`0.9.x`)
+
 **Focus:**
+
 - Feature‑complete for planned 1.0.
 - API freeze — backwards‑compatibility guaranteed until 2.0.
 - Integration tests with real‑world scenarios / sample projects.
@@ -41,13 +48,16 @@
 - Performance profiling and optimisations.
 
 **Milestone Criteria:**
+
 - Ready for production testing.
 - No known breaking changes pending for 1.0.
 
 ---
 
 ## 🚀 Release (`1.0.0`)
+
 **Focus:**
+
 - Stable, documented, production‑ready API.
 - Semantic versioning commitment.
 - Signed artifacts deployed.
@@ -55,6 +65,7 @@
 ---
 
 ## 🛣️ Long‑Term Ideas (Post‑1.0)
+
 - Rich theme/plugin system for styling.
 - Developer tooling (e.g., DSL linting rules, IDE inspections).
 - Performance tuning for large‑scale component trees.
@@ -63,6 +74,7 @@
 ---
 
 ## 📆 High‑Level Timeline
+
 | Stage     | Target Range | Key Deliverable                      |
 |-----------|--------------|--------------------------------------|
 | Pre‑Alpha | 0.0.x (Now)  | Core DSL spike + snapshot publish    |

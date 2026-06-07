@@ -19,6 +19,7 @@ Closes #<issue-number>
 ## Type of change
 
 <!-- Tick all that apply. -->
+
 - [ ] feat — new capability
 - [ ] fix — bug fix
 - [ ] refactor — internal, no behaviour change
@@ -31,6 +32,7 @@ Closes #<issue-number>
 <!-- What did you add/run? Note the Kotest specs and whether `./gradlew build` passes. -->
 
 ## Checklist
+
 - [ ] Title and commit subjects follow `verb(area): something`
 - [ ] Linked the related issue
 - [ ] Tests added/updated (dogfood the `test` matchers where applicable)

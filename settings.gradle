@@ -15,3 +15,5 @@ rootProject.name = 'Kotventure'
 // Each module lives under modules/<name>; re-enable entries as the modules land, e.g.:
 //   include 'core'
 //   project(':core').projectDir = file('modules/core')
+include 'core'
+project(':core').projectDir = file('modules/core')
