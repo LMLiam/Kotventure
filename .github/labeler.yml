@@ -1,0 +1,59 @@
+# Auto-applied PR labels based on changed paths (actions/labeler v5).
+# Module paths follow docs/DESIGN.md §4; areas mirror the `area:*` label taxonomy.
+
+"area: core":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "modules/core/**"
+          - "modules/coroutines/**"
+
+"area: minimessage":
+  - changed-files:
+      - any-glob-to-any-file: "modules/minimessage/**"
+
+"area: i18n":
+  - changed-files:
+      - any-glob-to-any-file: "modules/i18n/**"
+
+"area: testing":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "modules/test/**"
+          - "e2e/**"
+
+"area: tooling":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "modules/ansi/**"
+          - "modules/ksp/**"
+          - "modules/annotations/**"
+          - "modules/gradle-plugin/**"
+
+"area: platform":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "modules/paper/**"
+          - "modules/velocity/**"
+          - "modules/fabric/**"
+
+"area: build":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "*.gradle"
+          - "gradle/**"
+          - "gradle.properties"
+          - "settings.gradle"
+          - "modules/bom/**"
+          - ".github/workflows/**"
+
+"type: docs":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs/**"
+          - "**/*.md"
+
+"dependencies":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "gradle/versions.json"
+          - "gradle/dependencies.gradle"
