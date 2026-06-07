@@ -27,7 +27,23 @@ Please keep all interactions constructive and considerate. Harassment or hostile
 - **Tests are required** for behavioural changes. We use [Kotest](https://kotest.io/); the `test` module provides component matchers — dogfood them.
 - **Formatting** is enforced by ktlint + Spotless. Run `./gradlew spotlessApply` before pushing.
 - **PR templates:** pick the template that matches your change (feature / bugfix / docs / chore). Link the issue with `Closes #<n>`.
-- **Conventional commit style** for titles is appreciated: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`.
+
+## Commit & PR title format (enforced)
+Both **pull request titles** and **every commit subject** must follow:
+
+```
+verb(area): something
+```
+
+- All lowercase `verb` and `area`; a `(area)` scope is **required**; followed by `: ` and a non-empty summary.
+- Pattern: `^[a-z]+\([a-z0-9][a-z0-9-]*\): [^[:space:]].*$`
+- This is enforced in CI by the **Conventional Titles** workflow (`.github/workflows/conventional-titles.yml`), which runs `.github/scripts/validate-conventional-title.sh`.
+
+**Recommended `verb`s:** `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`, `build`, `perf`.
+
+**Recommended `area`s** (match the module / label areas): `core`, `minimessage`, `i18n`, `test`, `ansi`, `coroutines`, `ksp`, `paper`, `velocity`, `fabric`, `gradle-plugin`, `bom`, `e2e`, `docs`, `ci`, `build`, `deps`, `repo`.
+
+Examples: `feat(minimessage): add typed placeholder DSL` · `fix(core): correct decoration reset` · `docs(repo): document title convention`.
 
 ## Labels & milestones
 Issues are triaged with `type:*`, `priority:*`, and `status:*` labels and grouped into phase **milestones** (Pre-Alpha → 1.0). See the [Roadmap](../docs/ROADMAP.md) for what each phase contains.
