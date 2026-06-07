@@ -47,6 +47,23 @@ See [`docs/DESIGN.md`](docs/DESIGN.md) for the full design and the [Roadmap](doc
 
 ---
 
+## ✅ Implemented So Far
+The first `core` slice exposes a plain component builder and explicit startup registry:
+
+```kotlin
+val message = component {
+    content("Hello ")
+    color(NamedTextColor.AQUA)
+    text {
+        content("world")
+    }
+}
+```
+
+`AdventureDsl` stores typed extension registrations for MiniMessage tag providers, theme providers, animation drivers, and the active platform adapter. Registration is explicit at startup; there is no classpath scanning.
+
+---
+
 ## 🚀 Getting It (early access)
 Pre-alpha snapshots will be published via [JitPack](https://jitpack.io). Coordinates and a worked example land with the first tagged slice (`0.0.1`).
 
