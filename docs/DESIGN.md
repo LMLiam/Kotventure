@@ -175,6 +175,8 @@ conveniences:
 ## 10. Build, publishing & versioning
 
 - **Build:** Gradle multi‑module, Kotlin 2.2, JVM toolchain 25, ktlint + Spotless, Kotest.
+- **Java compatibility:** Kotventure builds with the Java 25 toolchain. Adventure 5.x sets a Java 21+ consumer floor, so
+  modules should keep public APIs wrapper/composition based rather than extending Adventure component/style interfaces.
 - **Publishing:** **JitPack** during pre‑alpha/alpha (zero infra, builds from git tags) → **Maven Central** (
   `io.github.lmliam` namespace, GPG‑signed) at beta/`1.0`.
 - **BOM** module so consumers align versions across the many artifacts.

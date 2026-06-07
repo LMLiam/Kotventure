@@ -6,16 +6,14 @@ configurations {
     testImplementation.extendsFrom annotationProcessor
 }
 
-def dep = [
+ext.kotventureDependencies = [
         "adventure-api"         : "net.kyori:adventure-api:${versions.'adventure-api'}",
         "kotest-assertions-core": "io.kotest:kotest-assertions-core:${versions.kotest}",
         "kotest-runner-junit5"  : "io.kotest:kotest-runner-junit5:${versions.kotest}"
 ]
 
 dependencies {
-    implementation dep."adventure-api"
-
-    testImplementation dep."kotest-assertions-core"
-    testImplementation dep."kotest-runner-junit5"
+    testImplementation kotventureDependencies."kotest-assertions-core"
+    testImplementation kotventureDependencies."kotest-runner-junit5"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }
