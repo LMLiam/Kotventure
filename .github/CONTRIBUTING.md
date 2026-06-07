@@ -29,13 +29,14 @@ Please keep all interactions constructive and considerate. Harassment or hostile
 - **PR templates:** pick the template that matches your change (feature / bugfix / docs / chore). Link the issue with `Closes #<n>`.
 
 ## Commit & PR title format (enforced)
+
 Both **pull request titles** and **every commit subject** must follow:
 
-```
+```text
 verb(area): something
 ```
 
-- All lowercase `verb` and `area`; a `(area)` scope is **required**; followed by `: ` and a non-empty summary.
+- All lowercase `verb` and `area`; a `(area)` scope is **required**, followed by `:`, a space, and a non-empty summary.
 - Pattern: `^[a-z]+\([a-z0-9][a-z0-9-]*\): [^[:space:]].*$`
 - This is enforced in CI by the **Conventional Titles** workflow (`.github/workflows/conventional-titles.yml`), which runs `.github/scripts/validate-conventional-title.sh`.
 

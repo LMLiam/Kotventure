@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land in any release.
 
 ## [Unreleased]
+
 ### Added
+
 - Project migrated to the `LMLiam` namespace (`io.github.lmliam.kyoriadventuredsl`).
 - Open-source community files (contributing guide, security & support policies, Dependabot).
 - [`docs/DESIGN.md`](docs/DESIGN.md) — full design and module architecture.

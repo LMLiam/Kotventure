@@ -70,6 +70,8 @@ A single explicit `AdventureDsl` registry (plain Kotlin, no classpath scanning) 
 
 This keeps the common path magic‑free while making the genuinely variable parts swappable.
 
+**Animation layering** (arrives in Phase 3) spans three of these layers, so the split is deliberate: `core` defines the animation *abstractions* (frame model, ticker, and the driver interface); concrete **animation drivers** plug in via the registry entry above; and the `coroutines` module — together with the platform schedulers from the bundles — provides the runtime *scheduling and orchestration*. The composition flow is **abstractions → a driver registered here → the driver schedules/executes frames**.
+
 ## 5. Canonical DSL surface (illustrative)
 
 ```kotlin
@@ -98,7 +100,7 @@ player.title {
 }
 
 // ── Typed MiniMessage template + validation ────────────────────
-val Welcome = miniTemplate("<gold>Welcome <player>, <count> new") {
+val Welcome = miniTemplate("<gold>Welcome <player>, <count> new messages") {
     placeholder<Component>("player")
     placeholder<Int>("count")
 }
@@ -128,7 +130,7 @@ A **MiniMessage ⇄ DSL converter** round‑trips between markup strings and DSL
 
 - **Kotest** throughout (already the project's framework).
 - The `test` module exposes **matchers** (`shouldHaveColor`, `shouldContainText`, structural/child matchers, style assertions) and **snapshot testing** (serialize → diff against committed snapshots) so message regressions fail CI.
-- Every other module **dogfoods** these matchers.
+- Every other module **exercises** these matchers on its own output.
 - `e2e` covers cross‑module integration.
 
 ## 8. Tooling
