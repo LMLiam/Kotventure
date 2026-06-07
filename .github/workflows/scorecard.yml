@@ -21,8 +21,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
+      # Required for Scorecard to read repository content during analysis.
       contents: read
+      # Required to mint an OIDC token for Scorecard result publishing.
       id-token: write
+      # Required to upload SARIF results to GitHub code scanning.
       security-events: write
 
     steps:
