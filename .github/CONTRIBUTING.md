@@ -41,7 +41,7 @@ verb(area): something
 
 **Recommended `verb`s:** `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`, `build`, `perf`.
 
-**Recommended `area`s** (match the module / label areas): `core`, `minimessage`, `i18n`, `test`, `ansi`, `coroutines`, `ksp`, `paper`, `velocity`, `fabric`, `gradle-plugin`, `bom`, `e2e`, `docs`, `ci`, `build`, `deps`, `repo`.
+**Recommended `area`s** (match the module / label areas): `core`, `minimessage`, `i18n`, `test`, `ansi`, `coroutines`, `ksp`, `paper`, `velocity`, `fabric`, `gradle-plugin`, `bom`, `e2e`, `docs`, `ci`, `build`, `deps`, `repo`, `meta`.
 
 Examples: `feat(minimessage): add typed placeholder DSL` · `fix(core): correct decoration reset` · `docs(repo): document title convention`.
 
