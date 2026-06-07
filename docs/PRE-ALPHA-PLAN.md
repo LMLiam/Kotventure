@@ -1,4 +1,4 @@
-# KyoriAdventureDSL — Pre‑Alpha Plan
+# Kotventure — Pre‑Alpha Plan
 
 > **Version Range:** `0.0.x`  
 > **Lifecycle Stage:** Pre‑Alpha  
@@ -7,7 +7,7 @@
 ---
 
 ## 🎯 Purpose of Pre‑Alpha
-- **Prove the concept** of a Kotlin DSL for [Kyori Adventure](https://github.com/KyoriPowered/adventure) components.
+- **Prove the concept** of a Kotlin DSL for [Adventure](https://github.com/PaperMC/adventure) components.
 - Establish **baseline syntax ergonomics** and builder patterns.
 - Validate **feasibility** of type‑safe, chainable component creation.
 - Lay groundwork for **multi‑module Gradle setup** and reproducible builds.
@@ -28,12 +28,12 @@
 ---
 
 ## 📦 Deliverables
-- `kyoriadventuredsl-core-0.0.x-PRE-ALPHA.jar`
-- `kyoriadventuredsl-0.0.x-PRE-ALPHA.jar`
+- `kotventure-core-0.0.x-PRE-ALPHA.jar`
+- `kotventure-0.0.x-PRE-ALPHA.jar`
 - Minimal `README.md` with example:
   ```kotlin
   component {
-      text("Hello Kyori") {
+      text("Hello Kotventure") {
           color(NamedTextColor.AQUA)
           decorate(TextDecoration.BOLD)
       }
@@ -44,7 +44,7 @@
 
 ## ✅ Success Crieria
 - Can build and publish artifacts locally and via CI
-- DSL products valid Kyori Adventure `Component` objects for implemented features
+- DSL products valid Adventure `Component` objects for implemented features
 - No hard-coded, one-off logic -- architecture allows new component types to slot in without refactors
 - Contributors can clone, build, and run tests without prior Gradle configuration knowledge
 

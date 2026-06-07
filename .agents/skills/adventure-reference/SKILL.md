@@ -1,11 +1,11 @@
 ---
-name: kyori-adventure-reference
-description: Use when you need a Kyori Adventure API and must not guess its shape — a map of components, style, events, serializers, audiences, MiniMessage, pagination and platforms with the real net.kyori types.
+name: adventure-reference
+description: Use when you need an Adventure API and must not guess its shape — a map of components, style, events, serializers, audiences, MiniMessage, pagination and platforms with the real net.kyori types.
 ---
 
-# Kyori Adventure API reference
+# Adventure API reference
 
-A map of the API this project wraps. **Verify exact signatures against the Javadoc (https://jd.advntr.dev) or the dependency sources before use — do not invent methods.** Target is `adventure-api` 4.24+.
+A map of the API this project wraps. **Verify exact signatures against the Javadoc (https://jd.advntr.dev) or the dependency sources before use — do not invent methods.** Target is `adventure-api` 5.1.1 unless the roadmap issue explicitly says otherwise.
 
 ## Components — `net.kyori.adventure.text`
 

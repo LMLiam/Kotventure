@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-KyoriAdventureDSL is in **pre-alpha**. Only the latest published snapshot/tag receives security attention until a stable `1.0` is released.
+Kotventure is in **pre-alpha**. Only the latest published snapshot/tag receives security attention until a stable `1.0` is released.
 
 | Version | Supported |
 |---------|-----------|
@@ -13,7 +13,7 @@ KyoriAdventureDSL is in **pre-alpha**. Only the latest published snapshot/tag re
 
 **Please do not open a public issue for security problems.**
 
-Use GitHub's [private vulnerability reporting](https://github.com/LMLiam/KyoriAdventureDSL/security/advisories/new) for this repository. Please include:
+Use GitHub's [private vulnerability reporting](https://github.com/LMLiam/Kotventure/security/advisories/new) for this repository. Please include:
 - a description of the issue and its impact,
 - steps to reproduce (a minimal example helps),
 - any suggested remediation.

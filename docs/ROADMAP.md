@@ -1,4 +1,4 @@
-# KyoriAdventureDSL — Project Roadmap
+# Kotventure — Project Roadmap
 
 > **Lifecycle Stages:** Pre‑Alpha → Alpha → Beta → Release  
 > **Status:** Currently in **Pre‑Alpha** (`0.0.x`)
@@ -7,7 +7,7 @@
 
 ## 📍 Current Stage — Pre‑Alpha (`0.0.x`)
 **Focus:**
-- Prove core DSL concept for Kotlin → Kyori Adventure component creation.
+- Prove core DSL concept for Kotlin → Adventure component creation.
 - Ship *minimum viable* feature slice:
     - `text` component builder with `color` + `decoration`
     - Basic nesting

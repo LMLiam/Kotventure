@@ -10,7 +10,7 @@ once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land i
 
 ### Added
 
-- Project migrated to the `LMLiam` namespace (`io.github.lmliam.kyoriadventuredsl`).
+- Project migrated to the `LMLiam` namespace (`io.github.lmliam.kotventure`).
 - Open-source community files (contributing guide, security & support policies, Dependabot).
 - [`docs/DESIGN.md`](docs/DESIGN.md) — full design and module architecture.
 - `AGENTS.md` and `.agents/skills/` — guidance and reusable playbooks for AI coding agents (Codex-compatible `SKILL.md` format).
@@ -23,4 +23,4 @@ once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land i
 - Dependabot grouping of minor/patch updates; Gradle parallel + build cache.
 - Java 25 project baseline with Gradle Wrapper 9.5.1.
 
-[Unreleased]: https://github.com/LMLiam/KyoriAdventureDSL/commits/master
+[Unreleased]: https://github.com/LMLiam/Kotventure/commits/master
