@@ -3,11 +3,12 @@ plugins {
     id 'io.kotest' version '6.0.1' apply false
     id 'com.diffplug.spotless' version "7.2.1" apply false
     id "org.jlleitschuh.gradle.ktlint" version "13.1.0" apply false
+    id 'base'
     id 'idea'
 }
 
-group = 'org.eventhorizonlab.kyoriadventuredsl'
-version = '1.0-SNAPSHOT'
+group = 'io.github.lmliam.kyoriadventuredsl'
+version = '0.0.1-SNAPSHOT'
 
 subprojects {
     apply plugin: 'org.jetbrains.kotlin.jvm'
@@ -16,7 +17,11 @@ subprojects {
     apply plugin: 'org.jlleitschuh.gradle.ktlint'
 
     kotlin {
-        jvmToolchain(23)
+        jvmToolchain(25)
+        // Public API discipline: every public/protected declaration must have an explicit
+        // visibility modifier and an explicit type. App/sample modules may opt out with
+        // `explicitApi = org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode.Disabled`.
+        explicitApi()
     }
 
     test {
