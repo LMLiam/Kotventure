@@ -9,12 +9,12 @@ Humans should read [`CONTRIBUTING.md`](.github/CONTRIBUTING.md); this file resta
 
 ## 1. What this project is
 
-A **batteries-included, multi-platform Kotlin DSL for [Kyori Adventure](https://github.com/KyoriPowered/adventure)** (Paper / Velocity / Fabric). It wraps Adventure with an idiomatic, type-safe DSL and adds tooling rivals lack: typed + validated MiniMessage, a component-testing toolkit, ANSI preview, and codegen.
+A **batteries-included, multi-platform Kotlin DSL for [Adventure](https://github.com/PaperMC/adventure)** (Paper / Velocity / Fabric). It wraps Adventure with an idiomatic, type-safe DSL and adds tooling rivals lack: typed + validated MiniMessage, a component-testing toolkit, ANSI preview, and codegen.
 
 **Sources of truth — read before non-trivial work:**
 - [`docs/DESIGN.md`](docs/DESIGN.md) — architecture, module map, canonical DSL surface, roadmap. **This governs design decisions.**
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — phase sequencing.
-- **Epic [#5](https://github.com/LMLiam/KyoriAdventureDSL/issues/5)** + its milestoned sub-issues — the work, sliced.
+- **Epic [#5](https://github.com/LMLiam/Kotventure/issues/5)** + its milestoned sub-issues — the work, sliced.
 
 ## 2. Golden rules
 

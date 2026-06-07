@@ -1,6 +1,6 @@
 # Project skills
 
-Reusable, project-specific playbooks for AI coding agents working in KyoriAdventureDSL.
+Reusable, project-specific playbooks for AI coding agents working in Kotventure.
 They complement [`../../AGENTS.md`](../../AGENTS.md): AGENTS.md is the always-on contract; these skills are loaded **when relevant to the task at hand**.
 
 Each skill is a directory with a `SKILL.md` (YAML frontmatter `name` + `description`, then the body).

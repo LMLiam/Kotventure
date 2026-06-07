@@ -1,4 +1,4 @@
-# Contributing to KyoriAdventureDSL
+# Contributing to Kotventure
 
 Thanks for your interest in contributing! This project is in **pre-alpha**, so the surface area changes often — small, focused contributions are the most useful.
 
@@ -8,8 +8,8 @@ Please keep all interactions constructive and considerate. Harassment or hostile
 
 ## Ways to contribute
 
-- **Pick up an issue.** Start with [`good first issue`](https://github.com/LMLiam/KyoriAdventureDSL/labels/good%20first%20issue) or [`help wanted`](https://github.com/LMLiam/KyoriAdventureDSL/labels/help%20wanted).
-- **Discuss a design** before large work — open a [Discussion](https://github.com/LMLiam/KyoriAdventureDSL/discussions) or comment on the relevant issue. The overall plan lives in [`docs/DESIGN.md`](../docs/DESIGN.md) and [`docs/ROADMAP.md`](../docs/ROADMAP.md).
+- **Pick up an issue.** Start with [`good first issue`](https://github.com/LMLiam/Kotventure/labels/good%20first%20issue) or [`help wanted`](https://github.com/LMLiam/Kotventure/labels/help%20wanted).
+- **Discuss a design** before large work — open a [Discussion](https://github.com/LMLiam/Kotventure/discussions) or comment on the relevant issue. The overall plan lives in [`docs/DESIGN.md`](../docs/DESIGN.md) and [`docs/ROADMAP.md`](../docs/ROADMAP.md).
 - **Report a bug** using the bug issue template.
 
 ## Development setup

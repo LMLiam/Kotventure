@@ -1,8 +1,8 @@
 # Support
 
-Thanks for using KyoriAdventureDSL! Here's where to go:
+Thanks for using Kotventure! Here's where to go:
 
-- **Questions / how-do-I / ideas:** open a [Discussion](https://github.com/LMLiam/KyoriAdventureDSL/discussions).
+- **Questions / how-do-I / ideas:** open a [Discussion](https://github.com/LMLiam/Kotventure/discussions).
 - **Bugs:** open an issue with the **Bug report** template.
 - **Feature requests:** open an issue with the **Feature request** template, or start a Discussion if it's still half-formed.
 - **Security issues:** follow the [Security Policy](SECURITY.md) — do not file a public issue.

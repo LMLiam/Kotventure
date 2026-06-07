@@ -1,4 +1,4 @@
-# KyoriAdventureDSL — Design
+# Kotventure — Design
 
 > **Status:** Living design document · **Stage:** Pre‑Alpha (`0.0.x`) · **Last updated:** 2026‑06‑07
 >
@@ -8,7 +8,7 @@
 
 ## 1. Vision & positioning
 
-KyoriAdventureDSL is a **batteries‑included, multi‑platform Kotlin DSL for [Kyori Adventure](https://github.com/KyoriPowered/adventure)**. The goal is not merely "a nicer way to build a `Component`" — that ground is already covered — but to be the most complete and *correct* way for Kotlin plugin developers to produce and deliver player‑facing text and UX across Paper, Velocity, and Fabric.
+Kotventure is a **batteries‑included, multi‑platform Kotlin DSL for [Adventure](https://github.com/PaperMC/adventure)**. The goal is not merely "a nicer way to build a `Component`" — that ground is already covered — but to be the most complete and *correct* way for Kotlin plugin developers to produce and deliver player‑facing text and UX across Paper, Velocity, and Fabric.
 
 Three pillars set it apart from existing efforts:
 
@@ -24,7 +24,7 @@ On top of those, it aims to match the breadth of the best rival: full component 
 |---|---|---|
 | `net.kyori:adventure-extra-kotlin` | Official, minimal builder DSL + operators | Tiny surface; no MiniMessage tooling, testing, or platform UX |
 | Pluto‑Studio/`adventure-kt` | The serious rival — component DSL, `mini()`, styles, titles, multi‑platform | No typed/validated MiniMessage, no testing toolkit, no codegen/ANSI tooling |
-| HoshiKurama/`KyoriComponentDSL` | `buildComponent {}` | Stale (2021), narrow |
+| HoshiKurama component DSL | `buildComponent {}` | Stale (2021), narrow |
 | KSpigot / KPaper | Broad Kotlin server libs that *include* a chat DSL | Not Adventure‑focused; tied to broader frameworks |
 
 **Conclusion:** compete on *breadth + correctness tooling*, not on the basic component builder alone.
