@@ -26,19 +26,24 @@ A repeatable, **small-slice** workflow. The goal is one focused, well-tested, id
 - Wrap Adventure; don't reinvent. No `ServiceLoader`/reflection.
 
 ## 5. Verify
+
 ```bash
 ./gradlew ktlintFormat
 ./gradlew build      # compiles, tests, lints
 ```
+
 - `explicitApi()` must be satisfied (no missing visibility/types). KDoc on public API.
 
 ## 6. Wire up & document
+
 - If you added a new module, enable it in `settings.gradle` and the `bom`.
 - Update `docs/` examples and `CHANGELOG.md` if the change is user-facing.
 
 ## 7. Commit & PR
+
 - Subjects: `verb(area): something` (e.g. `feat(core): add the style DSL`). Enforced in CI.
 - Branch `feat/issue-<n>/short-desc`; PR uses the feature template; `Closes #<n>`.
 
 ## Definition of done
+
 The issue's acceptance boxes are all tickable, CI is green, and the diff is small enough to review in one sitting.

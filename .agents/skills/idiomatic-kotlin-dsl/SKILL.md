@@ -8,6 +8,7 @@ description: Use when designing or reviewing DSL/builder code in KyoriAdventureD
 How DSLs are built here. Favour clarity and type-safety; avoid Java-isms and cleverness.
 
 ## Lambda-with-receiver + @DslMarker
+
 A builder scope is an interface/class configured by a `Scope.() -> Unit` lambda, marked so inner scopes can't leak into outer ones.
 
 ```kotlin
@@ -30,6 +31,7 @@ public fun component(init: TextScope.() -> Unit): Component =
 - Public surface is the interface; the `…Impl` is `internal`.
 
 ## Do
+
 - `val` over `var`; immutable value types as `data class`; closed sets as `enum`/`sealed`.
 - **Extension functions** for ergonomics: `public fun Audience.message(init: TextScope.() -> Unit)`.
 - **Expression bodies** for one-liners; explicit return types on public API.
@@ -38,6 +40,7 @@ public fun component(init: TextScope.() -> Unit): Component =
 - Small, composable functions; one level of abstraction each.
 
 ## Don't
+
 - ❌ `!!`, hand-rolled getters/setters, manual `Builder` classes where a DSL fits.
 - ❌ Wildcard imports (ktlint forbids them).
 - ❌ `object Utils { … }` / `helpers/` packages — package by feature.
@@ -46,6 +49,7 @@ public fun component(init: TextScope.() -> Unit): Component =
 - ❌ Reflection / `ServiceLoader` — use the explicit `AdventureDsl` registry instead.
 
 ## Smell check before committing
+
 - Could a reviewer understand this file's one job from its name? If not, split it.
 - Does any public declaration lack a visibility modifier, return type, or KDoc? Fix it (`explicitApi()` will fail otherwise).
 - Is there a builder field that escapes mutable? Make the output immutable.

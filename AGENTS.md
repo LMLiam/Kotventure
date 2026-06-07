@@ -8,6 +8,7 @@ Humans should read [`CONTRIBUTING.md`](.github/CONTRIBUTING.md); this file resta
 ---
 
 ## 1. What this project is
+
 A **batteries-included, multi-platform Kotlin DSL for [Kyori Adventure](https://github.com/KyoriPowered/adventure)** (Paper / Velocity / Fabric). It wraps Adventure with an idiomatic, type-safe DSL and adds tooling rivals lack: typed + validated MiniMessage, a component-testing toolkit, ANSI preview, and codegen.
 
 **Sources of truth — read before non-trivial work:**
@@ -16,6 +17,7 @@ A **batteries-included, multi-platform Kotlin DSL for [Kyori Adventure](https://
 - **Epic [#5](https://github.com/LMLiam/KyoriAdventureDSL/issues/5)** + its milestoned sub-issues — the work, sliced.
 
 ## 2. Golden rules
+
 1. **One issue → one small vertical slice → one small PR.** If a change is growing large or doing two things, stop and split it.
 2. **Wrap, don't reinvent.** Build on `net.kyori.*` types; never re-implement what Adventure already does.
 3. **Respect the architecture** (§4). Don't add cross-module dependencies that aren't in the design.
@@ -23,6 +25,7 @@ A **batteries-included, multi-platform Kotlin DSL for [Kyori Adventure](https://
 5. **YAGNI.** Implement what the issue asks for — no speculative abstractions.
 
 ## 3. Build, test, format
+
 JDK **25** (provisioned via the Gradle toolchain). Always use the wrapper.
 
 ```bash
@@ -35,6 +38,7 @@ JDK **25** (provisioned via the Gradle toolchain). Always use the wrapper.
 Run formatting and the relevant tests **before** committing. CI must be green.
 
 ## 4. Architecture you must respect
+
 See `docs/DESIGN.md` §4 for the full map. Non-negotiables:
 - **Modules are added lazily, per phase** (issue #7 owns the restructure). Each lives under `modules/<name>` and is re-enabled in `settings.gradle` when it lands.
 - **`core` depends only on `adventure-api`.** Do not pull MiniMessage, coroutines, or platform code into `core`.
@@ -42,17 +46,20 @@ See `docs/DESIGN.md` §4 for the full map. Non-negotiables:
 - **Public API is explicit:** `explicitApi()` is on for library modules. Every public/`protected` declaration needs an explicit visibility modifier, an explicit return type, and **KDoc**.
 
 ## 5. Code quality & structure — the part that matters
+
 ### Single Responsibility (SRP)
 - One file / class / object = **one reason to change**. If a file does two things, split it.
 - Prefer **many small, focused files** over a few large ones. A file you can't hold in your head is too big.
 - A function does one thing at one level of abstraction. Extract when it grows, nests deeply, or needs a comment to explain a block.
 
 ### Folder / package structure
+
 - **Package by feature, not by layer.** Use `…core.text`, `…core.style`, `…core.color`, `…core.event`, `…minimessage.template` — **not** `builders/`, `models/`, `utils/`, `helpers/`.
 - Public DSL entry points live in the feature package; keep implementation detail `internal`.
 - No `util`/`misc`/`common` dumping grounds. If something needs a home, it belongs to a feature.
 
 ### Idiomatic Kotlin — do
+
 - Build DSLs with **lambda-with-receiver builders** + `@DslMarker` to prevent scope leakage.
 - `val` over `var`; immutable data; `data class` for value types; `sealed`/`enum` for closed hierarchies.
 - **Extension functions** for the ergonomic surface; **expression bodies** for one-liners.
@@ -61,6 +68,7 @@ See `docs/DESIGN.md` §4 for the full map. Non-negotiables:
 - Clear, full names. No abbreviations or Hungarian notation.
 
 ### Idiomatic Kotlin — don't
+
 - No Java-isms: no manual getters/setters where properties fit, no hand-rolled builder classes where a DSL fits, no `java.util.*` where the Kotlin stdlib fits.
 - **No wildcard imports** (enforced by ktlint).
 - No god objects, no static `Utils` classes.
@@ -68,20 +76,24 @@ See `docs/DESIGN.md` §4 for the full map. Non-negotiables:
 - Don't over-engineer: no interfaces with a single implementation "just in case", no premature generics.
 
 ### Wrapping Adventure
+
 - Every builder must produce a **valid Adventure object** — verify by constructing and asserting on the real `net.kyori` type.
 - See the skill `kyori-adventure-reference` before using an API you're unsure of — **do not guess API shapes.**
 
 ## 6. Testing
+
 - **Kotest** for everything. Every behavioural change ships with tests; write the test first when practical.
 - **Dogfood the project's own matchers** (the `test` module). See the skill `writing-component-tests`.
 - Use **snapshot tests** for message regressions where appropriate.
 
 ## 7. Commits, PRs, branches (enforced in CI)
+
 - **Titles and every commit subject** follow `verb(area): something` (all lowercase verb + area). Enforced by `.github/workflows/conventional-titles.yml`. Recommended verbs/areas are listed in `CONTRIBUTING.md`.
 - **Branch:** `type/issue-<n>/short-desc` (e.g. `feat/issue-19/style-dsl`).
 - **Link issues:** `Closes #<n>` in the PR; pick the matching PR template.
 
 ## 8. Definition of done (per issue)
+
 - [ ] Public DSL surface + implementation in the **correct module and feature package**
 - [ ] Tests (matchers / snapshots) pass
 - [ ] `ktlintCheck` + `spotlessCheck` clean; `explicitApi()` satisfied with KDoc on public API
@@ -89,6 +101,7 @@ See `docs/DESIGN.md` §4 for the full map. Non-negotiables:
 - [ ] Title + commit subjects conform; issue linked
 
 ## 9. Project skills
+
 Reusable playbooks live in [`.agents/skills/`](.agents/skills/). Consult them:
 - **`adding-a-dsl-feature`** — the end-to-end workflow for a new DSL feature.
 - **`idiomatic-kotlin-dsl`** — DSL idioms with do/don't examples.
@@ -96,5 +109,6 @@ Reusable playbooks live in [`.agents/skills/`](.agents/skills/). Consult them:
 - **`writing-component-tests`** — Kotest + the component matchers + snapshots.
 
 ## 10. Don't touch without a reason tied to your issue
+
 - Build wiring / module layout is restructured per phase (#7). Keep build changes minimal and scoped.
 - Don't change the public API of a frozen module without updating the binary-compatibility baseline (post-#55).
