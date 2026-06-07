@@ -5,6 +5,7 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import java.nio.file.Files
 import kotlin.io.path.Path
 import kotlin.io.path.extension
+import kotlin.io.path.invariantSeparatorsPathString
 import kotlin.io.path.isRegularFile
 import kotlin.io.path.readText
 
@@ -23,8 +24,10 @@ class NoServiceLoaderTest :
                     Files.walk(Path("src/main")).use { files ->
                         files
                             .filter { it.isRegularFile() }
-                            .filter { it.extension in setOf("kt", "java", "kts") }
-                            .toList()
+                            .filter {
+                                it.extension in setOf("kt", "java", "kts") ||
+                                    "/META-INF/services/" in it.invariantSeparatorsPathString
+                            }.toList()
                     }
 
                 val offenders =

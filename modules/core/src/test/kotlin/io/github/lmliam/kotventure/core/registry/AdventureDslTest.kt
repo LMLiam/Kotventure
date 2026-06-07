@@ -5,6 +5,7 @@ import io.github.lmliam.kotventure.core.minimessage.MiniMessageTagProvider
 import io.github.lmliam.kotventure.core.platform.PlatformAdapter
 import io.github.lmliam.kotventure.core.platform.PlatformTask
 import io.github.lmliam.kotventure.core.theme.ThemeProvider
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.nulls.shouldBeNull
@@ -78,6 +79,7 @@ class AdventureDslTest :
                 AdventureDsl.reset()
 
                 snapshot shouldContainExactly mapOf("player" to tagProvider)
+                snapshot.shouldRejectMutation("other", TestMiniMessageTagProvider("other"))
                 AdventureDsl.miniMessageTags() shouldContainExactly emptyMap()
             }
 
@@ -93,6 +95,7 @@ class AdventureDslTest :
                 AdventureDsl.reset()
 
                 snapshot shouldContainExactly mapOf("brand" to themeProvider)
+                snapshot.shouldRejectMutation("other", TestThemeProvider("other", emptyMap()))
                 AdventureDsl.themes() shouldContainExactly emptyMap()
             }
 
@@ -104,6 +107,7 @@ class AdventureDslTest :
                 AdventureDsl.reset()
 
                 snapshot shouldContainExactly mapOf("test" to driver)
+                snapshot.shouldRejectMutation("other", TestAnimationDriver("other"))
                 AdventureDsl.animationDrivers() shouldContainExactly emptyMap()
             }
         },
@@ -112,6 +116,16 @@ class AdventureDslTest :
 private data class TestMiniMessageTagProvider(
     override val name: String,
 ) : MiniMessageTagProvider
+
+@Suppress("UNCHECKED_CAST")
+private fun <K, V> Map<K, V>.shouldRejectMutation(
+    key: K,
+    value: V,
+) {
+    shouldThrow<UnsupportedOperationException> {
+        (this as MutableMap<K, V>)[key] = value
+    }
+}
 
 private data class TestThemeProvider(
     override val name: String,

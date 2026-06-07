@@ -1,9 +1,6 @@
 package io.github.lmliam.kotventure.core.text
 
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.shouldBe
-import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.Style
 import net.kyori.adventure.text.format.TextDecoration
@@ -17,8 +14,7 @@ class ComponentDslTest :
                         content("Hello")
                     }
 
-                component as TextComponent
-                component.content() shouldBe "Hello"
+                component shouldContainText "Hello"
             }
 
             "applies color to the root text component" {
@@ -28,7 +24,7 @@ class ComponentDslTest :
                         color(NamedTextColor.RED)
                     }
 
-                component.color() shouldBe NamedTextColor.RED
+                component shouldHaveColor NamedTextColor.RED
             }
 
             "appends nested text children in declaration order" {
@@ -44,12 +40,10 @@ class ComponentDslTest :
                         }
                     }
 
-                component.children() shouldHaveSize 2
-                val firstChild = component.children()[0] as TextComponent
-                val secondChild = component.children()[1] as TextComponent
-                firstChild.content() shouldBe "world"
-                firstChild.color() shouldBe NamedTextColor.AQUA
-                secondChild.content() shouldBe "!"
+                component shouldHaveChildCount 2
+                component.childAt(0) shouldContainText "world"
+                component.childAt(0) shouldHaveColor NamedTextColor.AQUA
+                component.childAt(1) shouldContainText "!"
             }
 
             "applies a complete Adventure style" {
@@ -61,7 +55,7 @@ class ComponentDslTest :
                         style(style)
                     }
 
-                component.style() shouldBe style
+                component shouldHaveStyle style
             }
         },
     )

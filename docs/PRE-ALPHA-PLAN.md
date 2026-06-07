@@ -44,7 +44,7 @@
 
 ---
 
-## ✅ Success Crieria
+## ✅ Success Criteria
 
 - Can build and publish artifacts locally and via CI
 - DSL products valid Adventure `Component` objects for implemented features

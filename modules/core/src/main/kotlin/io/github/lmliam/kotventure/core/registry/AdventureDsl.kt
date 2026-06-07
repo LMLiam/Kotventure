@@ -4,6 +4,7 @@ import io.github.lmliam.kotventure.core.animation.AnimationDriver
 import io.github.lmliam.kotventure.core.minimessage.MiniMessageTagProvider
 import io.github.lmliam.kotventure.core.platform.PlatformAdapter
 import io.github.lmliam.kotventure.core.theme.ThemeProvider
+import java.util.Collections
 
 /**
  * Explicit startup registry for Kotventure extension points.
@@ -34,7 +35,7 @@ public object AdventureDsl {
     /**
      * Returns an immutable snapshot of registered MiniMessage tag providers by name.
      */
-    public fun miniMessageTags(): Map<String, MiniMessageTagProvider> = miniMessageTagProviders.toMap()
+    public fun miniMessageTags(): Map<String, MiniMessageTagProvider> = miniMessageTagProviders.immutableSnapshot()
 
     /**
      * Registers [provider] as the active theme provider for its name.
@@ -51,7 +52,7 @@ public object AdventureDsl {
     /**
      * Returns an immutable snapshot of registered theme providers by name.
      */
-    public fun themes(): Map<String, ThemeProvider> = themeProviders.toMap()
+    public fun themes(): Map<String, ThemeProvider> = themeProviders.immutableSnapshot()
 
     /**
      * Registers [driver] as the active animation driver for its name.
@@ -68,7 +69,7 @@ public object AdventureDsl {
     /**
      * Returns an immutable snapshot of registered animation drivers by name.
      */
-    public fun animationDrivers(): Map<String, AnimationDriver> = animationDrivers.toMap()
+    public fun animationDrivers(): Map<String, AnimationDriver> = animationDrivers.immutableSnapshot()
 
     /**
      * Registers [adapter] as the active platform adapter.
@@ -88,4 +89,6 @@ public object AdventureDsl {
         animationDrivers.clear()
         platformAdapter = null
     }
+
+    private fun <K, V> Map<K, V>.immutableSnapshot(): Map<K, V> = Collections.unmodifiableMap(toMap())
 }
