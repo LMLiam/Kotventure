@@ -26,7 +26,7 @@ class NoServiceLoaderTest :
                             .filter { it.isRegularFile() }
                             .filter {
                                 it.extension in setOf("kt", "java", "kts") ||
-                                    "/META-INF/services/" in it.invariantSeparatorsPathString
+                                        "/META-INF/services/" in it.invariantSeparatorsPathString
                             }.toList()
                     }
 
