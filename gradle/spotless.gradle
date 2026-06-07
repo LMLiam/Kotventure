@@ -1,23 +1,45 @@
 def ktlintVersion = '1.5.0'
 def editorConfigFile = rootProject.file('.editorconfig')
+def kotlinEditorConfigSection = '[{*.kt,*.kts}]'
 def spotlessKtlintRuleOverrideNames = [
         'ktlint_standard_indent',
         'ktlint_standard_string-template-indent'
 ]
-def editorConfigValues =
-        editorConfigFile.readLines().collectEntries { line ->
-            def trimmed = line.trim()
+if (!editorConfigFile.exists()) {
+    throw new GradleException(".editorconfig not found at ${editorConfigFile.path}")
+}
+
+def editorConfigValues = [:]
+def inKotlinEditorConfigSection = false
+editorConfigFile.eachLine { line ->
+    def trimmed = line.trim()
+
+    if (trimmed && !trimmed.startsWith('#') && !trimmed.startsWith(';')) {
+        if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+            inKotlinEditorConfigSection = trimmed == kotlinEditorConfigSection
+        } else if (inKotlinEditorConfigSection) {
             def separator = trimmed.indexOf('=')
 
-            if (separator < 0 || trimmed.startsWith('#') || trimmed.startsWith(';')) {
-                [:]
-            } else {
-                [(trimmed.substring(0, separator).trim()): trimmed.substring(separator + 1).trim()]
+            if (separator >= 0) {
+                editorConfigValues[trimmed.substring(0, separator).trim()] =
+                        trimmed.substring(separator + 1).trim()
             }
         }
+    }
+}
+
+def missingSpotlessKtlintRuleOverrides =
+        spotlessKtlintRuleOverrideNames.findAll { ruleName -> !editorConfigValues.containsKey(ruleName) }
+if (!missingSpotlessKtlintRuleOverrides.isEmpty()) {
+    throw new GradleException(
+            "Missing ktlint rule settings in .editorconfig section ${kotlinEditorConfigSection}: " +
+                    missingSpotlessKtlintRuleOverrides.join(', '),
+    )
+}
+
 def spotlessKtlintRuleOverrides =
         spotlessKtlintRuleOverrideNames.collectEntries { ruleName ->
-            editorConfigValues.containsKey(ruleName) ? [(ruleName): editorConfigValues[ruleName]] : [:]
+            [(ruleName): editorConfigValues[ruleName]]
         }
 
 ktlint {
@@ -37,10 +59,10 @@ spotless {
     }
 
     kotlin {
-        ktlint(ktlintVersion)
-        // Feed Spotless the ktlint disables declared in .editorconfig; setEditorConfigPath misses them.
-                .editorConfigOverride(spotlessKtlintRuleOverrides)
-                .setEditorConfigPath(editorConfigFile.path)
+        def ktlintStep = ktlint(ktlintVersion)
+        // Feed Spotless the selected ktlint rule settings declared in .editorconfig.
+        ktlintStep.editorConfigOverride(spotlessKtlintRuleOverrides)
+        ktlintStep.setEditorConfigPath(editorConfigFile.path)
     }
 }
 

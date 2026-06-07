@@ -50,6 +50,8 @@ jobs:
         if: always()
         shell: bash
         run: |
+          set -euo pipefail
+
           sarif_file="${RUNNER_TEMP}/qodana/results/qodana.sarif.json"
 
           if [[ ! -f "$sarif_file" ]]; then
