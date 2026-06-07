@@ -1,6 +1,6 @@
 ---
 name: idiomatic-kotlin-dsl
-description: Use when designing or reviewing DSL/builder code in KyoriAdventureDSL — concrete Kotlin idioms with do/don't examples for type-safe, scope-safe DSLs.
+description: Use when designing or reviewing DSL/builder code in Kotventure — concrete Kotlin idioms with do/don't examples for type-safe, scope-safe DSLs.
 ---
 
 # Idiomatic Kotlin DSLs

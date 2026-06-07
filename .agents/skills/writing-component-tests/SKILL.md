@@ -1,6 +1,6 @@
 ---
 name: writing-component-tests
-description: Use when writing tests for components or audiences in KyoriAdventureDSL — Kotest patterns, the project's own component matchers, and snapshot testing.
+description: Use when writing tests for components or audiences in Kotventure — Kotest patterns, the project's own component matchers, and snapshot testing.
 ---
 
 # Writing component tests

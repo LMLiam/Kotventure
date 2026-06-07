@@ -7,7 +7,7 @@ plugins {
     id 'idea'
 }
 
-group = 'io.github.lmliam.kyoriadventuredsl'
+group = 'io.github.lmliam.kotventure'
 version = '0.0.1-SNAPSHOT'
 
 subprojects {
@@ -33,7 +33,7 @@ subprojects {
     apply from: rootProject.file('gradle/dependencies.gradle')
 
     tasks.withType(Jar).configureEach {
-        archiveBaseName.set("${rootProject.name}-${project.name}")
+        archiveBaseName.set("kotventure-${project.name}")
         archiveVersion.set(rootProject.version as String)
         destinationDirectory.set(rootProject.layout.buildDirectory.dir("libs"))
     }

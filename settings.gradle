@@ -9,7 +9,7 @@ plugins {
     id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
 }
 
-rootProject.name = 'KyoriAdventureDSL'
+rootProject.name = 'Kotventure'
 
 // Modules are introduced lazily, one phase at a time (see docs/DESIGN.md §4 and issue #7).
 // Each module lives under modules/<name>; re-enable entries as the modules land, e.g.:

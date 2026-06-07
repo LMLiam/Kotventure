@@ -1,6 +1,6 @@
 ---
 name: adding-a-dsl-feature
-description: Use when implementing any new DSL feature or picking up a feature issue in KyoriAdventureDSL — the end-to-end, small-slice workflow from issue to merge.
+description: Use when implementing any new DSL feature or picking up a feature issue in Kotventure — the end-to-end, small-slice workflow from issue to merge.
 ---
 
 # Adding a DSL feature

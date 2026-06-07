@@ -1,15 +1,15 @@
 <!-- markdownlint-disable MD041 MD022 MD058 -->
-[![adventure-api](https://img.shields.io/badge/dynamic/json?url=https://raw.githubusercontent.com/LMLiam/KyoriAdventureDSL/master/gradle/versions.json&label=adventure%20api&query=$.adventure-api&color=blue)](https://github.com/KyoriPowered/adventure/releases/)
+[![adventure-api](https://img.shields.io/badge/dynamic/json?url=https://raw.githubusercontent.com/LMLiam/Kotventure/master/gradle/versions.json&label=adventure%20api&query=$.adventure-api&color=blue)](https://github.com/PaperMC/adventure/releases/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE.md)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.2-blue.svg?logo=kotlin)](https://kotlinlang.org)
 [![Status: Pre-Alpha](https://img.shields.io/badge/status-pre--alpha-orange.svg)](docs/ROADMAP.md)
 <!-- markdownlint-enable MD041 MD022 MD058 -->
 
-# KyoriAdventureDSL
+# Kotventure
 
-[🖱️ Docs](https://github.com/LMLiam/KyoriAdventureDSL/tree/master/docs) · [🗺️ Roadmap](docs/ROADMAP.md) · [🏗️ Design](docs/DESIGN.md) · [🤝 Contributing](.github/CONTRIBUTING.md)
+[🖱️ Docs](https://github.com/LMLiam/Kotventure/tree/master/docs) · [🗺️ Roadmap](docs/ROADMAP.md) · [🏗️ Design](docs/DESIGN.md) · [🤝 Contributing](.github/CONTRIBUTING.md)
 
-KyoriAdventureDSL is a Kotlin‑focused domain‑specific language designed to provide a fluent, expressive, and type‑safe way of building rich [Kyori Adventure](https://github.com/KyoriPowered/adventure) components — and everything around them.
+Kotventure is a Kotlin‑focused domain‑specific language designed to provide a fluent, expressive, and type‑safe way of building rich [Adventure](https://github.com/PaperMC/adventure) components — and everything around them.
 
 This project aims to:
 - Streamline the creation of complex Adventure component trees with a more ergonomic syntax
@@ -24,7 +24,7 @@ This project aims to:
 ---
 
 ## 🛠 Built For
-- Developers using **Kyori Adventure** in Kotlin — Paper, Velocity, and Fabric
+- Developers using **Adventure** in Kotlin — Paper, Velocity, and Fabric
 - Teams who value **clear, safe, reproducible** text construction workflows
 - Extensible architectures where downstream theming or plugin integration is a priority
 
@@ -53,7 +53,7 @@ Pre-alpha snapshots will be published via [JitPack](https://jitpack.io). Coordin
 ---
 
 ## 🤝 Contributing
-Contributions are welcome! Please read the [Contributing Guide](.github/CONTRIBUTING.md). Good entry points are issues labelled [`good first issue`](https://github.com/LMLiam/KyoriAdventureDSL/labels/good%20first%20issue).
+Contributions are welcome! Please read the [Contributing Guide](.github/CONTRIBUTING.md). Good entry points are issues labelled [`good first issue`](https://github.com/LMLiam/Kotventure/labels/good%20first%20issue).
 
 ## 🔐 Security
 Found a vulnerability? Please follow the [Security Policy](.github/SECURITY.md) rather than opening a public issue.
