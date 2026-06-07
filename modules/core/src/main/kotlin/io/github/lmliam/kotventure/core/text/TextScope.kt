@@ -1,13 +1,13 @@
 package io.github.lmliam.kotventure.core.text
 
-import io.github.lmliam.kotventure.core.dsl.AdventureDsl
+import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import net.kyori.adventure.text.format.Style
 import net.kyori.adventure.text.format.TextColor
 
 /**
  * Scope for configuring a text component and its nested child components.
  */
-@AdventureDsl
+@KotventureDslMarker
 public interface TextScope {
     /**
      * Replaces the text content of the component being configured.

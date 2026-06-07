@@ -48,6 +48,7 @@ See [`docs/DESIGN.md`](docs/DESIGN.md) for the full design and the [Roadmap](doc
 ---
 
 ## ✅ Implemented So Far
+
 The first `core` slice exposes a plain component builder and explicit startup registry:
 
 ```kotlin
