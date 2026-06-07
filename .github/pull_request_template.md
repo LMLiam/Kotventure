@@ -1,3 +1,5 @@
+# Pull Request Template
+
 <!--
 PR title MUST follow: verb(area): something  (e.g. feat(core): add the style DSL)
 Enforced by the Conventional Titles workflow. See .github/CONTRIBUTING.md.
@@ -7,12 +9,15 @@ to the PR URL, or pick one from .github/PULL_REQUEST_TEMPLATE/.
 -->
 
 ## Summary
+
 <!-- What does this change and why? Keep it concise but clear. -->
 
 ## Related issues
+
 Closes #<issue-number>
 
 ## Type of change
+
 <!-- Tick all that apply. -->
 - [ ] feat — new capability
 - [ ] fix — bug fix
@@ -22,6 +27,7 @@ Closes #<issue-number>
 - [ ] chore / build / ci
 
 ## Testing
+
 <!-- What did you add/run? Note the Kotest specs and whether `./gradlew build` passes. -->
 
 ## Checklist
