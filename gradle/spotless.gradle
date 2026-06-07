@@ -38,9 +38,9 @@ spotless {
 
     kotlin {
         ktlint(ktlintVersion)
-                // Feed Spotless the ktlint disables declared in .editorconfig; setEditorConfigPath misses them.
-                .editorConfigOverride(spotlessKtlintRuleOverrides)
-                .setEditorConfigPath(editorConfigFile.path)
+            // Feed Spotless the ktlint disables declared in .editorconfig; setEditorConfigPath misses them.
+            .editorConfigOverride(spotlessKtlintRuleOverrides)
+            .setEditorConfigPath(editorConfigFile.path)
     }
 }
 
