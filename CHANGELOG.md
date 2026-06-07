@@ -16,5 +16,7 @@ once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land i
 - `AGENTS.md` and `.agents/skills/` — guidance and reusable playbooks for AI coding agents (Codex-compatible `SKILL.md` format).
 - `.gitattributes` for consistent line endings and language stats.
 - Stricter Kotlin linting: ktlint official code style, no wildcard imports, and `explicitApi()` for library modules.
+- Security workflows (SHA-pinned): CodeQL (`java-kotlin`), OpenSSF Scorecard, and Dependency Review.
+- Default pull request template, alongside the existing per-type templates.
 
 [Unreleased]: https://github.com/LMLiam/KyoriAdventureDSL/commits/master
