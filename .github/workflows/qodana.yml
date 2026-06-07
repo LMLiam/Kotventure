@@ -38,6 +38,10 @@ jobs:
       - name: Scan with Qodana
         uses: JetBrains/qodana-action@d7b5ec2fbec32197ef447c450e00589ed5f34fd5 # v2026.1.0
         with:
+          cache-dir: ${{ runner.temp }}/qodana/caches
+          use-caches: true
+          primary-cache-key: qodana-2026.1-${{ runner.os }}-${{ hashFiles('qodana.yaml', 'settings.gradle', 'build.gradle', 'gradle.properties', 'gradle/**/*.gradle') }}
+          additional-cache-key: qodana-2026.1-${{ runner.os }}-
           upload-result: true
         env:
           QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
