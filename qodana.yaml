@@ -1,0 +1,6 @@
+version: "1.0"
+linter: qodana-jvm-community
+withinDocker: false
+projectJDK: 25
+profile:
+  name: qodana.recommended
