@@ -15,15 +15,15 @@ public interface AnimationDriver {
     public fun start(
         animationId: String,
         onTick: () -> Unit,
-    ): Unit
+    )
 
     /**
      * Advances the animation identified by [animationId] once.
      */
-    public fun tick(animationId: String): Unit
+    public fun tick(animationId: String)
 
     /**
      * Stops the animation identified by [animationId].
      */
-    public fun stop(animationId: String): Unit
+    public fun stop(animationId: String)
 }

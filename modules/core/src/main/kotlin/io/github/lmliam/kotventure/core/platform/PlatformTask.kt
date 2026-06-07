@@ -7,5 +7,5 @@ public fun interface PlatformTask {
     /**
      * Cancels the scheduled task.
      */
-    public fun cancel(): Unit
+    public fun cancel()
 }

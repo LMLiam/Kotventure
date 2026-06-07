@@ -12,20 +12,20 @@ public interface TextScope {
     /**
      * Replaces the text content of the component being configured.
      */
-    public fun content(value: String): Unit
+    public fun content(value: String)
 
     /**
      * Applies a text color to the component being configured.
      */
-    public fun color(color: TextColor): Unit
+    public fun color(color: TextColor)
 
     /**
      * Applies a complete Adventure style to the component being configured.
      */
-    public fun style(style: Style): Unit
+    public fun style(style: Style)
 
     /**
      * Appends a nested text child configured by [init].
      */
-    public fun text(init: TextScope.() -> Unit): Unit
+    public fun text(init: TextScope.() -> Unit)
 }
