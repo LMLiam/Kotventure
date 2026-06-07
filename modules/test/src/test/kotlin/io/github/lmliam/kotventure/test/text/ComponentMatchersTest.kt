@@ -15,13 +15,24 @@ class ComponentMatchersTest :
                 Component.text("Hello") shouldContainText "Hello"
             }
 
+            "matches text content nested in child components" {
+                val component =
+                    Component
+                        .text()
+                        .content("Hello ")
+                        .append(Component.text("world"))
+                        .build()
+
+                component shouldContainText "world"
+            }
+
             "reports text mismatch with expected and actual content" {
                 val failure =
                     shouldThrow<AssertionError> {
                         Component.text("Hello") shouldContainText "Bye"
                     }
 
-                failure.message shouldContain "Expected text content <Bye>, but was <Hello>."
+                failure.message shouldContain "Expected component text to contain <Bye>, but was <Hello>."
             }
 
             "matches root component colors" {

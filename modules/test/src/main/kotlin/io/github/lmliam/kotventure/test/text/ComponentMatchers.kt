@@ -9,7 +9,7 @@ import net.kyori.adventure.text.format.Style
 import net.kyori.adventure.text.format.TextColor
 
 /**
- * Asserts that this text component has exactly [expected] as its plain text content.
+ * Asserts that this component tree contains [expected] in its text content.
  */
 public infix fun Component.shouldContainText(expected: String): Component =
     apply {
@@ -53,13 +53,25 @@ public fun Component.childAt(index: Int): Component {
 
 private fun haveTextContent(expected: String): Matcher<Component> =
     Matcher { value ->
-        val actual = (value as? TextComponent)?.content()
+        val actual = value.textContent()
         MatcherResult(
-            actual == expected,
-            { "Expected text content <$expected>, but was <$actual>." },
-            { "Expected text content not to be <$expected>." },
+            expected in actual,
+            { "Expected component text to contain <$expected>, but was <$actual>." },
+            { "Expected component text not to contain <$expected>." },
         )
     }
+
+private fun Component.textContent(): String =
+    buildString {
+        appendText(this@textContent)
+    }
+
+private fun StringBuilder.appendText(component: Component) {
+    if (component is TextComponent) {
+        append(component.content())
+    }
+    component.children().forEach { child -> appendText(child) }
+}
 
 private fun haveColor(expected: TextColor): Matcher<Component> =
     Matcher { value ->
