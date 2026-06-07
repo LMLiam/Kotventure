@@ -5,6 +5,7 @@ projectJDK: 25
 profile:
   name: empty
 include:
+  - name: IncorrectFormatting
   - name: ConvertLongToDuration
   - name: CanConvertToMultiDollarString
   - name: CustomComponentDestructuringMigration

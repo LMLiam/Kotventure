@@ -6,7 +6,8 @@ build/
 
 ### IntelliJ IDEA ###
 .idea/**
-!.idea/codeStyleConfig.xml
+!.idea/codeStyles/
+!.idea/codeStyles/codeStyleConfig.xml
 *.iws
 *.iml
 *.ipr
