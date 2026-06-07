@@ -11,9 +11,7 @@ KyoriAdventureDSL is in **pre-alpha**. Only the latest published snapshot/tag re
 ## Reporting a vulnerability
 **Please do not open a public issue for security problems.**
 
-Preferred: use GitHub's [private vulnerability reporting](https://github.com/LMLiam/KyoriAdventureDSL/security/advisories/new) for this repository.
-
-Alternatively, email **emissionsmc@gmail.com** with:
+Use GitHub's [private vulnerability reporting](https://github.com/LMLiam/KyoriAdventureDSL/security/advisories/new) for this repository. Please include:
 - a description of the issue and its impact,
 - steps to reproduce (a minimal example helps),
 - any suggested remediation.
