@@ -18,6 +18,7 @@ spotless {
 
     kotlin {
         ktlint(ktlintVersion)
+                // Spotless ktlint does not honor these disabled rules from .editorconfig on its own.
                 .editorConfigOverride([
                         'ktlint_standard_indent'                : 'disabled',
                         'ktlint_standard_string-template-indent': 'disabled'
