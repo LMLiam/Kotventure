@@ -11,7 +11,7 @@ Please keep all interactions constructive and considerate. Harassment or hostile
 - **Report a bug** using the bug issue template.
 
 ## Development setup
-- **JDK 23** (the build uses a Kotlin JVM toolchain of 23; Gradle will provision it via the Foojay resolver).
+- **JDK 25** (the build uses a Kotlin JVM toolchain of 25; Gradle will provision it via the Foojay resolver).
 - Use the **Gradle wrapper** — no local Gradle install needed.
 
 ```bash

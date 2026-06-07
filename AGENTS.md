@@ -23,7 +23,7 @@ A **batteries-included, multi-platform Kotlin DSL for [Kyori Adventure](https://
 5. **YAGNI.** Implement what the issue asks for — no speculative abstractions.
 
 ## 3. Build, test, format
-JDK **23** (provisioned via the Gradle toolchain). Always use the wrapper.
+JDK **25** (provisioned via the Gradle toolchain). Always use the wrapper.
 
 ```bash
 ./gradlew build          # compile + test + lint

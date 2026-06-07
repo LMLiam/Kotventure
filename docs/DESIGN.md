@@ -149,7 +149,7 @@ A **MiniMessage ⇄ DSL converter** round‑trips between markup strings and DSL
 
 ## 10. Build, publishing & versioning
 
-- **Build:** Gradle multi‑module, Kotlin 2.2, JVM toolchain 23, ktlint + Spotless, Kotest.
+- **Build:** Gradle multi‑module, Kotlin 2.2, JVM toolchain 25, ktlint + Spotless, Kotest.
 - **Publishing:** **JitPack** during pre‑alpha/alpha (zero infra, builds from git tags) → **Maven Central** (`io.github.lmliam` namespace, GPG‑signed) at beta/`1.0`.
 - **BOM** module so consumers align versions across the many artifacts.
 - **Versioning:** unstable `0.0.x` → `0.x` alpha → `0.9.x` beta (API freeze) → `1.0.0` (semver commitment). CI runs build/test/lint on PRs; tags publish.

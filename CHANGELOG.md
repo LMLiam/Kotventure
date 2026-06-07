@@ -21,5 +21,6 @@ once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land i
 - Auto-generated release-notes config (`.github/release.yml`) grouped by `type:`/`area:` labels.
 - PR auto-labeler (`.github/labeler.yml` + workflow) applying `area:*` labels by changed path.
 - Dependabot grouping of minor/patch updates; Gradle parallel + build cache.
+- Java 25 project baseline with Gradle Wrapper 9.5.1.
 
 [Unreleased]: https://github.com/LMLiam/KyoriAdventureDSL/commits/master
