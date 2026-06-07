@@ -35,10 +35,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # build-mode: none analyses the Kotlin sources directly, so no Gradle
-          # build is required (and it stays green before any module exists).
+          # Kotlin analysis needs a real Gradle compilation once modules contain
+          # source files, otherwise CodeQL cannot see extracted Java/Kotlin code.
           - language: java-kotlin
-            build-mode: none
+            build-mode: manual
 
     steps:
       - name: Checkout
@@ -52,6 +52,9 @@ jobs:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
           queries: security-extended,security-and-quality
+
+      - name: Build Kotlin sources
+        run: ./gradlew build --no-daemon
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4
