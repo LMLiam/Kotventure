@@ -91,6 +91,7 @@ See `docs/DESIGN.md` §4 for the full map. Non-negotiables:
 - **Titles and every commit subject** follow `verb(area): something` (all lowercase verb + area). Enforced by `.github/workflows/conventional-titles.yml`. Recommended verbs/areas are listed in `CONTRIBUTING.md`.
 - **Branch:** `type/issue-<n>/short-desc` (e.g. `feat/issue-19/style-dsl`).
 - **Link issues:** `Closes #<n>` in the PR; pick the matching PR template.
+- **Project metadata:** if the issue is attached to a GitHub Project (for example `Kotventure Roadmap`), attach the PR to the same project and set/verify the visible planning fields: `Status`, `Priority`, `Area`, `Kind`, `Effort`, `Risk`, and `Contributor fit`. Mirror the issue's values unless the maintainer explicitly says otherwise, and verify with `gh project item-list` before reporting completion.
 
 ## 8. Definition of done (per issue)
 
