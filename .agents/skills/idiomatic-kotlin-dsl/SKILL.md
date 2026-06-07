@@ -9,7 +9,8 @@ How DSLs are built here. Favour clarity and type-safety; avoid Java-isms and cle
 
 ## Lambda-with-receiver + @DslMarker
 
-A builder scope is an interface/class configured by a `Scope.() -> Unit` lambda, marked so inner scopes can't leak into outer ones.
+A builder scope is an interface/class configured by a `Scope.() -> Unit` lambda, marked so inner scopes can't leak into
+outer ones.
 
 ```kotlin
 @DslMarker
@@ -51,5 +52,6 @@ public fun component(init: TextScope.() -> Unit): Component =
 ## Smell check before committing
 
 - Could a reviewer understand this file's one job from its name? If not, split it.
-- Does any public declaration lack a visibility modifier, return type, or KDoc? Fix it (`explicitApi()` will fail otherwise).
+- Does any public declaration lack a visibility modifier, return type, or KDoc? Fix it (`explicitApi()` will fail
+  otherwise).
 - Is there a builder field that escapes mutable? Make the output immutable.
