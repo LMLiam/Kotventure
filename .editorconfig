@@ -41,8 +41,10 @@ ij_json_wrap_long_lines = false
 
 [{*.kt,*.kts}]
 ktlint_code_style = ktlint_official
+ktlint_standard_indent = disabled
 ktlint_standard_no-wildcard-imports = enabled
 ktlint_standard_filename = enabled
+ktlint_standard_string-template-indent = disabled
 ij_kotlin_align_in_columns_case_branch = false
 ij_kotlin_align_multiline_binary_operation = false
 ij_kotlin_align_multiline_extends_list = false

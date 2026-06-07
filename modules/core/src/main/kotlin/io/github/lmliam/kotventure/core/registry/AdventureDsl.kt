@@ -4,7 +4,6 @@ import io.github.lmliam.kotventure.core.animation.AnimationDriver
 import io.github.lmliam.kotventure.core.minimessage.MiniMessageTagProvider
 import io.github.lmliam.kotventure.core.platform.PlatformAdapter
 import io.github.lmliam.kotventure.core.theme.ThemeProvider
-import java.util.Collections
 
 /**
  * Explicit startup registry for Kotventure extension points.
@@ -90,5 +89,8 @@ public object AdventureDsl {
         platformAdapter = null
     }
 
-    private fun <K, V> Map<K, V>.immutableSnapshot(): Map<K, V> = Collections.unmodifiableMap(toMap())
+    private fun <K, V> Map<K, V>.immutableSnapshot(): Map<K, V> =
+        buildMap {
+            putAll(this@immutableSnapshot)
+        }
 }
