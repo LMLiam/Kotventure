@@ -7,6 +7,8 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.format.Style
 import net.kyori.adventure.text.format.TextColor
+import net.kyori.adventure.text.format.TextDecoration
+import net.kyori.adventure.text.format.TextDecoration.State
 
 /**
  * Asserts that this component tree contains [expected] in its text content.
@@ -30,6 +32,22 @@ public infix fun Component.shouldHaveColor(expected: TextColor): Component =
 public infix fun Component.shouldHaveStyle(expected: Style): Component =
     apply {
         this should haveStyle(expected)
+    }
+
+/**
+ * Asserts that this component has [expected] enabled on its root style.
+ */
+public infix fun Component.shouldHaveDecoration(expected: TextDecoration): Component =
+    apply {
+        this should haveDecoration(expected)
+    }
+
+/**
+ * Asserts that this component has no explicit [expected] state on its root style.
+ */
+public infix fun Component.shouldNotHaveDecoration(expected: TextDecoration): Component =
+    apply {
+        this should haveDecorationState(expected, State.NOT_SET)
     }
 
 /**
@@ -90,6 +108,24 @@ private fun haveStyle(expected: Style): Matcher<Component> =
             actual == expected,
             { "Expected component style <$expected>, but was <$actual>." },
             { "Expected component style not to be <$expected>." },
+        )
+    }
+
+private fun haveDecoration(expected: TextDecoration): Matcher<Component> = haveDecorationState(expected, State.TRUE)
+
+private fun haveDecorationState(
+    expected: TextDecoration,
+    state: State,
+): Matcher<Component> =
+    Matcher { value ->
+        val actual = value.style().decoration(expected)
+        MatcherResult(
+            actual == state,
+            {
+                "Expected component decoration <$expected> to be <${state.name}>, " +
+                        "but was <${actual.name}>."
+            },
+            { "Expected component decoration <$expected> not to be <${state.name}>." },
         )
     }
 

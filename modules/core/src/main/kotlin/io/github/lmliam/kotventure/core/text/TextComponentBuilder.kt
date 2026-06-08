@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.format.Style
 import net.kyori.adventure.text.format.TextColor
+import net.kyori.adventure.text.format.TextDecoration
 
 internal class TextComponentBuilder : TextScope {
     private val builder: TextComponent.Builder = Component.text()
@@ -18,6 +19,40 @@ internal class TextComponentBuilder : TextScope {
 
     override fun style(style: Style) {
         builder.style(style)
+    }
+
+    override fun decorate(decoration: TextDecoration) {
+        builder.decoration(decoration, true)
+    }
+
+    override fun bold() {
+        decorate(TextDecoration.BOLD)
+    }
+
+    override fun italic() {
+        decorate(TextDecoration.ITALIC)
+    }
+
+    override fun underlined() {
+        decorate(TextDecoration.UNDERLINED)
+    }
+
+    override fun strikethrough() {
+        decorate(TextDecoration.STRIKETHROUGH)
+    }
+
+    override fun obfuscated() {
+        decorate(TextDecoration.OBFUSCATED)
+    }
+
+    override fun text(
+        value: String,
+        init: TextScope.() -> Unit,
+    ) {
+        text {
+            content(value)
+            init()
+        }
     }
 
     override fun text(init: TextScope.() -> Unit) {

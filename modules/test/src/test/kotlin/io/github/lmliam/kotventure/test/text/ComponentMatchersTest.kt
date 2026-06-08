@@ -90,6 +90,56 @@ class ComponentMatchersTest :
                 Component.text("Title").style(style) shouldHaveStyle style
             }
 
+            "matches root decorations" {
+                Component
+                    .text("Title")
+                    .decoration(TextDecoration.BOLD, true) shouldHaveDecoration TextDecoration.BOLD
+            }
+
+            "matches missing root decorations" {
+                Component.text("Title") shouldNotHaveDecoration TextDecoration.BOLD
+            }
+
+            "reports decoration mismatch with expected and actual state" {
+                val failure =
+                    shouldThrow<AssertionError> {
+                        Component.text("Title") shouldHaveDecoration TextDecoration.BOLD
+                    }
+                val expectedMessage =
+                    "Expected component decoration <${TextDecoration.BOLD}> to be <TRUE>, " +
+                            "but was <NOT_SET>."
+
+                failure.message shouldContain expectedMessage
+            }
+
+            "reports unexpected root decorations" {
+                val failure =
+                    shouldThrow<AssertionError> {
+                        Component
+                            .text("Title")
+                            .decoration(TextDecoration.BOLD, true) shouldNotHaveDecoration TextDecoration.BOLD
+                    }
+                val expectedMessage =
+                    "Expected component decoration <${TextDecoration.BOLD}> to be <NOT_SET>, " +
+                            "but was <TRUE>."
+
+                failure.message shouldContain expectedMessage
+            }
+
+            "does not treat explicitly disabled decorations as missing" {
+                val failure =
+                    shouldThrow<AssertionError> {
+                        Component
+                            .text("Title")
+                            .decoration(TextDecoration.BOLD, false) shouldNotHaveDecoration TextDecoration.BOLD
+                    }
+                val expectedMessage =
+                    "Expected component decoration <${TextDecoration.BOLD}> to be <NOT_SET>, " +
+                            "but was <FALSE>."
+
+                failure.message shouldContain expectedMessage
+            }
+
             "matches child count and retrieves children by index" {
                 val component =
                     Component
