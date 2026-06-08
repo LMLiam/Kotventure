@@ -11,6 +11,7 @@ group = 'io.github.lmliam.kotventure'
 version = '0.0.1-SNAPSHOT'
 
 subprojects {
+    apply plugin: 'java-library'
     apply plugin: 'org.jetbrains.kotlin.jvm'
     apply plugin: 'io.kotest'
     apply plugin: 'com.diffplug.spotless'

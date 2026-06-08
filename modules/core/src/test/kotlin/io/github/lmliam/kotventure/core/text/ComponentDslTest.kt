@@ -1,5 +1,10 @@
 package io.github.lmliam.kotventure.core.text
 
+import io.github.lmliam.kotventure.test.text.childAt
+import io.github.lmliam.kotventure.test.text.shouldContainText
+import io.github.lmliam.kotventure.test.text.shouldHaveChildCount
+import io.github.lmliam.kotventure.test.text.shouldHaveColor
+import io.github.lmliam.kotventure.test.text.shouldHaveStyle
 import io.kotest.core.spec.style.StringSpec
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.Style

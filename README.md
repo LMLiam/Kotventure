@@ -55,7 +55,12 @@ See [`docs/DESIGN.md`](docs/DESIGN.md) for the full design and the [Roadmap](doc
 
 ## ✅ Implemented So Far
 
-The first `core` slice exposes a plain component builder and explicit startup registry:
+The current build enables the first two lazy modules:
+
+- `kotventure-core` — the plain component builder and explicit startup registry
+- `kotventure-test` — Kotest component matchers consumed test-scoped by library modules
+
+The first `core` slice exposes a plain component builder:
 
 ```kotlin
 val message = component {
@@ -69,6 +74,9 @@ val message = component {
 
 `AdventureDsl` stores typed extension registrations for MiniMessage tag providers, theme providers, animation drivers,
 and the active platform adapter. Registration is explicit at startup; there is no classpath scanning.
+
+`kotventure-test` starts the testing toolkit with structural component matchers such as `shouldContainText`,
+`shouldHaveColor`, and `shouldHaveChildCount`.
 
 ---
 

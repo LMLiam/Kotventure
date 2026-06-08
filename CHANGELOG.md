@@ -25,6 +25,7 @@ once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land i
 - Dependabot grouping of minor/patch updates; Gradle parallel + build cache.
 - Java 25 project baseline with Gradle Wrapper 9.5.1.
 - `core` module with the first direct `component {}` text builder slice.
+- `test` module with the first public Kotest component matchers for dogfooding DSL output.
 - Explicit `AdventureDsl` registry slots for MiniMessage tag providers, themes, animation drivers, and platform
   adapters.
 - Regression tests covering the new component builder, registry behavior, and absence of SPI wiring in production

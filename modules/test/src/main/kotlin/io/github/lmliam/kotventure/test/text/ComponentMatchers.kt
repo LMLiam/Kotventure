@@ -1,4 +1,4 @@
-package io.github.lmliam.kotventure.core.text
+package io.github.lmliam.kotventure.test.text
 
 import io.kotest.matchers.Matcher
 import io.kotest.matchers.MatcherResult
@@ -8,27 +8,42 @@ import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.format.Style
 import net.kyori.adventure.text.format.TextColor
 
-internal infix fun Component.shouldContainText(expected: String): Component =
+/**
+ * Asserts that this component tree contains [expected] in its text content.
+ */
+public infix fun Component.shouldContainText(expected: String): Component =
     apply {
         this should haveTextContent(expected)
     }
 
-internal infix fun Component.shouldHaveColor(expected: TextColor): Component =
+/**
+ * Asserts that this component has [expected] as its root color.
+ */
+public infix fun Component.shouldHaveColor(expected: TextColor): Component =
     apply {
         this should haveColor(expected)
     }
 
-internal infix fun Component.shouldHaveStyle(expected: Style): Component =
+/**
+ * Asserts that this component has exactly [expected] as its root Adventure style.
+ */
+public infix fun Component.shouldHaveStyle(expected: Style): Component =
     apply {
         this should haveStyle(expected)
     }
 
-internal infix fun Component.shouldHaveChildCount(expected: Int): Component =
+/**
+ * Asserts that this component has exactly [expected] direct child components.
+ */
+public infix fun Component.shouldHaveChildCount(expected: Int): Component =
     apply {
         this should haveChildCount(expected)
     }
 
-internal fun Component.childAt(index: Int): Component {
+/**
+ * Returns this component's child at [index], or fails with a readable test error.
+ */
+public fun Component.childAt(index: Int): Component {
     val children = children()
     check(index in children.indices) {
         "Expected child at index <$index>, but component has <${children.size}> children."
@@ -38,13 +53,25 @@ internal fun Component.childAt(index: Int): Component {
 
 private fun haveTextContent(expected: String): Matcher<Component> =
     Matcher { value ->
-        val actual = (value as? TextComponent)?.content()
+        val actual = value.textContent()
         MatcherResult(
-            actual == expected,
-            { "Expected text content <$expected>, but was <$actual>." },
-            { "Expected text content not to be <$expected>." },
+            expected in actual,
+            { "Expected component text to contain <$expected>, but was <$actual>." },
+            { "Expected component text not to contain <$expected>." },
         )
     }
+
+private fun Component.textContent(): String =
+    buildString {
+        appendText(this@textContent)
+    }
+
+private fun StringBuilder.appendText(component: Component) {
+    if (component is TextComponent) {
+        append(component.content())
+    }
+    component.children().forEach { child -> appendText(child) }
+}
 
 private fun haveColor(expected: TextColor): Matcher<Component> =
     Matcher { value ->
