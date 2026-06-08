@@ -156,6 +156,39 @@ class ComponentDslTest :
                 component.childAt(0) shouldNotHaveDecoration TextDecoration.BOLD
             }
 
+            "keeps style blocks additive with surrounding style calls" {
+                val styleAfterColor =
+                    component {
+                        color(NamedTextColor.GOLD)
+                        style {
+                            bold()
+                        }
+                    }
+
+                val colorAfterStyle =
+                    component {
+                        style {
+                            bold()
+                        }
+                        color(NamedTextColor.GOLD)
+                    }
+
+                val styleAfterDecoration =
+                    component {
+                        bold()
+                        style {
+                            color(NamedTextColor.GOLD)
+                        }
+                    }
+
+                styleAfterColor shouldHaveColor NamedTextColor.GOLD
+                styleAfterColor shouldHaveDecoration TextDecoration.BOLD
+                colorAfterStyle shouldHaveColor NamedTextColor.GOLD
+                colorAfterStyle shouldHaveDecoration TextDecoration.BOLD
+                styleAfterDecoration shouldHaveColor NamedTextColor.GOLD
+                styleAfterDecoration shouldHaveDecoration TextDecoration.BOLD
+            }
+
             "applies a decoration to the root text component" {
                 val component =
                     component {

@@ -1,12 +1,13 @@
-package io.github.lmliam.kotventure.core.style
+package io.github.lmliam.kotventure.core.text
 
-import net.kyori.adventure.text.format.Style
+import io.github.lmliam.kotventure.core.style.StyleScope
+import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.format.TextColor
 import net.kyori.adventure.text.format.TextDecoration
 
-internal class StyleBuilder : StyleScope {
-    private val builder: Style.Builder = Style.style()
-
+internal class TextStyleScope(
+    private val builder: TextComponent.Builder,
+) : StyleScope {
     override fun color(color: TextColor) {
         builder.color(color)
     }
@@ -34,6 +35,4 @@ internal class StyleBuilder : StyleScope {
     override fun obfuscated() {
         decorate(TextDecoration.OBFUSCATED)
     }
-
-    internal fun build(): Style = builder.build()
 }

@@ -1,6 +1,5 @@
 package io.github.lmliam.kotventure.core.text
 
-import io.github.lmliam.kotventure.core.style.StyleBuilder
 import io.github.lmliam.kotventure.core.style.StyleScope
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
@@ -24,7 +23,7 @@ internal class TextComponentBuilder : TextScope {
     }
 
     override fun style(init: StyleScope.() -> Unit) {
-        builder.style(StyleBuilder().apply(init).build())
+        TextStyleScope(builder).init()
     }
 
     override fun decorate(decoration: TextDecoration) {
