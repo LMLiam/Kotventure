@@ -1,3 +1,6 @@
+import groovy.json.JsonSlurper
+import org.gradle.api.artifacts.VersionCatalogsExtension
+
 def jarSubprojects = subprojects.findAll { subproject ->
     subproject.tasks.findByName('jar') != null &&
             subproject.extensions.findByName('sourceSets') != null
@@ -116,6 +119,151 @@ tasks.register('verifyBomConsumerVersionlessDependencies') {
     }
 }
 
+def requireReleaseAutomationFile = { String path ->
+    def requiredFile = rootProject.file(path)
+    if (!requiredFile.isFile()) {
+        throw new GradleException("Missing required release automation file: ${path}")
+    }
+    requiredFile
+}
+
+def requireReleaseAutomationValue = { boolean condition, String message ->
+    if (!condition) {
+        throw new GradleException(message)
+    }
+}
+
+def requireReleaseAutomationText = { String text, String expected, String message ->
+    requireReleaseAutomationValue(
+            text.contains(expected),
+            "${message}; missing `${expected}`."
+    )
+}
+
+tasks.register('verifyReleasePleaseConfiguration') {
+    group = 'verification'
+    description = 'Verifies release-please version, changelog, workflow, and documentation wiring.'
+
+    doLast {
+        def catalog = rootProject.extensions.getByType(VersionCatalogsExtension).named('libs')
+        def projectVersion = catalog.findVersion('project')
+        requireReleaseAutomationValue(
+                projectVersion.isPresent(),
+                'gradle/libs.versions.toml must define versions.project for release-please.'
+        )
+        requireReleaseAutomationValue(
+                rootProject.version.toString() == projectVersion.get().requiredVersion,
+                "Root project version '${rootProject.version}' must match versions.project '${projectVersion.get().requiredVersion}'."
+        )
+
+        def buildScript = requireReleaseAutomationFile('build.gradle').text
+        requireReleaseAutomationText(
+                buildScript,
+                'version = libs.versions.project.get()',
+                'build.gradle must read the project version from the version catalog'
+        )
+
+        def parser = new JsonSlurper()
+        def manifest = parser.parse(requireReleaseAutomationFile('.release-please-manifest.json'))
+        requireReleaseAutomationValue(
+                manifest['.'] == '0.0.1',
+                ".release-please-manifest.json must seed the root package with 0.0.1."
+        )
+
+        def releaseConfig = parser.parse(requireReleaseAutomationFile('release-please-config.json'))
+        requireReleaseAutomationValue(
+                releaseConfig['release-type'] == 'simple',
+                "release-please-config.json must use the simple release type."
+        )
+        requireReleaseAutomationValue(
+                releaseConfig['bump-minor-pre-major'] == true,
+                'release-please-config.json must set bump-minor-pre-major for 0.x releases.'
+        )
+        requireReleaseAutomationValue(
+                releaseConfig['bump-patch-for-minor-pre-major'] == true,
+                'release-please-config.json must set bump-patch-for-minor-pre-major for 0.x releases.'
+        )
+        requireReleaseAutomationValue(
+                releaseConfig['include-v-in-tag'] == false,
+                'release-please-config.json must keep tag names aligned with the existing 0.0.1 tag.'
+        )
+        requireReleaseAutomationValue(
+                releaseConfig['include-component-in-tag'] == false,
+                'release-please-config.json must avoid component prefixes for single-root release tags.'
+        )
+        requireReleaseAutomationValue(
+                releaseConfig['changelog-path'] == 'CHANGELOG.md',
+                'release-please-config.json must explicitly maintain CHANGELOG.md.'
+        )
+        requireReleaseAutomationValue(
+                releaseConfig['packages'] instanceof Map && releaseConfig['packages'].containsKey('.'),
+                'release-please-config.json must configure the repository root package.'
+        )
+
+        def sections = releaseConfig['changelog-sections']
+        requireReleaseAutomationValue(
+                sections instanceof List,
+                'release-please-config.json must define changelog-sections.'
+        )
+        def sectionsByType = sections.collectEntries { section ->
+            [(section['type']): section]
+        }
+        [
+                feat    : ['\u2728 Features', false],
+                fix     : ['\uD83D\uDC1B Fixes', false],
+                refactor: ['\uD83D\uDD27 Refactors', false],
+                test    : ['\uD83E\uDDEA Tests', true],
+                docs    : ['\uD83D\uDCDD Documentation', false],
+                chore   : ['\uD83D\uDD28 Chores & CI', true]
+        ].each { commitType, expected ->
+            def section = sectionsByType[commitType]
+            requireReleaseAutomationValue(
+                    section != null,
+                    "release-please-config.json must map conventional commit type '${commitType}'."
+            )
+            requireReleaseAutomationValue(
+                    section['section'] == expected[0],
+                    "release-please-config.json maps '${commitType}' to '${section['section']}', expected '${expected[0]}'."
+            )
+            requireReleaseAutomationValue(
+                    (section['hidden'] == true) == expected[1],
+                    "release-please-config.json hidden setting for '${commitType}' must be ${expected[1]}."
+            )
+        }
+
+        def extraFiles = releaseConfig['extra-files']
+        requireReleaseAutomationValue(
+                extraFiles instanceof List && extraFiles.any { extraFile ->
+                    extraFile['type'] == 'toml' &&
+                            extraFile['path'] == 'gradle/libs.versions.toml' &&
+                            extraFile['jsonpath'] == '$.versions.project'
+                },
+                'release-please-config.json must bump versions.project in gradle/libs.versions.toml via extra-files.'
+        )
+
+        def workflow = requireReleaseAutomationFile('.github/workflows/release-please.yml').text
+        requireReleaseAutomationText(workflow, 'push:', 'release-please workflow must run on push events')
+        requireReleaseAutomationText(workflow, '- master', 'release-please workflow must target master')
+        requireReleaseAutomationText(workflow, 'contents: write', 'release-please workflow must be able to write tags/releases')
+        requireReleaseAutomationText(workflow, 'issues: write', 'release-please workflow must be able to manage release labels')
+        requireReleaseAutomationText(workflow, 'pull-requests: write', 'release-please workflow must be able to open Release PRs')
+        requireReleaseAutomationText(workflow, 'id: release', 'release-please workflow must expose action outputs')
+        requireReleaseAutomationText(workflow, 'uses: googleapis/release-please-action@', 'release-please workflow must run release-please-action')
+        requireReleaseAutomationText(workflow, '# v4', 'release-please workflow action pin must document the v4 tag')
+        requireReleaseAutomationText(workflow, 'config-file: release-please-config.json', 'release-please workflow must use the repository config file')
+        requireReleaseAutomationText(workflow, 'manifest-file: .release-please-manifest.json', 'release-please workflow must use the repository manifest')
+        requireReleaseAutomationText(workflow, 'release_created:', 'release-please workflow must expose release_created for downstream publishing')
+        requireReleaseAutomationText(workflow, 'tag_name:', 'release-please workflow must expose tag_name for downstream publishing')
+
+        def releaseDocs = requireReleaseAutomationFile('docs/RELEASING.md').text
+        requireReleaseAutomationText(releaseDocs, 'RELEASE_PLEASE_TOKEN', 'release documentation must describe the bot token secret')
+        requireReleaseAutomationText(releaseDocs, 'branch protection', 'release documentation must cover branch protection')
+        requireReleaseAutomationText(releaseDocs, 'GitHub Actions bot', 'release documentation must cover bot permissions')
+        requireReleaseAutomationText(releaseDocs, 'Maven Central', 'release documentation must keep publishing coordination explicit')
+    }
+}
+
 tasks.named('check') {
     dependsOn tasks.named('verifyBomConsumerVersionlessDependencies')
+    dependsOn tasks.named('verifyReleasePleaseConfiguration')
 }
