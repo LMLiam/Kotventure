@@ -172,8 +172,12 @@ tasks.register('verifyReleasePleaseConfiguration') {
 
         def releaseConfig = parser.parse(requireReleaseAutomationFile('release-please-config.json'))
         requireReleaseAutomationValue(
-                releaseConfig['release-type'] == 'simple',
-                "release-please-config.json must use the simple release type."
+                releaseConfig['release-type'] == 'java',
+                'release-please-config.json must use the java release type to avoid a separate simple-strategy version file.'
+        )
+        requireReleaseAutomationValue(
+                releaseConfig['skip-snapshot'] == true,
+                'release-please-config.json must disable Java snapshot release PRs for Kotventure release tags.'
         )
         requireReleaseAutomationValue(
                 releaseConfig['bump-minor-pre-major'] == true,
