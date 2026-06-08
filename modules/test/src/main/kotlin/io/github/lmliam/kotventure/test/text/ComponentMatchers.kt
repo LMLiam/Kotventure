@@ -123,7 +123,7 @@ private fun haveDecorationState(
             actual == state,
             {
                 "Expected component decoration <$expected> to be <${state.name}>, " +
-                    "but was <${actual.name}>."
+                        "but was <${actual.name}>."
             },
             { "Expected component decoration <$expected> not to be <${state.name}>." },
         )

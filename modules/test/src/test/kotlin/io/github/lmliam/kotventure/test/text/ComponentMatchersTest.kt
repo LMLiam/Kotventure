@@ -121,7 +121,7 @@ class ComponentMatchersTest :
                     }
                 val expectedMessage =
                     "Expected component decoration <${TextDecoration.BOLD}> to be <NOT_SET>, " +
-                        "but was <TRUE>."
+                            "but was <TRUE>."
 
                 failure.message shouldContain expectedMessage
             }
@@ -135,7 +135,7 @@ class ComponentMatchersTest :
                     }
                 val expectedMessage =
                     "Expected component decoration <${TextDecoration.BOLD}> to be <NOT_SET>, " +
-                        "but was <FALSE>."
+                            "but was <FALSE>."
 
                 failure.message shouldContain expectedMessage
             }
