@@ -28,7 +28,7 @@ once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land i
 - Text component decoration support through `decorate(...)`, `bold()`, `italic()`, `underlined()`, `strikethrough()`,
   and `obfuscated()`.
 - `test` module with the first public Kotest component matchers for dogfooding DSL output.
-- `shouldHaveDecoration` matcher for root component decoration assertions.
+- `shouldHaveDecoration` and `shouldNotHaveDecoration` matchers for root component decoration assertions.
 - Explicit `AdventureDsl` registry slots for MiniMessage tag providers, themes, animation drivers, and platform
   adapters.
 - Regression tests covering the new component builder, registry behavior, and absence of SPI wiring in production

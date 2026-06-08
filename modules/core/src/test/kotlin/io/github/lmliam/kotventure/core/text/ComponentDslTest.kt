@@ -9,6 +9,7 @@ import io.github.lmliam.kotventure.test.text.shouldHaveChildCount
 import io.github.lmliam.kotventure.test.text.shouldHaveColor
 import io.github.lmliam.kotventure.test.text.shouldHaveDecoration
 import io.github.lmliam.kotventure.test.text.shouldHaveStyle
+import io.github.lmliam.kotventure.test.text.shouldNotHaveDecoration
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -135,6 +136,7 @@ class ComponentDslTest :
 
                 component shouldHaveChildCount 2
                 component.childAt(0) shouldContainText "plain"
+                component.childAt(0) shouldNotHaveDecoration TextDecoration.BOLD
                 component.childAt(1) shouldContainText "loud"
                 component.childAt(1) shouldHaveDecoration TextDecoration.BOLD
             }

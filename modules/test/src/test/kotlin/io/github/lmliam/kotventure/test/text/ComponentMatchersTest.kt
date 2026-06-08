@@ -96,6 +96,10 @@ class ComponentMatchersTest :
                     .decoration(TextDecoration.BOLD, true) shouldHaveDecoration TextDecoration.BOLD
             }
 
+            "matches missing root decorations" {
+                Component.text("Title") shouldNotHaveDecoration TextDecoration.BOLD
+            }
+
             "reports decoration mismatch with expected and actual state" {
                 val failure =
                     shouldThrow<AssertionError> {
@@ -104,6 +108,19 @@ class ComponentMatchersTest :
                 val expectedMessage =
                     "Expected component decoration <${TextDecoration.BOLD}> to be <TRUE>, " +
                             "but was <NOT_SET>."
+
+                failure.message shouldContain expectedMessage
+            }
+
+            "reports unexpected root decorations" {
+                val failure =
+                    shouldThrow<AssertionError> {
+                        Component
+                            .text("Title")
+                            .decoration(TextDecoration.BOLD, true) shouldNotHaveDecoration TextDecoration.BOLD
+                    }
+                val expectedMessage =
+                    "Expected component decoration <${TextDecoration.BOLD}> not to be <TRUE>."
 
                 failure.message shouldContain expectedMessage
             }

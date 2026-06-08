@@ -78,7 +78,7 @@ val message = component {
 and the active platform adapter. Registration is explicit at startup; there is no classpath scanning.
 
 `kotventure-test` starts the testing toolkit with structural component matchers such as `shouldContainText`,
-`shouldHaveColor`, `shouldHaveDecoration`, and `shouldHaveChildCount`.
+`shouldHaveColor`, `shouldHaveDecoration`, `shouldNotHaveDecoration`, and `shouldHaveChildCount`.
 
 ---
 

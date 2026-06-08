@@ -3,6 +3,7 @@ package io.github.lmliam.kotventure.test.text
 import io.kotest.matchers.Matcher
 import io.kotest.matchers.MatcherResult
 import io.kotest.matchers.should
+import io.kotest.matchers.shouldNot
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.format.Style
@@ -40,6 +41,14 @@ public infix fun Component.shouldHaveStyle(expected: Style): Component =
 public infix fun Component.shouldHaveDecoration(expected: TextDecoration): Component =
     apply {
         this should haveDecoration(expected)
+    }
+
+/**
+ * Asserts that this component does not have [expected] enabled on its root style.
+ */
+public infix fun Component.shouldNotHaveDecoration(expected: TextDecoration): Component =
+    apply {
+        this shouldNot haveDecoration(expected)
     }
 
 /**
@@ -110,7 +119,7 @@ private fun haveDecoration(expected: TextDecoration): Matcher<Component> =
             actual == State.TRUE,
             {
                 "Expected component decoration <$expected> to be <${State.TRUE.name}>, " +
-                    "but was <${actual.name}>."
+                        "but was <${actual.name}>."
             },
             { "Expected component decoration <$expected> not to be <${State.TRUE.name}>." },
         )
