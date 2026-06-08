@@ -11,6 +11,9 @@ group = 'io.github.lmliam.kotventure'
 version = '0.0.1-SNAPSHOT'
 
 subprojects {
+    group = rootProject.group
+    version = rootProject.version
+
     apply plugin: 'java-library'
     apply plugin: 'org.jetbrains.kotlin.jvm'
     apply plugin: 'io.kotest'
@@ -32,6 +35,7 @@ subprojects {
     apply from: rootProject.file('gradle/repositories.gradle')
     apply from: rootProject.file('gradle/versions.gradle')
     apply from: rootProject.file('gradle/dependencies.gradle')
+    apply from: rootProject.file('gradle/publish.gradle')
 
     tasks.withType(Jar).configureEach {
         archiveBaseName.set("kotventure-${project.name}")

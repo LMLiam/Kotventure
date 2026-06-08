@@ -35,6 +35,8 @@ once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land i
   adapters.
 - Regression tests covering the new component builder, registry behavior, and absence of SPI wiring in production
   sources.
+- JitPack publishing support for the enabled modules, including `maven-publish` wiring, JDK 25 JitPack setup, and
+  build-time publication metadata checks.
 
 ### Changed
 
