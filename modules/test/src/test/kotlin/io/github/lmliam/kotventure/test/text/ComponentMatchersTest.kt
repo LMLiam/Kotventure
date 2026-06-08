@@ -35,8 +35,35 @@ class ComponentMatchersTest :
                 failure.message shouldContain "Expected component text to contain <Bye>, but was <Hello>."
             }
 
+            "reports nested text mismatch with the complete extracted content" {
+                val component =
+                    Component
+                        .text()
+                        .content("Hello ")
+                        .append(Component.text("world"))
+                        .append(Component.text("!"))
+                        .build()
+
+                val failure =
+                    shouldThrow<AssertionError> {
+                        component shouldContainText "missing"
+                    }
+
+                failure.message shouldContain "Expected component text to contain <missing>, but was <Hello world!>."
+            }
+
             "matches root component colors" {
                 Component.text("Warning", NamedTextColor.RED) shouldHaveColor NamedTextColor.RED
+            }
+
+            "reports color mismatch with expected and actual colors" {
+                val failure =
+                    shouldThrow<AssertionError> {
+                        Component.text("Warning", NamedTextColor.RED) shouldHaveColor NamedTextColor.BLUE
+                    }
+
+                failure.message shouldContain
+                    "Expected component color <${NamedTextColor.BLUE}>, but was <${NamedTextColor.RED}>."
             }
 
             "matches complete Adventure styles" {
