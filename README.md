@@ -84,6 +84,11 @@ and the active platform adapter. Registration is explicit at startup; there is n
 Pre-alpha snapshots will be published via [JitPack](https://jitpack.io). Coordinates and a worked example land with the
 first tagged slice (`0.0.1`).
 
+## 🧰 Build & Compatibility
+
+Kotventure builds and tests with the Java 25 Gradle toolchain. Its Adventure baseline is 5.1.1, which sets a Java 21+
+minimum for consumers using Kotventure artifacts.
+
 ---
 
 ## 🤝 Contributing
