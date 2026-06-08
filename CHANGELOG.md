@@ -37,6 +37,8 @@ once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land i
   sources.
 - JitPack publishing support for the enabled modules, including `maven-publish` wiring, JDK 25 JitPack setup, and
   build-time publication metadata checks.
+- `bom` module publishing `kotventure-bom` so consumers can align Kotventure artifacts and Adventure 5.1.1 with one
+  platform import.
 
 ### Changed
 
