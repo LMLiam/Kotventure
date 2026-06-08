@@ -43,6 +43,10 @@ JDK **25** (provisioned via the Gradle toolchain). Always use the wrapper.
 
 Run formatting and the relevant tests **before** committing. CI must be green.
 
+Shared dependency and plugin coordinates live in [`gradle/libs.versions.toml`](gradle/libs.versions.toml). Add shared
+versions there first, then consume them through catalog aliases or the existing Gradle helper scripts that delegate to
+the catalog.
+
 ## 4. Architecture you must respect
 
 See `docs/DESIGN.md` §4 for the full map. Non-negotiables:

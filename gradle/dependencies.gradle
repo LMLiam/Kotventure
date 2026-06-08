@@ -1,5 +1,9 @@
 apply from: rootProject.file('gradle/versions.gradle')
 
+import org.gradle.api.artifacts.VersionCatalogsExtension
+
+def catalog = rootProject.extensions.getByType(VersionCatalogsExtension).named('libs')
+
 configurations {
     shade
     implementation.extendsFrom(shade)
@@ -7,13 +11,13 @@ configurations {
 }
 
 ext.kotventureDependencies = [
-        "adventure-api"         : "net.kyori:adventure-api:${versions.'adventure-api'}",
-        "kotest-assertions-core": "io.kotest:kotest-assertions-core:${versions.kotest}",
-        "kotest-runner-junit5"  : "io.kotest:kotest-runner-junit5:${versions.kotest}"
+        "adventure-api"         : catalog.findLibrary('adventure-api').get(),
+        "kotest-assertions-core": catalog.findLibrary('kotest-assertions-core').get(),
+        "kotest-runner-junit5"  : catalog.findLibrary('kotest-runner-junit5').get()
 ]
 
 dependencies {
     testImplementation kotventureDependencies."kotest-assertions-core"
     testImplementation kotventureDependencies."kotest-runner-junit5"
-    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+    testRuntimeOnly catalog.findLibrary('junit-platform-launcher').get()
 }
