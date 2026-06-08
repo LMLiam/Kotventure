@@ -16,6 +16,8 @@ rootProject.name = 'Kotventure'
 include 'core'
 include 'serializer'
 include 'test'
+include 'bom'
 project(':core').projectDir = file('modules/core')
 project(':serializer').projectDir = file('modules/serializer')
 project(':test').projectDir = file('modules/test')
+project(':bom').projectDir = file('modules/bom')

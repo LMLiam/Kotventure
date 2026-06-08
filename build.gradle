@@ -14,27 +14,33 @@ subprojects {
     group = rootProject.group
     version = rootProject.version
 
-    apply plugin: 'java-library'
-    apply plugin: 'org.jetbrains.kotlin.jvm'
-    apply plugin: 'io.kotest'
-    apply plugin: 'com.diffplug.spotless'
-    apply plugin: 'org.jlleitschuh.gradle.ktlint'
+    def libraryModule = project.name != 'bom'
 
-    kotlin {
-        jvmToolchain(25)
-        // Public API discipline: every public/protected declaration must have an explicit
-        // visibility modifier and an explicit type. App/sample modules may opt out with
-        // `explicitApi = org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode.Disabled`.
-        explicitApi()
-    }
+    if (libraryModule) {
+        apply plugin: 'java-library'
+        apply plugin: 'org.jetbrains.kotlin.jvm'
+        apply plugin: 'io.kotest'
+        apply plugin: 'com.diffplug.spotless'
+        apply plugin: 'org.jlleitschuh.gradle.ktlint'
 
-    test {
-        useJUnitPlatform()
+        kotlin {
+            jvmToolchain(25)
+            // Public API discipline: every public/protected declaration must have an explicit
+            // visibility modifier and an explicit type. App/sample modules may opt out with
+            // `explicitApi = org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode.Disabled`.
+            explicitApi()
+        }
+
+        test {
+            useJUnitPlatform()
+        }
     }
 
     apply from: rootProject.file('gradle/repositories.gradle')
     apply from: rootProject.file('gradle/versions.gradle')
-    apply from: rootProject.file('gradle/dependencies.gradle')
+    if (libraryModule) {
+        apply from: rootProject.file('gradle/dependencies.gradle')
+    }
     apply from: rootProject.file('gradle/publish.gradle')
 
     tasks.withType(Jar).configureEach {
@@ -43,7 +49,9 @@ subprojects {
         destinationDirectory.set(rootProject.layout.buildDirectory.dir("libs"))
     }
 
-    apply from: rootProject.file('gradle/spotless.gradle')
+    if (libraryModule) {
+        apply from: rootProject.file('gradle/spotless.gradle')
+    }
 }
 
 apply from: 'gradle/tasks.gradle'

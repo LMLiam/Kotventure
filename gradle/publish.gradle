@@ -24,6 +24,15 @@ afterEvaluate {
     if (project.description != null) {
         moduleDescription.set(project.description)
     }
+    publishing.publications.named('maven') {
+        if (pluginManager.hasPlugin('java-platform')) {
+            from components.javaPlatform
+        } else if (pluginManager.hasPlugin('java')) {
+            from components.java
+        } else {
+            throw new GradleException("${modulePath} must apply java or java-platform to publish Maven metadata.")
+        }
+    }
 }
 
 publishing {
@@ -32,8 +41,6 @@ publishing {
             groupId = publicationGroup
             artifactId = publicationArtifactId
             version = publicationVersion
-
-            from components.java
 
             pom {
                 name = moduleName
@@ -78,6 +85,6 @@ tasks.register('verifyMavenPublicationMetadata') {
     }
 }
 
-tasks.named('check') {
+tasks.matching { it.name == 'check' || it.name == 'build' }.configureEach {
     dependsOn tasks.named('verifyMavenPublicationMetadata')
 }

@@ -28,3 +28,72 @@ registerSubprojectAggregateTask('ktlintCheck', 'verification', 'Runs ktlint chec
 registerSubprojectAggregateTask('spotlessCheck', 'verification', 'Runs Spotless checks in all modules.')
 registerSubprojectAggregateTask('ktlintFormat', 'formatting', 'Formats Kotlin sources in all modules with ktlint.')
 registerSubprojectAggregateTask('spotlessApply', 'formatting', 'Formats sources in all modules with Spotless.')
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+def bomConsumerArtifacts = [
+        'kotventure-core',
+        'kotventure-serializer',
+        'kotventure-test'
+]
+
+configurations {
+    bomConsumerVerification {
+        canBeConsumed = false
+        canBeResolved = true
+        description = 'Resolves Kotventure modules through the published BOM without per-artifact versions.'
+    }
+}
+
+dependencies {
+    bomConsumerVerification platform("${project.group}:kotventure-bom:${project.version}")
+    bomConsumerArtifacts.each { artifactName ->
+        bomConsumerVerification "${project.group}:${artifactName}"
+    }
+}
+
+tasks.register('verifyBomConsumerVersionlessDependencies') {
+    group = 'verification'
+    description = 'Verifies that a consumer importing kotventure-bom can omit per-artifact versions.'
+
+    dependsOn ':core:publishToMavenLocal'
+    dependsOn ':serializer:publishToMavenLocal'
+    dependsOn ':test:publishToMavenLocal'
+    dependsOn ':bom:publishToMavenLocal'
+
+    doLast {
+        def expectedGroup = project.group.toString()
+        def expectedVersion = project.version.toString()
+        def resolvedVersions = [:]
+
+        configurations.bomConsumerVerification.incoming.resolutionResult.allComponents.each { component ->
+            def moduleVersion = component.moduleVersion
+            if (moduleVersion != null &&
+                    moduleVersion.group == expectedGroup &&
+                    bomConsumerArtifacts.contains(moduleVersion.name)) {
+                resolvedVersions[moduleVersion.name] = moduleVersion.version
+            }
+        }
+
+        def missingArtifacts = bomConsumerArtifacts.findAll { artifactName ->
+            !resolvedVersions.containsKey(artifactName)
+        }
+        if (!missingArtifacts.isEmpty()) {
+            throw new GradleException("BOM consumer verification did not resolve: ${missingArtifacts.join(', ')}")
+        }
+
+        def mismatchedVersions = resolvedVersions.findAll { artifactName, resolvedVersion ->
+            resolvedVersion != expectedVersion
+        }
+        if (!mismatchedVersions.isEmpty()) {
+            throw new GradleException("BOM consumer verification resolved unexpected versions: ${mismatchedVersions}")
+        }
+    }
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('verifyBomConsumerVersionlessDependencies')
+}
