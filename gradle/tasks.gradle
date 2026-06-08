@@ -166,8 +166,8 @@ tasks.register('verifyReleasePleaseConfiguration') {
         def parser = new JsonSlurper()
         def manifest = parser.parse(requireReleaseAutomationFile('.release-please-manifest.json'))
         requireReleaseAutomationValue(
-                manifest['.'] == '0.0.1',
-                ".release-please-manifest.json must seed the root package with 0.0.1."
+                manifest['.'] == projectVersion.get().requiredVersion,
+                ".release-please-manifest.json root package version '${manifest['.']}' must match versions.project '${projectVersion.get().requiredVersion}'."
         )
 
         def releaseConfig = parser.parse(requireReleaseAutomationFile('release-please-config.json'))

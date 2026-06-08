@@ -6,8 +6,11 @@ on:
       - master
 
 permissions:
+  # Release-please creates Git tags and GitHub Releases.
   contents: write
+  # Release-please manages release lifecycle labels.
   issues: write
+  # Release-please opens and updates Release PRs.
   pull-requests: write
 
 concurrency:
