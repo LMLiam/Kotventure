@@ -47,9 +47,9 @@ def bomConsumerModules = [
 def bomConsumerArtifacts = bomConsumerModules.collect { moduleName ->
     "kotventure-${moduleName}".toString()
 }
-def jitpackBuild = System.getenv('JITPACK') == 'true'
+def jitpackBuild = providers.environmentVariable('JITPACK').orNull == 'true'
 def jitpackEnvironmentValue = { String name ->
-    def value = System.getenv(name)
+    def value = providers.environmentVariable(name).orNull
     if (value == null || value.isBlank()) {
         throw new GradleException("JitPack BOM consumer verification requires the ${name} environment variable.")
     }
