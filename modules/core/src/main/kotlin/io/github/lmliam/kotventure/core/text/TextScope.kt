@@ -1,6 +1,8 @@
 package io.github.lmliam.kotventure.core.text
 
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
+import io.github.lmliam.kotventure.core.style.StyleScope
+import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.Style
 import net.kyori.adventure.text.format.TextColor
 import net.kyori.adventure.text.format.TextDecoration
@@ -24,6 +26,11 @@ public interface TextScope {
      * Applies a complete Adventure style to the component being configured.
      */
     public fun style(style: Style)
+
+    /**
+     * Applies style attributes from [init] to the component being configured.
+     */
+    public fun style(init: StyleScope.() -> Unit)
 
     /**
      * Enables [decoration] on the component being configured.
@@ -62,6 +69,16 @@ public interface TextScope {
         value: String,
         init: TextScope.() -> Unit = {},
     )
+
+    /**
+     * Appends an existing Adventure [Component] as a child of the component being configured.
+     */
+    public fun append(component: Component)
+
+    /**
+     * Appends an Adventure newline component as a child of the component being configured.
+     */
+    public fun newline()
 
     /**
      * Appends a nested text child configured by [init].
