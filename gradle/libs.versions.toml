@@ -11,6 +11,8 @@ spotlessKtlint = "1.5.0"
 [libraries]
 adventure-api = { module = "net.kyori:adventure-api", version.ref = "adventureApi" }
 adventure-bom = { module = "net.kyori:adventure-bom", version.ref = "adventureApi" }
+adventure-text-minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventureApi" }
+adventure-text-serializer-plain = { module = "net.kyori:adventure-text-serializer-plain", version.ref = "adventureApi" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 kctfork-core = { module = "dev.zacsweers.kctfork:core", version.ref = "kctfork" }
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }

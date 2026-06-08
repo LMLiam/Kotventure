@@ -27,6 +27,8 @@ once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land i
 - `core` module with the first direct `component {}` text builder slice.
 - Text component decoration support through `decorate(...)`, `bold()`, `italic()`, `underlined()`, `strikethrough()`,
   and `obfuscated()`.
+- `serializer` module with `Component.toMiniMessage()` and `Component.toPlainText()` wrappers around Adventure's
+  MiniMessage and plain text serializers.
 - `test` module with the first public Kotest component matchers for dogfooding DSL output.
 - `shouldHaveDecoration` and `shouldNotHaveDecoration` matchers for root component decoration assertions.
 - Explicit `AdventureDsl` registry slots for MiniMessage tag providers, themes, animation drivers, and platform
