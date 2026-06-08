@@ -1,5 +1,4 @@
 <!-- markdownlint-disable MD041 MD022 MD058 -->
-[![adventure-api](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/LMLiam/Kotventure/master/gradle/libs.versions.toml&label=adventure%20api&query=$.versions.adventureApi&color=blue)](https://github.com/PaperMC/adventure/releases/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE.md)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.4-blue.svg?logo=kotlin)](https://kotlinlang.org)
 [![Status: Pre-Alpha](https://img.shields.io/badge/status-pre--alpha-orange.svg)](docs/ROADMAP.md)
