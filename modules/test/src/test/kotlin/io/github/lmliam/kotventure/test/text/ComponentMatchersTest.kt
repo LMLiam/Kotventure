@@ -31,12 +31,57 @@ class ComponentMatchersTest :
                     shouldThrow<AssertionError> {
                         Component.text("Hello") shouldContainText "Bye"
                     }
+                val expectedMessage = "Expected component text to contain <Bye>, but was <Hello>."
 
-                failure.message shouldContain "Expected component text to contain <Bye>, but was <Hello>."
+                failure.message shouldContain expectedMessage
+            }
+
+            "reports nested text mismatch with the complete extracted content" {
+                val component =
+                    Component
+                        .text()
+                        .content("Hello ")
+                        .append(Component.text("world"))
+                        .append(Component.text("!"))
+                        .build()
+
+                val failure =
+                    shouldThrow<AssertionError> {
+                        component shouldContainText "missing"
+                    }
+                val expectedMessage =
+                    "Expected component text to contain <missing>, but was <Hello world!>."
+
+                failure.message shouldContain expectedMessage
             }
 
             "matches root component colors" {
                 Component.text("Warning", NamedTextColor.RED) shouldHaveColor NamedTextColor.RED
+            }
+
+            "reports color mismatch with expected and actual colors" {
+                val component = Component.text("Warning", NamedTextColor.RED)
+
+                val failure =
+                    shouldThrow<AssertionError> {
+                        component shouldHaveColor NamedTextColor.BLUE
+                    }
+                val expectedMessage =
+                    "Expected component color <${NamedTextColor.BLUE}>, " +
+                            "but was <${NamedTextColor.RED}>."
+
+                failure.message shouldContain expectedMessage
+            }
+
+            "reports missing root color with expected and actual colors" {
+                val failure =
+                    shouldThrow<AssertionError> {
+                        Component.text("Warning") shouldHaveColor NamedTextColor.RED
+                    }
+                val expectedMessage =
+                    "Expected component color <${NamedTextColor.RED}>, but was <null>."
+
+                failure.message shouldContain expectedMessage
             }
 
             "matches complete Adventure styles" {
@@ -62,8 +107,9 @@ class ComponentMatchersTest :
                     shouldThrow<IllegalStateException> {
                         Component.text("Hello").childAt(0)
                     }
+                val expectedMessage = "Expected child at index <0>, but component has <0> children."
 
-                failure.message shouldContain "Expected child at index <0>, but component has <0> children."
+                failure.message shouldContain expectedMessage
             }
         },
     )
