@@ -1,0 +1,20 @@
+[versions]
+adventureApi = "4.24.0"
+gradleKtlintPlugin = "14.2.0"
+kotest = "6.0.1"
+kotestPlugin = "6.1.11"
+kotlin = "2.4.0"
+spotless = "8.6.0"
+spotlessKtlint = "1.5.0"
+
+[libraries]
+adventure-api = { module = "net.kyori:adventure-api", version.ref = "adventureApi" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
+kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
+
+[plugins]
+gradle-ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "gradleKtlintPlugin" }
+kotest = { id = "io.kotest", version.ref = "kotestPlugin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

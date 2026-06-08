@@ -30,6 +30,10 @@ in removal from the project's spaces.
 ./gradlew ktlintCheck    # lint check
 ```
 
+Dependency and plugin coordinates live in [`gradle/libs.versions.toml`](../gradle/libs.versions.toml). Add shared
+versions there first, then consume them through catalog aliases or the existing Gradle helper scripts that delegate to
+the catalog.
+
 ## Project conventions
 
 - **One issue → one small, vertically-sliced PR.** Each change should be independently shippable with its own tests. If
