@@ -1,0 +1,21 @@
+description = 'Bill of materials for aligning Kotventure and Adventure module versions.'
+
+apply plugin: 'java-platform'
+
+javaPlatform {
+    allowDependencies()
+}
+
+dependencies {
+    api platform(libs.adventure.bom)
+
+    constraints {
+        api project(':core')
+        api project(':serializer')
+        api project(':test')
+
+        api libs.adventure.api
+        api libs.adventure.text.minimessage
+        api libs.adventure.text.serializer.plain
+    }
+}

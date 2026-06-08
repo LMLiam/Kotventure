@@ -48,6 +48,7 @@ This project aims to:
 | `paper` / `velocity` / `fabric` | Platform adapters & extras                                                       |
 | `ksp`                           | Typed message-catalog codegen + compile-time validation                          |
 | `gradle-plugin`                 | Validate / pre-compile MiniMessage resource bundles at build time                |
+| `bom`                           | Bill of materials for aligning Kotventure and Adventure module versions          |
 
 See [`docs/DESIGN.md`](docs/DESIGN.md) for the full design and the [Roadmap](docs/ROADMAP.md) for sequencing.
 
@@ -61,6 +62,7 @@ The current build enables the first lazy modules:
 - `kotventure-serializer` — `Component.toMiniMessage()` and `Component.toPlainText()` wrappers around Adventure
   serializers
 - `kotventure-test` — Kotest component matchers consumed test-scoped by library modules
+- `kotventure-bom` — a Gradle/Maven BOM aligning enabled Kotventure artifacts and Adventure 5.1.1 dependencies
 
 The first `core` slice exposes a plain component builder:
 
@@ -96,7 +98,9 @@ val plain = message.toPlainText()
 ## 🚀 Getting It (early access)
 
 Tagged pre-alpha releases are available through [JitPack](https://jitpack.io). Add JitPack after your primary
-repositories, then depend on the modules you need:
+repositories, import the BOM once, then depend on the modules you need without repeating versions.
+
+Gradle Kotlin DSL:
 
 ```kotlin
 repositories {
@@ -105,16 +109,35 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.LMLiam.Kotventure:kotventure-core:<tag>")
-    implementation("com.github.LMLiam.Kotventure:kotventure-serializer:<tag>")
+    implementation(platform("com.github.LMLiam.Kotventure:kotventure-bom:<tag>"))
 
-    testImplementation("com.github.LMLiam.Kotventure:kotventure-test:<tag>")
+    implementation("com.github.LMLiam.Kotventure:kotventure-core")
+    implementation("com.github.LMLiam.Kotventure:kotventure-serializer")
+
+    testImplementation("com.github.LMLiam.Kotventure:kotventure-test")
+}
+```
+
+Gradle Groovy DSL:
+
+```groovy
+repositories {
+    mavenCentral()
+    maven { url = uri('https://jitpack.io') }
+}
+
+dependencies {
+    implementation platform('com.github.LMLiam.Kotventure:kotventure-bom:<tag>')
+
+    implementation 'com.github.LMLiam.Kotventure:kotventure-core'
+    implementation 'com.github.LMLiam.Kotventure:kotventure-serializer'
+
+    testImplementation 'com.github.LMLiam.Kotventure:kotventure-test'
 }
 ```
 
 Replace `<tag>` with a released tag such as `0.0.1`. The `kotventure-test` artifact is intended for test scope only.
-JitPack also exposes an aggregate coordinate, `com.github.LMLiam:Kotventure:<tag>`, when you want every published
-module in one dependency.
+The BOM also aligns Kotventure's Adventure baseline at 5.1.1.
 
 ## 🧰 Build & Compatibility
 
