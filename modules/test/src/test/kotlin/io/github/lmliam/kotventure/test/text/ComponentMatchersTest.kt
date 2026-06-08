@@ -66,6 +66,15 @@ class ComponentMatchersTest :
                     "Expected component color <${NamedTextColor.BLUE}>, but was <${NamedTextColor.RED}>."
             }
 
+            "reports missing root color with expected and actual colors" {
+                val failure =
+                    shouldThrow<AssertionError> {
+                        Component.text("Warning") shouldHaveColor NamedTextColor.RED
+                    }
+
+                failure.message shouldContain "Expected component color <${NamedTextColor.RED}>, but was <null>."
+            }
+
             "matches complete Adventure styles" {
                 val style = Style.style(NamedTextColor.GOLD, TextDecoration.BOLD)
 
