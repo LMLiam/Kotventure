@@ -21,7 +21,9 @@ def publicationArtifactId = "kotventure-${moduleName}"
 def repositoryUrl = 'https://github.com/LMLiam/Kotventure'
 
 afterEvaluate {
-    moduleDescription.set(project.description)
+    if (project.description != null) {
+        moduleDescription.set(project.description)
+    }
 }
 
 publishing {
@@ -63,7 +65,11 @@ tasks.register('verifyMavenPublicationMetadata') {
         if (publication.pom.name.getOrNull() != moduleName) {
             throw new GradleException("${modulePath} POM name must be '${moduleName}'.")
         }
-        if (publication.pom.description.getOrNull() != moduleDescription.get()) {
+        def expectedDescription = moduleDescription.getOrNull()
+        if (expectedDescription == null || expectedDescription.isBlank()) {
+            throw new GradleException("${modulePath} must define a project description for publication.")
+        }
+        if (publication.pom.description.getOrNull() != expectedDescription) {
             throw new GradleException("${modulePath} POM description must match the project description.")
         }
         if (publication.pom.url.getOrNull() != repositoryUrl) {
