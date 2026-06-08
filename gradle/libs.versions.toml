@@ -1,5 +1,5 @@
 [versions]
-adventureApi = "4.24.0"
+adventureApi = "5.1.1"
 gradleKtlintPlugin = "14.2.0"
 kotest = "6.0.1"
 kotestPlugin = "6.1.11"
