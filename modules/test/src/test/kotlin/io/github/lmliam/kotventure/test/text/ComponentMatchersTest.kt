@@ -90,6 +90,24 @@ class ComponentMatchersTest :
                 Component.text("Title").style(style) shouldHaveStyle style
             }
 
+            "matches root decorations" {
+                Component
+                    .text("Title")
+                    .decoration(TextDecoration.BOLD, true) shouldHaveDecoration TextDecoration.BOLD
+            }
+
+            "reports decoration mismatch with expected and actual state" {
+                val failure =
+                    shouldThrow<AssertionError> {
+                        Component.text("Title") shouldHaveDecoration TextDecoration.BOLD
+                    }
+                val expectedMessage =
+                    "Expected component decoration <${TextDecoration.BOLD}> to be <TRUE>, " +
+                            "but was <NOT_SET>."
+
+                failure.message shouldContain expectedMessage
+            }
+
             "matches child count and retrieves children by index" {
                 val component =
                     Component

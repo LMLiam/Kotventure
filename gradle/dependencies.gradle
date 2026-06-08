@@ -13,6 +13,7 @@ configurations {
 ext.kotventureDependencies = [
         "adventure-api"         : catalog.findLibrary('adventure-api').get(),
         "adventure-bom"         : catalog.findLibrary('adventure-bom').get(),
+        "kctfork-core"          : catalog.findLibrary('kctfork-core').get(),
         "kotest-assertions-core": catalog.findLibrary('kotest-assertions-core').get(),
         "kotest-runner-junit5"  : catalog.findLibrary('kotest-runner-junit5').get()
 ]
