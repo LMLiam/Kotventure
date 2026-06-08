@@ -31,7 +31,7 @@ access.
 
 | Project                            | What it is                                                                  | Gap we exploit                                                              |
 |------------------------------------|-----------------------------------------------------------------------------|-----------------------------------------------------------------------------|
-| Adventure's retired Kotlin extras  | Official, minimal builder DSL + operators                                   | Removed in Adventure 5.0; no MiniMessage tooling, testing, or platform UX   |
+| Adventure's retired Kotlin extras  | Former official Kotlin builders/operators                                   | Removed in Adventure 5.0; no MiniMessage tooling, testing, or platform UX   |
 | Pluto‑Studio/`adventure-kt`        | The serious rival — component DSL, `mini()`, styles, titles, multi‑platform | No typed/validated MiniMessage, no testing toolkit, no codegen/ANSI tooling |
 | HoshiKurama component DSL          | `buildComponent {}`                                                         | Stale (2021), narrow                                                        |
 | KSpigot / KPaper                   | Broad Kotlin server libs that *include* a chat DSL                          | Not Adventure‑focused; tied to broader frameworks                           |
