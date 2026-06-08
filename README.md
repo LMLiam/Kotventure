@@ -64,7 +64,7 @@ The current build enables the first lazy modules:
 - `kotventure-test` — Kotest component matchers consumed test-scoped by library modules
 - `kotventure-bom` — a Gradle/Maven BOM aligning enabled Kotventure artifacts and Adventure 5.1.1 dependencies
 
-The first `core` slice exposes a plain component builder:
+The `core` module exposes a composable text builder:
 
 ```kotlin
 val badge = Component.text("[new]", NamedTextColor.GREEN)
