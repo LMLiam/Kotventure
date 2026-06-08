@@ -1,6 +1,6 @@
 # Kotventure — Design
 
-> **Status:** Living design document · **Stage:** Pre‑Alpha (`0.0.x`) · **Last updated:** 2026‑06‑07
+> **Status:** Living design document · **Stage:** Pre‑Alpha (`0.0.x`) · **Last updated:** 2026‑06‑08
 >
 > This document captures the agreed architecture, scope, and roadmap. It is the source of truth that the GitHub Epic and
 > its sub‑issues are derived from. Syntax shown is **illustrative** and will be refined during implementation.
@@ -31,7 +31,7 @@ access.
 
 | Project                            | What it is                                                                  | Gap we exploit                                                              |
 |------------------------------------|-----------------------------------------------------------------------------|-----------------------------------------------------------------------------|
-| `net.kyori:adventure-extra-kotlin` | Official, minimal builder DSL + operators                                   | Tiny surface; no MiniMessage tooling, testing, or platform UX               |
+| Adventure's retired Kotlin extras  | Former official Kotlin builders/operators                                   | Removed in Adventure 5.0; no MiniMessage tooling, testing, or platform UX   |
 | Pluto‑Studio/`adventure-kt`        | The serious rival — component DSL, `mini()`, styles, titles, multi‑platform | No typed/validated MiniMessage, no testing toolkit, no codegen/ANSI tooling |
 | HoshiKurama component DSL          | `buildComponent {}`                                                         | Stale (2021), narrow                                                        |
 | KSpigot / KPaper                   | Broad Kotlin server libs that *include* a chat DSL                          | Not Adventure‑focused; tied to broader frameworks                           |
@@ -174,9 +174,12 @@ conveniences:
 
 ## 10. Build, publishing & versioning
 
-- **Build:** Gradle multi‑module, Kotlin 2.2, JVM toolchain 25, ktlint + Spotless, Kotest.
+- **Build:** Gradle multi‑module, Kotlin 2.4, JVM toolchain 25, ktlint + Spotless, Kotest.
 - **Java compatibility:** Kotventure builds with the Java 25 toolchain. Adventure 5.x sets a Java 21+ consumer floor, so
   modules should keep public APIs wrapper/composition-based rather than extending Adventure component/style interfaces.
+- **Adventure baseline:** Kotventure aligns Adventure artifacts through the Adventure 5.1.1 BOM. The core module wraps
+  `adventure-api`; feature modules add serializer, MiniMessage, platform, or tooling artifacts only when their roadmap
+  slice lands.
 - **Publishing:** **JitPack** during pre‑alpha/alpha (zero infra, builds from git tags) → **Maven Central** (
   `io.github.lmliam` namespace, GPG‑signed) at beta/`1.0`.
 - **BOM** module so consumers align versions across the many artifacts.
@@ -185,6 +188,23 @@ conveniences:
 
 > **Note:** adding/updating GitHub Actions workflows requires a token with the `workflow` scope (
 `gh auth refresh -s workflow`). CI‑on‑master is tracked as its own issue.
+
+### 10.1 Adventure 5.x compatibility
+
+Adventure 5.1.1 is the compatibility baseline for all new roadmap slices. Treat PaperMC's official
+[Adventure 4.x → 5.x migration guide](https://docs.papermc.io/adventure/migration/adventure-4.x/) as the checklist
+when adding dependencies or public DSL types.
+
+- Keep the project build on Java 25 while documenting Adventure's Java 21+ consumer minimum in release and setup docs.
+- Use composition/delegation around Adventure builders and value types; do not extend sealed Adventure component,
+  style, renderer, or event implementation types.
+- Prefer current Adventure 5.x serializer, translation-store, renderer, component-builder, and click-event APIs in each
+  feature slice. Removed Adventure 4.x modules or classes must not appear as dependencies or planned public API.
+- Account for JSpecify nullness, SLF4J 2.0 expectations, and Adventure module metadata whenever they affect Kotlin
+  source compatibility or consumer setup.
+
+Roadmap issues checked for 5.x notes: serializers (#30), click events (#21), renderer/object-component handling
+(#71/#81), translation (#16/#48), NBT components (#18), and component builders (#8/#15).
 
 ## 11. Phased roadmap
 

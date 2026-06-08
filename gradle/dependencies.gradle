@@ -12,11 +12,14 @@ configurations {
 
 ext.kotventureDependencies = [
         "adventure-api"         : catalog.findLibrary('adventure-api').get(),
+        "adventure-bom"         : catalog.findLibrary('adventure-bom').get(),
         "kotest-assertions-core": catalog.findLibrary('kotest-assertions-core').get(),
         "kotest-runner-junit5"  : catalog.findLibrary('kotest-runner-junit5').get()
 ]
 
 dependencies {
+    api platform(kotventureDependencies."adventure-bom")
+
     testImplementation kotventureDependencies."kotest-assertions-core"
     testImplementation kotventureDependencies."kotest-runner-junit5"
     testRuntimeOnly catalog.findLibrary('junit-platform-launcher').get()

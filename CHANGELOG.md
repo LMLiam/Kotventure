@@ -31,4 +31,8 @@ once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land i
 - Regression tests covering the new component builder, registry behavior, and absence of SPI wiring in production
   sources.
 
+### Changed
+
+- Upgraded the Adventure dependency baseline from 4.24.0 to 5.1.1 and aligned enabled modules through the Adventure BOM.
+
 [Unreleased]: https://github.com/LMLiam/Kotventure/commits/master
