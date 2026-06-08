@@ -38,7 +38,8 @@ This project aims to:
 
 | Module                          | Purpose                                                                          |
 |---------------------------------|----------------------------------------------------------------------------------|
-| `core`                          | Component / style / colour DSL, themes, audience-send DSL, serializer extensions |
+| `core`                          | Component / style / colour DSL, themes, audience-send DSL                        |
+| `serializer`                    | Optional Adventure serializer extension functions                                |
 | `minimessage`                   | Typed MiniMessage templates, validation, MiniMessage ⇄ DSL converter             |
 | `i18n`                          | Translation registry + per-player locale DSL                                     |
 | `test`                          | Kotest/JUnit component matchers + snapshot testing                               |
@@ -54,9 +55,11 @@ See [`docs/DESIGN.md`](docs/DESIGN.md) for the full design and the [Roadmap](doc
 
 ## ✅ Implemented So Far
 
-The current build enables the first two lazy modules:
+The current build enables the first lazy modules:
 
 - `kotventure-core` — the plain component builder and explicit startup registry
+- `kotventure-serializer` — `Component.toMiniMessage()` and `Component.toPlainText()` wrappers around Adventure
+  serializers
 - `kotventure-test` — Kotest component matchers consumed test-scoped by library modules
 
 The first `core` slice exposes a plain component builder:
@@ -76,6 +79,14 @@ val message = component {
 
 `AdventureDsl` stores typed extension registrations for MiniMessage tag providers, theme providers, animation drivers,
 and the active platform adapter. Registration is explicit at startup; there is no classpath scanning.
+
+Serializer helpers live in `kotventure-serializer` so `kotventure-core` can stay limited to `adventure-api` while
+callers opt into concrete Adventure serializers:
+
+```kotlin
+val mini = message.toMiniMessage()
+val plain = message.toPlainText()
+```
 
 `kotventure-test` starts the testing toolkit with structural component matchers such as `shouldContainText`,
 `shouldHaveColor`, `shouldHaveDecoration`, `shouldNotHaveDecoration`, and `shouldHaveChildCount`.

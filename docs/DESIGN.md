@@ -56,7 +56,8 @@ behaviour, and **KSP** for compile‑time codegen. The previous `ServiceLoader`/
 
 | Module                | Depends on                             | Purpose                                                                                                                               |
 |-----------------------|----------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
-| `core`                | `adventure-api`                        | Component/style/colour/gradient DSL, serializer extensions, theme engine, the registry, audience‑send DSL, animation **abstractions** |
+| `core`                | `adventure-api`                        | Component/style/colour/gradient DSL, theme engine, the registry, audience‑send DSL, animation **abstractions**                         |
+| `serializer`          | `adventure-api`, concrete serializers  | Optional `Component` serializer extensions such as MiniMessage and plain text                                                          |
 | `minimessage`         | `core`, `adventure-text-minimessage`   | Typed tag/placeholder DSL, typed templates, validation, MiniMessage ⇄ DSL converter                                                   |
 | `i18n`                | `core`, `minimessage`                  | Translation registry + per‑player locale DSL                                                                                          |
 | `test`                | `core` (test‑scoped for consumers)     | Kotest/JUnit matchers + snapshot testing                                                                                              |
@@ -132,6 +133,8 @@ component shouldHaveColor AQUA
 component shouldContainText "world"
 component.shouldMatchSnapshot()
 println(component.toAnsi())
+println(component.toMiniMessage())
+println(component.toPlainText())
 ```
 
 ## 6. MiniMessage strategy
@@ -239,7 +242,7 @@ with its own tests — to keep changes small and incremental.
 | ANSI terminal preview             | 3                   |
 | Coroutine integration             | 2                   |
 | Gradle build plugin               | 3                   |
-| Serializer extensions             | 0 (seed) → 1 (full) |
+| Serializer extensions             | 0 (seed, `serializer`) → 1 (full) |
 
 ## 13. Open questions / future
 
