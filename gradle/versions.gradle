@@ -1,8 +1,12 @@
-import groovy.json.JsonSlurper
+import org.gradle.api.artifacts.VersionCatalogsExtension
 
-def versionsFile = file("$rootDir/gradle/versions.json")
-def versions = new JsonSlurper().parse(versionsFile)
+def catalog = rootProject.extensions.getByType(VersionCatalogsExtension).named('libs')
 
+// Compatibility shim for helper scripts that still read ext.versions during the catalog transition.
 ext.versions = [:]
-versions.each { k, v -> ext.versions[k] = v }
-println "Loaded versions: $ext.versions"
+[
+        'adventure-api': 'adventureApi',
+        'kotest'       : 'kotest'
+].each { legacyName, catalogName ->
+    ext.versions[legacyName] = catalog.findVersion(catalogName).get().requiredVersion
+}

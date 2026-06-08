@@ -1,4 +1,7 @@
-def ktlintVersion = '1.5.0'
+import org.gradle.api.artifacts.VersionCatalogsExtension
+
+def catalog = rootProject.extensions.getByType(VersionCatalogsExtension).named('libs')
+def ktlintVersion = catalog.findVersion('spotlessKtlint').get().requiredVersion
 def editorConfigFile = rootProject.file('.editorconfig')
 def kotlinEditorConfigSection = '[{*.kt,*.kts}]'
 def spotlessKtlintRuleOverrideNames = [

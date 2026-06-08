@@ -55,5 +55,5 @@
 "dependencies":
   - changed-files:
       - any-glob-to-any-file:
-          - "gradle/versions.json"
+          - "gradle/libs.versions.toml"
           - "gradle/dependencies.gradle"

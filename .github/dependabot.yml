@@ -1,5 +1,6 @@
 version: 2
 updates:
+  # The root Gradle ecosystem covers build.gradle plus the version catalog at gradle/libs.versions.toml.
   - package-ecosystem: "gradle"
     directory: "/"
     schedule:

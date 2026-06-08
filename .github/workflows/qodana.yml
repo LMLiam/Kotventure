@@ -40,7 +40,7 @@ jobs:
         with:
           cache-dir: ${{ runner.temp }}/qodana/caches
           use-caches: true
-          primary-cache-key: qodana-2026.1-${{ runner.os }}-${{ hashFiles('qodana.yaml', 'settings.gradle', 'build.gradle', 'gradle.properties', 'gradle/**/*.gradle') }}
+          primary-cache-key: qodana-2026.1-${{ runner.os }}-${{ hashFiles('qodana.yaml', 'settings.gradle', 'build.gradle', 'gradle.properties', 'gradle/**/*.gradle', 'gradle/libs.versions.toml') }}
           additional-cache-key: qodana-2026.1-${{ runner.os }}-
           upload-result: true
         env:
