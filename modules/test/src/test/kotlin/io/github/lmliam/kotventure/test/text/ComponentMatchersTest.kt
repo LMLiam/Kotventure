@@ -120,7 +120,22 @@ class ComponentMatchersTest :
                             .decoration(TextDecoration.BOLD, true) shouldNotHaveDecoration TextDecoration.BOLD
                     }
                 val expectedMessage =
-                    "Expected component decoration <${TextDecoration.BOLD}> not to be <TRUE>."
+                    "Expected component decoration <${TextDecoration.BOLD}> to be <NOT_SET>, " +
+                        "but was <TRUE>."
+
+                failure.message shouldContain expectedMessage
+            }
+
+            "does not treat explicitly disabled decorations as missing" {
+                val failure =
+                    shouldThrow<AssertionError> {
+                        Component
+                            .text("Title")
+                            .decoration(TextDecoration.BOLD, false) shouldNotHaveDecoration TextDecoration.BOLD
+                    }
+                val expectedMessage =
+                    "Expected component decoration <${TextDecoration.BOLD}> to be <NOT_SET>, " +
+                        "but was <FALSE>."
 
                 failure.message shouldContain expectedMessage
             }

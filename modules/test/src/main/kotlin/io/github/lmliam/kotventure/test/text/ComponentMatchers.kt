@@ -3,7 +3,6 @@ package io.github.lmliam.kotventure.test.text
 import io.kotest.matchers.Matcher
 import io.kotest.matchers.MatcherResult
 import io.kotest.matchers.should
-import io.kotest.matchers.shouldNot
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.format.Style
@@ -44,11 +43,11 @@ public infix fun Component.shouldHaveDecoration(expected: TextDecoration): Compo
     }
 
 /**
- * Asserts that this component does not have [expected] enabled on its root style.
+ * Asserts that this component has no explicit [expected] state on its root style.
  */
 public infix fun Component.shouldNotHaveDecoration(expected: TextDecoration): Component =
     apply {
-        this shouldNot haveDecoration(expected)
+        this should haveDecorationState(expected, State.NOT_SET)
     }
 
 /**
@@ -112,16 +111,21 @@ private fun haveStyle(expected: Style): Matcher<Component> =
         )
     }
 
-private fun haveDecoration(expected: TextDecoration): Matcher<Component> =
+private fun haveDecoration(expected: TextDecoration): Matcher<Component> = haveDecorationState(expected, State.TRUE)
+
+private fun haveDecorationState(
+    expected: TextDecoration,
+    state: State,
+): Matcher<Component> =
     Matcher { value ->
         val actual = value.style().decoration(expected)
         MatcherResult(
-            actual == State.TRUE,
+            actual == state,
             {
-                "Expected component decoration <$expected> to be <${State.TRUE.name}>, " +
-                        "but was <${actual.name}>."
+                "Expected component decoration <$expected> to be <${state.name}>, " +
+                    "but was <${actual.name}>."
             },
-            { "Expected component decoration <$expected> not to be <${State.TRUE.name}>." },
+            { "Expected component decoration <$expected> not to be <${state.name}>." },
         )
     }
 
