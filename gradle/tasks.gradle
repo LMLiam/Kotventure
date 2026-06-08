@@ -47,6 +47,20 @@ def bomConsumerModules = [
 def bomConsumerArtifacts = bomConsumerModules.collect { moduleName ->
     "kotventure-${moduleName}".toString()
 }
+def jitpackBuild = System.getenv('JITPACK') == 'true'
+def jitpackEnvironmentValue = { String name ->
+    def value = System.getenv(name)
+    if (value == null || value.isBlank()) {
+        throw new GradleException("JitPack BOM consumer verification requires the ${name} environment variable.")
+    }
+    value
+}
+def bomConsumerGroup = jitpackBuild
+        ? "${jitpackEnvironmentValue('GROUP')}.${jitpackEnvironmentValue('ARTIFACT')}"
+        : project.group.toString()
+def bomConsumerVersion = jitpackBuild
+        ? jitpackEnvironmentValue('VERSION')
+        : project.version.toString()
 
 configurations {
     bomConsumerVerification {
@@ -57,9 +71,9 @@ configurations {
 }
 
 dependencies {
-    bomConsumerVerification platform("${project.group}:kotventure-bom:${project.version}")
+    bomConsumerVerification platform("${bomConsumerGroup}:kotventure-bom:${bomConsumerVersion}")
     bomConsumerArtifacts.each { artifactName ->
-        bomConsumerVerification "${project.group}:${artifactName}"
+        bomConsumerVerification "${bomConsumerGroup}:${artifactName}"
     }
 }
 
@@ -73,8 +87,8 @@ tasks.register('verifyBomConsumerVersionlessDependencies') {
     dependsOn ':bom:publishToMavenLocal'
 
     doLast {
-        def expectedGroup = project.group.toString()
-        def expectedVersion = project.version.toString()
+        def expectedGroup = bomConsumerGroup
+        def expectedVersion = bomConsumerVersion
         def resolvedVersions = [:]
 
         configurations.bomConsumerVerification.incoming.resolutionResult.allComponents.each { component ->
