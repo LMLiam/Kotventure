@@ -8,6 +8,8 @@ once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land i
 
 ## [Unreleased]
 
+## [0.0.1] - 2026-06-08
+
 ### Added
 
 - Project migrated to the `LMLiam` namespace (`io.github.lmliam.kotventure`).
@@ -43,5 +45,7 @@ once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land i
 ### Changed
 
 - Upgraded the Adventure dependency baseline from 4.24.0 to 5.1.1 and aligned enabled modules through the Adventure BOM.
+- Kotventure builds with the Java 25 Gradle toolchain; Adventure 5.x sets a Java 21+ consumer minimum.
 
-[Unreleased]: https://github.com/LMLiam/Kotventure/commits/master
+[Unreleased]: https://github.com/LMLiam/Kotventure/compare/0.0.1...HEAD
+[0.0.1]: https://github.com/LMLiam/Kotventure/releases/tag/0.0.1
