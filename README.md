@@ -95,8 +95,26 @@ val plain = message.toPlainText()
 
 ## 🚀 Getting It (early access)
 
-Pre-alpha snapshots will be published via [JitPack](https://jitpack.io). Coordinates and a worked example land with the
-first tagged slice (`0.0.1`).
+Tagged pre-alpha releases are available through [JitPack](https://jitpack.io). Add JitPack after your primary
+repositories, then depend on the modules you need:
+
+```kotlin
+repositories {
+    mavenCentral()
+    maven("https://jitpack.io")
+}
+
+dependencies {
+    implementation("com.github.LMLiam.Kotventure:kotventure-core:<tag>")
+    implementation("com.github.LMLiam.Kotventure:kotventure-serializer:<tag>")
+
+    testImplementation("com.github.LMLiam.Kotventure:kotventure-test:<tag>")
+}
+```
+
+Replace `<tag>` with a released tag such as `0.0.1`. The `kotventure-test` artifact is intended for test scope only.
+JitPack also exposes an aggregate coordinate, `com.github.LMLiam:Kotventure:<tag>`, when you want every published
+module in one dependency.
 
 ## 🧰 Build & Compatibility
 
