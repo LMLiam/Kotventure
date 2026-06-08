@@ -8,6 +8,11 @@ once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land i
 
 ## [Unreleased]
 
+### Added
+
+- Text DSL composition helpers: `append(Component)`, `newline()`, and inline `style { }` blocks for the current
+  component.
+
 ## [0.0.1] - 2026-06-08
 
 ### Added
