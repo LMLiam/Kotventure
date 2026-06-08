@@ -95,8 +95,8 @@ val plain = message.toPlainText()
 
 ## 🚀 Getting It (early access)
 
-Pre-alpha builds are published via [JitPack](https://jitpack.io). Add JitPack after your primary repositories, then
-depend on the modules you need:
+Tagged pre-alpha releases are available through [JitPack](https://jitpack.io). Add JitPack after your primary
+repositories, then depend on the modules you need:
 
 ```kotlin
 repositories {
