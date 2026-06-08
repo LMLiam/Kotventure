@@ -63,10 +63,13 @@ The first `core` slice exposes a plain component builder:
 
 ```kotlin
 val message = component {
-    content("Hello ")
-    color(NamedTextColor.AQUA)
+    text("Hello ") {
+        color(NamedTextColor.AQUA)
+        bold()
+    }
     text {
         content("world")
+        decorate(TextDecoration.UNDERLINED)
     }
 }
 ```
@@ -75,7 +78,7 @@ val message = component {
 and the active platform adapter. Registration is explicit at startup; there is no classpath scanning.
 
 `kotventure-test` starts the testing toolkit with structural component matchers such as `shouldContainText`,
-`shouldHaveColor`, and `shouldHaveChildCount`.
+`shouldHaveColor`, `shouldHaveDecoration`, `shouldNotHaveDecoration`, and `shouldHaveChildCount`.
 
 ---
 

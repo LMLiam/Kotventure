@@ -1,6 +1,7 @@
 [versions]
 adventureApi = "5.1.1"
 gradleKtlintPlugin = "14.2.0"
+kctfork = "0.12.1"
 kotest = "6.0.1"
 kotestPlugin = "6.1.11"
 kotlin = "2.4.0"
@@ -11,6 +12,7 @@ spotlessKtlint = "1.5.0"
 adventure-api = { module = "net.kyori:adventure-api", version.ref = "adventureApi" }
 adventure-bom = { module = "net.kyori:adventure-bom", version.ref = "adventureApi" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+kctfork-core = { module = "dev.zacsweers.kctfork:core", version.ref = "kctfork" }
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
 
