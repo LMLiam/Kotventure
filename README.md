@@ -67,15 +67,21 @@ The current build enables the first lazy modules:
 The first `core` slice exposes a plain component builder:
 
 ```kotlin
+val badge = Component.text("[new]", NamedTextColor.GREEN)
+
 val message = component {
     text("Hello ") {
-        color(NamedTextColor.AQUA)
-        bold()
+        style {
+            color(NamedTextColor.AQUA)
+            bold()
+        }
     }
+    newline()
     text {
         content("world")
         decorate(TextDecoration.UNDERLINED)
     }
+    append(badge)
 }
 ```
 

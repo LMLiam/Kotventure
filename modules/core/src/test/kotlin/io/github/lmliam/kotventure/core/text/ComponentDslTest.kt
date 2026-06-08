@@ -13,6 +13,7 @@ import io.github.lmliam.kotventure.test.text.shouldNotHaveDecoration
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.Style
 import net.kyori.adventure.text.format.TextDecoration
@@ -73,6 +74,39 @@ class ComponentDslTest :
                 component.childAt(0) shouldHaveColor NamedTextColor.AQUA
             }
 
+            "appends existing Adventure components in declaration order" {
+                val badge = Component.text("[OK]", NamedTextColor.GREEN)
+
+                val component =
+                    component {
+                        text("Status: ")
+                        append(badge)
+                        text(" ready") {
+                            italic()
+                        }
+                    }
+
+                component shouldHaveChildCount 3
+                component.childAt(0) shouldContainText "Status: "
+                component.childAt(1) shouldBe badge
+                component.childAt(2) shouldContainText " ready"
+                component.childAt(2) shouldHaveDecoration TextDecoration.ITALIC
+            }
+
+            "appends a newline component" {
+                val component =
+                    component {
+                        text("first")
+                        newline()
+                        text("second")
+                    }
+
+                component shouldHaveChildCount 3
+                component.childAt(0) shouldContainText "first"
+                component.childAt(1) shouldBe Component.newline()
+                component.childAt(2) shouldContainText "second"
+            }
+
             "applies a complete Adventure style" {
                 val style = Style.style(NamedTextColor.GOLD, TextDecoration.BOLD)
 
@@ -83,6 +117,43 @@ class ComponentDslTest :
                     }
 
                 component shouldHaveStyle style
+            }
+
+            "applies a style block to the current component" {
+                val component =
+                    component {
+                        content("Title")
+                        style {
+                            color(NamedTextColor.GOLD)
+                            bold()
+                            underlined()
+                        }
+                    }
+
+                component shouldHaveColor NamedTextColor.GOLD
+                component shouldHaveDecoration TextDecoration.BOLD
+                component shouldHaveDecoration TextDecoration.UNDERLINED
+            }
+
+            "keeps nested style blocks scoped to their current child component" {
+                val component =
+                    component {
+                        style {
+                            color(NamedTextColor.GRAY)
+                        }
+                        text("child") {
+                            style {
+                                color(NamedTextColor.AQUA)
+                                obfuscated()
+                            }
+                        }
+                    }
+
+                component shouldHaveColor NamedTextColor.GRAY
+                component shouldHaveChildCount 1
+                component.childAt(0) shouldHaveColor NamedTextColor.AQUA
+                component.childAt(0) shouldHaveDecoration TextDecoration.OBFUSCATED
+                component.childAt(0) shouldNotHaveDecoration TextDecoration.BOLD
             }
 
             "applies a decoration to the root text component" {
@@ -170,6 +241,34 @@ class ComponentDslTest :
                     KotlinCompilation().apply {
                         inheritClassPath = true
                         sources = listOf(SourceFile.kotlin("DslMarkerScopeTest.kt", source))
+                    }
+
+                val result = compilation.compile()
+
+                result.exitCode shouldBe KotlinCompilation.ExitCode.COMPILATION_ERROR
+                result.messages shouldContain "implicit receiver"
+            }
+
+            "prevents text scope access inside style blocks" {
+                val source =
+                    """
+                    import io.github.lmliam.kotventure.core.text.component
+                    import net.kyori.adventure.text.format.NamedTextColor
+
+                    fun shouldNotCompile() {
+                        component {
+                            style {
+                                color(NamedTextColor.GOLD)
+                                content("leaked")
+                            }
+                        }
+                    }
+                    """.trimIndent()
+
+                val compilation =
+                    KotlinCompilation().apply {
+                        inheritClassPath = true
+                        sources = listOf(SourceFile.kotlin("StyleScopeLeakTest.kt", source))
                     }
 
                 val result = compilation.compile()
