@@ -8,6 +8,9 @@ import io.kotest.matchers.shouldBe
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.minimessage.MiniMessage
 
+/**
+ * Verifies Kotventure's component serializer extensions delegate to Adventure's concrete serializers.
+ */
 class ComponentSerializerExtensionsTest :
     StringSpec(
         {
