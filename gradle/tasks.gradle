@@ -39,11 +39,14 @@ repositories {
     mavenCentral()
 }
 
-def bomConsumerArtifacts = [
-        'kotventure-core',
-        'kotventure-serializer',
-        'kotventure-test'
+def bomConsumerModules = [
+        'core',
+        'serializer',
+        'test'
 ]
+def bomConsumerArtifacts = bomConsumerModules.collect { moduleName ->
+    "kotventure-${moduleName}".toString()
+}
 
 configurations {
     bomConsumerVerification {
@@ -64,9 +67,9 @@ tasks.register('verifyBomConsumerVersionlessDependencies') {
     group = 'verification'
     description = 'Verifies that a consumer importing kotventure-bom can omit per-artifact versions.'
 
-    dependsOn ':core:publishToMavenLocal'
-    dependsOn ':serializer:publishToMavenLocal'
-    dependsOn ':test:publishToMavenLocal'
+    bomConsumerModules.each { moduleName ->
+        dependsOn ":${moduleName}:publishToMavenLocal"
+    }
     dependsOn ':bom:publishToMavenLocal'
 
     doLast {
