@@ -84,6 +84,16 @@ class ComponentDslTest :
                 component shouldHaveStyle style
             }
 
+            "applies a decoration to the root text component" {
+                val component =
+                    component {
+                        content("Marked root")
+                        decorate(TextDecoration.BOLD)
+                    }
+
+                component shouldHaveDecoration TextDecoration.BOLD
+            }
+
             "applies a decoration through the generic decoration hook" {
                 val component =
                     component {
