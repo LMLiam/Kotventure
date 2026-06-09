@@ -35,6 +35,14 @@ internal class TranslatableComponentBuilder(
         arguments += values.map(TranslationArgument::component)
     }
 
+    override fun args(vararg values: Boolean) {
+        arguments += values.map(TranslationArgument::bool)
+    }
+
+    override fun args(vararg values: Number) {
+        arguments += values.map(TranslationArgument::numeric)
+    }
+
     override fun color(color: TextColor) {
         builder.color(color)
     }

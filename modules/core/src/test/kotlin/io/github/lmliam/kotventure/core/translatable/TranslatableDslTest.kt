@@ -76,6 +76,30 @@ class TranslatableDslTest :
                 )
             }
 
+            "adds multiple boolean arguments at once" {
+                val component =
+                    translatable("settings.flags") {
+                        args(true, false)
+                    }
+
+                component.shouldHaveArguments(
+                    TranslationArgument.bool(true),
+                    TranslationArgument.bool(false),
+                )
+            }
+
+            "adds multiple numeric arguments at once" {
+                val component =
+                    translatable("stats.values") {
+                        args(1, 2.5)
+                    }
+
+                component.shouldHaveArguments(
+                    TranslationArgument.numeric(1),
+                    TranslationArgument.numeric(2.5),
+                )
+            }
+
             "applies style to the translatable root" {
                 val component =
                     translatable("menu.title") {

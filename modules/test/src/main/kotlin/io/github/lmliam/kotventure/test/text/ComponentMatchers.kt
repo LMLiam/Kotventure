@@ -193,10 +193,12 @@ private fun haveTranslationKey(expected: String): Matcher<Component> =
 
 private fun haveFallback(expected: String): Matcher<Component> =
     Matcher { value ->
-        val actual = value.translatableOrNull()?.fallback()
+        val translatable = value.translatableOrNull()
+        val actual = translatable?.fallback()
+        val actualDescription = if (translatable == null) "not translatable" else actual ?: "null"
         MatcherResult(
-            actual == expected,
-            { "Expected translatable fallback <$expected>, but was <${actual ?: "null"}>." },
+            translatable != null && actual == expected,
+            { "Expected translatable fallback <$expected>, but was <$actualDescription>." },
             { "Expected translatable fallback not to be <$expected>." },
         )
     }

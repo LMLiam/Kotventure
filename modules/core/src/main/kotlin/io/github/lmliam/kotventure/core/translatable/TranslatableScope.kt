@@ -39,6 +39,16 @@ public interface TranslatableScope {
     public fun args(vararg values: ComponentLike)
 
     /**
+     * Appends multiple boolean translation arguments in declaration order.
+     */
+    public fun args(vararg values: Boolean)
+
+    /**
+     * Appends multiple numeric translation arguments in declaration order.
+     */
+    public fun args(vararg values: Number)
+
+    /**
      * Applies a text color to the component being configured.
      */
     public fun color(color: TextColor)

@@ -196,6 +196,16 @@ class ComponentMatchersTest :
                 failure.message shouldContain expectedMessage
             }
 
+            "reports fallback checks on non-translatable components" {
+                val failure =
+                    shouldThrow<AssertionError> {
+                        Component.text("plain") shouldHaveFallback "Missing key"
+                    }
+                val expectedMessage = "Expected translatable fallback <Missing key>, but was <not translatable>."
+
+                failure.message shouldContain expectedMessage
+            }
+
             "matches absent translatable fallback text" {
                 Component.translatable("missing.key").shouldNotHaveFallback()
             }
