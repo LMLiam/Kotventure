@@ -85,6 +85,17 @@ val message = component {
 }
 ```
 
+It also includes a `TranslatableComponent` builder for client-side translation keys, fallbacks, and typed Adventure
+arguments:
+
+```kotlin
+val itemCount = translatable("item.count") {
+    fallback("You have an item stack")
+    arg(Component.text("Diamond", NamedTextColor.AQUA))
+    arg(3)
+}
+```
+
 `AdventureDsl` stores typed extension registrations for MiniMessage tag providers, theme providers, animation drivers,
 and the active platform adapter. Registration is explicit at startup; there is no classpath scanning.
 
@@ -97,7 +108,8 @@ val plain = message.toPlainText()
 ```
 
 `kotventure-test` starts the testing toolkit with structural component matchers such as `shouldContainText`,
-`shouldHaveColor`, `shouldHaveDecoration`, `shouldNotHaveDecoration`, and `shouldHaveChildCount`.
+`shouldHaveColor`, `shouldHaveDecoration`, `shouldNotHaveDecoration`, `shouldHaveChildCount`, and translatable-specific
+assertions for keys, fallbacks, and arguments.
 
 ---
 
