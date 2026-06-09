@@ -53,7 +53,9 @@ once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land i
 - Translatable component DSL support for translation keys, fallback text, component arguments, boolean arguments, numeric
   arguments, root styling, and child components.
 - Translatable component matchers for asserting keys, fallback text, and translation arguments in Kotest specs.
-- Keybind, score, and selector component DSL support, including selector separators and root styling.
+- Shared `ComponentScope` support for styling and child builders across every component DSL scope.
+- Keybind, score, and selector component DSL support, including selector separators, root styling, and nested child
+  builders.
 - Keybind, score, and selector component matchers for dogfooding the new DSL output.
 
 ## [0.0.1] - 2026-06-08

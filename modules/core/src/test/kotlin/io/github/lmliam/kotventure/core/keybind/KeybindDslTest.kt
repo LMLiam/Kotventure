@@ -1,10 +1,13 @@
 package io.github.lmliam.kotventure.core.keybind
 
 import io.github.lmliam.kotventure.test.text.childAt
+import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.github.lmliam.kotventure.test.text.shouldHaveChildCount
 import io.github.lmliam.kotventure.test.text.shouldHaveColor
 import io.github.lmliam.kotventure.test.text.shouldHaveDecoration
 import io.github.lmliam.kotventure.test.text.shouldHaveKeybind
+import io.github.lmliam.kotventure.test.text.shouldHaveScoreName
+import io.github.lmliam.kotventure.test.text.shouldHaveScoreObjective
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import net.kyori.adventure.text.Component
@@ -45,6 +48,22 @@ class KeybindDslTest :
 
                 component shouldHaveChildCount 1
                 component.childAt(0) shouldBe suffix
+            }
+
+            "appends nested child builders from component scope" {
+                val component =
+                    keybind("key.jump") {
+                        text(" pressed")
+                        score("Alex", "kills") {
+                            bold()
+                        }
+                    }
+
+                component shouldHaveChildCount 2
+                component.childAt(0) shouldContainText " pressed"
+                component.childAt(1) shouldHaveScoreName "Alex"
+                component.childAt(1) shouldHaveScoreObjective "kills"
+                component.childAt(1) shouldHaveDecoration TextDecoration.BOLD
             }
         },
     )

@@ -32,7 +32,7 @@ class ComponentDslTest :
             "builds a text component with content" {
                 val component =
                     component {
-                        content("Hello")
+                        text("Hello")
                     }
 
                 component shouldContainText "Hello"
@@ -41,8 +41,8 @@ class ComponentDslTest :
             "applies color to the root text component" {
                 val component =
                     component {
-                        content("Warning")
                         color(NamedTextColor.RED)
+                        text("Warning")
                     }
 
                 component shouldHaveColor NamedTextColor.RED
@@ -51,7 +51,7 @@ class ComponentDslTest :
             "appends nested text children in declaration order" {
                 val component =
                     component {
-                        content("Hello ")
+                        text("Hello ")
                         text {
                             content("world")
                             color(NamedTextColor.AQUA)
@@ -61,10 +61,11 @@ class ComponentDslTest :
                         }
                     }
 
-                component shouldHaveChildCount 2
-                component.childAt(0) shouldContainText "world"
-                component.childAt(0) shouldHaveColor NamedTextColor.AQUA
-                component.childAt(1) shouldContainText "!"
+                component shouldHaveChildCount 3
+                component.childAt(0) shouldContainText "Hello "
+                component.childAt(1) shouldContainText "world"
+                component.childAt(1) shouldHaveColor NamedTextColor.AQUA
+                component.childAt(2) shouldContainText "!"
             }
 
             "appends text children with initial content" {
@@ -145,7 +146,6 @@ class ComponentDslTest :
 
                 val component =
                     component {
-                        content("Title")
                         style(style)
                     }
 
@@ -155,7 +155,6 @@ class ComponentDslTest :
             "applies a style block to the current component" {
                 val component =
                     component {
-                        content("Title")
                         style {
                             color(NamedTextColor.GOLD)
                             bold()
@@ -225,7 +224,6 @@ class ComponentDslTest :
             "applies a decoration to the root text component" {
                 val component =
                     component {
-                        content("Marked root")
                         decorate(TextDecoration.BOLD)
                     }
 
@@ -315,6 +313,30 @@ class ComponentDslTest :
                 result.messages shouldContain "implicit receiver"
             }
 
+            "prevents text content access from the generic component root" {
+                val source =
+                    """
+                    import io.github.lmliam.kotventure.core.text.component
+
+                    fun shouldNotCompile() {
+                        component {
+                            content("root text")
+                        }
+                    }
+                    """.trimIndent()
+
+                val compilation =
+                    KotlinCompilation().apply {
+                        inheritClassPath = true
+                        sources = listOf(SourceFile.kotlin("ComponentRootScopeTest.kt", source))
+                    }
+
+                val result = compilation.compile()
+
+                result.exitCode shouldBe KotlinCompilation.ExitCode.COMPILATION_ERROR
+                result.messages shouldContain "Unresolved reference 'content'"
+            }
+
             "prevents text scope access inside style blocks" {
                 val source =
                     """
@@ -323,9 +345,11 @@ class ComponentDslTest :
 
                     fun shouldNotCompile() {
                         component {
-                            style {
-                                color(NamedTextColor.GOLD)
-                                content("leaked")
+                            text {
+                                style {
+                                    color(NamedTextColor.GOLD)
+                                    content("leaked")
+                                }
                             }
                         }
                     }

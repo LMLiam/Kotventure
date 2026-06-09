@@ -1,18 +1,17 @@
 package io.github.lmliam.kotventure.core.translatable
 
-import io.github.lmliam.kotventure.core.style.StyleScope
+import io.github.lmliam.kotventure.core.component.AbstractComponentScopeBuilder
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.TranslatableComponent
 import net.kyori.adventure.text.TranslationArgument
-import net.kyori.adventure.text.format.Style
-import net.kyori.adventure.text.format.TextColor
-import net.kyori.adventure.text.format.TextDecoration
 
 internal class TranslatableComponentBuilder(
     key: String,
-) : TranslatableScope {
-    private val builder: TranslatableComponent.Builder = Component.translatable().key(key)
+) : AbstractComponentScopeBuilder<TranslatableComponent, TranslatableComponent.Builder>(
+    Component.translatable().key(key),
+),
+    TranslatableScope {
     private val arguments = mutableListOf<TranslationArgument>()
 
     override fun fallback(fallback: String) {
@@ -43,45 +42,5 @@ internal class TranslatableComponentBuilder(
         arguments += values.map(TranslationArgument::numeric)
     }
 
-    override fun color(color: TextColor) {
-        builder.color(color)
-    }
-
-    override fun style(style: Style) {
-        builder.style(style)
-    }
-
-    override fun style(init: StyleScope.() -> Unit) {
-        TranslatableStyleScope(builder).init()
-    }
-
-    override fun decorate(decoration: TextDecoration) {
-        builder.decoration(decoration, true)
-    }
-
-    override fun bold() {
-        decorate(TextDecoration.BOLD)
-    }
-
-    override fun italic() {
-        decorate(TextDecoration.ITALIC)
-    }
-
-    override fun underlined() {
-        decorate(TextDecoration.UNDERLINED)
-    }
-
-    override fun strikethrough() {
-        decorate(TextDecoration.STRIKETHROUGH)
-    }
-
-    override fun obfuscated() {
-        decorate(TextDecoration.OBFUSCATED)
-    }
-
-    override fun append(component: Component) {
-        builder.append(component)
-    }
-
-    internal fun build(): Component = builder.arguments(arguments).build()
+    override fun build(): Component = builder.arguments(arguments).build()
 }
