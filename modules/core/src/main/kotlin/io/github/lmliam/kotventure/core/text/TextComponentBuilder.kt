@@ -1,11 +1,19 @@
 package io.github.lmliam.kotventure.core.text
 
+import io.github.lmliam.kotventure.core.keybind.KeybindScope
+import io.github.lmliam.kotventure.core.score.ScoreScope
+import io.github.lmliam.kotventure.core.selector.SelectorScope
 import io.github.lmliam.kotventure.core.style.StyleScope
+import io.github.lmliam.kotventure.core.translatable.TranslatableScope
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.format.Style
 import net.kyori.adventure.text.format.TextColor
 import net.kyori.adventure.text.format.TextDecoration
+import io.github.lmliam.kotventure.core.keybind.keybind as keybindComponent
+import io.github.lmliam.kotventure.core.score.score as scoreComponent
+import io.github.lmliam.kotventure.core.selector.selector as selectorComponent
+import io.github.lmliam.kotventure.core.translatable.translatable as translatableComponent
 
 internal class TextComponentBuilder : TextScope {
     private val builder: TextComponent.Builder = Component.text()
@@ -66,6 +74,35 @@ internal class TextComponentBuilder : TextScope {
 
     override fun append(component: Component) {
         builder.append(component)
+    }
+
+    override fun translatable(
+        key: String,
+        init: TranslatableScope.() -> Unit,
+    ) {
+        append(translatableComponent(key, init))
+    }
+
+    override fun keybind(
+        keybind: String,
+        init: KeybindScope.() -> Unit,
+    ) {
+        append(keybindComponent(keybind, init))
+    }
+
+    override fun score(
+        name: String,
+        objective: String,
+        init: ScoreScope.() -> Unit,
+    ) {
+        append(scoreComponent(name, objective, init))
+    }
+
+    override fun selector(
+        pattern: String,
+        init: SelectorScope.() -> Unit,
+    ) {
+        append(selectorComponent(pattern, init))
     }
 
     override fun newline() {

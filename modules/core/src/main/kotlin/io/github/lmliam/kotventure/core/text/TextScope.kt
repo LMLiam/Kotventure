@@ -1,7 +1,11 @@
 package io.github.lmliam.kotventure.core.text
 
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
+import io.github.lmliam.kotventure.core.keybind.KeybindScope
+import io.github.lmliam.kotventure.core.score.ScoreScope
+import io.github.lmliam.kotventure.core.selector.SelectorScope
 import io.github.lmliam.kotventure.core.style.StyleScope
+import io.github.lmliam.kotventure.core.translatable.TranslatableScope
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.Style
 import net.kyori.adventure.text.format.TextColor
@@ -74,6 +78,39 @@ public interface TextScope {
      * Appends an existing Adventure [Component] as a child of the component being configured.
      */
     public fun append(component: Component)
+
+    /**
+     * Appends a nested translatable child with [key] as its translation key.
+     */
+    public fun translatable(
+        key: String,
+        init: TranslatableScope.() -> Unit = {},
+    )
+
+    /**
+     * Appends a nested keybind child with [keybind] as its keybind identifier.
+     */
+    public fun keybind(
+        keybind: String,
+        init: KeybindScope.() -> Unit = {},
+    )
+
+    /**
+     * Appends a nested score child with [name] and [objective].
+     */
+    public fun score(
+        name: String,
+        objective: String,
+        init: ScoreScope.() -> Unit = {},
+    )
+
+    /**
+     * Appends a nested selector child with [pattern] as its selector pattern.
+     */
+    public fun selector(
+        pattern: String,
+        init: SelectorScope.() -> Unit = {},
+    )
 
     /**
      * Appends an Adventure newline component as a child of the component being configured.

@@ -99,10 +99,10 @@ val msg = component {
     text("Hello ") { color(AQUA); bold() }
     text("world") { color(hex("#FF00AA")) }
     newline()
-    append(translatable("item.minecraft.diamond") { fallback("Diamond") })
-    append(keybind("key.jump") { color(YELLOW) })
-    append(score("Alex", "kills"))
-    append(selector("@a") { separator(Component.text(", ")) })
+    translatable("item.minecraft.diamond") { fallback("Diamond") }
+    keybind("key.jump") { color(YELLOW) }
+    score("Alex", "kills")
+    selector("@a") { separator { content(", ") } }
     mini("<gradient:gold:red>Epic</gradient>")
 }
 

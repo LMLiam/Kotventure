@@ -8,7 +8,13 @@ import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.github.lmliam.kotventure.test.text.shouldHaveChildCount
 import io.github.lmliam.kotventure.test.text.shouldHaveColor
 import io.github.lmliam.kotventure.test.text.shouldHaveDecoration
+import io.github.lmliam.kotventure.test.text.shouldHaveKeybind
+import io.github.lmliam.kotventure.test.text.shouldHaveScoreName
+import io.github.lmliam.kotventure.test.text.shouldHaveScoreObjective
+import io.github.lmliam.kotventure.test.text.shouldHaveSelectorPattern
+import io.github.lmliam.kotventure.test.text.shouldHaveSeparator
 import io.github.lmliam.kotventure.test.text.shouldHaveStyle
+import io.github.lmliam.kotventure.test.text.shouldHaveTranslationKey
 import io.github.lmliam.kotventure.test.text.shouldNotHaveDecoration
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
@@ -105,6 +111,33 @@ class ComponentDslTest :
                 component.childAt(0) shouldContainText "first"
                 component.childAt(1) shouldBe Component.newline()
                 component.childAt(2) shouldContainText "second"
+            }
+
+            "appends specialized component children in declaration order" {
+                val separator = Component.text(", ")
+
+                val component =
+                    component {
+                        translatable("item.minecraft.diamond") {
+                            fallback("Diamond")
+                        }
+                        keybind("key.jump") {
+                            color(NamedTextColor.YELLOW)
+                        }
+                        score("Alex", "kills")
+                        selector("@a") {
+                            separator(separator)
+                        }
+                    }
+
+                component shouldHaveChildCount 4
+                component.childAt(0) shouldHaveTranslationKey "item.minecraft.diamond"
+                component.childAt(1) shouldHaveKeybind "key.jump"
+                component.childAt(1) shouldHaveColor NamedTextColor.YELLOW
+                component.childAt(2) shouldHaveScoreName "Alex"
+                component.childAt(2) shouldHaveScoreObjective "kills"
+                component.childAt(3) shouldHaveSelectorPattern "@a"
+                component.childAt(3) shouldHaveSeparator separator
             }
 
             "applies a complete Adventure style" {
