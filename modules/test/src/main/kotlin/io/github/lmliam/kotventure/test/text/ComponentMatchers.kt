@@ -4,6 +4,9 @@ import io.kotest.matchers.Matcher
 import io.kotest.matchers.MatcherResult
 import io.kotest.matchers.should
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.KeybindComponent
+import net.kyori.adventure.text.ScoreComponent
+import net.kyori.adventure.text.SelectorComponent
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.TranslatableComponent
 import net.kyori.adventure.text.TranslationArgument
@@ -98,6 +101,54 @@ public infix fun Component.shouldHaveArgumentCount(expected: Int): Component =
 public fun Component.shouldHaveArguments(vararg expected: TranslationArgument): Component =
     apply {
         this should haveArguments(expected.toList())
+    }
+
+/**
+ * Asserts that this component is a keybind component and has [expected] as its keybind.
+ */
+public infix fun Component.shouldHaveKeybind(expected: String): Component =
+    apply {
+        this should haveKeybind(expected)
+    }
+
+/**
+ * Asserts that this component is a score component and has [expected] as its score name.
+ */
+public infix fun Component.shouldHaveScoreName(expected: String): Component =
+    apply {
+        this should haveScoreName(expected)
+    }
+
+/**
+ * Asserts that this component is a score component and has [expected] as its score objective.
+ */
+public infix fun Component.shouldHaveScoreObjective(expected: String): Component =
+    apply {
+        this should haveScoreObjective(expected)
+    }
+
+/**
+ * Asserts that this component is a selector component and has [expected] as its selector pattern.
+ */
+public infix fun Component.shouldHaveSelectorPattern(expected: String): Component =
+    apply {
+        this should haveSelectorPattern(expected)
+    }
+
+/**
+ * Asserts that this component is a selector component and has [expected] as its separator.
+ */
+public infix fun Component.shouldHaveSeparator(expected: Component): Component =
+    apply {
+        this should haveSeparator(expected)
+    }
+
+/**
+ * Asserts that this component is a selector component and has no separator.
+ */
+public fun Component.shouldNotHaveSeparator(): Component =
+    apply {
+        this should haveNoSeparator()
     }
 
 /**
@@ -233,5 +284,75 @@ private fun haveArguments(expected: List<TranslationArgument>): Matcher<Componen
             { "Expected translation arguments not to be <$expected>." },
         )
     }
+
+private fun haveKeybind(expected: String): Matcher<Component> =
+    Matcher { value ->
+        val actual = value.keybindOrNull()?.keybind()
+        MatcherResult(
+            actual == expected,
+            { "Expected keybind <$expected>, but was <${actual ?: "not keybind"}>." },
+            { "Expected keybind not to be <$expected>." },
+        )
+    }
+
+private fun haveScoreName(expected: String): Matcher<Component> =
+    Matcher { value ->
+        val actual = value.scoreOrNull()?.name()
+        MatcherResult(
+            actual == expected,
+            { "Expected score name <$expected>, but was <${actual ?: "not score"}>." },
+            { "Expected score name not to be <$expected>." },
+        )
+    }
+
+private fun haveScoreObjective(expected: String): Matcher<Component> =
+    Matcher { value ->
+        val actual = value.scoreOrNull()?.objective()
+        MatcherResult(
+            actual == expected,
+            { "Expected score objective <$expected>, but was <${actual ?: "not score"}>." },
+            { "Expected score objective not to be <$expected>." },
+        )
+    }
+
+private fun haveSelectorPattern(expected: String): Matcher<Component> =
+    Matcher { value ->
+        val actual = value.selectorOrNull()?.pattern()
+        MatcherResult(
+            actual == expected,
+            { "Expected selector pattern <$expected>, but was <${actual ?: "not selector"}>." },
+            { "Expected selector pattern not to be <$expected>." },
+        )
+    }
+
+private fun haveSeparator(expected: Component): Matcher<Component> =
+    Matcher { value ->
+        val selector = value.selectorOrNull()
+        val actual = selector?.separator()
+        val actualDescription = if (selector == null) "not selector" else actual ?: "null"
+        MatcherResult(
+            selector != null && actual == expected,
+            { "Expected selector separator <$expected>, but was <$actualDescription>." },
+            { "Expected selector separator not to be <$expected>." },
+        )
+    }
+
+private fun haveNoSeparator(): Matcher<Component> =
+    Matcher { value ->
+        val selector = value.selectorOrNull()
+        val actual = selector?.separator()
+        val actualDescription = if (selector == null) "not selector" else actual ?: "null"
+        MatcherResult(
+            selector != null && actual == null,
+            { "Expected selector separator to be absent, but was <$actualDescription>." },
+            { "Expected selector separator to be present." },
+        )
+    }
+
+private fun Component.keybindOrNull(): KeybindComponent? = this as? KeybindComponent
+
+private fun Component.scoreOrNull(): ScoreComponent? = this as? ScoreComponent
+
+private fun Component.selectorOrNull(): SelectorComponent? = this as? SelectorComponent
 
 private fun Component.translatableOrNull(): TranslatableComponent? = this as? TranslatableComponent

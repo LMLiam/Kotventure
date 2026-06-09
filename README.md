@@ -96,6 +96,23 @@ val itemCount = translatable("item.count") {
 }
 ```
 
+Smaller Adventure component kinds are available directly too:
+
+```kotlin
+val jumpHint = keybind("key.jump") {
+    color(NamedTextColor.YELLOW)
+}
+
+val killCount = score("Alex", "kills")
+
+val onlinePlayers = selector("@a") {
+    separator {
+        content(", ")
+        color(NamedTextColor.GRAY)
+    }
+}
+```
+
 `AdventureDsl` stores typed extension registrations for MiniMessage tag providers, theme providers, animation drivers,
 and the active platform adapter. Registration is explicit at startup; there is no classpath scanning.
 
@@ -109,7 +126,8 @@ val plain = message.toPlainText()
 
 `kotventure-test` starts the testing toolkit with structural component matchers such as `shouldContainText`,
 `shouldHaveColor`, `shouldHaveDecoration`, `shouldNotHaveDecoration`, `shouldHaveChildCount`, and translatable-specific
-assertions for keys, fallbacks, and arguments.
+assertions for keys, fallbacks, and arguments. It also includes keybind, score, and selector assertions for the smaller
+component DSLs.
 
 ---
 
