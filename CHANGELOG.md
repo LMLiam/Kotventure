@@ -43,6 +43,9 @@ once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land i
 
 - Text DSL composition helpers: `append(Component)`, `newline()`, and inline `style { }` blocks for the current
   component.
+- Translatable component DSL support for translation keys, fallback text, component arguments, boolean arguments, numeric
+  arguments, root styling, and child components.
+- Translatable component matchers for asserting keys, fallback text, and translation arguments in Kotest specs.
 
 ## [0.0.1] - 2026-06-08
 
