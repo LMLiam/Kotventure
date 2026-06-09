@@ -1,4 +1,5 @@
 [versions]
+project = "0.0.1"
 adventureApi = "5.1.1"
 gradleKtlintPlugin = "14.2.0"
 kctfork = "0.12.1"

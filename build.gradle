@@ -8,7 +8,7 @@ plugins {
 }
 
 group = 'io.github.lmliam.kotventure'
-version = '0.0.1'
+version = libs.versions.project.get()
 
 subprojects {
     group = rootProject.group

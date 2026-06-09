@@ -150,6 +150,8 @@ The BOM also aligns Kotventure's Adventure baseline at 5.1.1.
 Kotventure builds and tests with the Java 25 Gradle toolchain. Its Adventure baseline is 5.1.1, which sets a Java 21+
 minimum for consumers using Kotventure artifacts.
 
+Release automation and maintainer permissions are documented in [`docs/RELEASING.md`](docs/RELEASING.md).
+
 ---
 
 ## 🤝 Contributing
