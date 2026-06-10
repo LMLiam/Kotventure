@@ -97,6 +97,18 @@ class ObjectComponentDslTest :
                 component shouldHaveObjectFallback fallback
             }
 
+            "clears fallback when null is provided" {
+                val contents = sprite(key("minecraft", "block/stone"))
+
+                val component =
+                    display(contents) {
+                        fallback(Component.text("[stone]"))
+                        fallback(null)
+                    }.shouldBeObjectComponent()
+
+                component.shouldNotHaveObjectFallback()
+            }
+
             "appends child component builders" {
                 val contents = sprite(key("minecraft", "block/stone"))
 
