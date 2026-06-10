@@ -133,7 +133,8 @@ val stoneIcon = display(ObjectContents.sprite(key("minecraft", "block/stone"))) 
 
 Use `display` for Adventure object components such as sprites where the client can render structured non-text
 content. Provide a fallback when the component might appear in places that do not support object components, such
-as server MOTDs or plain-text logs.
+as server MOTDs or plain-text logs. Call `stoneIcon.renderObjectFallbacks()` before handing the component to renderer
+paths that should replace configured object fallbacks with regular components.
 
 `AdventureDsl` stores typed extension registrations for MiniMessage tag providers, theme providers, animation drivers,
 and the active platform adapter. Registration is explicit at startup; there is no classpath scanning.
