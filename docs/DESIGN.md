@@ -100,6 +100,9 @@ val msg = component {
     text("world") { color(hex("#FF00AA")) }
     newline()
     translatable("item.minecraft.diamond") { fallback("Diamond") }
+    keybind("key.jump") { color(YELLOW) }
+    score("Alex", "kills")
+    selector("@a") { separator { content(", ") } }
     mini("<gradient:gold:red>Epic</gradient>")
 }
 

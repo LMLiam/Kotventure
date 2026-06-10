@@ -272,5 +272,152 @@ class ComponentMatchersTest :
 
                 failure.message shouldContain expectedMessage
             }
+
+            "matches keybind component keys" {
+                Component
+                    .keybind("key.jump")
+                    .shouldBeKeybindComponent() shouldHaveKeybind "key.jump"
+            }
+
+            "reports keybind mismatch with expected and actual keys" {
+                val failure =
+                    shouldThrow<AssertionError> {
+                        Component
+                            .keybind("key.jump")
+                            .shouldBeKeybindComponent() shouldHaveKeybind "key.sneak"
+                    }
+                val expectedMessage = "Expected keybind <key.sneak>, but was <key.jump>."
+
+                failure.message shouldContain expectedMessage
+            }
+
+            "reports non-keybind components before keybind assertions" {
+                val failure =
+                    shouldThrow<AssertionError> {
+                        Component.text("plain").shouldBeKeybindComponent()
+                    }
+                val expectedMessage = "Expected keybind component, but was <TextComponentImpl>."
+
+                failure.message shouldContain expectedMessage
+            }
+
+            "matches score component names and objectives" {
+                val component =
+                    Component
+                        .score("Alex", "kills")
+                        .shouldBeScoreComponent()
+
+                component shouldHaveScoreName "Alex"
+                component shouldHaveScoreObjective "kills"
+            }
+
+            "reports score name mismatch with expected and actual names" {
+                val failure =
+                    shouldThrow<AssertionError> {
+                        Component
+                            .score("Alex", "kills")
+                            .shouldBeScoreComponent() shouldHaveScoreName "Steve"
+                    }
+                val expectedMessage = "Expected score name <Steve>, but was <Alex>."
+
+                failure.message shouldContain expectedMessage
+            }
+
+            "reports score objective mismatch with expected and actual objectives" {
+                val failure =
+                    shouldThrow<AssertionError> {
+                        Component
+                            .score("Alex", "kills")
+                            .shouldBeScoreComponent() shouldHaveScoreObjective "deaths"
+                    }
+                val expectedMessage = "Expected score objective <deaths>, but was <kills>."
+
+                failure.message shouldContain expectedMessage
+            }
+
+            "reports non-score components before score assertions" {
+                val failure =
+                    shouldThrow<AssertionError> {
+                        Component.text("plain").shouldBeScoreComponent()
+                    }
+                val expectedMessage = "Expected score component, but was <TextComponentImpl>."
+
+                failure.message shouldContain expectedMessage
+            }
+
+            "matches selector patterns and separators" {
+                val separator = Component.text(", ")
+                val component =
+                    Component
+                        .selector("@a", separator)
+                        .shouldBeSelectorComponent()
+
+                component shouldHaveSelectorPattern "@a"
+                component shouldHaveSelectorSeparator separator
+            }
+
+            "matches selectors without separators" {
+                Component.selector("@p").shouldBeSelectorComponent().shouldNotHaveSelectorSeparator()
+            }
+
+            "reports non-selector components before separator assertions" {
+                val failure =
+                    shouldThrow<AssertionError> {
+                        Component.text("plain").shouldBeSelectorComponent()
+                    }
+                val expectedMessage = "Expected selector component, but was <TextComponentImpl>."
+
+                failure.message shouldContain expectedMessage
+            }
+
+            "reports selector pattern mismatch with expected and actual patterns" {
+                val failure =
+                    shouldThrow<AssertionError> {
+                        Component
+                            .selector("@p")
+                            .shouldBeSelectorComponent() shouldHaveSelectorPattern "@a"
+                    }
+                val expectedMessage = "Expected selector pattern <@a>, but was <@p>."
+
+                failure.message shouldContain expectedMessage
+            }
+
+            "reports selector separator mismatch with expected and actual separators" {
+                val expected = Component.text(", ")
+                val actual = Component.text(" | ")
+                val failure =
+                    shouldThrow<AssertionError> {
+                        Component
+                            .selector("@a", actual)
+                            .shouldBeSelectorComponent() shouldHaveSelectorSeparator expected
+                    }
+                val expectedMessage = "Expected selector separator <$expected>, but was <$actual>."
+
+                failure.message shouldContain expectedMessage
+            }
+
+            "reports missing selector separators" {
+                val expected = Component.text(", ")
+                val failure =
+                    shouldThrow<AssertionError> {
+                        Component
+                            .selector("@a")
+                            .shouldBeSelectorComponent() shouldHaveSelectorSeparator expected
+                    }
+                val expectedMessage = "Expected selector separator <$expected>, but was <null>."
+
+                failure.message shouldContain expectedMessage
+            }
+
+            "reports unexpected selector separators" {
+                val actual = Component.text(", ")
+                val failure =
+                    shouldThrow<AssertionError> {
+                        Component.selector("@a", actual).shouldBeSelectorComponent().shouldNotHaveSelectorSeparator()
+                    }
+                val expectedMessage = "Expected selector separator to be absent, but was <$actual>."
+
+                failure.message shouldContain expectedMessage
+            }
         },
     )

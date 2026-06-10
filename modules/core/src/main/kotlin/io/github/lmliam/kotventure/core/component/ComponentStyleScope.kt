@@ -1,12 +1,12 @@
-package io.github.lmliam.kotventure.core.translatable
+package io.github.lmliam.kotventure.core.component
 
 import io.github.lmliam.kotventure.core.style.StyleScope
-import net.kyori.adventure.text.TranslatableComponent
+import net.kyori.adventure.text.ComponentBuilder
 import net.kyori.adventure.text.format.TextColor
 import net.kyori.adventure.text.format.TextDecoration
 
-internal class TranslatableStyleScope(
-    private val builder: TranslatableComponent.Builder,
+internal class ComponentStyleScope(
+    private val builder: ComponentBuilder<*, *>,
 ) : StyleScope {
     override fun color(color: TextColor) {
         builder.color(color)

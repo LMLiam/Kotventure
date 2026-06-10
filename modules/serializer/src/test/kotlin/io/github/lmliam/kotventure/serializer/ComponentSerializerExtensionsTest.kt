@@ -31,7 +31,7 @@ class ComponentSerializerExtensionsTest :
             "serializes unstyled component text to MiniMessage text" {
                 val message =
                     component {
-                        content("Hello")
+                        text("Hello")
                     }
 
                 message.toMiniMessage() shouldBe "Hello"

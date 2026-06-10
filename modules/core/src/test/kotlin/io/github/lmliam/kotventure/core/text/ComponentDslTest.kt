@@ -4,11 +4,20 @@ import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import io.github.lmliam.kotventure.test.text.childAt
+import io.github.lmliam.kotventure.test.text.shouldBeKeybindComponent
+import io.github.lmliam.kotventure.test.text.shouldBeScoreComponent
+import io.github.lmliam.kotventure.test.text.shouldBeSelectorComponent
 import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.github.lmliam.kotventure.test.text.shouldHaveChildCount
 import io.github.lmliam.kotventure.test.text.shouldHaveColor
 import io.github.lmliam.kotventure.test.text.shouldHaveDecoration
+import io.github.lmliam.kotventure.test.text.shouldHaveKeybind
+import io.github.lmliam.kotventure.test.text.shouldHaveScoreName
+import io.github.lmliam.kotventure.test.text.shouldHaveScoreObjective
+import io.github.lmliam.kotventure.test.text.shouldHaveSelectorPattern
+import io.github.lmliam.kotventure.test.text.shouldHaveSelectorSeparator
 import io.github.lmliam.kotventure.test.text.shouldHaveStyle
+import io.github.lmliam.kotventure.test.text.shouldHaveTranslationKey
 import io.github.lmliam.kotventure.test.text.shouldNotHaveDecoration
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
@@ -26,7 +35,7 @@ class ComponentDslTest :
             "builds a text component with content" {
                 val component =
                     component {
-                        content("Hello")
+                        text("Hello")
                     }
 
                 component shouldContainText "Hello"
@@ -35,8 +44,8 @@ class ComponentDslTest :
             "applies color to the root text component" {
                 val component =
                     component {
-                        content("Warning")
                         color(NamedTextColor.RED)
+                        text("Warning")
                     }
 
                 component shouldHaveColor NamedTextColor.RED
@@ -45,7 +54,7 @@ class ComponentDslTest :
             "appends nested text children in declaration order" {
                 val component =
                     component {
-                        content("Hello ")
+                        text("Hello ")
                         text {
                             content("world")
                             color(NamedTextColor.AQUA)
@@ -55,10 +64,11 @@ class ComponentDslTest :
                         }
                     }
 
-                component shouldHaveChildCount 2
-                component.childAt(0) shouldContainText "world"
-                component.childAt(0) shouldHaveColor NamedTextColor.AQUA
-                component.childAt(1) shouldContainText "!"
+                component shouldHaveChildCount 3
+                component.childAt(0) shouldContainText "Hello "
+                component.childAt(1) shouldContainText "world"
+                component.childAt(1) shouldHaveColor NamedTextColor.AQUA
+                component.childAt(2) shouldContainText "!"
             }
 
             "appends text children with initial content" {
@@ -107,12 +117,41 @@ class ComponentDslTest :
                 component.childAt(2) shouldContainText "second"
             }
 
+            "appends specialized component children in declaration order" {
+                val separator = Component.text(", ")
+
+                val component =
+                    component {
+                        translatable("item.minecraft.diamond") {
+                            fallback("Diamond")
+                        }
+                        keybind("key.jump") {
+                            color(NamedTextColor.YELLOW)
+                        }
+                        score("Alex", "kills")
+                        selector("@a") {
+                            separator(separator)
+                        }
+                    }
+
+                component shouldHaveChildCount 4
+                component.childAt(0) shouldHaveTranslationKey "item.minecraft.diamond"
+                val keybind = component.childAt(1).shouldBeKeybindComponent()
+                keybind shouldHaveKeybind "key.jump"
+                keybind shouldHaveColor NamedTextColor.YELLOW
+                val score = component.childAt(2).shouldBeScoreComponent()
+                score shouldHaveScoreName "Alex"
+                score shouldHaveScoreObjective "kills"
+                val selector = component.childAt(3).shouldBeSelectorComponent()
+                selector shouldHaveSelectorPattern "@a"
+                selector shouldHaveSelectorSeparator separator
+            }
+
             "applies a complete Adventure style" {
                 val style = Style.style(NamedTextColor.GOLD, TextDecoration.BOLD)
 
                 val component =
                     component {
-                        content("Title")
                         style(style)
                     }
 
@@ -122,7 +161,6 @@ class ComponentDslTest :
             "applies a style block to the current component" {
                 val component =
                     component {
-                        content("Title")
                         style {
                             color(NamedTextColor.GOLD)
                             bold()
@@ -192,7 +230,6 @@ class ComponentDslTest :
             "applies a decoration to the root text component" {
                 val component =
                     component {
-                        content("Marked root")
                         decorate(TextDecoration.BOLD)
                     }
 
@@ -282,6 +319,30 @@ class ComponentDslTest :
                 result.messages shouldContain "implicit receiver"
             }
 
+            "prevents text content access from the generic component root" {
+                val source =
+                    """
+                    import io.github.lmliam.kotventure.core.text.component
+
+                    fun shouldNotCompile() {
+                        component {
+                            content("root text")
+                        }
+                    }
+                    """.trimIndent()
+
+                val compilation =
+                    KotlinCompilation().apply {
+                        inheritClassPath = true
+                        sources = listOf(SourceFile.kotlin("ComponentRootScopeTest.kt", source))
+                    }
+
+                val result = compilation.compile()
+
+                result.exitCode shouldBe KotlinCompilation.ExitCode.COMPILATION_ERROR
+                result.messages shouldContain "Unresolved reference 'content'"
+            }
+
             "prevents text scope access inside style blocks" {
                 val source =
                     """
@@ -290,9 +351,11 @@ class ComponentDslTest :
 
                     fun shouldNotCompile() {
                         component {
-                            style {
-                                color(NamedTextColor.GOLD)
-                                content("leaked")
+                            text {
+                                style {
+                                    color(NamedTextColor.GOLD)
+                                    content("leaked")
+                                }
                             }
                         }
                     }
