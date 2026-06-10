@@ -64,7 +64,7 @@ The current build enables the first lazy modules:
 - `kotventure-test` — Kotest component matchers consumed test-scoped by library modules
 - `kotventure-bom` — a Gradle/Maven BOM aligning enabled Kotventure artifacts and Adventure 5.1.1 dependencies
 
-The `core` module exposes a composable text builder:
+The `core` module exposes a composable component tree builder:
 
 ```kotlin
 val badge = Component.text("[new]", NamedTextColor.GREEN)
@@ -96,6 +96,24 @@ val itemCount = translatable("item.count") {
 }
 ```
 
+Smaller Adventure component kinds are available directly and inside any component scope:
+
+```kotlin
+val jumpHint = keybind("key.jump") {
+    color(NamedTextColor.YELLOW)
+    text(" to jump")
+}
+
+val killCount = score("Alex", "kills")
+
+val onlinePlayers = selector("@a") {
+    separator {
+        content(", ")
+        color(NamedTextColor.GRAY)
+    }
+}
+```
+
 `AdventureDsl` stores typed extension registrations for MiniMessage tag providers, theme providers, animation drivers,
 and the active platform adapter. Registration is explicit at startup; there is no classpath scanning.
 
@@ -109,7 +127,8 @@ val plain = message.toPlainText()
 
 `kotventure-test` starts the testing toolkit with structural component matchers such as `shouldContainText`,
 `shouldHaveColor`, `shouldHaveDecoration`, `shouldNotHaveDecoration`, `shouldHaveChildCount`, and translatable-specific
-assertions for keys, fallbacks, and arguments.
+assertions for keys, fallbacks, and arguments. It also includes keybind, score, and selector assertions for the smaller
+component DSLs.
 
 ---
 

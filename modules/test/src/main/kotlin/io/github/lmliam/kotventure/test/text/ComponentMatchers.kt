@@ -4,6 +4,9 @@ import io.kotest.matchers.Matcher
 import io.kotest.matchers.MatcherResult
 import io.kotest.matchers.should
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.KeybindComponent
+import net.kyori.adventure.text.ScoreComponent
+import net.kyori.adventure.text.SelectorComponent
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.TranslatableComponent
 import net.kyori.adventure.text.TranslationArgument
@@ -98,6 +101,69 @@ public infix fun Component.shouldHaveArgumentCount(expected: Int): Component =
 public fun Component.shouldHaveArguments(vararg expected: TranslationArgument): Component =
     apply {
         this should haveArguments(expected.toList())
+    }
+
+/**
+ * Asserts that this component is a [KeybindComponent] and returns it typed.
+ */
+public fun Component.shouldBeKeybindComponent(): KeybindComponent = shouldBeComponentType("keybind")
+
+/**
+ * Asserts that this keybind component has [expected] as its keybind.
+ */
+public infix fun KeybindComponent.shouldHaveKeybind(expected: String): KeybindComponent =
+    apply {
+        this should haveKeybind(expected)
+    }
+
+/**
+ * Asserts that this component is a [ScoreComponent] and returns it typed.
+ */
+public fun Component.shouldBeScoreComponent(): ScoreComponent = shouldBeComponentType("score")
+
+/**
+ * Asserts that this score component has [expected] as its score name.
+ */
+public infix fun ScoreComponent.shouldHaveScoreName(expected: String): ScoreComponent =
+    apply {
+        this should haveScoreName(expected)
+    }
+
+/**
+ * Asserts that this score component has [expected] as its score objective.
+ */
+public infix fun ScoreComponent.shouldHaveScoreObjective(expected: String): ScoreComponent =
+    apply {
+        this should haveScoreObjective(expected)
+    }
+
+/**
+ * Asserts that this component is a [SelectorComponent] and returns it typed.
+ */
+public fun Component.shouldBeSelectorComponent(): SelectorComponent = shouldBeComponentType("selector")
+
+/**
+ * Asserts that this selector component has [expected] as its selector pattern.
+ */
+public infix fun SelectorComponent.shouldHaveSelectorPattern(expected: String): SelectorComponent =
+    apply {
+        this should haveSelectorPattern(expected)
+    }
+
+/**
+ * Asserts that this selector component has [expected] as its separator.
+ */
+public infix fun SelectorComponent.shouldHaveSelectorSeparator(expected: Component): SelectorComponent =
+    apply {
+        this should haveSelectorSeparator(expected)
+    }
+
+/**
+ * Asserts that this selector component has no separator.
+ */
+public fun SelectorComponent.shouldNotHaveSelectorSeparator(): SelectorComponent =
+    apply {
+        this should haveNoSelectorSeparator()
     }
 
 /**
@@ -231,6 +297,71 @@ private fun haveArguments(expected: List<TranslationArgument>): Matcher<Componen
             actual == expected,
             { "Expected translation arguments <$expected>, but found <${actual ?: "not translatable"}>." },
             { "Expected translation arguments not to be <$expected>." },
+        )
+    }
+
+private inline fun <reified T : Component> Component.shouldBeComponentType(description: String): T =
+    this as? T ?: throw AssertionError("Expected $description component, but was <${componentTypeName()}>.")
+
+private fun Component.componentTypeName(): String = this::class.simpleName ?: this::class.qualifiedName ?: "unknown"
+
+private fun haveKeybind(expected: String): Matcher<KeybindComponent> =
+    Matcher { value ->
+        val actual = value.keybind()
+        MatcherResult(
+            actual == expected,
+            { "Expected keybind <$expected>, but was <$actual>." },
+            { "Expected keybind not to be <$expected>." },
+        )
+    }
+
+private fun haveScoreName(expected: String): Matcher<ScoreComponent> =
+    Matcher { value ->
+        val actual = value.name()
+        MatcherResult(
+            actual == expected,
+            { "Expected score name <$expected>, but was <$actual>." },
+            { "Expected score name not to be <$expected>." },
+        )
+    }
+
+private fun haveScoreObjective(expected: String): Matcher<ScoreComponent> =
+    Matcher { value ->
+        val actual = value.objective()
+        MatcherResult(
+            actual == expected,
+            { "Expected score objective <$expected>, but was <$actual>." },
+            { "Expected score objective not to be <$expected>." },
+        )
+    }
+
+private fun haveSelectorPattern(expected: String): Matcher<SelectorComponent> =
+    Matcher { value ->
+        val actual = value.pattern()
+        MatcherResult(
+            actual == expected,
+            { "Expected selector pattern <$expected>, but was <$actual>." },
+            { "Expected selector pattern not to be <$expected>." },
+        )
+    }
+
+private fun haveSelectorSeparator(expected: Component): Matcher<SelectorComponent> =
+    Matcher { value ->
+        val actual = value.separator()
+        MatcherResult(
+            actual == expected,
+            { "Expected selector separator <$expected>, but was <${actual ?: "null"}>." },
+            { "Expected selector separator not to be <$expected>." },
+        )
+    }
+
+private fun haveNoSelectorSeparator(): Matcher<SelectorComponent> =
+    Matcher { value ->
+        val actual = value.separator()
+        MatcherResult(
+            actual == null,
+            { "Expected selector separator to be absent, but was <${actual ?: "null"}>." },
+            { "Expected selector separator to be present." },
         )
     }
 
