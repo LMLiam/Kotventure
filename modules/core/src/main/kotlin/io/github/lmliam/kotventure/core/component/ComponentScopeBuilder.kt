@@ -8,6 +8,7 @@ import io.github.lmliam.kotventure.core.objectcomponent.ObjectScope
 import io.github.lmliam.kotventure.core.score.ScoreScope
 import io.github.lmliam.kotventure.core.selector.SelectorScope
 import io.github.lmliam.kotventure.core.style.StyleScope
+import io.github.lmliam.kotventure.core.style.StyleScopeBuilder
 import io.github.lmliam.kotventure.core.text.TextComponentBuilder
 import io.github.lmliam.kotventure.core.text.TextScope
 import io.github.lmliam.kotventure.core.translatable.TranslatableScope
@@ -40,7 +41,7 @@ internal abstract class ComponentScopeBuilder<C : Component, B : ComponentBuilde
     }
 
     override fun style(init: StyleScope.() -> Unit) {
-        ComponentStyleScope(builder).init()
+        builder.style { styleBuilder -> StyleScopeBuilder(styleBuilder).init() }
     }
 
     override fun decorate(decoration: TextDecoration) {

@@ -55,11 +55,54 @@ public infix fun Component.shouldHaveDecoration(expected: TextDecoration): Compo
     }
 
 /**
+ * Asserts that this component has [decoration] set to [state] on its root style.
+ */
+public fun Component.shouldHaveDecoration(
+    decoration: TextDecoration,
+    state: State,
+): Component =
+    apply {
+        this should haveDecorationState(decoration, state)
+    }
+
+/**
  * Asserts that this component has no explicit [expected] state on its root style.
  */
 public infix fun Component.shouldNotHaveDecoration(expected: TextDecoration): Component =
     apply {
         this should haveDecorationState(expected, State.NOT_SET)
+    }
+
+/**
+ * Asserts that this component has [expected] as its root font.
+ */
+public infix fun Component.shouldHaveFont(expected: Key): Component =
+    apply {
+        this should haveFont(expected)
+    }
+
+/**
+ * Asserts that this component has no root font.
+ */
+public fun Component.shouldNotHaveFont(): Component =
+    apply {
+        this should haveNoFont()
+    }
+
+/**
+ * Asserts that this component has [expected] as its root shift-click insertion text.
+ */
+public infix fun Component.shouldHaveInsertion(expected: String): Component =
+    apply {
+        this should haveInsertion(expected)
+    }
+
+/**
+ * Asserts that this component has no root shift-click insertion text.
+ */
+public fun Component.shouldNotHaveInsertion(): Component =
+    apply {
+        this should haveNoInsertion()
     }
 
 /**
@@ -349,6 +392,46 @@ private fun haveDecorationState(
                         "but was <${actual.name}>."
             },
             { "Expected component decoration <$expected> not to be <${state.name}>." },
+        )
+    }
+
+private fun haveFont(expected: Key): Matcher<Component> =
+    Matcher { value ->
+        val actual = value.font()
+        MatcherResult(
+            actual == expected,
+            { "Expected component font <$expected>, but was <${actual ?: "null"}>." },
+            { "Expected component font not to be <$expected>." },
+        )
+    }
+
+private fun haveNoFont(): Matcher<Component> =
+    Matcher { value ->
+        val actual = value.font()
+        MatcherResult(
+            actual == null,
+            { "Expected component font to be absent, but was <$actual>." },
+            { "Expected component font to be present." },
+        )
+    }
+
+private fun haveInsertion(expected: String): Matcher<Component> =
+    Matcher { value ->
+        val actual = value.insertion()
+        MatcherResult(
+            actual == expected,
+            { "Expected component insertion <$expected>, but was <${actual ?: "null"}>." },
+            { "Expected component insertion not to be <$expected>." },
+        )
+    }
+
+private fun haveNoInsertion(): Matcher<Component> =
+    Matcher { value ->
+        val actual = value.insertion()
+        MatcherResult(
+            actual == null,
+            { "Expected component insertion to be absent, but was <$actual>." },
+            { "Expected component insertion to be present." },
         )
     }
 

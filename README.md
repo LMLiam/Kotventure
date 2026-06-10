@@ -67,13 +67,25 @@ The current build enables the first lazy modules:
 The `core` module exposes a composable component tree builder:
 
 ```kotlin
+val headerStyle = style {
+    color(NamedTextColor.GOLD)
+    bold()
+    italic(false)
+    font(key("minecraft", "uniform"))
+    insertion("/help")
+}
+
 val badge = Component.text("[new]", NamedTextColor.GREEN)
 
 val message = component {
+    text("Title") {
+        style(headerStyle)
+    }
     text("Hello ") {
         style {
             color(NamedTextColor.AQUA)
             bold()
+            underlined(null)
         }
     }
     newline()
