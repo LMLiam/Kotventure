@@ -138,7 +138,7 @@ class ComponentDslTest :
                 component.childAt(0) shouldHaveTranslationKey "item.minecraft.diamond"
                 val keybind = component.childAt(1).shouldBeKeybindComponent()
                 keybind shouldHaveKeybind "key.jump"
-                component.childAt(1) shouldHaveColor NamedTextColor.YELLOW
+                keybind shouldHaveColor NamedTextColor.YELLOW
                 val score = component.childAt(2).shouldBeScoreComponent()
                 score shouldHaveScoreName "Alex"
                 score shouldHaveScoreObjective "kills"
