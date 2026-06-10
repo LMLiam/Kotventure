@@ -86,6 +86,8 @@ once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land i
 - Object component DSL support through `display(...)` and `sprite(...)`, including fallback components, root styling,
   nested child builders, explicit renderer coverage, and serializer round-trip coverage.
 - Object component matchers for asserting contents and fallback components in Kotest specs.
+- Reusable style DSL support through `style { ... }`, tri-state decoration helpers, font keys, shift-click insertion,
+  and matching component assertions for style attributes.
 
 ## [0.0.1] - 2026-06-08
 
