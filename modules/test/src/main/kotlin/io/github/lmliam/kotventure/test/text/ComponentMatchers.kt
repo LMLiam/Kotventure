@@ -9,6 +9,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.EntityNBTComponent
 import net.kyori.adventure.text.KeybindComponent
 import net.kyori.adventure.text.NBTComponent
+import net.kyori.adventure.text.ObjectComponent
 import net.kyori.adventure.text.ScoreComponent
 import net.kyori.adventure.text.SelectorComponent
 import net.kyori.adventure.text.StorageNBTComponent
@@ -19,6 +20,7 @@ import net.kyori.adventure.text.format.Style
 import net.kyori.adventure.text.format.TextColor
 import net.kyori.adventure.text.format.TextDecoration
 import net.kyori.adventure.text.format.TextDecoration.State
+import net.kyori.adventure.text.`object`.ObjectContents
 
 /**
  * Asserts that this component tree contains [expected] in its text content.
@@ -169,6 +171,35 @@ public infix fun SelectorComponent.shouldHaveSelectorSeparator(expected: Compone
 public fun SelectorComponent.shouldNotHaveSelectorSeparator(): SelectorComponent =
     apply {
         this should haveNoSelectorSeparator()
+    }
+
+/**
+ * Asserts that this component is an [ObjectComponent] and returns it typed.
+ */
+public fun Component.shouldBeObjectComponent(): ObjectComponent = shouldBeComponentType("object")
+
+/**
+ * Asserts that this object component has [expected] as its contents.
+ */
+public infix fun ObjectComponent.shouldHaveObjectContents(expected: ObjectContents): ObjectComponent =
+    apply {
+        this should haveObjectContents(expected)
+    }
+
+/**
+ * Asserts that this object component has [expected] as its fallback component.
+ */
+public infix fun ObjectComponent.shouldHaveObjectFallback(expected: Component): ObjectComponent =
+    apply {
+        this should haveObjectFallback(expected)
+    }
+
+/**
+ * Asserts that this object component has no fallback component.
+ */
+public fun ObjectComponent.shouldNotHaveObjectFallback(): ObjectComponent =
+    apply {
+        this should haveNoObjectFallback()
     }
 
 /**
@@ -446,6 +477,36 @@ private fun haveNoSelectorSeparator(): Matcher<SelectorComponent> =
             actual == null,
             { "Expected selector separator to be absent, but was <${actual ?: "null"}>." },
             { "Expected selector separator to be present." },
+        )
+    }
+
+private fun haveObjectContents(expected: ObjectContents): Matcher<ObjectComponent> =
+    Matcher { value ->
+        val actual = value.contents()
+        MatcherResult(
+            actual == expected,
+            { "Expected object contents <$expected>, but was <$actual>." },
+            { "Expected object contents not to be <$expected>." },
+        )
+    }
+
+private fun haveObjectFallback(expected: Component): Matcher<ObjectComponent> =
+    Matcher { value ->
+        val actual = value.fallback()
+        MatcherResult(
+            actual == expected,
+            { "Expected object fallback <$expected>, but was <${actual ?: "null"}>." },
+            { "Expected object fallback not to be <$expected>." },
+        )
+    }
+
+private fun haveNoObjectFallback(): Matcher<ObjectComponent> =
+    Matcher { value ->
+        val actual = value.fallback()
+        MatcherResult(
+            actual == null,
+            { "Expected object fallback to be absent, but was <${actual ?: "null"}>." },
+            { "Expected object fallback to be present." },
         )
     }
 

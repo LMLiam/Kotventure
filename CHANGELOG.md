@@ -83,6 +83,9 @@ once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land i
   builders, and NBT-specific test matchers.
 - Block NBT position helper functions for absolute, relative, and string-parsed coordinates.
 - Adventure Key helper functions for namespace/value pairs, infix namespace syntax, and string parsing.
+- Object component DSL support through `display(...)`, including fallback components, root styling, nested child
+  builders, explicit renderer coverage, and serializer round-trip coverage.
+- Object component matchers for asserting contents and fallback components in Kotest specs.
 
 ## [0.0.1] - 2026-06-08
 

@@ -106,6 +106,7 @@ val msg = component {
     blockNbt(blockPos(1, 64, 1), "Items[0].id")
     entityNbt("@p", "CustomName") { interpret(true) }
     storageNbt(key("kotventure", "messages"), "motd") { interpret(true) }
+    display(ObjectContents.sprite(key("minecraft", "block/stone"))) { fallback { text("[stone]") } }
     mini("<gradient:gold:red>Epic</gradient>")
 }
 
