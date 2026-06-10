@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land in any release.
 
+## [0.0.6](https://github.com/LMLiam/Kotventure/compare/0.0.5...0.0.6) (2026-06-10)
+
+
+### ✨ Features
+
+* **core:** add adventure key helpers ([#118](https://github.com/LMLiam/Kotventure/issues/118)) ([e20e326](https://github.com/LMLiam/Kotventure/commit/e20e326ae0e5c644acc406a6727e61aa2b32d17c))
+* **core:** add block nbt position helpers ([#116](https://github.com/LMLiam/Kotventure/issues/116)) ([e4465d4](https://github.com/LMLiam/Kotventure/commit/e4465d4798107ee3511d530e8095611ebb40f846))
+
 ## [0.0.5](https://github.com/LMLiam/Kotventure/compare/0.0.4...0.0.5) (2026-06-10)
 
 
