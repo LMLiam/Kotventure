@@ -4,24 +4,33 @@ import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import io.github.lmliam.kotventure.test.text.childAt
+import io.github.lmliam.kotventure.test.text.shouldBeBlockNbtComponent
+import io.github.lmliam.kotventure.test.text.shouldBeEntityNbtComponent
 import io.github.lmliam.kotventure.test.text.shouldBeKeybindComponent
 import io.github.lmliam.kotventure.test.text.shouldBeScoreComponent
 import io.github.lmliam.kotventure.test.text.shouldBeSelectorComponent
+import io.github.lmliam.kotventure.test.text.shouldBeStorageNbtComponent
 import io.github.lmliam.kotventure.test.text.shouldContainText
+import io.github.lmliam.kotventure.test.text.shouldHaveBlockPos
 import io.github.lmliam.kotventure.test.text.shouldHaveChildCount
 import io.github.lmliam.kotventure.test.text.shouldHaveColor
 import io.github.lmliam.kotventure.test.text.shouldHaveDecoration
+import io.github.lmliam.kotventure.test.text.shouldHaveEntitySelector
 import io.github.lmliam.kotventure.test.text.shouldHaveKeybind
+import io.github.lmliam.kotventure.test.text.shouldHaveNbtPath
 import io.github.lmliam.kotventure.test.text.shouldHaveScoreName
 import io.github.lmliam.kotventure.test.text.shouldHaveScoreObjective
 import io.github.lmliam.kotventure.test.text.shouldHaveSelectorPattern
 import io.github.lmliam.kotventure.test.text.shouldHaveSelectorSeparator
+import io.github.lmliam.kotventure.test.text.shouldHaveStorageKey
 import io.github.lmliam.kotventure.test.text.shouldHaveStyle
 import io.github.lmliam.kotventure.test.text.shouldHaveTranslationKey
 import io.github.lmliam.kotventure.test.text.shouldNotHaveDecoration
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import net.kyori.adventure.key.Key
+import net.kyori.adventure.text.BlockNBTComponent
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.Style
@@ -145,6 +154,29 @@ class ComponentDslTest :
                 val selector = component.childAt(3).shouldBeSelectorComponent()
                 selector shouldHaveSelectorPattern "@a"
                 selector shouldHaveSelectorSeparator separator
+            }
+
+            "appends nbt component children in declaration order" {
+                val pos = BlockNBTComponent.Pos.fromString("1 2 3")
+                val storage = Key.key("kotventure", "messages")
+
+                val component =
+                    component {
+                        blockNbt(pos, "Items[0].id")
+                        entityNbt("@p", "Inventory[0].id")
+                        storageNbt(storage, "entries[0].id")
+                    }
+
+                component shouldHaveChildCount 3
+                val blockNbt = component.childAt(0).shouldBeBlockNbtComponent()
+                blockNbt shouldHaveBlockPos pos
+                blockNbt shouldHaveNbtPath "Items[0].id"
+                val entityNbt = component.childAt(1).shouldBeEntityNbtComponent()
+                entityNbt shouldHaveEntitySelector "@p"
+                entityNbt shouldHaveNbtPath "Inventory[0].id"
+                val storageNbt = component.childAt(2).shouldBeStorageNbtComponent()
+                storageNbt shouldHaveStorageKey storage
+                storageNbt shouldHaveNbtPath "entries[0].id"
             }
 
             "applies a complete Adventure style" {

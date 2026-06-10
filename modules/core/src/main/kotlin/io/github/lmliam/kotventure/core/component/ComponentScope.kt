@@ -2,11 +2,16 @@ package io.github.lmliam.kotventure.core.component
 
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import io.github.lmliam.kotventure.core.keybind.KeybindScope
+import io.github.lmliam.kotventure.core.nbt.BlockNbtScope
+import io.github.lmliam.kotventure.core.nbt.EntityNbtScope
+import io.github.lmliam.kotventure.core.nbt.StorageNbtScope
 import io.github.lmliam.kotventure.core.score.ScoreScope
 import io.github.lmliam.kotventure.core.selector.SelectorScope
 import io.github.lmliam.kotventure.core.style.StyleScope
 import io.github.lmliam.kotventure.core.text.TextScope
 import io.github.lmliam.kotventure.core.translatable.TranslatableScope
+import net.kyori.adventure.key.Key
+import net.kyori.adventure.text.BlockNBTComponent
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.Style
 import net.kyori.adventure.text.format.TextColor
@@ -116,5 +121,32 @@ public interface ComponentScope {
     public fun selector(
         pattern: String,
         init: SelectorScope.() -> Unit = {},
+    )
+
+    /**
+     * Appends a nested block NBT child with [pos] and [nbtPath].
+     */
+    public fun blockNbt(
+        pos: BlockNBTComponent.Pos,
+        nbtPath: String,
+        init: BlockNbtScope.() -> Unit = {},
+    )
+
+    /**
+     * Appends a nested entity NBT child with [selector] and [nbtPath].
+     */
+    public fun entityNbt(
+        selector: String,
+        nbtPath: String,
+        init: EntityNbtScope.() -> Unit = {},
+    )
+
+    /**
+     * Appends a nested storage NBT child with [storage] and [nbtPath].
+     */
+    public fun storageNbt(
+        storage: Key,
+        nbtPath: String,
+        init: StorageNbtScope.() -> Unit = {},
     )
 }

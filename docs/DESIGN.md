@@ -103,6 +103,7 @@ val msg = component {
     keybind("key.jump") { color(YELLOW) }
     score("Alex", "kills")
     selector("@a") { separator { content(", ") } }
+    storageNbt(Key.key("kotventure", "messages"), "motd") { interpret(true) }
     mini("<gradient:gold:red>Epic</gradient>")
 }
 
