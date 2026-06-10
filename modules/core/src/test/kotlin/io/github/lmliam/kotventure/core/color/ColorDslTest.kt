@@ -59,6 +59,10 @@ class ColorDslTest :
                 interpolate(1f, NamedTextColor.BLACK, NamedTextColor.WHITE) shouldBe NamedTextColor.WHITE
                 interpolate(-1f, NamedTextColor.BLACK, NamedTextColor.WHITE) shouldBe NamedTextColor.BLACK
                 interpolate(2f, NamedTextColor.BLACK, NamedTextColor.WHITE) shouldBe NamedTextColor.WHITE
+
+                shouldThrow<IllegalArgumentException> {
+                    interpolate(Float.NaN, NamedTextColor.BLACK, NamedTextColor.WHITE)
+                }.message shouldContain "progress"
             }
 
             "exposes the Adventure named palette through aliases and lookup helpers" {

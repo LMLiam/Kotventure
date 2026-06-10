@@ -52,7 +52,12 @@ public fun interpolate(
     progress: Float,
     start: TextColor,
     end: TextColor,
-): TextColor = TextColor.lerp(progress, start, end)
+): TextColor {
+    require(progress.isFinite()) {
+        "progress must be finite, but was <$progress>."
+    }
+    return TextColor.lerp(progress, start, end)
+}
 
 private fun requireColorChannel(
     name: String,

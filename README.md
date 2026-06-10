@@ -97,7 +97,9 @@ val message = component {
 }
 ```
 
-Colour helpers wrap Adventure `TextColor` factories directly and keep `core` free of serializer dependencies:
+Colour helpers wrap Adventure `TextColor` factories directly and keep `core` free of serializer dependencies. Lower-case
+named colours such as `red`, `blue`, `gold`, and `aqua` are available from `io.github.lmliam.kotventure.core.color`;
+`NamedTextColor.*` works too when you prefer qualified Adventure constants.
 
 ```kotlin
 val brand = hex("#5865F2")
