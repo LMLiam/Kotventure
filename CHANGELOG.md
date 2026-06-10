@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land in any release.
 
+## [0.0.5](https://github.com/LMLiam/Kotventure/compare/0.0.4...0.0.5) (2026-06-10)
+
+
+### ✨ Features
+
+* **core:** add block, entity and storage nbt components ([#112](https://github.com/LMLiam/Kotventure/issues/112)) ([ae5f438](https://github.com/LMLiam/Kotventure/commit/ae5f4382cc027002a174add91a715f79714b9b86))
+
 ## [0.0.4](https://github.com/LMLiam/Kotventure/compare/0.0.3...0.0.4) (2026-06-10)
 
 
