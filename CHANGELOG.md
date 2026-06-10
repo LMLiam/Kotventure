@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land in any release.
 
+## [0.0.7](https://github.com/LMLiam/Kotventure/compare/0.0.6...0.0.7) (2026-06-10)
+
+
+### ✨ Features
+
+* **core:** add object component dsl ([#120](https://github.com/LMLiam/Kotventure/issues/120)) ([48e4618](https://github.com/LMLiam/Kotventure/commit/48e46184b27f4513751e82f1efedc575046eb306))
+* **core:** add reusable style dsl ([#122](https://github.com/LMLiam/Kotventure/issues/122)) ([b4231e4](https://github.com/LMLiam/Kotventure/commit/b4231e49d084948e4b967bc08ceb05f613ef4999))
+
 ## [0.0.6](https://github.com/LMLiam/Kotventure/compare/0.0.5...0.0.6) (2026-06-10)
 
 
