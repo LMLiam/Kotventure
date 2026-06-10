@@ -21,15 +21,15 @@ class BlockPosDslTest :
             }
 
             "builds a relative block position from integer offsets" {
-                val pos = relativeBlockPos(1, 0, -2)
+                val pos = relativeBlockPos(1, 2, -2)
 
                 pos shouldBe
                     BlockNBTComponent.WorldPos.worldPos(
                         BlockNBTComponent.WorldPos.Coordinate.relative(1),
-                        BlockNBTComponent.WorldPos.Coordinate.relative(0),
+                        BlockNBTComponent.WorldPos.Coordinate.relative(2),
                         BlockNBTComponent.WorldPos.Coordinate.relative(-2),
                     )
-                pos.asString() shouldBe "~1 ~0 ~-2"
+                pos.asString() shouldBe "~1 ~2 ~-2"
             }
 
             "builds a relative block position from zero offsets by default" {
