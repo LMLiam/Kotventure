@@ -2,6 +2,7 @@ package io.github.lmliam.kotventure.serializer
 
 import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.objectcomponent.display
+import io.github.lmliam.kotventure.core.objectcomponent.sprite
 import io.github.lmliam.kotventure.core.text.component
 import io.github.lmliam.kotventure.test.text.shouldBeObjectComponent
 import io.github.lmliam.kotventure.test.text.shouldContainText
@@ -11,7 +12,6 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.minimessage.MiniMessage
-import net.kyori.adventure.text.`object`.ObjectContents
 
 /**
  * Verifies Kotventure's component serializer extensions delegate to Adventure's concrete serializers.
@@ -60,14 +60,14 @@ class ComponentSerializerExtensionsTest :
             }
 
             "serializes object components to plain text" {
-                val contents = ObjectContents.sprite(key("minecraft", "block/stone"))
+                val contents = sprite(key("minecraft", "block/stone"))
                 val message = display(contents)
 
                 message.toPlainText() shouldBe "[block/stone]"
             }
 
             "round-trips sprite object components through MiniMessage" {
-                val contents = ObjectContents.sprite(key("minecraft", "block/stone"))
+                val contents = sprite(key("minecraft", "block/stone"))
                 val message = display(contents)
 
                 val serialized = message.toMiniMessage()

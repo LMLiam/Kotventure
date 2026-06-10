@@ -12,13 +12,12 @@ import io.kotest.matchers.shouldBe
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ObjectComponent
 import net.kyori.adventure.text.TextComponent
-import net.kyori.adventure.text.`object`.ObjectContents
 
 class ObjectComponentRendererTest :
     StringSpec(
         {
             "renders object components with fallback replacements" {
-                val contents = ObjectContents.sprite(key("minecraft", "block/stone"))
+                val contents = sprite(key("minecraft", "block/stone"))
                 val message =
                     display(contents) {
                         fallback(Component.text("[stone]"))
@@ -35,7 +34,7 @@ class ObjectComponentRendererTest :
             }
 
             "preserves object components without fallback while rendering children" {
-                val contents = ObjectContents.sprite(key("minecraft", "block/stone"))
+                val contents = sprite(key("minecraft", "block/stone"))
                 val message =
                     display(contents) {
                         text(" child")
@@ -49,7 +48,7 @@ class ObjectComponentRendererTest :
             }
 
             "preserves empty object components without fallback or children" {
-                val contents = ObjectContents.sprite(key("minecraft", "block/stone"))
+                val contents = sprite(key("minecraft", "block/stone"))
                 val message = display(contents)
 
                 val rendered = message.renderObjectFallbacks().shouldBeObjectComponent()
@@ -59,7 +58,7 @@ class ObjectComponentRendererTest :
             }
 
             "renders nested object fallbacks in component trees" {
-                val contents = ObjectContents.sprite(key("minecraft", "block/stone"))
+                val contents = sprite(key("minecraft", "block/stone"))
                 val message =
                     component {
                         text("Block: ")
@@ -76,7 +75,7 @@ class ObjectComponentRendererTest :
             }
 
             "preserves fallback children before object children" {
-                val contents = ObjectContents.sprite(key("minecraft", "block/stone"))
+                val contents = sprite(key("minecraft", "block/stone"))
                 val message =
                     display(contents) {
                         fallback {

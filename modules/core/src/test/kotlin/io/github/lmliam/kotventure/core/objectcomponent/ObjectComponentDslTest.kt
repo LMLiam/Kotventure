@@ -14,6 +14,7 @@ import io.github.lmliam.kotventure.test.text.shouldHaveObjectContents
 import io.github.lmliam.kotventure.test.text.shouldHaveObjectFallback
 import io.github.lmliam.kotventure.test.text.shouldNotHaveObjectFallback
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextDecoration
@@ -22,8 +23,25 @@ import net.kyori.adventure.text.`object`.ObjectContents
 class ObjectComponentDslTest :
     StringSpec(
         {
+            "builds sprite object contents with the default atlas" {
+                val spriteKey = key("minecraft", "block/stone")
+
+                val contents = sprite(spriteKey)
+
+                contents shouldBe ObjectContents.sprite(spriteKey)
+            }
+
+            "builds sprite object contents with a custom atlas" {
+                val atlas = key("minecraft", "blocks")
+                val spriteKey = key("minecraft", "block/stone")
+
+                val contents = sprite(atlas, spriteKey)
+
+                contents shouldBe ObjectContents.sprite(atlas, spriteKey)
+            }
+
             "builds an object component with sprite contents" {
-                val contents = ObjectContents.sprite(key("minecraft", "block/stone"))
+                val contents = sprite(key("minecraft", "block/stone"))
 
                 val component = display(contents).shouldBeObjectComponent()
 
@@ -32,7 +50,7 @@ class ObjectComponentDslTest :
             }
 
             "applies style and fallback to the object root" {
-                val contents = ObjectContents.sprite(key("minecraft", "block/stone"))
+                val contents = sprite(key("minecraft", "block/stone"))
                 val fallback = Component.text("[stone]")
 
                 val component =
@@ -49,7 +67,7 @@ class ObjectComponentDslTest :
             }
 
             "builds fallback text from a component DSL block" {
-                val contents = ObjectContents.sprite(key("minecraft", "block/stone"))
+                val contents = sprite(key("minecraft", "block/stone"))
 
                 val component =
                     display(contents) {
@@ -67,7 +85,7 @@ class ObjectComponentDslTest :
             }
 
             "uses the last configured fallback" {
-                val contents = ObjectContents.sprite(key("minecraft", "block/stone"))
+                val contents = sprite(key("minecraft", "block/stone"))
                 val fallback = Component.text("[stone]")
 
                 val component =
@@ -80,7 +98,7 @@ class ObjectComponentDslTest :
             }
 
             "appends child component builders" {
-                val contents = ObjectContents.sprite(key("minecraft", "block/stone"))
+                val contents = sprite(key("minecraft", "block/stone"))
 
                 val component =
                     display(contents) {
@@ -98,7 +116,7 @@ class ObjectComponentDslTest :
             }
 
             "appends object components from component scope" {
-                val contents = ObjectContents.sprite(key("minecraft", "block/stone"))
+                val contents = sprite(key("minecraft", "block/stone"))
 
                 val component =
                     component {

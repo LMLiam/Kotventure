@@ -124,7 +124,7 @@ val storedTitle = storageNbt(key("kotventure", "messages"), "welcome.title") {
     separator(Component.text(", "))
 }
 
-val stoneIcon = display(ObjectContents.sprite(key("minecraft", "block/stone"))) {
+val stoneIcon = display(sprite(key("minecraft", "block/stone"))) {
     fallback {
         text("[stone]")
     }
