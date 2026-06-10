@@ -1,8 +1,13 @@
 package io.github.lmliam.kotventure.serializer
 
+import io.github.lmliam.kotventure.core.key.key
+import io.github.lmliam.kotventure.core.objectcomponent.display
+import io.github.lmliam.kotventure.core.objectcomponent.sprite
 import io.github.lmliam.kotventure.core.text.component
+import io.github.lmliam.kotventure.test.text.shouldBeObjectComponent
 import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.github.lmliam.kotventure.test.text.shouldHaveColor
+import io.github.lmliam.kotventure.test.text.shouldHaveObjectContents
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import net.kyori.adventure.text.format.NamedTextColor
@@ -52,6 +57,25 @@ class ComponentSerializerExtensionsTest :
 
                 roundTripped shouldContainText "Alert"
                 roundTripped shouldHaveColor NamedTextColor.RED
+            }
+
+            "serializes object components to plain text" {
+                val contents = sprite(key("minecraft", "block/stone"))
+                val message = display(contents)
+
+                message.toPlainText() shouldBe "[block/stone]"
+            }
+
+            "round-trips sprite object components through MiniMessage" {
+                val contents = sprite(key("minecraft", "block/stone"))
+                val message = display(contents)
+
+                val serialized = message.toMiniMessage()
+                serialized shouldBe "<sprite:'minecraft:block/stone'>"
+
+                val roundTripped = MiniMessage.miniMessage().deserialize(serialized).shouldBeObjectComponent()
+
+                roundTripped shouldHaveObjectContents contents
             }
         },
     )

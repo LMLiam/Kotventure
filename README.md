@@ -123,7 +123,18 @@ val storedTitle = storageNbt(key("kotventure", "messages"), "welcome.title") {
     interpret(true)
     separator(Component.text(", "))
 }
+
+val stoneIcon = display(sprite(key("minecraft", "block/stone"))) {
+    fallback {
+        text("[stone]")
+    }
+}
 ```
+
+Use `display` for Adventure object components such as sprites where the client can render structured non-text
+content. Provide a fallback when the component might appear in places that do not support object components, such
+as server MOTDs or plain-text logs. Call `stoneIcon.renderObjectFallbacks()` before handing the component to renderer
+paths that should replace configured object fallbacks with regular components.
 
 `AdventureDsl` stores typed extension registrations for MiniMessage tag providers, theme providers, animation drivers,
 and the active platform adapter. Registration is explicit at startup; there is no classpath scanning.
@@ -138,8 +149,8 @@ val plain = message.toPlainText()
 
 `kotventure-test` starts the testing toolkit with structural component matchers such as `shouldContainText`,
 `shouldHaveColor`, `shouldHaveDecoration`, `shouldNotHaveDecoration`, `shouldHaveChildCount`, and translatable-specific
-assertions for keys, fallbacks, and arguments. It also includes keybind, score, and selector assertions for the smaller
-component DSLs, plus block, entity, and storage NBT assertions.
+assertions for keys, fallbacks, and arguments. It also includes keybind, score, selector, object component, block, entity,
+and storage NBT assertions for the smaller component DSLs.
 
 ---
 

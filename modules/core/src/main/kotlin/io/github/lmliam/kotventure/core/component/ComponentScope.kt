@@ -5,6 +5,7 @@ import io.github.lmliam.kotventure.core.keybind.KeybindScope
 import io.github.lmliam.kotventure.core.nbt.BlockNbtScope
 import io.github.lmliam.kotventure.core.nbt.EntityNbtScope
 import io.github.lmliam.kotventure.core.nbt.StorageNbtScope
+import io.github.lmliam.kotventure.core.objectcomponent.ObjectScope
 import io.github.lmliam.kotventure.core.score.ScoreScope
 import io.github.lmliam.kotventure.core.selector.SelectorScope
 import io.github.lmliam.kotventure.core.style.StyleScope
@@ -16,6 +17,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.Style
 import net.kyori.adventure.text.format.TextColor
 import net.kyori.adventure.text.format.TextDecoration
+import net.kyori.adventure.text.`object`.ObjectContents
 
 /**
  * Scope for configuring behavior shared by every Adventure component builder.
@@ -148,5 +150,13 @@ public interface ComponentScope {
         storage: Key,
         nbtPath: String,
         init: StorageNbtScope.() -> Unit = {},
+    )
+
+    /**
+     * Appends a nested object child with [contents].
+     */
+    public fun display(
+        contents: ObjectContents,
+        init: ObjectScope.() -> Unit = {},
     )
 }
