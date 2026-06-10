@@ -39,6 +39,14 @@ public infix fun Component.shouldHaveColor(expected: TextColor): Component =
     }
 
 /**
+ * Asserts that this component has no root color.
+ */
+public fun Component.shouldNotHaveColor(): Component =
+    apply {
+        this should haveNoColor()
+    }
+
+/**
  * Asserts that this component has exactly [expected] as its root Adventure style.
  */
 public infix fun Component.shouldHaveStyle(expected: Style): Component =
@@ -364,6 +372,16 @@ private fun haveColor(expected: TextColor): Matcher<Component> =
             actual == expected,
             { "Expected component color <$expected>, but was <$actual>." },
             { "Expected component color not to be <$expected>." },
+        )
+    }
+
+private fun haveNoColor(): Matcher<Component> =
+    Matcher { value ->
+        val actual = value.color()
+        MatcherResult(
+            actual == null,
+            { "Expected component color to be absent, but was <$actual>." },
+            { "Expected component color to be present." },
         )
     }
 

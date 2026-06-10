@@ -7,6 +7,7 @@ import io.github.lmliam.kotventure.test.text.shouldHaveColor
 import io.github.lmliam.kotventure.test.text.shouldHaveDecoration
 import io.github.lmliam.kotventure.test.text.shouldHaveFont
 import io.github.lmliam.kotventure.test.text.shouldHaveInsertion
+import io.github.lmliam.kotventure.test.text.shouldNotHaveColor
 import io.github.lmliam.kotventure.test.text.shouldNotHaveFont
 import io.github.lmliam.kotventure.test.text.shouldNotHaveInsertion
 import io.kotest.core.spec.style.StringSpec
@@ -148,10 +149,11 @@ class StyleDslTest :
                 child.shouldHaveDecoration(TextDecoration.OBFUSCATED, State.NOT_SET)
             }
 
-            "can clear nullable font and insertion from an existing component style" {
+            "can clear nullable color font and insertion from an existing component style" {
                 val base =
                     Style
                         .style()
+                        .color(NamedTextColor.RED)
                         .font(Key.key("minecraft", "uniform"))
                         .insertion("/old")
                         .build()
@@ -160,11 +162,13 @@ class StyleDslTest :
                     component {
                         style(base)
                         style {
+                            color(null)
                             font(null)
                             insertion(null)
                         }
                     }
 
+                component.shouldNotHaveColor()
                 component.shouldNotHaveFont()
                 component.shouldNotHaveInsertion()
             }
