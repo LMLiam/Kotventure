@@ -32,5 +32,7 @@ public fun relativeBlockPos(
 
 /**
  * Parses [coords] as an Adventure block NBT position.
+ *
+ * @throws IllegalArgumentException when [coords] is not a valid Adventure block position.
  */
 public fun blockPos(coords: String): BlockNBTComponent.Pos = BlockNBTComponent.Pos.fromString(coords)
