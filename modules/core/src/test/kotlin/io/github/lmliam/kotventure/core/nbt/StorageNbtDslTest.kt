@@ -1,0 +1,98 @@
+package io.github.lmliam.kotventure.core.nbt
+
+import io.github.lmliam.kotventure.test.text.childAt
+import io.github.lmliam.kotventure.test.text.shouldBeStorageNbtComponent
+import io.github.lmliam.kotventure.test.text.shouldContainText
+import io.github.lmliam.kotventure.test.text.shouldHaveChildCount
+import io.github.lmliam.kotventure.test.text.shouldHaveColor
+import io.github.lmliam.kotventure.test.text.shouldHaveDecoration
+import io.github.lmliam.kotventure.test.text.shouldHaveNbtPath
+import io.github.lmliam.kotventure.test.text.shouldHaveNbtSeparator
+import io.github.lmliam.kotventure.test.text.shouldHaveStorageKey
+import io.github.lmliam.kotventure.test.text.shouldInterpret
+import io.github.lmliam.kotventure.test.text.shouldNotHaveNbtSeparator
+import io.github.lmliam.kotventure.test.text.shouldNotInterpret
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
+import net.kyori.adventure.key.Key
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor
+import net.kyori.adventure.text.format.TextDecoration
+
+class StorageNbtDslTest :
+    StringSpec(
+        {
+            "builds a storage nbt component with a key and path" {
+                val storage = Key.key("kotventure", "messages")
+
+                val component = storageNbt(storage, "welcome.title").shouldBeStorageNbtComponent()
+
+                component shouldHaveStorageKey storage
+                component shouldHaveNbtPath "welcome.title"
+                component.shouldNotInterpret()
+                component.shouldNotHaveNbtSeparator()
+            }
+
+            "applies style to the storage nbt root" {
+                val component =
+                    storageNbt(Key.key("kotventure", "messages"), "welcome.title") {
+                        color(NamedTextColor.AQUA)
+                        bold()
+                        style {
+                            underlined()
+                        }
+                    }
+
+                component shouldHaveColor NamedTextColor.AQUA
+                component shouldHaveDecoration TextDecoration.BOLD
+                component shouldHaveDecoration TextDecoration.UNDERLINED
+            }
+
+            "appends child components" {
+                val suffix = Component.text(" storage")
+
+                val component =
+                    storageNbt(Key.key("kotventure", "messages"), "welcome.title") {
+                        append(suffix)
+                    }
+
+                component shouldHaveChildCount 1
+                component.childAt(0) shouldBe suffix
+            }
+
+            "sets interpret true" {
+                val component =
+                    storageNbt(Key.key("kotventure", "messages"), "welcome.title") {
+                        interpret(true)
+                    }
+
+                component.shouldBeStorageNbtComponent().shouldInterpret()
+            }
+
+            "sets a component separator" {
+                val separator = Component.text(", ")
+
+                val component =
+                    storageNbt(Key.key("kotventure", "messages"), "entries[].id") {
+                        separator(separator)
+                    }
+
+                component.shouldBeStorageNbtComponent() shouldHaveNbtSeparator separator
+            }
+
+            "sets an inline text separator" {
+                val component =
+                    storageNbt(Key.key("kotventure", "messages"), "entries[].id") {
+                        separator {
+                            content(" | ")
+                            color(NamedTextColor.GRAY)
+                        }
+                    }
+
+                val separator = checkNotNull(component.shouldBeStorageNbtComponent().separator())
+
+                separator shouldHaveColor NamedTextColor.GRAY
+                separator shouldContainText " | "
+            }
+        },
+    )
