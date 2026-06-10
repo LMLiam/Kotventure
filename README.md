@@ -97,6 +97,23 @@ val message = component {
 }
 ```
 
+Colour helpers wrap Adventure `TextColor` factories directly and keep `core` free of serializer dependencies:
+
+```kotlin
+val brand = hex("#5865F2")
+val success = rgb(85, 255, 85)
+val warning = hsv(0.12f, 1f, 1f)
+val midpoint = interpolate(0.5f, red, blue)
+val accent = namedColorOrThrow("dark_purple")
+
+val gradientMessage = component {
+    text("Brand ") {
+        color(brand)
+    }
+    gradientText("launch", gold, red, aqua)
+}
+```
+
 It also includes a `TranslatableComponent` builder for client-side translation keys, fallbacks, and typed Adventure
 arguments:
 

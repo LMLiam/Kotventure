@@ -96,6 +96,8 @@ once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land i
 - Object component matchers for asserting contents and fallback components in Kotest specs.
 - Reusable style DSL support through `style { ... }`, tri-state decoration helpers, font keys, shift-click insertion,
   and matching component assertions for style attributes.
+- Colour and gradient helpers for `hex("#RRGGBB")`, `rgb(...)`, normalized `hsv(...)`, named palette aliases,
+  interpolation, and per-code-point gradient text.
 
 ## [0.0.1] - 2026-06-08
 
