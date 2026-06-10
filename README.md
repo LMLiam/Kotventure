@@ -119,7 +119,7 @@ val playerName = entityNbt("@p", "CustomName") {
     interpret(true)
 }
 
-val storedTitle = storageNbt(Key.key("kotventure", "messages"), "welcome.title") {
+val storedTitle = storageNbt(key("kotventure", "messages"), "welcome.title") {
     interpret(true)
     separator(Component.text(", "))
 }

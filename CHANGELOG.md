@@ -74,6 +74,7 @@ once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land i
 - Block, entity, and storage NBT component DSL support, including interpretation, separators, root styling, nested child
   builders, and NBT-specific test matchers.
 - Block NBT position helper functions for absolute, relative, and string-parsed coordinates.
+- Adventure Key helper functions for namespace/value pairs, infix namespace syntax, and string parsing.
 
 ## [0.0.1] - 2026-06-08
 
