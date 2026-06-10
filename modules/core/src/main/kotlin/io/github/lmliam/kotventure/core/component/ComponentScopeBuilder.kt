@@ -17,7 +17,7 @@ import io.github.lmliam.kotventure.core.score.score as scoreComponent
 import io.github.lmliam.kotventure.core.selector.selector as selectorComponent
 import io.github.lmliam.kotventure.core.translatable.translatable as translatableComponent
 
-internal abstract class AbstractComponentScopeBuilder<C : Component, B : ComponentBuilder<C, B>>(
+internal abstract class ComponentScopeBuilder<C : Component, B : ComponentBuilder<C, B>>(
     protected val builder: B,
 ) : ComponentScope {
     override fun color(color: TextColor) {

@@ -95,7 +95,6 @@ driver schedules/executes frames**.
 
 ```kotlin
 // ── Construction ───────────────────────────────────────────────
-// component { } is a generic component tree root; text content lives in text { } children.
 val msg = component {
     text("Hello ") { color(AQUA); bold() }
     text("world") { color(hex("#FF00AA")) }

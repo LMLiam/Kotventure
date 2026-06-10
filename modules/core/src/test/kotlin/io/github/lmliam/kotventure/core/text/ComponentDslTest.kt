@@ -4,6 +4,9 @@ import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import io.github.lmliam.kotventure.test.text.childAt
+import io.github.lmliam.kotventure.test.text.shouldBeKeybindComponent
+import io.github.lmliam.kotventure.test.text.shouldBeScoreComponent
+import io.github.lmliam.kotventure.test.text.shouldBeSelectorComponent
 import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.github.lmliam.kotventure.test.text.shouldHaveChildCount
 import io.github.lmliam.kotventure.test.text.shouldHaveColor
@@ -12,7 +15,7 @@ import io.github.lmliam.kotventure.test.text.shouldHaveKeybind
 import io.github.lmliam.kotventure.test.text.shouldHaveScoreName
 import io.github.lmliam.kotventure.test.text.shouldHaveScoreObjective
 import io.github.lmliam.kotventure.test.text.shouldHaveSelectorPattern
-import io.github.lmliam.kotventure.test.text.shouldHaveSeparator
+import io.github.lmliam.kotventure.test.text.shouldHaveSelectorSeparator
 import io.github.lmliam.kotventure.test.text.shouldHaveStyle
 import io.github.lmliam.kotventure.test.text.shouldHaveTranslationKey
 import io.github.lmliam.kotventure.test.text.shouldNotHaveDecoration
@@ -133,12 +136,15 @@ class ComponentDslTest :
 
                 component shouldHaveChildCount 4
                 component.childAt(0) shouldHaveTranslationKey "item.minecraft.diamond"
-                component.childAt(1) shouldHaveKeybind "key.jump"
+                val keybind = component.childAt(1).shouldBeKeybindComponent()
+                keybind shouldHaveKeybind "key.jump"
                 component.childAt(1) shouldHaveColor NamedTextColor.YELLOW
-                component.childAt(2) shouldHaveScoreName "Alex"
-                component.childAt(2) shouldHaveScoreObjective "kills"
-                component.childAt(3) shouldHaveSelectorPattern "@a"
-                component.childAt(3) shouldHaveSeparator separator
+                val score = component.childAt(2).shouldBeScoreComponent()
+                score shouldHaveScoreName "Alex"
+                score shouldHaveScoreObjective "kills"
+                val selector = component.childAt(3).shouldBeSelectorComponent()
+                selector shouldHaveSelectorPattern "@a"
+                selector shouldHaveSelectorSeparator separator
             }
 
             "applies a complete Adventure style" {

@@ -1,17 +1,17 @@
 package io.github.lmliam.kotventure.core.selector
 
 import io.github.lmliam.kotventure.test.text.childAt
+import io.github.lmliam.kotventure.test.text.shouldBeSelectorComponent
 import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.github.lmliam.kotventure.test.text.shouldHaveChildCount
 import io.github.lmliam.kotventure.test.text.shouldHaveColor
 import io.github.lmliam.kotventure.test.text.shouldHaveDecoration
 import io.github.lmliam.kotventure.test.text.shouldHaveSelectorPattern
-import io.github.lmliam.kotventure.test.text.shouldHaveSeparator
-import io.github.lmliam.kotventure.test.text.shouldNotHaveSeparator
+import io.github.lmliam.kotventure.test.text.shouldHaveSelectorSeparator
+import io.github.lmliam.kotventure.test.text.shouldNotHaveSelectorSeparator
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.SelectorComponent
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextDecoration
 
@@ -19,10 +19,10 @@ class SelectorDslTest :
     StringSpec(
         {
             "builds a selector component with a pattern" {
-                val component = selector("@p")
+                val component = selector("@p").shouldBeSelectorComponent()
 
                 component shouldHaveSelectorPattern "@p"
-                component.shouldNotHaveSeparator()
+                component.shouldNotHaveSelectorSeparator()
             }
 
             "sets a component separator" {
@@ -33,7 +33,7 @@ class SelectorDslTest :
                         separator(separator)
                     }
 
-                component shouldHaveSeparator separator
+                component.shouldBeSelectorComponent() shouldHaveSelectorSeparator separator
             }
 
             "sets an inline text separator" {
@@ -45,7 +45,7 @@ class SelectorDslTest :
                         }
                     }
 
-                val separator = checkNotNull((component as SelectorComponent).separator())
+                val separator = checkNotNull(component.shouldBeSelectorComponent().separator())
 
                 separator shouldHaveColor NamedTextColor.GRAY
                 separator shouldContainText " | "

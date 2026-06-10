@@ -1,6 +1,8 @@
 package io.github.lmliam.kotventure.core.keybind
 
 import io.github.lmliam.kotventure.test.text.childAt
+import io.github.lmliam.kotventure.test.text.shouldBeKeybindComponent
+import io.github.lmliam.kotventure.test.text.shouldBeScoreComponent
 import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.github.lmliam.kotventure.test.text.shouldHaveChildCount
 import io.github.lmliam.kotventure.test.text.shouldHaveColor
@@ -18,7 +20,7 @@ class KeybindDslTest :
     StringSpec(
         {
             "builds a keybind component with a key" {
-                val component = keybind("key.jump")
+                val component = keybind("key.jump").shouldBeKeybindComponent()
 
                 component shouldHaveKeybind "key.jump"
             }
@@ -61,8 +63,9 @@ class KeybindDslTest :
 
                 component shouldHaveChildCount 2
                 component.childAt(0) shouldContainText " pressed"
-                component.childAt(1) shouldHaveScoreName "Alex"
-                component.childAt(1) shouldHaveScoreObjective "kills"
+                val score = component.childAt(1).shouldBeScoreComponent()
+                score shouldHaveScoreName "Alex"
+                score shouldHaveScoreObjective "kills"
                 component.childAt(1) shouldHaveDecoration TextDecoration.BOLD
             }
         },

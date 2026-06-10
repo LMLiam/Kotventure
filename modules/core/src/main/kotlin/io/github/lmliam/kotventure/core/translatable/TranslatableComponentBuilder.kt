@@ -1,6 +1,6 @@
 package io.github.lmliam.kotventure.core.translatable
 
-import io.github.lmliam.kotventure.core.component.AbstractComponentScopeBuilder
+import io.github.lmliam.kotventure.core.component.ComponentScopeBuilder
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.TranslatableComponent
@@ -8,7 +8,7 @@ import net.kyori.adventure.text.TranslationArgument
 
 internal class TranslatableComponentBuilder(
     key: String,
-) : AbstractComponentScopeBuilder<TranslatableComponent, TranslatableComponent.Builder>(
+) : ComponentScopeBuilder<TranslatableComponent, TranslatableComponent.Builder>(
     Component.translatable().key(key),
 ),
     TranslatableScope {

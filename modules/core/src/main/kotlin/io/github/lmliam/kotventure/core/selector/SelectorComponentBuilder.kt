@@ -1,6 +1,6 @@
 package io.github.lmliam.kotventure.core.selector
 
-import io.github.lmliam.kotventure.core.component.AbstractComponentScopeBuilder
+import io.github.lmliam.kotventure.core.component.ComponentScopeBuilder
 import io.github.lmliam.kotventure.core.text.TextComponentBuilder
 import io.github.lmliam.kotventure.core.text.TextScope
 import net.kyori.adventure.text.Component
@@ -9,7 +9,7 @@ import net.kyori.adventure.text.SelectorComponent
 
 internal class SelectorComponentBuilder(
     pattern: String,
-) : AbstractComponentScopeBuilder<SelectorComponent, SelectorComponent.Builder>(Component.selector().pattern(pattern)),
+) : ComponentScopeBuilder<SelectorComponent, SelectorComponent.Builder>(Component.selector().pattern(pattern)),
     SelectorScope {
     override fun separator(separator: ComponentLike) {
         builder.separator(separator)
