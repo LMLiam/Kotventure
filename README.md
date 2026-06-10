@@ -113,6 +113,12 @@ val onlinePlayers = selector("@a") {
     }
 }
 
+val blockLoot = blockNbt(BlockNBTComponent.Pos.fromString("1 64 1"), "Items[0].id")
+
+val playerName = entityNbt("@p", "CustomName") {
+    interpret(true)
+}
+
 val storedTitle = storageNbt(Key.key("kotventure", "messages"), "welcome.title") {
     interpret(true)
     separator(Component.text(", "))
