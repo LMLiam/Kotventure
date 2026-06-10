@@ -1,6 +1,5 @@
 package io.github.lmliam.kotventure.serializer
 
-import io.github.lmliam.kotventure.core.color.gradientText
 import io.github.lmliam.kotventure.core.color.hex
 import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.objectcomponent.display
@@ -81,7 +80,12 @@ class ComponentSerializerExtensionsTest :
             }
 
             "round-trips gradient text formatting through MiniMessage" {
-                val message = gradientText("ace", NamedTextColor.RED, NamedTextColor.GOLD, NamedTextColor.AQUA)
+                val message =
+                    component {
+                        text("ace") {
+                            gradient(NamedTextColor.RED, NamedTextColor.GOLD, NamedTextColor.AQUA)
+                        }
+                    }
 
                 val serialized = message.toMiniMessage()
                 serialized shouldBe "<red>a</red><gold>c</gold><aqua>e"

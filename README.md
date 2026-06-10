@@ -110,7 +110,9 @@ val gradientMessage = component {
     text("Brand ") {
         color(brand)
     }
-    gradientText("launch", gold, red, aqua)
+    text("launch") {
+        gradient(gold, red, aqua)
+    }
 }
 ```
 

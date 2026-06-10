@@ -50,25 +50,31 @@ class GradientDslTest :
                 mixed.childAt(2) shouldContainText "B"
             }
 
-            "appends gradient text directly inside component scopes" {
+            "applies gradient text inside text scopes" {
                 val message =
                     component {
                         text(">")
-                        gradientText("abc", NamedTextColor.RED, NamedTextColor.GOLD, NamedTextColor.AQUA)
-                        gradientText("", NamedTextColor.RED, NamedTextColor.BLUE)
+                        text("abc") {
+                            gradient(NamedTextColor.RED, NamedTextColor.GOLD, NamedTextColor.AQUA)
+                        }
+                        text("") {
+                            gradient(NamedTextColor.RED, NamedTextColor.BLUE)
+                        }
                         text("<")
                     }
 
                 message shouldContainText ">abc<"
-                message shouldHaveChildCount 5
+                message shouldHaveChildCount 3
                 message.childAt(0) shouldContainText ">"
-                message.childAt(1) shouldContainText "a"
-                message.childAt(1) shouldHaveColor NamedTextColor.RED
-                message.childAt(2) shouldContainText "b"
-                message.childAt(2) shouldHaveColor NamedTextColor.GOLD
-                message.childAt(3) shouldContainText "c"
-                message.childAt(3) shouldHaveColor NamedTextColor.AQUA
-                message.childAt(4) shouldContainText "<"
+                message.childAt(1) shouldContainText "abc"
+                message.childAt(1) shouldHaveChildCount 3
+                message.childAt(1).childAt(0) shouldContainText "a"
+                message.childAt(1).childAt(0) shouldHaveColor NamedTextColor.RED
+                message.childAt(1).childAt(1) shouldContainText "b"
+                message.childAt(1).childAt(1) shouldHaveColor NamedTextColor.GOLD
+                message.childAt(1).childAt(2) shouldContainText "c"
+                message.childAt(1).childAt(2) shouldHaveColor NamedTextColor.AQUA
+                message.childAt(2) shouldContainText "<"
             }
 
             "rejects gradients with fewer than two stops" {

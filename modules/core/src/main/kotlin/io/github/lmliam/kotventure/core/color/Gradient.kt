@@ -1,6 +1,5 @@
 package io.github.lmliam.kotventure.core.color
 
-import io.github.lmliam.kotventure.core.component.ComponentScope
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.TextColor
 import kotlin.math.floor
@@ -70,26 +69,6 @@ public fun gradientText(
     val builder = Component.text()
     children.forEach { child -> builder.append(child) }
     return builder.build()
-}
-
-/**
- * Appends one gradient-colored text component per code point in [value] to this component scope.
- */
-public fun ComponentScope.gradientText(
-    value: String,
-    vararg stops: TextColor,
-) {
-    gradientText(value, gradient(*stops))
-}
-
-/**
- * Appends one gradient-colored text component per code point in [value] to this component scope.
- */
-public fun ComponentScope.gradientText(
-    value: String,
-    gradient: ColorGradient,
-) {
-    gradientTextChildren(value, gradient).forEach { child -> append(child) }
 }
 
 private fun gradientTextChildren(
