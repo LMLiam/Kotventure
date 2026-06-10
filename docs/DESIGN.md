@@ -105,7 +105,7 @@ val msg = component {
     selector("@a") { separator { content(", ") } }
     blockNbt(blockPos(1, 64, 1), "Items[0].id")
     entityNbt("@p", "CustomName") { interpret(true) }
-    storageNbt(Key.key("kotventure", "messages"), "motd") { interpret(true) }
+    storageNbt(key("kotventure", "messages"), "motd") { interpret(true) }
     mini("<gradient:gold:red>Epic</gradient>")
 }
 
