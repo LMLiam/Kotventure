@@ -7,9 +7,6 @@ internal class EntityNbtComponentBuilder(
     selector: String,
     nbtPath: String,
 ) : NbtComponentBuilder<EntityNBTComponent, EntityNBTComponent.Builder>(
-        Component
-            .entityNBT()
-            .selector(selector)
-            .nbtPath(nbtPath),
-    ),
+    Component.entityNBT().selector(selector).nbtPath(nbtPath),
+),
     EntityNbtScope

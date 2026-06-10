@@ -7,12 +7,10 @@ import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.NBTComponent
 import net.kyori.adventure.text.NBTComponentBuilder
 
-internal abstract class NbtComponentBuilder<C, B>(
+internal abstract class NbtComponentBuilder<C : NBTComponent<C>, B : NBTComponentBuilder<C, B>>(
     builder: B,
 ) : ComponentScopeBuilder<C, B>(builder),
-    NbtScope
-    where C : NBTComponent<C>,
-          B : NBTComponentBuilder<C, B> {
+    NbtScope {
     override fun interpret(interpret: Boolean) {
         builder.interpret(interpret)
     }

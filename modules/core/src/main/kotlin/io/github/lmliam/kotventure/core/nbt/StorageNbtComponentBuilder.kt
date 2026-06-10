@@ -8,9 +8,6 @@ internal class StorageNbtComponentBuilder(
     storage: Key,
     nbtPath: String,
 ) : NbtComponentBuilder<StorageNBTComponent, StorageNBTComponent.Builder>(
-        Component
-            .storageNBT()
-            .storage(storage)
-            .nbtPath(nbtPath),
-    ),
+    Component.storageNBT().storage(storage).nbtPath(nbtPath),
+),
     StorageNbtScope
