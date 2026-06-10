@@ -62,16 +62,13 @@ public fun gradientText(
     value: String,
     gradient: ColorGradient,
 ): Component {
-    val codePoints = value.toCodePointStrings()
-    if (codePoints.isEmpty()) {
+    val children = gradientTextChildren(value, gradient)
+    if (children.isEmpty()) {
         return Component.empty()
     }
 
     val builder = Component.text()
-    codePoints.forEachIndexed { index, text ->
-        val progress = if (codePoints.size == 1) 0f else index.toFloat() / codePoints.lastIndex.toFloat()
-        builder.append(Component.text(text).color(gradient.colorAt(progress)))
-    }
+    children.forEach { child -> builder.append(child) }
     return builder.build()
 }
 
@@ -92,10 +89,18 @@ public fun ComponentScope.gradientText(
     value: String,
     gradient: ColorGradient,
 ) {
-    val gradientComponent =
-        io.github.lmliam.kotventure.core.color
-        .gradientText(value, gradient)
-    gradientComponent.children().forEach { child -> append(child) }
+    gradientTextChildren(value, gradient).forEach { child -> append(child) }
+}
+
+private fun gradientTextChildren(
+    value: String,
+    gradient: ColorGradient,
+): List<Component> {
+    val codePoints = value.toCodePointStrings()
+    return codePoints.mapIndexed { index, text ->
+        val progress = if (codePoints.size == 1) 0f else index.toFloat() / codePoints.lastIndex.toFloat()
+        Component.text(text).color(gradient.colorAt(progress))
+    }
 }
 
 private fun String.toCodePointStrings(): List<String> =
