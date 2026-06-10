@@ -1,18 +1,26 @@
 package io.github.lmliam.kotventure.core.component
 
 import io.github.lmliam.kotventure.core.keybind.KeybindScope
+import io.github.lmliam.kotventure.core.nbt.BlockNbtScope
+import io.github.lmliam.kotventure.core.nbt.EntityNbtScope
+import io.github.lmliam.kotventure.core.nbt.StorageNbtScope
 import io.github.lmliam.kotventure.core.score.ScoreScope
 import io.github.lmliam.kotventure.core.selector.SelectorScope
 import io.github.lmliam.kotventure.core.style.StyleScope
 import io.github.lmliam.kotventure.core.text.TextComponentBuilder
 import io.github.lmliam.kotventure.core.text.TextScope
 import io.github.lmliam.kotventure.core.translatable.TranslatableScope
+import net.kyori.adventure.key.Key
+import net.kyori.adventure.text.BlockNBTComponent
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentBuilder
 import net.kyori.adventure.text.format.Style
 import net.kyori.adventure.text.format.TextColor
 import net.kyori.adventure.text.format.TextDecoration
 import io.github.lmliam.kotventure.core.keybind.keybind as keybindComponent
+import io.github.lmliam.kotventure.core.nbt.blockNbt as blockNbtComponent
+import io.github.lmliam.kotventure.core.nbt.entityNbt as entityNbtComponent
+import io.github.lmliam.kotventure.core.nbt.storageNbt as storageNbtComponent
 import io.github.lmliam.kotventure.core.score.score as scoreComponent
 import io.github.lmliam.kotventure.core.selector.selector as selectorComponent
 import io.github.lmliam.kotventure.core.translatable.translatable as translatableComponent
@@ -105,6 +113,30 @@ internal abstract class ComponentScopeBuilder<C : Component, B : ComponentBuilde
         init: SelectorScope.() -> Unit,
     ) {
         append(selectorComponent(pattern, init))
+    }
+
+    override fun blockNbt(
+        pos: BlockNBTComponent.Pos,
+        nbtPath: String,
+        init: BlockNbtScope.() -> Unit,
+    ) {
+        append(blockNbtComponent(pos, nbtPath, init))
+    }
+
+    override fun entityNbt(
+        selector: String,
+        nbtPath: String,
+        init: EntityNbtScope.() -> Unit,
+    ) {
+        append(entityNbtComponent(selector, nbtPath, init))
+    }
+
+    override fun storageNbt(
+        storage: Key,
+        nbtPath: String,
+        init: StorageNbtScope.() -> Unit,
+    ) {
+        append(storageNbtComponent(storage, nbtPath, init))
     }
 
     internal open fun build(): Component = builder.build()

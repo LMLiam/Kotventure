@@ -103,6 +103,9 @@ val msg = component {
     keybind("key.jump") { color(YELLOW) }
     score("Alex", "kills")
     selector("@a") { separator { content(", ") } }
+    blockNbt(BlockNBTComponent.Pos.fromString("1 64 1"), "Items[0].id")
+    entityNbt("@p", "CustomName") { interpret(true) }
+    storageNbt(Key.key("kotventure", "messages"), "motd") { interpret(true) }
     mini("<gradient:gold:red>Epic</gradient>")
 }
 

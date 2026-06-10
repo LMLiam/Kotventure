@@ -112,6 +112,17 @@ val onlinePlayers = selector("@a") {
         color(NamedTextColor.GRAY)
     }
 }
+
+val blockLoot = blockNbt(BlockNBTComponent.Pos.fromString("1 64 1"), "Items[0].id")
+
+val playerName = entityNbt("@p", "CustomName") {
+    interpret(true)
+}
+
+val storedTitle = storageNbt(Key.key("kotventure", "messages"), "welcome.title") {
+    interpret(true)
+    separator(Component.text(", "))
+}
 ```
 
 `AdventureDsl` stores typed extension registrations for MiniMessage tag providers, theme providers, animation drivers,
@@ -128,7 +139,7 @@ val plain = message.toPlainText()
 `kotventure-test` starts the testing toolkit with structural component matchers such as `shouldContainText`,
 `shouldHaveColor`, `shouldHaveDecoration`, `shouldNotHaveDecoration`, `shouldHaveChildCount`, and translatable-specific
 assertions for keys, fallbacks, and arguments. It also includes keybind, score, and selector assertions for the smaller
-component DSLs.
+component DSLs, plus block, entity, and storage NBT assertions.
 
 ---
 

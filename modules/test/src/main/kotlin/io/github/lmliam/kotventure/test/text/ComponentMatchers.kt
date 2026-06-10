@@ -3,10 +3,15 @@ package io.github.lmliam.kotventure.test.text
 import io.kotest.matchers.Matcher
 import io.kotest.matchers.MatcherResult
 import io.kotest.matchers.should
+import net.kyori.adventure.key.Key
+import net.kyori.adventure.text.BlockNBTComponent
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.EntityNBTComponent
 import net.kyori.adventure.text.KeybindComponent
+import net.kyori.adventure.text.NBTComponent
 import net.kyori.adventure.text.ScoreComponent
 import net.kyori.adventure.text.SelectorComponent
+import net.kyori.adventure.text.StorageNBTComponent
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.TranslatableComponent
 import net.kyori.adventure.text.TranslationArgument
@@ -164,6 +169,85 @@ public infix fun SelectorComponent.shouldHaveSelectorSeparator(expected: Compone
 public fun SelectorComponent.shouldNotHaveSelectorSeparator(): SelectorComponent =
     apply {
         this should haveNoSelectorSeparator()
+    }
+
+/**
+ * Asserts that this component is a [BlockNBTComponent] and returns it typed.
+ */
+public fun Component.shouldBeBlockNbtComponent(): BlockNBTComponent = shouldBeComponentType("block NBT")
+
+/**
+ * Asserts that this component is an [EntityNBTComponent] and returns it typed.
+ */
+public fun Component.shouldBeEntityNbtComponent(): EntityNBTComponent = shouldBeComponentType("entity NBT")
+
+/**
+ * Asserts that this component is a [StorageNBTComponent] and returns it typed.
+ */
+public fun Component.shouldBeStorageNbtComponent(): StorageNBTComponent = shouldBeComponentType("storage NBT")
+
+/**
+ * Asserts that this NBT component has [expected] as its NBT path.
+ */
+public infix fun NBTComponent<*>.shouldHaveNbtPath(expected: String): NBTComponent<*> =
+    apply {
+        this should haveNbtPath(expected)
+    }
+
+/**
+ * Asserts that this NBT component interprets fetched NBT as component JSON.
+ */
+public fun NBTComponent<*>.shouldInterpret(): NBTComponent<*> =
+    apply {
+        this should haveInterpretState(true)
+    }
+
+/**
+ * Asserts that this NBT component does not interpret fetched NBT as component JSON.
+ */
+public fun NBTComponent<*>.shouldNotInterpret(): NBTComponent<*> =
+    apply {
+        this should haveInterpretState(false)
+    }
+
+/**
+ * Asserts that this NBT component has [expected] as its separator.
+ */
+public infix fun NBTComponent<*>.shouldHaveNbtSeparator(expected: Component): NBTComponent<*> =
+    apply {
+        this should haveNbtSeparator(expected)
+    }
+
+/**
+ * Asserts that this NBT component has no separator.
+ */
+public fun NBTComponent<*>.shouldNotHaveNbtSeparator(): NBTComponent<*> =
+    apply {
+        this should haveNoNbtSeparator()
+    }
+
+/**
+ * Asserts that this block NBT component has [expected] as its block position.
+ */
+public infix fun BlockNBTComponent.shouldHaveBlockPos(expected: BlockNBTComponent.Pos): BlockNBTComponent =
+    apply {
+        this should haveBlockPos(expected)
+    }
+
+/**
+ * Asserts that this entity NBT component has [expected] as its selector.
+ */
+public infix fun EntityNBTComponent.shouldHaveEntitySelector(expected: String): EntityNBTComponent =
+    apply {
+        this should haveEntitySelector(expected)
+    }
+
+/**
+ * Asserts that this storage NBT component has [expected] as its storage key.
+ */
+public infix fun StorageNBTComponent.shouldHaveStorageKey(expected: Key): StorageNBTComponent =
+    apply {
+        this should haveStorageKey(expected)
     }
 
 /**
@@ -362,6 +446,76 @@ private fun haveNoSelectorSeparator(): Matcher<SelectorComponent> =
             actual == null,
             { "Expected selector separator to be absent, but was <${actual ?: "null"}>." },
             { "Expected selector separator to be present." },
+        )
+    }
+
+private fun haveNbtPath(expected: String): Matcher<NBTComponent<*>> =
+    Matcher { value ->
+        val actual = value.nbtPath()
+        MatcherResult(
+            actual == expected,
+            { "Expected NBT path <$expected>, but was <$actual>." },
+            { "Expected NBT path not to be <$expected>." },
+        )
+    }
+
+private fun haveInterpretState(expected: Boolean): Matcher<NBTComponent<*>> =
+    Matcher { value ->
+        val actual = value.interpret()
+        MatcherResult(
+            actual == expected,
+            { "Expected NBT interpret to be <$expected>, but was <$actual>." },
+            { "Expected NBT interpret not to be <$expected>." },
+        )
+    }
+
+private fun haveNbtSeparator(expected: Component): Matcher<NBTComponent<*>> =
+    Matcher { value ->
+        val actual = value.separator()
+        MatcherResult(
+            actual == expected,
+            { "Expected NBT separator <$expected>, but was <${actual ?: "null"}>." },
+            { "Expected NBT separator not to be <$expected>." },
+        )
+    }
+
+private fun haveNoNbtSeparator(): Matcher<NBTComponent<*>> =
+    Matcher { value ->
+        val actual = value.separator()
+        MatcherResult(
+            actual == null,
+            { "Expected NBT separator to be absent, but was <${actual ?: "null"}>." },
+            { "Expected NBT separator to be present." },
+        )
+    }
+
+private fun haveBlockPos(expected: BlockNBTComponent.Pos): Matcher<BlockNBTComponent> =
+    Matcher { value ->
+        val actual = value.pos()
+        MatcherResult(
+            actual == expected,
+            { "Expected block NBT position <${expected.asString()}>, but was <${actual.asString()}>." },
+            { "Expected block NBT position not to be <${expected.asString()}>." },
+        )
+    }
+
+private fun haveEntitySelector(expected: String): Matcher<EntityNBTComponent> =
+    Matcher { value ->
+        val actual = value.selector()
+        MatcherResult(
+            actual == expected,
+            { "Expected entity NBT selector <$expected>, but was <$actual>." },
+            { "Expected entity NBT selector not to be <$expected>." },
+        )
+    }
+
+private fun haveStorageKey(expected: Key): Matcher<StorageNBTComponent> =
+    Matcher { value ->
+        val actual = value.storage()
+        MatcherResult(
+            actual == expected,
+            { "Expected storage NBT key <$expected>, but was <$actual>." },
+            { "Expected storage NBT key not to be <$expected>." },
         )
     }
 

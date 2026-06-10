@@ -64,6 +64,8 @@ once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land i
 - Keybind, score, and selector component DSL support, including selector separators, root styling, and nested child
   builders.
 - Keybind, score, and selector component matchers for dogfooding the new DSL output.
+- Block, entity, and storage NBT component DSL support, including interpretation, separators, root styling, nested child
+  builders, and NBT-specific test matchers.
 
 ## [0.0.1] - 2026-06-08
 
