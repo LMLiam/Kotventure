@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land in any release.
 
+## [0.0.4](https://github.com/LMLiam/Kotventure/compare/0.0.3...0.0.4) (2026-06-10)
+
+
+### ✨ Features
+
+* **core:** add keybind, score and selector components ([#110](https://github.com/LMLiam/Kotventure/issues/110)) ([3d12be9](https://github.com/LMLiam/Kotventure/commit/3d12be9df99c2fbf9df6d2068f1ba47f64d1bf74))
+
 ## [0.0.3](https://github.com/LMLiam/Kotventure/compare/0.0.2...0.0.3) (2026-06-09)
 
 
