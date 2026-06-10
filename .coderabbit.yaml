@@ -1,0 +1,182 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+
+language: "en-US"
+tone_instructions: "Be concise, direct, architecture-aware, and findings-first. Prioritize correctness, maintainability, DSL design, and actionable evidence over praise."
+early_access: true
+
+chat:
+  auto_reply: true
+
+knowledge_base:
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - "AGENTS.md"
+      - ".github/CONTRIBUTING.md"
+      - "docs/DESIGN.md"
+      - "docs/ROADMAP.md"
+
+reviews:
+  profile: "assertive"
+  high_level_summary_instructions: |
+    Summarize the PR for maintainers with emphasis on user-visible API changes, module boundaries, Adventure delegation, test coverage, release impact, and any architecture or DSL-design risk.
+  high_level_summary: true
+  high_level_summary_in_walkthrough: true
+  review_status: true
+  review_details: true
+  commit_status: true
+  fail_commit_status: true
+  collapse_walkthrough: false
+  changed_files_summary: true
+  sequence_diagrams: true
+  estimate_code_review_effort: true
+  assess_linked_issues: true
+  related_issues: true
+  related_prs: true
+  suggested_labels: false
+  auto_apply_labels: false
+  poem: false
+  in_progress_fortune: false
+  enable_prompt_for_ai_agents: true
+
+  auto_review:
+    enabled: true
+    drafts: false
+    auto_incremental_review: true
+    auto_pause_after_reviewed_commits: 0
+    labels:
+      - "!autorelease: pending"
+      - "!autorelease: tagged"
+    ignore_title_keywords:
+      - "chore(master): release"
+      - "chore(main): release"
+      - "chore: release"
+      - "release-please"
+      - "Release Please"
+      - "autorelease"
+    ignore_usernames:
+      - "github-actions[bot]"
+      - "release-please[bot]"
+      - "google-github-actions[bot]"
+
+  path_instructions:
+    - path: "modules/**/*.kt"
+      instructions: |
+        Review Kotlin library code against Kotventure's Adventure-first DSL goals:
+        - Verify changes wrap real net.kyori Adventure APIs instead of reimplementing Adventure behavior.
+        - Enforce small, feature-packaged files; flag broad helper/util packages, god objects, speculative abstractions, and single-implementation interfaces.
+        - Check public/protected API for explicit visibility, explicit return types, KDoc, immutable boundaries, and no leaked mutable builder state.
+        - For DSLs, prefer lambda-with-receiver builders, extension functions, expression bodies for one-liners, @DslMarker scope safety, and names that read naturally at call sites.
+        - MiniMessage, serializers, coroutines, platform adapters, KSP, ANSI, Configurate, and tooling are planned capabilities; review whether they land in the issue-scoped module and roadmap phase, with dependencies kept out of unrelated modules.
+        - Challenge reflection, ServiceLoader/SPI, or runtime magic when it bypasses the explicit registry model from docs/DESIGN.md and issue #6.
+    - path: "modules/**/src/test/**/*.kt"
+      instructions: |
+        Review tests as first-class deliverables:
+        - Prefer Kotest StringSpec style and assertions on real Adventure objects.
+        - Require each behavioral branch, edge case, invalid input, and nesting/order rule introduced by the PR to have focused coverage.
+        - Prefer the project's own component matchers from the test module when a structural matcher exists.
+        - Flag tests that only assert serialized strings when structural assertions would better protect behavior.
+    - path: "docs/**/*.md"
+      instructions: |
+        Review documentation for accuracy against the current code and docs/DESIGN.md:
+        - Examples should use the public Kotventure DSL surface rather than raw Adventure factories when a wrapper exists.
+        - Flag examples that introduce dependencies or modules earlier than their roadmap phase.
+        - Keep prose concise and concrete; avoid claims that are not backed by implemented code or the roadmap.
+    - path: "gradle/**/*.toml"
+      instructions: |
+        Review version catalog changes carefully:
+        - Shared versions and plugin coordinates belong here before being consumed elsewhere.
+        - Flag direct dependency coordinates added outside the catalog when a catalog alias would fit.
+        - Check Adventure artifacts stay aligned through the Adventure BOM baseline documented in docs/DESIGN.md.
+    - path: "**/*.gradle.kts"
+      instructions: |
+        Review Gradle Kotlin DSL changes against the repository conventions:
+        - Keep shared dependency and plugin coordinates in gradle/libs.versions.toml unless a local, documented exception is needed.
+        - Preserve explicitApi() for library modules and the JDK 25 toolchain.
+        - Flag new module wiring unless it is tied to the roadmap phase or issue being implemented.
+        - Keep build logic scoped; avoid broad helper scripts or cross-module coupling that bypasses docs/DESIGN.md.
+    - path: "settings.gradle.kts"
+      instructions: |
+        Review module inclusion carefully:
+        - Modules should be added lazily per roadmap phase and issue scope.
+        - Flag modules enabled without matching implementation, tests, and documentation.
+        - Ensure module names and paths follow docs/DESIGN.md.
+    - path: "release-please-config.json"
+      instructions: |
+        Review Release Please configuration conservatively:
+        - Preserve conventional commit and changelog behavior expected by the repository.
+        - Flag package or component changes that would break the current release manifest.
+        - Ensure release automation changes do not cause CodeRabbit to review generated release PRs.
+    - path: ".release-please-manifest.json"
+      instructions: |
+        Treat manifest-only changes as release bookkeeping:
+        - Verify versions are intentional and consistent with the generated release PR.
+        - Do not request broad architectural changes for generated release metadata.
+    - path: ".github/PULL_REQUEST_TEMPLATE/**"
+      instructions: |
+        Review PR template changes for repository process alignment:
+        - Keep the template compatible with conventional titles and the one-issue-one-small-PR workflow.
+        - Preserve explicit testing, style, issue-linking, and user-facing docs checklist prompts.
+    - path: ".github/workflows/**"
+      instructions: |
+        Review GitHub Actions changes for least privilege and repository conventions:
+        - Require pinned third-party actions unless there is a documented reason.
+        - Ensure workflow changes preserve the Gradle wrapper, JDK 25 toolchain, ktlint, Spotless, and conventional-title gates.
+        - Flag broad token permissions and unscoped secrets.
+
+  pre_merge_checks:
+    title:
+      mode: "error"
+      requirements: "PR titles must match the repository convention `verb(area): something`, with lowercase verb and area."
+    description:
+      mode: "warning"
+    issue_assessment:
+      mode: "warning"
+    docstrings:
+      mode: "warning"
+      threshold: 80
+    custom_checks:
+      - name: "Kotventure architecture"
+        mode: "warning"
+        instructions: |
+          Pass if the PR respects docs/DESIGN.md and AGENTS.md architecture rules for every touched module.
+          Pass when planned capabilities such as MiniMessage, serializers, coroutines, platform adapters, KSP, ANSI, Configurate, or tooling are implemented in their issue-scoped module and roadmap phase with clear dependency boundaries.
+          Fail if the PR introduces architecture drift, boundary erosion, runtime magic, or dependency coupling that conflicts with the touched module's stated responsibility or the pay-for-what-you-use design.
+          Fail if a change implements a roadmap concern in the wrong module, leaks optional feature dependencies into unrelated modules, or adds platform-specific behavior outside the relevant adapter without a clear issue-scoped rationale.
+          Challenge ServiceLoader/SPI or reflection when used as extensibility infrastructure instead of the explicit registry model; do not treat planned feature modules as architecture drift merely because they involve MiniMessage, serializers, coroutines, or platforms.
+      - name: "Small SRP slice"
+        mode: "warning"
+        instructions: |
+          Pass if each changed production file has one clear reason to change and the PR remains a focused vertical slice.
+          Fail if the PR mixes unrelated concerns, changes multiple reasons-to-change at once, or hides broad refactoring inside feature/build/docs work without a clear issue-scoped reason.
+          Fail if new code introduces vague ownership, broad helper packages, god objects, speculative abstractions, or other structures that make future change harder without a current need.
+      - name: "DSL quality"
+        mode: "warning"
+        instructions: |
+          Pass if new DSL APIs are idiomatic Kotlin and read naturally at call sites.
+          Fail if the DSL surface is awkward, unsafely scoped, mutable across public boundaries, Java-like, under-documented, or inconsistent with idiomatic Kotlin DSL patterns.
+          Treat missing lambda-with-receiver structure, missing public/protected KDoc or explicit API details, and reimplementing Adventure semantics instead of delegating to net.kyori types as examples, not as the only possible failures.
+      - name: "Test coverage"
+        mode: "warning"
+        instructions: |
+          Pass if behavior changes include focused tests for happy paths, edge cases, invalid inputs, and child/nesting/order behavior where relevant.
+          Fail if the tests do not give maintainers confidence in the changed behavior, including but not limited to missing edge cases, weak assertions, over-mocking, manual-only verification, or assertions that avoid real Adventure objects where they are cheap to construct.
+
+  tools:
+    github-checks:
+      enabled: true
+      timeout_ms: 900000
+    actionlint:
+      enabled: true
+    zizmor:
+      enabled: true
+    detekt:
+      enabled: true
+    markdownlint:
+      enabled: true
+    yamllint:
+      enabled: true
+    gitleaks:
+      enabled: true
+    trufflehog:
+      enabled: true
