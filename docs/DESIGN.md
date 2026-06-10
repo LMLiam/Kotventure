@@ -110,6 +110,20 @@ val msg = component {
     mini("<gradient:gold:red>Epic</gradient>")
 }
 
+// ── Reusable styles ────────────────────────────────────────────
+val headerStyle = style {
+    color(GOLD)
+    bold()
+    italic(false)
+    underlined(null)
+    font(key("minecraft", "uniform"))
+    insertion("/help")
+}
+
+val title = component {
+    text("Title") { style(headerStyle) }
+}
+
 // ── Themes (design system, registered once) ────────────────────
 val Brand = theme {
     palette { primary = hex("#5865F2"); error = RED }
