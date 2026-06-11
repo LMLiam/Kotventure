@@ -1,5 +1,7 @@
 package io.github.lmliam.kotventure.core.event
 
+import com.tschuchort.compiletesting.KotlinCompilation
+import com.tschuchort.compiletesting.SourceFile
 import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.style.style
 import io.github.lmliam.kotventure.core.text.component
@@ -17,65 +19,59 @@ import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickCallback
 import net.kyori.adventure.text.event.ClickEvent
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import java.nio.file.Path
 import kotlin.time.Duration.Companion.minutes
 import java.time.Duration as JavaDuration
 
+@OptIn(ExperimentalCompilerApi::class)
 class ClickEventDslTest :
     StringSpec(
         {
-            "builds every text payload click event action" {
-                val components =
+            "builds reusable text payload click event actions" {
+                val events =
                     listOf(
-                        component { openUrl("https://example.com") } to
+                        click { openUrl("https://example.com") } to
                                 (ClickEvent.Action.OPEN_URL to "https://example.com"),
-                        component { openFile("/tmp/example.txt") } to
+                        click { openFile("/tmp/example.txt") } to
                                 (ClickEvent.Action.OPEN_FILE to "/tmp/example.txt"),
-                        component { run("/spawn") } to
+                        click { run("/spawn") } to
                                 (ClickEvent.Action.RUN_COMMAND to "/spawn"),
-                        component { suggest("/msg Alex ") } to
+                        click { suggest("/msg Alex ") } to
                                 (ClickEvent.Action.SUGGEST_COMMAND to "/msg Alex "),
-                        component { copy("copied") } to
+                        click { copy("copied") } to
                                 (ClickEvent.Action.COPY_TO_CLIPBOARD to "copied"),
                     )
 
-                components.forEach { (component, expected) ->
+                events.forEach { (event, expected) ->
                     val (action, payload) = expected
-                    component shouldHaveClickAction action
-                    component shouldHaveClickTextPayload payload
+                    Component.text("Action").clickEvent(event) shouldHaveClickAction action
+                    Component.text("Action").clickEvent(event) shouldHaveClickTextPayload payload
                 }
             }
 
-            "builds change page click events with integer payloads" {
-                val component = component { changePage(4) }
-
-                component shouldHaveClickAction ClickEvent.Action.CHANGE_PAGE
-                component shouldHaveClickIntPayload 4
-            }
-
-            "builds open and copy helpers" {
-                val openComponent = component { open("https://example.com") }
-                val copyComponent = component { copy("copied") }
-
-                openComponent shouldHaveClickAction ClickEvent.Action.OPEN_URL
-                openComponent shouldHaveClickTextPayload "https://example.com"
-                copyComponent shouldHaveClickAction ClickEvent.Action.COPY_TO_CLIPBOARD
-                copyComponent shouldHaveClickTextPayload "copied"
-            }
-
-            "builds open file events from file uris" {
+            "builds reusable auto-target open click events" {
                 val path =
                     Path
                         .of("build", "click-event-dsl-test.txt")
                         .toAbsolutePath()
                         .normalize()
-                val component = component { open(path.toUri().toString()) }
+                val urlEvent =
+                    click {
+                        open("https://example.com")
+                    }
+                val fileEvent =
+                    click {
+                        open(path.toUri().toString())
+                    }
 
-                component shouldHaveClickAction ClickEvent.Action.OPEN_FILE
-                component shouldHaveClickTextPayload path.toString()
+                Component.text("Url").clickEvent(urlEvent) shouldHaveClickAction ClickEvent.Action.OPEN_URL
+                Component.text("Url").clickEvent(urlEvent) shouldHaveClickTextPayload "https://example.com"
+                Component.text("File").clickEvent(fileEvent) shouldHaveClickAction ClickEvent.Action.OPEN_FILE
+                Component.text("File").clickEvent(fileEvent) shouldHaveClickTextPayload path.toString()
             }
 
-            "keeps explicit open url events for file uris" {
+            "keeps explicit open url and open file click events" {
                 val target =
                     Path
                         .of("build", "click-event-dsl-test.txt")
@@ -83,30 +79,43 @@ class ClickEventDslTest :
                         .normalize()
                         .toUri()
                         .toString()
-                val component = component { openUrl(target) }
+                val urlEvent =
+                    click {
+                        openUrl(target)
+                    }
+                val fileEvent =
+                    click {
+                        openFile("/tmp/example.txt")
+                    }
 
-                component shouldHaveClickAction ClickEvent.Action.OPEN_URL
-                component shouldHaveClickTextPayload target
+                Component.text("Url").clickEvent(urlEvent) shouldHaveClickAction ClickEvent.Action.OPEN_URL
+                Component.text("Url").clickEvent(urlEvent) shouldHaveClickTextPayload target
+                Component.text("File").clickEvent(fileEvent) shouldHaveClickAction ClickEvent.Action.OPEN_FILE
+                Component.text("File").clickEvent(fileEvent) shouldHaveClickTextPayload "/tmp/example.txt"
             }
 
-            "falls back to open url events for file uris that are not paths" {
-                val component = component { open("file:notes.txt") }
+            "builds reusable change page click events with integer payloads" {
+                val event =
+                    click {
+                        changePage(4)
+                    }
 
-                component shouldHaveClickAction ClickEvent.Action.OPEN_URL
-                component shouldHaveClickTextPayload "file:notes.txt"
+                Component.text("Page").clickEvent(event) shouldHaveClickAction ClickEvent.Action.CHANGE_PAGE
+                Component.text("Page").clickEvent(event) shouldHaveClickIntPayload 4
             }
 
-            "falls back to open url events for targets without schemes" {
-                val components =
+            "falls back to open url events for non-path targets" {
+                val events =
                     listOf(
-                        component { open("example.com") } to "example.com",
-                        component { open("/server/rules") } to "/server/rules",
-                        component { open("relative/path") } to "relative/path",
+                        click { open("file:notes.txt") } to "file:notes.txt",
+                        click { open("example.com") } to "example.com",
+                        click { open("/server/rules") } to "/server/rules",
+                        click { open("relative/path") } to "relative/path",
                     )
 
-                components.forEach { (component, target) ->
-                    component shouldHaveClickAction ClickEvent.Action.OPEN_URL
-                    component shouldHaveClickTextPayload target
+                events.forEach { (event, target) ->
+                    Component.text("Open").clickEvent(event) shouldHaveClickAction ClickEvent.Action.OPEN_URL
+                    Component.text("Open").clickEvent(event) shouldHaveClickTextPayload target
                 }
             }
 
@@ -120,24 +129,28 @@ class ClickEventDslTest :
                 component shouldHaveClickEvent event
             }
 
-            "applies click events through component scopes" {
-                val manualEvent = ClickEvent.openUrl("https://example.org")
+            "applies block click events through component scopes" {
                 val component =
                     component {
                         text("Open") {
-                            open("https://example.com")
+                            click {
+                                open("https://example.com")
+                            }
                         }
                         text("Run") {
-                            run("/spawn")
+                            click {
+                                run("/spawn")
+                            }
                         }
                         text("Suggest") {
-                            suggest("/msg Alex ")
+                            click {
+                                suggest("/msg Alex ")
+                            }
                         }
                         text("Copy") {
-                            copy("secret")
-                        }
-                        text("Manual") {
-                            click(manualEvent)
+                            click {
+                                copy("secret")
+                            }
                         }
                     }
 
@@ -149,36 +162,71 @@ class ClickEventDslTest :
                 component.childAt(2) shouldHaveClickTextPayload "/msg Alex "
                 component.childAt(3) shouldHaveClickAction ClickEvent.Action.COPY_TO_CLIPBOARD
                 component.childAt(3) shouldHaveClickTextPayload "secret"
-                component.childAt(4) shouldHaveClickAction ClickEvent.Action.OPEN_URL
-                component.childAt(4) shouldHaveClickTextPayload "https://example.org"
             }
 
-            "applies reusable styles with click events" {
+            "applies reusable click events and block-built style click events" {
+                val event =
+                    click {
+                        run("/spawn")
+                    }
                 val style =
                     style {
-                        open("https://example.com")
+                        click {
+                            copy("style-copy")
+                        }
                     }
-
-                Component.text("Open").style(style) shouldHaveClickAction ClickEvent.Action.OPEN_URL
-                Component.text("Open").style(style) shouldHaveClickTextPayload "https://example.com"
-            }
-
-            "clears click events through style scopes" {
                 val component =
                     component {
-                        openUrl("https://example.com")
+                        text("Reusable") {
+                            click(event)
+                        }
+                        text("Styled") {
+                            style(style)
+                        }
+                    }
+
+                component.childAt(0) shouldHaveClickEvent event
+                component.childAt(1) shouldHaveClickAction ClickEvent.Action.COPY_TO_CLIPBOARD
+                component.childAt(1) shouldHaveClickTextPayload "style-copy"
+            }
+
+            "applies and clears raw click events through component and style scopes" {
+                val manualEvent = ClickEvent.openUrl("https://example.org")
+                val component =
+                    component {
+                        click(manualEvent)
+                    }
+                val styledComponent =
+                    component {
+                        style {
+                            click(manualEvent)
+                        }
+                    }
+                val clearedComponent =
+                    component {
+                        click(manualEvent)
+                        click(null)
+                    }
+                val clearedStyle =
+                    component {
+                        click(manualEvent)
                         style {
                             click(null)
                         }
                     }
 
-                component.shouldNotHaveClickEvent()
+                component shouldHaveClickEvent manualEvent
+                styledComponent shouldHaveClickEvent manualEvent
+                clearedComponent.shouldNotHaveClickEvent()
+                clearedStyle.shouldNotHaveClickEvent()
             }
 
             "propagates invalid change page validation errors" {
                 val failure =
                     shouldThrow<IllegalArgumentException> {
-                        component { changePage(0) }
+                        click {
+                            changePage(0)
+                        }
                     }
 
                 failure.message shouldContain "Change page payload integer must be greater than or equal to 1"
@@ -188,16 +236,16 @@ class ClickEventDslTest :
                 RecordingClickCallbackProvider.reset()
                 var calledWith: Audience? = null
 
-                val component =
-                    component {
+                val event =
+                    click {
                         callback(uses = 3, lifetime = 10.minutes) { audience ->
                             calledWith = audience
                         }
                     }
-                val event = RecordingClickCallbackProvider.lastEvent
                 val audience = Audience.empty()
 
-                component shouldHaveClickEvent event
+                Component.text("Callback").clickEvent(event) shouldHaveClickEvent
+                    RecordingClickCallbackProvider.lastEvent
                 RecordingClickCallbackProvider.lastOptions?.uses() shouldBe 3
                 RecordingClickCallbackProvider.lastOptions?.lifetime() shouldBe JavaDuration.ofMinutes(10)
 
@@ -210,16 +258,16 @@ class ClickEventDslTest :
                 RecordingClickCallbackProvider.reset()
                 var calledWith: Audience? = null
 
-                val component =
-                    component {
+                val event =
+                    click {
                         callback { audience ->
                             calledWith = audience
                         }
                     }
-                val event = RecordingClickCallbackProvider.lastEvent
                 val audience = Audience.empty()
 
-                component shouldHaveClickEvent event
+                Component.text("Callback").clickEvent(event) shouldHaveClickEvent
+                    RecordingClickCallbackProvider.lastEvent
 
                 RecordingClickCallbackProvider.fire(audience)
 
@@ -236,27 +284,29 @@ class ClickEventDslTest :
                         .lifetime(lifetime)
                         .build()
 
-                val component =
-                    component {
+                val event =
+                    click {
                         callback(options) {
                             // The provider capture is the assertion target for this test.
                         }
                     }
-                val event = RecordingClickCallbackProvider.lastEvent
 
-                component shouldHaveClickEvent event
+                Component.text("Callback").clickEvent(event) shouldHaveClickEvent
+                    RecordingClickCallbackProvider.lastEvent
                 RecordingClickCallbackProvider.lastOptions shouldBe options
                 RecordingClickCallbackProvider.lastOptions?.uses() shouldBe 4
                 RecordingClickCallbackProvider.lastOptions?.lifetime() shouldBe lifetime
             }
 
-            "component scope callbacks accept kotlin durations" {
+            "component scope callbacks accept kotlin durations inside click blocks" {
                 RecordingClickCallbackProvider.reset()
 
                 val component =
                     component {
-                        callback(uses = 1, lifetime = 5.minutes) {
-                            // The provider capture is the assertion target for this test.
+                        click {
+                            callback(uses = 1, lifetime = 5.minutes) {
+                                // The provider capture is the assertion target for this test.
+                            }
                         }
                     }
 
@@ -264,5 +314,166 @@ class ClickEventDslTest :
                 RecordingClickCallbackProvider.lastOptions?.uses() shouldBe 1
                 RecordingClickCallbackProvider.lastOptions?.lifetime() shouldBe JavaDuration.ofMinutes(5)
             }
+
+            "rejects empty click action blocks" {
+                val failure =
+                    shouldThrow<IllegalStateException> {
+                        click {
+                        }
+                    }
+
+                failure.message shouldContain "choose exactly one action"
+            }
+
+            "rejects click action blocks with multiple actions" {
+                val failure =
+                    shouldThrow<IllegalStateException> {
+                        click {
+                            run("/one")
+                            copy("two")
+                        }
+                    }
+
+                failure.message shouldContain "choose only one"
+            }
+
+            "keeps direct action helpers out of component and style scopes" {
+                assertDoesNotCompile(
+                    "ComponentClickActionLeakTest.kt",
+                    """
+                    import io.github.lmliam.kotventure.core.text.component
+
+                    fun shouldNotCompile() {
+                        component {
+                            text("Open") {
+                                openUrl("https://example.com")
+                            }
+                        }
+                    }
+                    """.trimIndent(),
+                    "Unresolved reference 'openUrl'",
+                )
+                assertDoesNotCompile(
+                    "StyleClickActionLeakTest.kt",
+                    """
+                    import io.github.lmliam.kotventure.core.style.style
+
+                    fun shouldNotCompile() {
+                        style {
+                            copy("secret")
+                        }
+                    }
+                    """.trimIndent(),
+                    "Unresolved reference 'copy'",
+                )
+            }
+
+            "removes direct action helpers from explicit click scopes" {
+                val helperCalls =
+                    mapOf(
+                        "Open" to
+                                CompileFailureCase(
+                                    """scope.open("https://example.com")""",
+                                    "Unresolved reference 'open'",
+                                ),
+                        "OpenUrl" to
+                                CompileFailureCase(
+                                    """scope.openUrl("https://example.com")""",
+                                    "Unresolved reference 'openUrl'",
+                                ),
+                        "OpenFile" to
+                                CompileFailureCase(
+                                    """scope.openFile("/tmp/example.txt")""",
+                                    "Unresolved reference 'openFile'",
+                                ),
+                        "Run" to
+                                CompileFailureCase(
+                                    """scope.run("/spawn")""",
+                                    "Argument type mismatch",
+                                ),
+                        "Suggest" to
+                                CompileFailureCase(
+                                    """scope.suggest("/msg Alex ")""",
+                                    "Unresolved reference 'suggest'",
+                                ),
+                        "ChangePage" to
+                                CompileFailureCase(
+                                    """scope.changePage(2)""",
+                                    "Unresolved reference 'changePage'",
+                                ),
+                        "Copy" to
+                                CompileFailureCase(
+                                    """scope.copy("secret")""",
+                                    "Unresolved reference 'copy'",
+                                ),
+                        "Callback" to
+                                CompileFailureCase(
+                                    """
+                                    val callback = ClickCallback<Audience> { }
+                                    scope.callback(callback)
+                                    """.trimIndent(),
+                                    "Unresolved reference 'callback'",
+                                ),
+                        "CallbackWithOptions" to
+                                CompileFailureCase(
+                                    """
+                                    val callback = ClickCallback<Audience> { }
+                                    val options = ClickCallback.Options.builder().uses(1).build()
+                                    scope.callback(options, callback)
+                                    """.trimIndent(),
+                                    "Unresolved reference 'callback'",
+                                ),
+                        "CallbackWithUsesAndLifetime" to
+                                CompileFailureCase(
+                                    """
+                                    val callback = ClickCallback<Audience> { }
+                                    scope.callback(1, 1.minutes, callback)
+                                    """.trimIndent(),
+                                    "Unresolved reference 'callback'",
+                                ),
+                    )
+
+                helperCalls.forEach { (name, failure) ->
+                    assertDoesNotCompile(
+                        "Removed${name}ClickScopeHelperTest.kt",
+                        """
+                        import io.github.lmliam.kotventure.core.event.ClickScope
+                        import net.kyori.adventure.audience.Audience
+                        import net.kyori.adventure.text.event.ClickCallback
+                        import kotlin.time.Duration.Companion.minutes
+
+                        fun shouldNotCompile(scope: ClickScope) {
+                            ${failure.source}
+                        }
+                        """.trimIndent(),
+                        failure.expectedMessage,
+                    )
+                }
+            }
         },
     )
+
+private data class CompileFailureCase(
+    val source: String,
+    val expectedMessage: String,
+)
+
+@OptIn(ExperimentalCompilerApi::class)
+private fun assertDoesNotCompile(
+    fileName: String,
+    source: String,
+    expectedMessage: String? = null,
+) {
+    val compilation =
+        KotlinCompilation().apply {
+            inheritClassPath = true
+            sources = listOf(SourceFile.kotlin(fileName, source))
+        }
+
+    val result = compilation.compile()
+
+    result.exitCode shouldBe KotlinCompilation.ExitCode.COMPILATION_ERROR
+    if (expectedMessage != null) {
+        result.messages shouldContain expectedMessage
+    }
+}
