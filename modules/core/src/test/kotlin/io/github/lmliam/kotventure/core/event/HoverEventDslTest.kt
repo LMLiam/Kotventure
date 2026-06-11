@@ -17,6 +17,7 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import net.kyori.adventure.key.Key
+import net.kyori.adventure.key.Keyed
 import net.kyori.adventure.nbt.api.BinaryTagHolder
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.DataComponentValue
@@ -60,6 +61,20 @@ class HoverEventDslTest :
                         HoverEvent.ShowItem.showItem(key("minecraft", "diamond_sword"), 2, dataComponents)
             }
 
+            "builds reusable item hover events from keyed values and permits zero counts" {
+                val keyedItem = Keyed { key("minecraft", "stone") }
+                val event =
+                    hover {
+                        item(
+                            item = keyedItem,
+                            count = 0,
+                        )
+                    }
+
+                event.action() shouldBe HoverEvent.Action.SHOW_ITEM
+                event.value() shouldBe HoverEvent.ShowItem.showItem(key("minecraft", "stone"), 0)
+            }
+
             "builds reusable entity hover events with component names" {
                 val id = UUID.fromString("3f5f1f4e-29cb-4c98-93f0-3c7f4b52ddee")
                 val name = Component.text("Alex")
@@ -74,6 +89,23 @@ class HoverEventDslTest :
 
                 event.action() shouldBe HoverEvent.Action.SHOW_ENTITY
                 event.value() shouldBe HoverEvent.ShowEntity.showEntity(key("minecraft", "player"), id, name)
+            }
+
+            "builds reusable entity hover events from keyed values" {
+                val id = UUID.fromString("0d1630e2-fc7c-48ef-b7a0-8dfb9e57ec25")
+                val entityType = Keyed { key("minecraft", "zombie") }
+                val event =
+                    hover {
+                        entity(
+                            type = entityType,
+                            id = id,
+                            name = Component.text("Zombie"),
+                        )
+                    }
+
+                event.action() shouldBe HoverEvent.Action.SHOW_ENTITY
+                event.value() shouldBe
+                        HoverEvent.ShowEntity.showEntity(key("minecraft", "zombie"), id, Component.text("Zombie"))
             }
 
             "applies hover events through component scopes" {
