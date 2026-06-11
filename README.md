@@ -97,12 +97,16 @@ val message = component {
 }
 ```
 
-Click events wrap Adventure's typed `ClickEvent` factories directly and can be applied through component scopes or
-reusable styles:
+Click events wrap Adventure's typed `ClickEvent` factories directly. Use `click { ... }` to select one action, either
+as a reusable event factory or inside component and style scopes:
 
 ```kotlin
-val linkStyle = style {
+val linkClick = click {
     open("https://example.com")
+}
+
+val linkStyle = style {
+    click(linkClick)
 }
 
 val actions = component {
@@ -110,20 +114,25 @@ val actions = component {
         style(linkStyle)
     }
     text(" copy invite") {
-        copy("play.example.com")
+        click {
+            copy("play.example.com")
+        }
     }
     text(" claim reward") {
-        callback(uses = 1, lifetime = 5.minutes) { audience ->
-            audience.sendMessage(component { text("Reward claimed") })
+        click {
+            callback(uses = 1, lifetime = 5.minutes) { audience ->
+                audience.sendMessage(component { text("Reward claimed") })
+            }
         }
     }
 }
 ```
 
-Inside component and style scopes, `open(...)` creates an open-file event for `file:` URIs and an open-URL event
-otherwise; `openUrl(...)` and `openFile(...)` remain available when you want the action to be explicit.
-Click events are available on reusable styles because Adventure models click events as part of `Style`; Kotventure keeps
-that shape instead of introducing a separate link wrapper.
+Inside `click { ... }`, `open(...)` creates an open-file event for usable `file:` URIs and an open-URL event otherwise;
+`openUrl(...)` and `openFile(...)` remain available when you want the action to be explicit. Use `click(event)` for a
+prebuilt Adventure click event and `click(null)` to clear one. Click events are available on reusable styles because
+Adventure models click events as part of `Style`; Kotventure keeps that shape instead of introducing a separate link
+wrapper.
 
 Hover events use the same component/style scope model and wrap Adventure's typed `HoverEvent` payloads:
 
