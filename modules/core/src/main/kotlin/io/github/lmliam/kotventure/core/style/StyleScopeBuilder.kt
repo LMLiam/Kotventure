@@ -22,7 +22,7 @@ internal class StyleScopeBuilder(
         builder.insertion(insertion)
     }
 
-    override fun clickEvent(event: ClickEvent<*>?) {
+    override fun click(event: ClickEvent<*>?) {
         builder.clickEvent(event)
     }
 

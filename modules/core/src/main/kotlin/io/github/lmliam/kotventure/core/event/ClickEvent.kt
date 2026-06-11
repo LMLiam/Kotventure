@@ -9,90 +9,38 @@ import java.time.temporal.TemporalAmount
 import kotlin.time.toJavaDuration
 import kotlin.time.Duration as KotlinDuration
 
-/**
- * Builds an Adventure click event that opens [target].
- *
- * File URI targets are converted to open-file events; all other targets are treated as URLs.
- *
- * @throws IllegalArgumentException when Adventure rejects the URL payload.
- */
-public fun open(target: String): ClickEvent<ClickEvent.Payload.Text> =
+internal fun openTarget(target: String): ClickEvent<ClickEvent.Payload.Text> =
     fileUriPath(target)
         ?.let { file -> ClickEvent.openFile(file) }
         ?: ClickEvent.openUrl(target)
 
+internal fun openUrlTarget(url: String): ClickEvent<ClickEvent.Payload.Text> = ClickEvent.openUrl(url)
+
 /**
- * Builds an Adventure click event that opens this URL.
- *
- * @throws IllegalArgumentException when Adventure rejects this URL payload.
+ * Builds an Adventure click event that opens this URL or file URI.
  */
 @JvmName("openString")
-public fun String.open(): ClickEvent<ClickEvent.Payload.Text> = open(this)
+public fun String.open(): ClickEvent<ClickEvent.Payload.Text> = openTarget(this)
 
-/**
- * Builds an Adventure click event that opens [url].
- *
- * @throws IllegalArgumentException when Adventure rejects the URL payload.
- */
-public fun openUrl(url: String): ClickEvent<ClickEvent.Payload.Text> = open(url)
+internal fun openFileTarget(file: String): ClickEvent<ClickEvent.Payload.Text> = ClickEvent.openFile(file)
 
-/**
- * Builds an Adventure click event that opens a local [file] path.
- */
-public fun openFile(file: String): ClickEvent<ClickEvent.Payload.Text> = ClickEvent.openFile(file)
+internal fun runTarget(command: String): ClickEvent<ClickEvent.Payload.Text> = ClickEvent.runCommand(command)
 
-/**
- * Builds an Adventure click event that runs [command].
- */
-public fun run(command: String): ClickEvent<ClickEvent.Payload.Text> = ClickEvent.runCommand(command)
+internal fun suggestTarget(command: String): ClickEvent<ClickEvent.Payload.Text> = ClickEvent.suggestCommand(command)
 
-/**
- * Builds an Adventure click event that runs [command].
- */
-public fun runCommand(command: String): ClickEvent<ClickEvent.Payload.Text> = run(command)
+internal fun changePageTarget(page: Int): ClickEvent<ClickEvent.Payload.Int> = ClickEvent.changePage(page)
 
-/**
- * Builds an Adventure click event that suggests [command] in chat.
- */
-public fun suggest(command: String): ClickEvent<ClickEvent.Payload.Text> = ClickEvent.suggestCommand(command)
-
-/**
- * Builds an Adventure click event that suggests [command] in chat.
- */
-public fun suggestCommand(command: String): ClickEvent<ClickEvent.Payload.Text> = suggest(command)
-
-/**
- * Builds an Adventure click event that changes a book to [page].
- *
- * @throws IllegalArgumentException when [page] is less than one.
- */
-public fun changePage(page: Int): ClickEvent<ClickEvent.Payload.Int> = ClickEvent.changePage(page)
-
-/**
- * Builds an Adventure click event that copies [text] to the clipboard.
- */
-public fun copy(text: String): ClickEvent<ClickEvent.Payload.Text> = ClickEvent.copyToClipboard(text)
+internal fun copyTarget(text: String): ClickEvent<ClickEvent.Payload.Text> = ClickEvent.copyToClipboard(text)
 
 /**
  * Builds an Adventure click event that copies this text to the clipboard.
  */
 @JvmName("copyString")
-public fun String.copy(): ClickEvent<ClickEvent.Payload.Text> = copy(this)
+public fun String.copy(): ClickEvent<ClickEvent.Payload.Text> = copyTarget(this)
 
-/**
- * Builds an Adventure click event that copies [text] to the clipboard.
- */
-public fun copyToClipboard(text: String): ClickEvent<ClickEvent.Payload.Text> = copy(text)
+internal fun callbackTarget(function: ClickCallback<Audience>): ClickEvent<*> = ClickEvent.callback(function)
 
-/**
- * Builds an Adventure server-side callback click event from [function].
- */
-public fun callback(function: ClickCallback<Audience>): ClickEvent<*> = ClickEvent.callback(function)
-
-/**
- * Builds an Adventure server-side callback click event from [function] with [uses] and [lifetime].
- */
-public fun callback(
+internal fun callbackTarget(
     uses: Int,
     lifetime: TemporalAmount,
     function: ClickCallback<Audience>,
@@ -102,19 +50,13 @@ public fun callback(
         options.lifetime(lifetime)
     }
 
-/**
- * Builds an Adventure server-side callback click event from [function] with [uses] and [lifetime].
- */
-public fun callback(
+internal fun callbackTarget(
     uses: Int,
     lifetime: KotlinDuration,
     function: ClickCallback<Audience>,
-): ClickEvent<*> = callback(uses, lifetime.toJavaDuration(), function)
+): ClickEvent<*> = callbackTarget(uses, lifetime.toJavaDuration(), function)
 
-/**
- * Builds an Adventure server-side callback click event from [function] with prebuilt [options].
- */
-public fun callback(
+internal fun callbackTarget(
     options: ClickCallback.Options,
     function: ClickCallback<Audience>,
 ): ClickEvent<*> = ClickEvent.callback(function, options)

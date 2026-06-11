@@ -25,45 +25,45 @@ class ClickEventDslTest :
     StringSpec(
         {
             "builds every text payload click event action" {
-                val clickEvents =
+                val components =
                     listOf(
-                        openUrl("https://example.com") to
+                        component { openUrl("https://example.com") } to
                                 (ClickEvent.Action.OPEN_URL to "https://example.com"),
-                        openFile("/tmp/example.txt") to
+                        component { openFile("/tmp/example.txt") } to
                                 (ClickEvent.Action.OPEN_FILE to "/tmp/example.txt"),
-                        runCommand("/spawn") to
+                        component { runCommand("/spawn") } to
                                 (ClickEvent.Action.RUN_COMMAND to "/spawn"),
-                        suggestCommand("/msg Alex ") to
+                        component { suggestCommand("/msg Alex ") } to
                                 (ClickEvent.Action.SUGGEST_COMMAND to "/msg Alex "),
-                        copyToClipboard("copied") to
+                        component { copyToClipboard("copied") } to
                                 (ClickEvent.Action.COPY_TO_CLIPBOARD to "copied"),
                     )
 
-                clickEvents.forEach { (event, expected) ->
+                components.forEach { (component, expected) ->
                     val (action, payload) = expected
-                    Component.text("Click").clickEvent(event) shouldHaveClickAction action
-                    Component.text("Click").clickEvent(event) shouldHaveClickTextPayload payload
+                    component shouldHaveClickAction action
+                    component shouldHaveClickTextPayload payload
                 }
             }
 
             "builds change page click events with integer payloads" {
-                val event = changePage(4)
+                val component = component { changePage(4) }
 
-                Component.text("Next").clickEvent(event) shouldHaveClickAction ClickEvent.Action.CHANGE_PAGE
-                Component.text("Next").clickEvent(event) shouldHaveClickIntPayload 4
+                component shouldHaveClickAction ClickEvent.Action.CHANGE_PAGE
+                component shouldHaveClickIntPayload 4
             }
 
             "builds open and copy aliases" {
-                val openEvent = open("https://example.com")
+                val openComponent = component { open("https://example.com") }
                 val stringOpenEvent = "https://example.org".open()
-                val copyEvent = copy("copied")
+                val copyComponent = component { copy("copied") }
                 val stringCopyEvent = "also copied".copy()
 
-                Component.text("Open").clickEvent(openEvent) shouldHaveClickAction ClickEvent.Action.OPEN_URL
-                Component.text("Open").clickEvent(openEvent) shouldHaveClickTextPayload "https://example.com"
+                openComponent shouldHaveClickAction ClickEvent.Action.OPEN_URL
+                openComponent shouldHaveClickTextPayload "https://example.com"
                 Component.text("Open").clickEvent(stringOpenEvent) shouldHaveClickTextPayload "https://example.org"
-                Component.text("Copy").clickEvent(copyEvent) shouldHaveClickAction ClickEvent.Action.COPY_TO_CLIPBOARD
-                Component.text("Copy").clickEvent(copyEvent) shouldHaveClickTextPayload "copied"
+                copyComponent shouldHaveClickAction ClickEvent.Action.COPY_TO_CLIPBOARD
+                copyComponent shouldHaveClickTextPayload "copied"
                 Component.text("Copy").clickEvent(stringCopyEvent) shouldHaveClickTextPayload "also copied"
             }
 
@@ -73,21 +73,34 @@ class ClickEventDslTest :
                         .of("build", "click-event-dsl-test.txt")
                         .toAbsolutePath()
                         .normalize()
-                val event = open(path.toUri().toString())
+                val component = component { open(path.toUri().toString()) }
 
-                Component.text("Open").clickEvent(event) shouldHaveClickAction ClickEvent.Action.OPEN_FILE
-                Component.text("Open").clickEvent(event) shouldHaveClickTextPayload path.toString()
+                component shouldHaveClickAction ClickEvent.Action.OPEN_FILE
+                component shouldHaveClickTextPayload path.toString()
+            }
+
+            "keeps explicit open url events for file uris" {
+                val target =
+                    Path
+                        .of("build", "click-event-dsl-test.txt")
+                        .toAbsolutePath()
+                        .normalize()
+                        .toUri()
+                        .toString()
+                val component = component { openUrl(target) }
+
+                component shouldHaveClickAction ClickEvent.Action.OPEN_URL
+                component shouldHaveClickTextPayload target
             }
 
             "builds run and suggest aliases" {
-                val runEvent = run("/spawn")
-                val suggestEvent = suggest("/msg Alex ")
+                val runComponent = component { run("/spawn") }
+                val suggestComponent = component { suggest("/msg Alex ") }
 
-                Component.text("Run").clickEvent(runEvent) shouldHaveClickAction ClickEvent.Action.RUN_COMMAND
-                Component.text("Run").clickEvent(runEvent) shouldHaveClickTextPayload "/spawn"
-                Component.text("Suggest").clickEvent(suggestEvent) shouldHaveClickAction
-                    ClickEvent.Action.SUGGEST_COMMAND
-                Component.text("Suggest").clickEvent(suggestEvent) shouldHaveClickTextPayload "/msg Alex "
+                runComponent shouldHaveClickAction ClickEvent.Action.RUN_COMMAND
+                runComponent shouldHaveClickTextPayload "/spawn"
+                suggestComponent shouldHaveClickAction ClickEvent.Action.SUGGEST_COMMAND
+                suggestComponent shouldHaveClickTextPayload "/msg Alex "
             }
 
             "builds typed raw click events with Adventure validation" {
@@ -99,7 +112,7 @@ class ClickEventDslTest :
             }
 
             "applies click events through component scopes" {
-                val manualEvent = openUrl("https://example.org")
+                val manualEvent = ClickEvent.openUrl("https://example.org")
                 val component =
                     component {
                         text("Open") {
@@ -156,7 +169,7 @@ class ClickEventDslTest :
             "propagates invalid change page validation errors" {
                 val failure =
                     shouldThrow<IllegalArgumentException> {
-                        changePage(0)
+                        component { changePage(0) }
                     }
 
                 failure.message shouldContain "Change page payload integer must be greater than or equal to 1"
@@ -167,13 +180,16 @@ class ClickEventDslTest :
                 var calledWith: Audience? = null
                 val lifetime = JavaDuration.ofMinutes(10)
 
-                val event =
-                    callback(uses = 3, lifetime = lifetime) { audience ->
-                        calledWith = audience
+                val component =
+                    component {
+                        callback(uses = 3, lifetime = lifetime) { audience ->
+                            calledWith = audience
+                        }
                     }
+                val event = RecordingClickCallbackProvider.lastEvent
                 val audience = Audience.empty()
 
-                Component.text("Claim").clickEvent(event) shouldHaveClickEvent event
+                component shouldHaveClickEvent event
                 RecordingClickCallbackProvider.lastOptions?.uses() shouldBe 3
                 RecordingClickCallbackProvider.lastOptions?.lifetime() shouldBe lifetime
 
@@ -186,13 +202,16 @@ class ClickEventDslTest :
                 RecordingClickCallbackProvider.reset()
                 var calledWith: Audience? = null
 
-                val event =
-                    callback { audience ->
-                        calledWith = audience
+                val component =
+                    component {
+                        callback { audience ->
+                            calledWith = audience
+                        }
                     }
+                val event = RecordingClickCallbackProvider.lastEvent
                 val audience = Audience.empty()
 
-                Component.text("Claim").clickEvent(event) shouldHaveClickEvent event
+                component shouldHaveClickEvent event
 
                 RecordingClickCallbackProvider.fire(audience)
 
@@ -209,12 +228,15 @@ class ClickEventDslTest :
                         .lifetime(lifetime)
                         .build()
 
-                val event =
-                    callback(options) {
-                        // The provider capture is the assertion target for this test.
+                val component =
+                    component {
+                        callback(options) {
+                            // The provider capture is the assertion target for this test.
+                        }
                     }
+                val event = RecordingClickCallbackProvider.lastEvent
 
-                Component.text("Claim").clickEvent(event) shouldHaveClickEvent event
+                component shouldHaveClickEvent event
                 RecordingClickCallbackProvider.lastOptions shouldBe options
                 RecordingClickCallbackProvider.lastOptions?.uses() shouldBe 4
                 RecordingClickCallbackProvider.lastOptions?.lifetime() shouldBe lifetime

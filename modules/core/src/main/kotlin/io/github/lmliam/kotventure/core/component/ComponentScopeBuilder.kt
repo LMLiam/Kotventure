@@ -45,7 +45,7 @@ internal abstract class ComponentScopeBuilder<C : Component, B : ComponentBuilde
         builder.style { styleBuilder -> StyleScopeBuilder(styleBuilder).init() }
     }
 
-    override fun clickEvent(event: ClickEvent<*>?) {
+    override fun click(event: ClickEvent<*>?) {
         builder.clickEvent(event)
     }
 
