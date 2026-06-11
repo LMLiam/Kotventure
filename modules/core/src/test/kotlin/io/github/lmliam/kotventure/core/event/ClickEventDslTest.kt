@@ -15,6 +15,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.event.ClickCallback
 import net.kyori.adventure.text.event.ClickEvent
 import java.time.Duration
 
@@ -119,6 +120,27 @@ class ClickEventDslTest :
                 RecordingClickCallbackProvider.fire(audience)
 
                 calledWith shouldBe audience
+            }
+
+            "callback click events accept prebuilt options" {
+                RecordingClickCallbackProvider.reset()
+                val lifetime = Duration.ofSeconds(45)
+                val options =
+                    ClickCallback.Options
+                        .builder()
+                        .uses(4)
+                        .lifetime(lifetime)
+                        .build()
+
+                val event =
+                    callback(options) {
+                        // The provider capture is the assertion target for this test.
+                    }
+
+                Component.text("Claim").clickEvent(event) shouldHaveClickEvent event
+                RecordingClickCallbackProvider.lastOptions shouldBe options
+                RecordingClickCallbackProvider.lastOptions?.uses() shouldBe 4
+                RecordingClickCallbackProvider.lastOptions?.lifetime() shouldBe lifetime
             }
 
             "component scope callbacks pass options to Adventure" {
