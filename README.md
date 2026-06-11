@@ -102,7 +102,7 @@ reusable styles:
 
 ```kotlin
 val linkStyle = style {
-    openUrl("https://example.com")
+    open("https://example.com")
 }
 
 val actions = component {
@@ -110,11 +110,11 @@ val actions = component {
         style(linkStyle)
     }
     text(" copy invite") {
-        copyToClipboard("play.example.com")
+        copy("play.example.com")
     }
     text(" claim reward") {
-        callback(uses = 1, lifetime = Duration.ofMinutes(5)) { audience ->
-            audience.sendMessage(Component.text("Reward claimed"))
+        callback(uses = 1, lifetime = 5.minutes) { audience ->
+            audience.sendMessage(component { text("Reward claimed") })
         }
     }
 }
@@ -206,7 +206,7 @@ val plain = message.toPlainText()
 `kotventure-test` starts the testing toolkit with structural component matchers such as `shouldContainText`,
 `shouldHaveColor`, `shouldHaveDecoration`, `shouldNotHaveDecoration`, `shouldHaveChildCount`, and translatable-specific
 assertions for keys, fallbacks, and arguments. It also includes keybind, score, selector, object component, block, entity,
-storage NBT, and click-event assertions for the smaller component DSLs.
+and storage NBT assertions for the smaller component DSLs, plus click-event assertions for all components.
 
 ---
 

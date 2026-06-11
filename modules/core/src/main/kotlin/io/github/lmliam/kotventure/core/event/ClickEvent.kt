@@ -4,13 +4,30 @@ import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.event.ClickCallback
 import net.kyori.adventure.text.event.ClickEvent
 import java.time.temporal.TemporalAmount
+import kotlin.time.toJavaDuration
+import kotlin.time.Duration as KotlinDuration
 
 /**
  * Builds an Adventure click event that opens [url].
  *
  * @throws IllegalArgumentException when Adventure rejects the URL payload.
  */
-public fun openUrl(url: String): ClickEvent<ClickEvent.Payload.Text> = ClickEvent.openUrl(url)
+public fun open(url: String): ClickEvent<ClickEvent.Payload.Text> = ClickEvent.openUrl(url)
+
+/**
+ * Builds an Adventure click event that opens this URL.
+ *
+ * @throws IllegalArgumentException when Adventure rejects this URL payload.
+ */
+@JvmName("openString")
+public fun String.open(): ClickEvent<ClickEvent.Payload.Text> = open(this)
+
+/**
+ * Builds an Adventure click event that opens [url].
+ *
+ * @throws IllegalArgumentException when Adventure rejects the URL payload.
+ */
+public fun openUrl(url: String): ClickEvent<ClickEvent.Payload.Text> = open(url)
 
 /**
  * Builds an Adventure click event that opens a local [file] path.
@@ -37,7 +54,18 @@ public fun changePage(page: Int): ClickEvent<ClickEvent.Payload.Int> = ClickEven
 /**
  * Builds an Adventure click event that copies [text] to the clipboard.
  */
-public fun copyToClipboard(text: String): ClickEvent<ClickEvent.Payload.Text> = ClickEvent.copyToClipboard(text)
+public fun copy(text: String): ClickEvent<ClickEvent.Payload.Text> = ClickEvent.copyToClipboard(text)
+
+/**
+ * Builds an Adventure click event that copies this text to the clipboard.
+ */
+@JvmName("copyString")
+public fun String.copy(): ClickEvent<ClickEvent.Payload.Text> = copy(this)
+
+/**
+ * Builds an Adventure click event that copies [text] to the clipboard.
+ */
+public fun copyToClipboard(text: String): ClickEvent<ClickEvent.Payload.Text> = copy(text)
 
 /**
  * Builds an Adventure server-side callback click event from [function].
@@ -56,6 +84,15 @@ public fun callback(
         options.uses(uses)
         options.lifetime(lifetime)
     }
+
+/**
+ * Builds an Adventure server-side callback click event from [function] with [uses] and [lifetime].
+ */
+public fun callback(
+    uses: Int,
+    lifetime: KotlinDuration,
+    function: ClickCallback<Audience>,
+): ClickEvent<*> = callback(uses, lifetime.toJavaDuration(), function)
 
 /**
  * Builds an Adventure server-side callback click event from [function] with prebuilt [options].

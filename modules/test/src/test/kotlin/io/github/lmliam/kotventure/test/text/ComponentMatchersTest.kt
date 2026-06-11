@@ -585,6 +585,18 @@ class ComponentMatchersTest :
                 failure.message shouldContain expectedMessage
             }
 
+            "reports text click payload type mismatches" {
+                val failure =
+                    shouldThrow<AssertionError> {
+                        Component
+                            .text("Page")
+                            .clickEvent(ClickEvent.changePage(2)) shouldHaveClickTextPayload "expected"
+                    }
+                val expectedMessage = "Expected click text payload <expected>, but was <2>."
+
+                failure.message shouldContain expectedMessage
+            }
+
             "reports integer click payload mismatches" {
                 val failure =
                     shouldThrow<AssertionError> {

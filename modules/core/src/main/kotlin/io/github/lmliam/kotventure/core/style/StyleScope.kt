@@ -11,11 +11,14 @@ import net.kyori.adventure.text.format.TextDecoration.State
 import java.time.temporal.TemporalAmount
 import io.github.lmliam.kotventure.core.event.callback as callbackEvent
 import io.github.lmliam.kotventure.core.event.changePage as changePageEvent
+import io.github.lmliam.kotventure.core.event.copy as copyEvent
 import io.github.lmliam.kotventure.core.event.copyToClipboard as copyToClipboardEvent
+import io.github.lmliam.kotventure.core.event.open as openEvent
 import io.github.lmliam.kotventure.core.event.openFile as openFileEvent
 import io.github.lmliam.kotventure.core.event.openUrl as openUrlEvent
 import io.github.lmliam.kotventure.core.event.runCommand as runCommandEvent
 import io.github.lmliam.kotventure.core.event.suggestCommand as suggestCommandEvent
+import kotlin.time.Duration as KotlinDuration
 
 /**
  * Scope for configuring Adventure style attributes.
@@ -41,6 +44,13 @@ public interface StyleScope {
      * Applies [event] as the click event, or clears the click event when [event] is null.
      */
     public fun clickEvent(event: ClickEvent<*>?)
+
+    /**
+     * Applies a click event that opens [url].
+     */
+    public fun open(url: String) {
+        clickEvent(openEvent(url))
+    }
 
     /**
      * Applies a click event that opens [url].
@@ -80,6 +90,13 @@ public interface StyleScope {
     /**
      * Applies a click event that copies [text] to the clipboard.
      */
+    public fun copy(text: String) {
+        clickEvent(copyEvent(text))
+    }
+
+    /**
+     * Applies a click event that copies [text] to the clipboard.
+     */
     public fun copyToClipboard(text: String) {
         clickEvent(copyToClipboardEvent(text))
     }
@@ -97,6 +114,17 @@ public interface StyleScope {
     public fun callback(
         uses: Int,
         lifetime: TemporalAmount,
+        function: ClickCallback<Audience>,
+    ) {
+        clickEvent(callbackEvent(uses, lifetime, function))
+    }
+
+    /**
+     * Applies a server-side callback click event from [function] with [uses] and [lifetime].
+     */
+    public fun callback(
+        uses: Int,
+        lifetime: KotlinDuration,
         function: ClickCallback<Audience>,
     ) {
         clickEvent(callbackEvent(uses, lifetime, function))

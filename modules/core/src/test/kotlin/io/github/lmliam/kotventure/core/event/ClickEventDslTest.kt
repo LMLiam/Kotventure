@@ -17,7 +17,8 @@ import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickCallback
 import net.kyori.adventure.text.event.ClickEvent
-import java.time.Duration
+import kotlin.time.Duration.Companion.minutes
+import java.time.Duration as JavaDuration
 
 class ClickEventDslTest :
     StringSpec(
@@ -51,6 +52,20 @@ class ClickEventDslTest :
                 Component.text("Next").clickEvent(event) shouldHaveClickIntPayload 4
             }
 
+            "builds open and copy aliases" {
+                val openEvent = open("https://example.com")
+                val stringOpenEvent = "https://example.org".open()
+                val copyEvent = copy("copied")
+                val stringCopyEvent = "also copied".copy()
+
+                Component.text("Open").clickEvent(openEvent) shouldHaveClickAction ClickEvent.Action.OPEN_URL
+                Component.text("Open").clickEvent(openEvent) shouldHaveClickTextPayload "https://example.com"
+                Component.text("Open").clickEvent(stringOpenEvent) shouldHaveClickTextPayload "https://example.org"
+                Component.text("Copy").clickEvent(copyEvent) shouldHaveClickAction ClickEvent.Action.COPY_TO_CLIPBOARD
+                Component.text("Copy").clickEvent(copyEvent) shouldHaveClickTextPayload "copied"
+                Component.text("Copy").clickEvent(stringCopyEvent) shouldHaveClickTextPayload "also copied"
+            }
+
             "builds typed raw click events with Adventure validation" {
                 val payload = ClickEvent.Payload.custom(key("kotventure", "claim"))
                 val event = clickEvent(ClickEvent.Action.CUSTOM, payload)
@@ -63,22 +78,27 @@ class ClickEventDslTest :
                 val component =
                     component {
                         text("Open") {
-                            openUrl("https://example.com")
+                            open("https://example.com")
+                        }
+                        text("Copy") {
+                            copy("secret")
                         }
                     }
 
                 component.childAt(0) shouldHaveClickAction ClickEvent.Action.OPEN_URL
                 component.childAt(0) shouldHaveClickTextPayload "https://example.com"
+                component.childAt(1) shouldHaveClickAction ClickEvent.Action.COPY_TO_CLIPBOARD
+                component.childAt(1) shouldHaveClickTextPayload "secret"
             }
 
             "applies reusable styles with click events" {
                 val style =
                     style {
-                        runCommand("/spawn")
+                        open("https://example.com")
                     }
 
-                Component.text("Spawn").style(style) shouldHaveClickAction ClickEvent.Action.RUN_COMMAND
-                Component.text("Spawn").style(style) shouldHaveClickTextPayload "/spawn"
+                Component.text("Open").style(style) shouldHaveClickAction ClickEvent.Action.OPEN_URL
+                Component.text("Open").style(style) shouldHaveClickTextPayload "https://example.com"
             }
 
             "clears click events through style scopes" {
@@ -105,7 +125,7 @@ class ClickEventDslTest :
             "callback click events invoke the callback and pass options to Adventure" {
                 RecordingClickCallbackProvider.reset()
                 var calledWith: Audience? = null
-                val lifetime = Duration.ofMinutes(10)
+                val lifetime = JavaDuration.ofMinutes(10)
 
                 val event =
                     callback(uses = 3, lifetime = lifetime) { audience ->
@@ -141,7 +161,7 @@ class ClickEventDslTest :
 
             "callback click events accept prebuilt options" {
                 RecordingClickCallbackProvider.reset()
-                val lifetime = Duration.ofSeconds(45)
+                val lifetime = JavaDuration.ofSeconds(45)
                 val options =
                     ClickCallback.Options
                         .builder()
@@ -162,7 +182,7 @@ class ClickEventDslTest :
 
             "component scope callbacks pass options to Adventure" {
                 RecordingClickCallbackProvider.reset()
-                val lifetime = Duration.ofSeconds(30)
+                val lifetime = JavaDuration.ofSeconds(30)
 
                 val component =
                     component {
@@ -174,6 +194,21 @@ class ClickEventDslTest :
                 component shouldHaveClickEvent RecordingClickCallbackProvider.lastEvent
                 RecordingClickCallbackProvider.lastOptions?.uses() shouldBe 2
                 RecordingClickCallbackProvider.lastOptions?.lifetime() shouldBe lifetime
+            }
+
+            "component scope callbacks accept kotlin durations" {
+                RecordingClickCallbackProvider.reset()
+
+                val component =
+                    component {
+                        callback(uses = 1, lifetime = 5.minutes) {
+                            // The provider capture is the assertion target for this test.
+                        }
+                    }
+
+                component shouldHaveClickEvent RecordingClickCallbackProvider.lastEvent
+                RecordingClickCallbackProvider.lastOptions?.uses() shouldBe 1
+                RecordingClickCallbackProvider.lastOptions?.lifetime() shouldBe JavaDuration.ofMinutes(5)
             }
         },
     )
