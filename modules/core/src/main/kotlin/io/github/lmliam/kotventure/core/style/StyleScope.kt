@@ -2,6 +2,7 @@ package io.github.lmliam.kotventure.core.style
 
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import io.github.lmliam.kotventure.core.event.ClickScope
+import io.github.lmliam.kotventure.core.event.HoverScope
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.format.TextColor
 import net.kyori.adventure.text.format.TextDecoration
@@ -11,7 +12,9 @@ import net.kyori.adventure.text.format.TextDecoration.State
  * Scope for configuring Adventure style attributes.
  */
 @KotventureDslMarker
-public interface StyleScope : ClickScope {
+public interface StyleScope :
+    ClickScope,
+    HoverScope {
     /**
      * Applies [color] to the style being configured, or clears the color when [color] is null.
      */

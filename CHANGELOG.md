@@ -107,6 +107,8 @@ once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land i
   interpolation, and per-code-point gradient text.
 - Click event DSL support for Adventure's typed click actions and server-side callbacks, including file-URI-aware `open`,
   concise `run`/`suggest`/`copy` helpers, Kotlin duration callback options, and click-event component matchers.
+- Hover event DSL support for typed text, item data component, and entity payloads, including reusable hover factories,
+  clearing/prebuilt interop, MiniMessage round-trip coverage, and hover-event component matchers.
 
 ## [0.0.1] - 2026-06-08
 
