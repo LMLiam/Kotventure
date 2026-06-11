@@ -10,11 +10,20 @@ import io.github.lmliam.kotventure.test.text.shouldBeObjectComponent
 import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.github.lmliam.kotventure.test.text.shouldHaveChildCount
 import io.github.lmliam.kotventure.test.text.shouldHaveColor
+import io.github.lmliam.kotventure.test.text.shouldHaveHoverEntity
+import io.github.lmliam.kotventure.test.text.shouldHaveHoverItem
+import io.github.lmliam.kotventure.test.text.shouldHaveHoverText
 import io.github.lmliam.kotventure.test.text.shouldHaveObjectContents
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
+import net.kyori.adventure.key.Key
+import net.kyori.adventure.nbt.api.BinaryTagHolder
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.event.DataComponentValue
+import net.kyori.adventure.text.event.HoverEvent
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.minimessage.MiniMessage
+import java.util.UUID
 
 /**
  * Verifies Kotventure's component serializer extensions delegate to Adventure's concrete serializers.
@@ -116,6 +125,71 @@ class ComponentSerializerExtensionsTest :
                 val roundTripped = MiniMessage.miniMessage().deserialize(serialized).shouldBeObjectComponent()
 
                 roundTripped shouldHaveObjectContents contents
+            }
+
+            "round-trips text hover payloads through MiniMessage" {
+                val message =
+                    component {
+                        text("Hover") {
+                            hover {
+                                text("Tooltip")
+                            }
+                        }
+                    }
+
+                val roundTripped = MiniMessage.miniMessage().deserialize(message.toMiniMessage())
+
+                roundTripped shouldHaveHoverText Component.text("Tooltip")
+            }
+
+            "round-trips item hover payload data components through MiniMessage" {
+                val dataComponents =
+                    mapOf<Key, DataComponentValue>(
+                        key("minecraft", "custom_data") to BinaryTagHolder.binaryTagHolder("{kotventure:1b}"),
+                    )
+                val item = HoverEvent.ShowItem.showItem(key("minecraft", "diamond_sword"), 1, dataComponents)
+                val message =
+                    component {
+                        text("Hover") {
+                            hover {
+                                item(
+                                    key = key("minecraft", "diamond_sword"),
+                                    dataComponents = dataComponents,
+                                )
+                            }
+                        }
+                    }
+
+                val roundTripped = MiniMessage.miniMessage().deserialize(message.toMiniMessage())
+
+                roundTripped shouldHaveHoverItem item
+            }
+
+            "round-trips entity hover payloads through MiniMessage" {
+                val id = UUID.fromString("3f5f1f4e-29cb-4c98-93f0-3c7f4b52ddee")
+                val entity =
+                    HoverEvent.ShowEntity.showEntity(
+                        key("minecraft", "player"),
+                        id,
+                        Component.text("Alex"),
+                    )
+                val message =
+                    component {
+                        text("Hover") {
+                            hover {
+                                entity(
+                                    type = key("minecraft", "player"),
+                                    id = id,
+                                ) {
+                                    text("Alex")
+                                }
+                            }
+                        }
+                    }
+
+                val roundTripped = MiniMessage.miniMessage().deserialize(message.toMiniMessage())
+
+                roundTripped shouldHaveHoverEntity entity
             }
         },
     )

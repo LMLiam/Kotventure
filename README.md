@@ -125,6 +125,45 @@ otherwise; `openUrl(...)` and `openFile(...)` remain available when you want the
 Click events are available on reusable styles because Adventure models click events as part of `Style`; Kotventure keeps
 that shape instead of introducing a separate link wrapper.
 
+Hover events use the same component/style scope model and wrap Adventure's typed `HoverEvent` payloads:
+
+```kotlin
+val itemHover = hover {
+    item(
+        key = key("minecraft", "diamond_sword"),
+        count = 1,
+    )
+}
+
+val playerId = UUID.fromString("3f5f1f4e-29cb-4c98-93f0-3c7f4b52ddee")
+
+val hoverMessage = component {
+    text("Need help?") {
+        hover {
+            text("Open the guide") {
+                color(NamedTextColor.AQUA)
+            }
+        }
+    }
+    text(" sword") {
+        hover(itemHover)
+    }
+    text(" player") {
+        hover {
+            entity(
+                type = key("minecraft", "player"),
+                id = playerId,
+            ) {
+                text("Alex")
+            }
+        }
+    }
+}
+```
+
+Use `hover(null)` to clear a hover event, or pass a prebuilt Adventure `HoverEventSource` when you already have one.
+Item hovers accept typed Adventure data components with `Map<Key, DataComponentValue>`.
+
 Colour helpers wrap Adventure `TextColor` factories directly and keep `core` free of serializer dependencies. Lower-case
 named colours such as `red`, `blue`, `gold`, and `aqua` are available from `io.github.lmliam.kotventure.core.color`;
 `NamedTextColor.*` works too when you prefer qualified Adventure constants.
@@ -211,7 +250,8 @@ val plain = message.toPlainText()
 `kotventure-test` starts the testing toolkit with structural component matchers such as `shouldContainText`,
 `shouldHaveColor`, `shouldHaveDecoration`, `shouldNotHaveDecoration`, `shouldHaveChildCount`, and translatable-specific
 assertions for keys, fallbacks, and arguments. It also includes keybind, score, selector, object component, block, entity,
-and storage NBT assertions for the smaller component DSLs, plus click-event assertions for all components.
+and storage NBT assertions for the smaller component DSLs, plus click-event and hover-event assertions for all
+components.
 
 ---
 
