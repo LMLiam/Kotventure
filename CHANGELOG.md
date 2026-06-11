@@ -105,10 +105,17 @@ once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land i
   and matching component assertions for style attributes.
 - Colour and gradient helpers for `hex("#RRGGBB")`, `rgb(...)`, normalized `hsv(...)`, named palette aliases,
   interpolation, and per-code-point gradient text.
-- Click event DSL support for Adventure's typed click actions and server-side callbacks, including file-URI-aware `open`,
-  concise `run`/`suggest`/`copy` helpers, Kotlin duration callback options, and click-event component matchers.
+- Click event DSL support for Adventure's typed click actions and server-side callbacks, including reusable `click { }`
+  factories, scoped block application, file-URI-aware `open`, Kotlin duration callback options, and click-event component
+  matchers.
 - Hover event DSL support for typed text, item data component, and entity payloads, including reusable hover factories,
   clearing/prebuilt interop, MiniMessage round-trip coverage, and hover-event component matchers.
+
+### Changed
+
+- Click action helpers now live only inside `click { ... }`; the direct `open(...)`, `openUrl(...)`, `openFile(...)`,
+  `run(...)`, `suggest(...)`, `changePage(...)`, `copy(...)`, and `callback(...)` helpers on component/style scopes were
+  removed before the pre-alpha event DSL settles.
 
 ## [0.0.1] - 2026-06-08
 

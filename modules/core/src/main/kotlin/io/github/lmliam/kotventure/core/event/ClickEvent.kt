@@ -10,6 +10,19 @@ internal fun openTarget(target: String): ClickEvent<ClickEvent.Payload.Text> =
         ?: ClickEvent.openUrl(target)
 
 /**
+ * Builds a reusable Adventure click event from a Kotventure click-action DSL block.
+ *
+ * @throws IllegalStateException when [init] does not choose exactly one click action.
+ * @throws IllegalArgumentException when Adventure rejects the selected action payload.
+ */
+public fun click(init: ClickActionScope.() -> Unit): ClickEvent<*> = buildClickEvent(init)
+
+internal fun buildClickEvent(init: ClickActionScope.() -> Unit): ClickEvent<*> =
+    ClickActionScopeBuilder()
+        .apply(init)
+        .build()
+
+/**
  * Builds an Adventure click event from a typed [action] and [payload].
  *
  * @throws IllegalArgumentException when Adventure rejects the action/payload pair.
