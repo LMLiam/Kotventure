@@ -55,16 +55,16 @@ class ClickEventDslTest :
 
             "builds open and copy aliases" {
                 val openComponent = component { open("https://example.com") }
-                val stringOpenEvent = "https://example.org".open()
                 val copyComponent = component { copy("copied") }
-                val stringCopyEvent = "also copied".copy()
+                val openEvent = "https://example.org".asOpenClickEvent()
+                val copyEvent = "also copied".asCopyClickEvent()
 
                 openComponent shouldHaveClickAction ClickEvent.Action.OPEN_URL
                 openComponent shouldHaveClickTextPayload "https://example.com"
-                Component.text("Open").clickEvent(stringOpenEvent) shouldHaveClickTextPayload "https://example.org"
+                Component.text("Open").clickEvent(openEvent) shouldHaveClickTextPayload "https://example.org"
                 copyComponent shouldHaveClickAction ClickEvent.Action.COPY_TO_CLIPBOARD
                 copyComponent shouldHaveClickTextPayload "copied"
-                Component.text("Copy").clickEvent(stringCopyEvent) shouldHaveClickTextPayload "also copied"
+                Component.text("Copy").clickEvent(copyEvent) shouldHaveClickTextPayload "also copied"
             }
 
             "builds open file events from file uris" {
@@ -93,6 +93,13 @@ class ClickEventDslTest :
                 component shouldHaveClickTextPayload target
             }
 
+            "falls back to open url events for file uris that are not paths" {
+                val component = component { open("file:notes.txt") }
+
+                component shouldHaveClickAction ClickEvent.Action.OPEN_URL
+                component shouldHaveClickTextPayload "file:notes.txt"
+            }
+
             "builds run and suggest aliases" {
                 val runComponent = component { run("/spawn") }
                 val suggestComponent = component { suggest("/msg Alex ") }
@@ -106,9 +113,11 @@ class ClickEventDslTest :
             "builds typed raw click events with Adventure validation" {
                 val payload = ClickEvent.Payload.custom(key("kotventure", "claim"))
                 val event = clickEvent(ClickEvent.Action.CUSTOM, payload)
+                val component = component { click(ClickEvent.Action.CUSTOM, payload) }
 
                 event.action() shouldBe ClickEvent.Action.CUSTOM
                 event.payload() shouldBe payload
+                component shouldHaveClickEvent event
             }
 
             "applies click events through component scopes" {

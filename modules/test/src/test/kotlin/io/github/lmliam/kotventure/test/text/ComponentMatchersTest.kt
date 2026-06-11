@@ -592,7 +592,7 @@ class ComponentMatchersTest :
                             .text("Page")
                             .clickEvent(ClickEvent.changePage(2)) shouldHaveClickTextPayload "expected"
                     }
-                val expectedMessage = "Expected click text payload <expected>, but was <2>."
+                val expectedMessage = "Expected click text payload <expected>, but was <integer payload <2>>."
 
                 failure.message shouldContain expectedMessage
             }
@@ -605,6 +605,18 @@ class ComponentMatchersTest :
                             .clickEvent(ClickEvent.changePage(2)) shouldHaveClickIntPayload 3
                     }
                 val expectedMessage = "Expected click integer payload <3>, but was <2>."
+
+                failure.message shouldContain expectedMessage
+            }
+
+            "reports integer click payload type mismatches" {
+                val failure =
+                    shouldThrow<AssertionError> {
+                        Component
+                            .text("Copy")
+                            .clickEvent(ClickEvent.copyToClipboard("two")) shouldHaveClickIntPayload 2
+                    }
+                val expectedMessage = "Expected click integer payload <2>, but was <text payload <two>>."
 
                 failure.message shouldContain expectedMessage
             }

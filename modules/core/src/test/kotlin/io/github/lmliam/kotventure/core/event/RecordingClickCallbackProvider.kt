@@ -5,35 +5,28 @@ import net.kyori.adventure.text.event.ClickCallback
 import net.kyori.adventure.text.event.ClickEvent
 
 private const val RECORDED_CALLBACK_COMMAND = "__kotventure_callback__"
-private const val UNSET_CALLBACK_COMMAND = "__kotventure_unset__"
 
 internal class RecordingClickCallbackProvider : ClickCallback.Provider {
     override fun create(
         callback: ClickCallback<Audience>,
         options: ClickCallback.Options,
     ): ClickEvent<*> {
-        lastCallback = callback
+        val event = ClickEvent.suggestCommand(RECORDED_CALLBACK_COMMAND)
+
+        lastCallbackHolder.set(callback)
         lastOptions = options
-        lastEvent = ClickEvent.suggestCommand(RECORDED_CALLBACK_COMMAND)
-        return lastEvent
+        lastEventHolder.set(event)
+
+        return event
     }
 
     internal companion object {
-        private val lastEventHolder: ThreadLocal<ClickEvent<*>> =
-            ThreadLocal.withInitial { ClickEvent.suggestCommand(UNSET_CALLBACK_COMMAND) }
+        private val lastEventHolder: ThreadLocal<ClickEvent<*>?> = ThreadLocal()
         private val lastCallbackHolder: ThreadLocal<ClickCallback<Audience>?> = ThreadLocal()
         private val lastOptionsHolder: ThreadLocal<ClickCallback.Options?> = ThreadLocal()
 
-        internal var lastEvent: ClickEvent<*>
-            get() = lastEventHolder.get()
-            private set(value) {
-                lastEventHolder.set(value)
-            }
-        internal var lastCallback: ClickCallback<Audience>?
-            get() = lastCallbackHolder.get()
-            private set(value) {
-                lastCallbackHolder.set(value)
-            }
+        internal val lastEvent: ClickEvent<*>
+            get() = checkNotNull(lastEventHolder.get()) { "Expected a recorded click event." }
         internal var lastOptions: ClickCallback.Options?
             get() = lastOptionsHolder.get()
             private set(value) {
@@ -41,7 +34,7 @@ internal class RecordingClickCallbackProvider : ClickCallback.Provider {
             }
 
         internal fun reset() {
-            lastEventHolder.set(ClickEvent.suggestCommand(UNSET_CALLBACK_COMMAND))
+            lastEventHolder.remove()
             lastCallbackHolder.remove()
             lastOptionsHolder.remove()
         }

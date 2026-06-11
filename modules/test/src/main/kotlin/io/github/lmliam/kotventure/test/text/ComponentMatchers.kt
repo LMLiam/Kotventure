@@ -549,8 +549,8 @@ private fun haveNoClickEvent(): Matcher<Component> =
 private fun payloadDescription(payload: ClickEvent.Payload?): String =
     when (payload) {
         null -> "no click event"
-        is ClickEvent.Payload.Text -> payload.value()
-        is ClickEvent.Payload.Int -> payload.integer().toString()
+        is ClickEvent.Payload.Text -> "text payload <${payload.value()}>"
+        is ClickEvent.Payload.Int -> "integer payload <${payload.integer()}>"
         else -> payload.toString()
     }
 

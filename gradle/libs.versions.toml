@@ -7,7 +7,7 @@ kotest = "6.1.11"
 kotestPlugin = "6.1.11"
 kotlin = "2.4.0"
 spotless = "8.6.0"
-spotlessKtlint = "1.8.0"
+spotlessKtlint = "1.5.0"
 
 [libraries]
 adventure-api = { module = "net.kyori:adventure-api", version.ref = "adventureApi" }
