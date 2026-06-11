@@ -31,11 +31,11 @@ class ClickEventDslTest :
                                 (ClickEvent.Action.OPEN_URL to "https://example.com"),
                         component { openFile("/tmp/example.txt") } to
                                 (ClickEvent.Action.OPEN_FILE to "/tmp/example.txt"),
-                        component { runCommand("/spawn") } to
+                        component { run("/spawn") } to
                                 (ClickEvent.Action.RUN_COMMAND to "/spawn"),
-                        component { suggestCommand("/msg Alex ") } to
+                        component { suggest("/msg Alex ") } to
                                 (ClickEvent.Action.SUGGEST_COMMAND to "/msg Alex "),
-                        component { copyToClipboard("copied") } to
+                        component { copy("copied") } to
                                 (ClickEvent.Action.COPY_TO_CLIPBOARD to "copied"),
                     )
 
@@ -53,18 +53,14 @@ class ClickEventDslTest :
                 component shouldHaveClickIntPayload 4
             }
 
-            "builds open and copy aliases" {
+            "builds open and copy helpers" {
                 val openComponent = component { open("https://example.com") }
                 val copyComponent = component { copy("copied") }
-                val openEvent = "https://example.org".asOpenClickEvent()
-                val copyEvent = "also copied".asCopyClickEvent()
 
                 openComponent shouldHaveClickAction ClickEvent.Action.OPEN_URL
                 openComponent shouldHaveClickTextPayload "https://example.com"
-                Component.text("Open").clickEvent(openEvent) shouldHaveClickTextPayload "https://example.org"
                 copyComponent shouldHaveClickAction ClickEvent.Action.COPY_TO_CLIPBOARD
                 copyComponent shouldHaveClickTextPayload "copied"
-                Component.text("Copy").clickEvent(copyEvent) shouldHaveClickTextPayload "also copied"
             }
 
             "builds open file events from file uris" {
@@ -100,14 +96,18 @@ class ClickEventDslTest :
                 component shouldHaveClickTextPayload "file:notes.txt"
             }
 
-            "builds run and suggest aliases" {
-                val runComponent = component { run("/spawn") }
-                val suggestComponent = component { suggest("/msg Alex ") }
+            "falls back to open url events for targets without schemes" {
+                val components =
+                    listOf(
+                        component { open("example.com") } to "example.com",
+                        component { open("/server/rules") } to "/server/rules",
+                        component { open("relative/path") } to "relative/path",
+                    )
 
-                runComponent shouldHaveClickAction ClickEvent.Action.RUN_COMMAND
-                runComponent shouldHaveClickTextPayload "/spawn"
-                suggestComponent shouldHaveClickAction ClickEvent.Action.SUGGEST_COMMAND
-                suggestComponent shouldHaveClickTextPayload "/msg Alex "
+                components.forEach { (component, target) ->
+                    component shouldHaveClickAction ClickEvent.Action.OPEN_URL
+                    component shouldHaveClickTextPayload target
+                }
             }
 
             "builds typed raw click events with Adventure validation" {
@@ -187,11 +187,10 @@ class ClickEventDslTest :
             "callback click events invoke the callback and pass options to Adventure" {
                 RecordingClickCallbackProvider.reset()
                 var calledWith: Audience? = null
-                val lifetime = JavaDuration.ofMinutes(10)
 
                 val component =
                     component {
-                        callback(uses = 3, lifetime = lifetime) { audience ->
+                        callback(uses = 3, lifetime = 10.minutes) { audience ->
                             calledWith = audience
                         }
                     }
@@ -200,7 +199,7 @@ class ClickEventDslTest :
 
                 component shouldHaveClickEvent event
                 RecordingClickCallbackProvider.lastOptions?.uses() shouldBe 3
-                RecordingClickCallbackProvider.lastOptions?.lifetime() shouldBe lifetime
+                RecordingClickCallbackProvider.lastOptions?.lifetime() shouldBe JavaDuration.ofMinutes(10)
 
                 RecordingClickCallbackProvider.fire(audience)
 
@@ -248,22 +247,6 @@ class ClickEventDslTest :
                 component shouldHaveClickEvent event
                 RecordingClickCallbackProvider.lastOptions shouldBe options
                 RecordingClickCallbackProvider.lastOptions?.uses() shouldBe 4
-                RecordingClickCallbackProvider.lastOptions?.lifetime() shouldBe lifetime
-            }
-
-            "component scope callbacks pass options to Adventure" {
-                RecordingClickCallbackProvider.reset()
-                val lifetime = JavaDuration.ofSeconds(30)
-
-                val component =
-                    component {
-                        callback(uses = 2, lifetime = lifetime) {
-                            // The provider capture is the assertion target for this test.
-                        }
-                    }
-
-                component shouldHaveClickEvent RecordingClickCallbackProvider.lastEvent
-                RecordingClickCallbackProvider.lastOptions?.uses() shouldBe 2
                 RecordingClickCallbackProvider.lastOptions?.lifetime() shouldBe lifetime
             }
 

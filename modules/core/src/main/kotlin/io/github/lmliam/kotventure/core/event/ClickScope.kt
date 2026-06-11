@@ -4,7 +4,6 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.event.ClickCallback
 import net.kyori.adventure.text.event.ClickEvent
-import java.time.temporal.TemporalAmount
 import kotlin.time.toJavaDuration
 import kotlin.time.Duration as KotlinDuration
 
@@ -61,24 +60,10 @@ public interface ClickScope {
     }
 
     /**
-     * Applies a click event that runs [command].
-     */
-    public fun runCommand(command: String) {
-        run(command)
-    }
-
-    /**
      * Applies a click event that suggests [command] in chat.
      */
     public fun suggest(command: String) {
         click(ClickEvent.suggestCommand(command))
-    }
-
-    /**
-     * Applies a click event that suggests [command] in chat.
-     */
-    public fun suggestCommand(command: String) {
-        suggest(command)
     }
 
     /**
@@ -96,13 +81,6 @@ public interface ClickScope {
     }
 
     /**
-     * Applies a click event that copies [text] to the clipboard.
-     */
-    public fun copyToClipboard(text: String) {
-        copy(text)
-    }
-
-    /**
      * Applies a server-side callback click event from [function].
      */
     public fun callback(function: ClickCallback<Audience>) {
@@ -114,26 +92,15 @@ public interface ClickScope {
      */
     public fun callback(
         uses: Int,
-        lifetime: TemporalAmount,
+        lifetime: KotlinDuration,
         function: ClickCallback<Audience>,
     ) {
         click(
             ClickEvent.callback(function) { options ->
                 options.uses(uses)
-                options.lifetime(lifetime)
+                options.lifetime(lifetime.toJavaDuration())
             },
         )
-    }
-
-    /**
-     * Applies a server-side callback click event from [function] with [uses] and [lifetime].
-     */
-    public fun callback(
-        uses: Int,
-        lifetime: KotlinDuration,
-        function: ClickCallback<Audience>,
-    ) {
-        callback(uses, lifetime.toJavaDuration(), function)
     }
 
     /**

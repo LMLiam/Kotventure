@@ -122,8 +122,8 @@ val actions = component {
 
 Inside component and style scopes, `open(...)` creates an open-file event for `file:` URIs and an open-URL event
 otherwise; `openUrl(...)` and `openFile(...)` remain available when you want the action to be explicit.
-`runCommand(...)`, `suggestCommand(...)`, and `copyToClipboard(...)` are kept as aliases for `run(...)`, `suggest(...)`,
-and `copy(...)`.
+Click events are available on reusable styles because Adventure models click events as part of `Style`; Kotventure keeps
+that shape instead of introducing a separate link wrapper.
 
 Colour helpers wrap Adventure `TextColor` factories directly and keep `core` free of serializer dependencies. Lower-case
 named colours such as `red`, `blue`, `gold`, and `aqua` are available from `io.github.lmliam.kotventure.core.color`;

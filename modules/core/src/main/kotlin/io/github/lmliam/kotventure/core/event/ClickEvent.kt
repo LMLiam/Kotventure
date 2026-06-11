@@ -10,16 +10,6 @@ internal fun openTarget(target: String): ClickEvent<ClickEvent.Payload.Text> =
         ?: ClickEvent.openUrl(target)
 
 /**
- * Builds an Adventure click event that opens this URL or file URI.
- */
-public fun String.asOpenClickEvent(): ClickEvent<ClickEvent.Payload.Text> = openTarget(this)
-
-/**
- * Builds an Adventure click event that copies this text to the clipboard.
- */
-public fun String.asCopyClickEvent(): ClickEvent<ClickEvent.Payload.Text> = ClickEvent.copyToClipboard(this)
-
-/**
  * Builds an Adventure click event from a typed [action] and [payload].
  *
  * @throws IllegalArgumentException when Adventure rejects the action/payload pair.
@@ -35,7 +25,7 @@ private fun fileUriPath(target: String): String? {
             URI(target)
         }.getOrNull() ?: return null
 
-    if (!uri.scheme.equals("file", ignoreCase = true)) {
+    if (uri.scheme?.equals("file", ignoreCase = true) != true) {
         return null
     }
 
