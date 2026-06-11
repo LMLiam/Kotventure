@@ -1,11 +1,14 @@
 package io.github.lmliam.kotventure.serializer
 
+import io.github.lmliam.kotventure.core.color.hex
 import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.objectcomponent.display
 import io.github.lmliam.kotventure.core.objectcomponent.sprite
 import io.github.lmliam.kotventure.core.text.component
+import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldBeObjectComponent
 import io.github.lmliam.kotventure.test.text.shouldContainText
+import io.github.lmliam.kotventure.test.text.shouldHaveChildCount
 import io.github.lmliam.kotventure.test.text.shouldHaveColor
 import io.github.lmliam.kotventure.test.text.shouldHaveObjectContents
 import io.kotest.core.spec.style.StringSpec
@@ -57,6 +60,43 @@ class ComponentSerializerExtensionsTest :
 
                 roundTripped shouldContainText "Alert"
                 roundTripped shouldHaveColor NamedTextColor.RED
+            }
+
+            "serializes hex colors with Adventure MiniMessage formatting" {
+                val message =
+                    component {
+                        text("Brand") {
+                            color(hex("#123ABC"))
+                        }
+                    }
+
+                val serialized = message.toMiniMessage()
+                serialized shouldBe "<#123ABC>Brand"
+
+                val roundTripped = MiniMessage.miniMessage().deserialize(serialized)
+
+                roundTripped shouldContainText "Brand"
+                roundTripped shouldHaveColor hex("#123ABC")
+            }
+
+            "round-trips gradient text formatting through MiniMessage" {
+                val message =
+                    component {
+                        text("ace") {
+                            gradient(NamedTextColor.RED, NamedTextColor.GOLD, NamedTextColor.AQUA)
+                        }
+                    }
+
+                val serialized = message.toMiniMessage()
+                serialized shouldBe "<red>a</red><gold>c</gold><aqua>e"
+
+                val roundTripped = MiniMessage.miniMessage().deserialize(serialized)
+
+                roundTripped shouldContainText "ace"
+                roundTripped shouldHaveChildCount 3
+                roundTripped.childAt(0) shouldHaveColor NamedTextColor.RED
+                roundTripped.childAt(1) shouldHaveColor NamedTextColor.GOLD
+                roundTripped.childAt(2) shouldHaveColor NamedTextColor.AQUA
             }
 
             "serializes object components to plain text" {
