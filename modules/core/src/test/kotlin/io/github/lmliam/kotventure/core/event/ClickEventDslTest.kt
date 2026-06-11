@@ -17,6 +17,7 @@ import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickCallback
 import net.kyori.adventure.text.event.ClickEvent
+import java.nio.file.Path
 import kotlin.time.Duration.Companion.minutes
 import java.time.Duration as JavaDuration
 
@@ -66,6 +67,29 @@ class ClickEventDslTest :
                 Component.text("Copy").clickEvent(stringCopyEvent) shouldHaveClickTextPayload "also copied"
             }
 
+            "builds open file events from file uris" {
+                val path =
+                    Path
+                        .of("build", "click-event-dsl-test.txt")
+                        .toAbsolutePath()
+                        .normalize()
+                val event = open(path.toUri().toString())
+
+                Component.text("Open").clickEvent(event) shouldHaveClickAction ClickEvent.Action.OPEN_FILE
+                Component.text("Open").clickEvent(event) shouldHaveClickTextPayload path.toString()
+            }
+
+            "builds run and suggest aliases" {
+                val runEvent = run("/spawn")
+                val suggestEvent = suggest("/msg Alex ")
+
+                Component.text("Run").clickEvent(runEvent) shouldHaveClickAction ClickEvent.Action.RUN_COMMAND
+                Component.text("Run").clickEvent(runEvent) shouldHaveClickTextPayload "/spawn"
+                Component.text("Suggest").clickEvent(suggestEvent) shouldHaveClickAction
+                    ClickEvent.Action.SUGGEST_COMMAND
+                Component.text("Suggest").clickEvent(suggestEvent) shouldHaveClickTextPayload "/msg Alex "
+            }
+
             "builds typed raw click events with Adventure validation" {
                 val payload = ClickEvent.Payload.custom(key("kotventure", "claim"))
                 val event = clickEvent(ClickEvent.Action.CUSTOM, payload)
@@ -75,20 +99,36 @@ class ClickEventDslTest :
             }
 
             "applies click events through component scopes" {
+                val manualEvent = openUrl("https://example.org")
                 val component =
                     component {
                         text("Open") {
                             open("https://example.com")
                         }
+                        text("Run") {
+                            run("/spawn")
+                        }
+                        text("Suggest") {
+                            suggest("/msg Alex ")
+                        }
                         text("Copy") {
                             copy("secret")
+                        }
+                        text("Manual") {
+                            click(manualEvent)
                         }
                     }
 
                 component.childAt(0) shouldHaveClickAction ClickEvent.Action.OPEN_URL
                 component.childAt(0) shouldHaveClickTextPayload "https://example.com"
-                component.childAt(1) shouldHaveClickAction ClickEvent.Action.COPY_TO_CLIPBOARD
-                component.childAt(1) shouldHaveClickTextPayload "secret"
+                component.childAt(1) shouldHaveClickAction ClickEvent.Action.RUN_COMMAND
+                component.childAt(1) shouldHaveClickTextPayload "/spawn"
+                component.childAt(2) shouldHaveClickAction ClickEvent.Action.SUGGEST_COMMAND
+                component.childAt(2) shouldHaveClickTextPayload "/msg Alex "
+                component.childAt(3) shouldHaveClickAction ClickEvent.Action.COPY_TO_CLIPBOARD
+                component.childAt(3) shouldHaveClickTextPayload "secret"
+                component.childAt(4) shouldHaveClickAction ClickEvent.Action.OPEN_URL
+                component.childAt(4) shouldHaveClickTextPayload "https://example.org"
             }
 
             "applies reusable styles with click events" {
@@ -106,7 +146,7 @@ class ClickEventDslTest :
                     component {
                         openUrl("https://example.com")
                         style {
-                            clickEvent(null)
+                            click(null)
                         }
                     }
 

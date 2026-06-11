@@ -29,7 +29,9 @@ import io.github.lmliam.kotventure.core.event.copyToClipboard as copyToClipboard
 import io.github.lmliam.kotventure.core.event.open as openEvent
 import io.github.lmliam.kotventure.core.event.openFile as openFileEvent
 import io.github.lmliam.kotventure.core.event.openUrl as openUrlEvent
+import io.github.lmliam.kotventure.core.event.run as runEvent
 import io.github.lmliam.kotventure.core.event.runCommand as runCommandEvent
+import io.github.lmliam.kotventure.core.event.suggest as suggestEvent
 import io.github.lmliam.kotventure.core.event.suggestCommand as suggestCommandEvent
 import kotlin.time.Duration as KotlinDuration
 
@@ -59,66 +61,87 @@ public interface ComponentScope {
     public fun clickEvent(event: ClickEvent<*>?)
 
     /**
+     * Applies [event] as the click event, or clears the click event when [event] is null.
+     */
+    public fun click(event: ClickEvent<*>?) {
+        clickEvent(event)
+    }
+
+    /**
      * Applies a click event that opens [url].
      */
     public fun open(url: String) {
-        clickEvent(openEvent(url))
+        click(openEvent(url))
     }
 
     /**
      * Applies a click event that opens [url].
      */
     public fun openUrl(url: String) {
-        clickEvent(openUrlEvent(url))
+        click(openUrlEvent(url))
     }
 
     /**
      * Applies a click event that opens a local [file] path.
      */
     public fun openFile(file: String) {
-        clickEvent(openFileEvent(file))
+        click(openFileEvent(file))
+    }
+
+    /**
+     * Applies a click event that runs [command].
+     */
+    public fun run(command: String) {
+        click(runEvent(command))
     }
 
     /**
      * Applies a click event that runs [command].
      */
     public fun runCommand(command: String) {
-        clickEvent(runCommandEvent(command))
+        click(runCommandEvent(command))
+    }
+
+    /**
+     * Applies a click event that suggests [command] in chat.
+     */
+    public fun suggest(command: String) {
+        click(suggestEvent(command))
     }
 
     /**
      * Applies a click event that suggests [command] in chat.
      */
     public fun suggestCommand(command: String) {
-        clickEvent(suggestCommandEvent(command))
+        click(suggestCommandEvent(command))
     }
 
     /**
      * Applies a click event that changes a book to [page].
      */
     public fun changePage(page: Int) {
-        clickEvent(changePageEvent(page))
+        click(changePageEvent(page))
     }
 
     /**
      * Applies a click event that copies [text] to the clipboard.
      */
     public fun copy(text: String) {
-        clickEvent(copyEvent(text))
+        click(copyEvent(text))
     }
 
     /**
      * Applies a click event that copies [text] to the clipboard.
      */
     public fun copyToClipboard(text: String) {
-        clickEvent(copyToClipboardEvent(text))
+        click(copyToClipboardEvent(text))
     }
 
     /**
      * Applies a server-side callback click event from [function].
      */
     public fun callback(function: ClickCallback<Audience>) {
-        clickEvent(callbackEvent(function))
+        click(callbackEvent(function))
     }
 
     /**
@@ -129,7 +152,7 @@ public interface ComponentScope {
         lifetime: TemporalAmount,
         function: ClickCallback<Audience>,
     ) {
-        clickEvent(callbackEvent(uses, lifetime, function))
+        click(callbackEvent(uses, lifetime, function))
     }
 
     /**
@@ -140,7 +163,7 @@ public interface ComponentScope {
         lifetime: KotlinDuration,
         function: ClickCallback<Audience>,
     ) {
-        clickEvent(callbackEvent(uses, lifetime, function))
+        click(callbackEvent(uses, lifetime, function))
     }
 
     /**
@@ -150,7 +173,7 @@ public interface ComponentScope {
         options: ClickCallback.Options,
         function: ClickCallback<Audience>,
     ) {
-        clickEvent(callbackEvent(options, function))
+        click(callbackEvent(options, function))
     }
 
     /**

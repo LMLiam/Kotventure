@@ -3,16 +3,23 @@ package io.github.lmliam.kotventure.core.event
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.event.ClickCallback
 import net.kyori.adventure.text.event.ClickEvent
+import java.net.URI
+import java.nio.file.Path
 import java.time.temporal.TemporalAmount
 import kotlin.time.toJavaDuration
 import kotlin.time.Duration as KotlinDuration
 
 /**
- * Builds an Adventure click event that opens [url].
+ * Builds an Adventure click event that opens [target].
+ *
+ * File URI targets are converted to open-file events; all other targets are treated as URLs.
  *
  * @throws IllegalArgumentException when Adventure rejects the URL payload.
  */
-public fun open(url: String): ClickEvent<ClickEvent.Payload.Text> = ClickEvent.openUrl(url)
+public fun open(target: String): ClickEvent<ClickEvent.Payload.Text> =
+    fileUriPath(target)
+        ?.let { file -> ClickEvent.openFile(file) }
+        ?: ClickEvent.openUrl(target)
 
 /**
  * Builds an Adventure click event that opens this URL.
@@ -37,12 +44,22 @@ public fun openFile(file: String): ClickEvent<ClickEvent.Payload.Text> = ClickEv
 /**
  * Builds an Adventure click event that runs [command].
  */
-public fun runCommand(command: String): ClickEvent<ClickEvent.Payload.Text> = ClickEvent.runCommand(command)
+public fun run(command: String): ClickEvent<ClickEvent.Payload.Text> = ClickEvent.runCommand(command)
+
+/**
+ * Builds an Adventure click event that runs [command].
+ */
+public fun runCommand(command: String): ClickEvent<ClickEvent.Payload.Text> = run(command)
 
 /**
  * Builds an Adventure click event that suggests [command] in chat.
  */
-public fun suggestCommand(command: String): ClickEvent<ClickEvent.Payload.Text> = ClickEvent.suggestCommand(command)
+public fun suggest(command: String): ClickEvent<ClickEvent.Payload.Text> = ClickEvent.suggestCommand(command)
+
+/**
+ * Builds an Adventure click event that suggests [command] in chat.
+ */
+public fun suggestCommand(command: String): ClickEvent<ClickEvent.Payload.Text> = suggest(command)
 
 /**
  * Builds an Adventure click event that changes a book to [page].
@@ -111,3 +128,20 @@ public fun <P : ClickEvent.Payload> clickEvent(
     action: ClickEvent.Action<P>,
     payload: P,
 ): ClickEvent<P> = ClickEvent.clickEvent(action, payload)
+
+private fun fileUriPath(target: String): String? {
+    val uri =
+        runCatching {
+            URI(target)
+        }.getOrNull() ?: return null
+
+    if (!uri.scheme.equals("file", ignoreCase = true)) {
+        return null
+    }
+
+    return runCatching {
+        Path.of(uri).toString()
+    }.getOrElse {
+        target
+    }
+}

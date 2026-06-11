@@ -98,8 +98,8 @@ once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land i
   and matching component assertions for style attributes.
 - Colour and gradient helpers for `hex("#RRGGBB")`, `rgb(...)`, normalized `hsv(...)`, named palette aliases,
   interpolation, and per-code-point gradient text.
-- Click event DSL support for Adventure's typed click actions and server-side callbacks, including `open`/`copy`
-  aliases, Kotlin duration callback options, and click-event component matchers.
+- Click event DSL support for Adventure's typed click actions and server-side callbacks, including file-URI-aware `open`,
+  `run`/`suggest`/`copy` aliases, Kotlin duration callback options, and click-event component matchers.
 
 ## [0.0.1] - 2026-06-08
 
