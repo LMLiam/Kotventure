@@ -122,6 +122,23 @@ class ClickEventDslTest :
                 calledWith shouldBe audience
             }
 
+            "bare callback click events invoke the callback" {
+                RecordingClickCallbackProvider.reset()
+                var calledWith: Audience? = null
+
+                val event =
+                    callback { audience ->
+                        calledWith = audience
+                    }
+                val audience = Audience.empty()
+
+                Component.text("Claim").clickEvent(event) shouldHaveClickEvent event
+
+                RecordingClickCallbackProvider.fire(audience)
+
+                calledWith shouldBe audience
+            }
+
             "callback click events accept prebuilt options" {
                 RecordingClickCallbackProvider.reset()
                 val lifetime = Duration.ofSeconds(45)
