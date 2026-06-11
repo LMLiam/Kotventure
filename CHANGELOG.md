@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land in any release.
 
+## [0.0.9](https://github.com/LMLiam/Kotventure/compare/0.0.8...0.0.9) (2026-06-11)
+
+
+### ✨ Features
+
+* **core:** add click event dsl ([#125](https://github.com/LMLiam/Kotventure/issues/125)) ([a24b11f](https://github.com/LMLiam/Kotventure/commit/a24b11fe2660d138b16b3cf98816e879d0779402))
+* **core:** add hover event dsl ([#128](https://github.com/LMLiam/Kotventure/issues/128)) ([e089e58](https://github.com/LMLiam/Kotventure/commit/e089e58bb6e4ace4722da4bca7d769098b4ab28f))
+* **core:** replace direct click helpers ([#129](https://github.com/LMLiam/Kotventure/issues/129)) ([8090219](https://github.com/LMLiam/Kotventure/commit/8090219070789305bfe3b874292146069e1e10c3))
+
 ## [0.0.8](https://github.com/LMLiam/Kotventure/compare/0.0.7...0.0.8) (2026-06-11)
 
 
