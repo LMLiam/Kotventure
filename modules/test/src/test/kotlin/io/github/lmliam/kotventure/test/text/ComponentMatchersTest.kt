@@ -6,6 +6,7 @@ import io.kotest.matchers.string.shouldContain
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TranslationArgument
+import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.Style
 import net.kyori.adventure.text.format.TextDecoration
@@ -513,6 +514,97 @@ class ComponentMatchersTest :
                             .shouldNotHaveObjectFallback()
                     }
                 val expectedMessage = "Expected object fallback to be absent, but was <$fallback>."
+
+                failure.message shouldContain expectedMessage
+            }
+
+            "matches root click events" {
+                val clickEvent = ClickEvent.openUrl("https://example.com")
+
+                Component.text("Open").clickEvent(clickEvent) shouldHaveClickEvent clickEvent
+            }
+
+            "matches root click event actions" {
+                Component
+                    .text("Run")
+                    .clickEvent(ClickEvent.runCommand("/spawn")) shouldHaveClickAction ClickEvent.Action.RUN_COMMAND
+            }
+
+            "matches text click payloads" {
+                Component
+                    .text("Copy")
+                    .clickEvent(ClickEvent.copyToClipboard("secret")) shouldHaveClickTextPayload "secret"
+            }
+
+            "matches integer click payloads" {
+                Component
+                    .text("Page")
+                    .clickEvent(ClickEvent.changePage(3)) shouldHaveClickIntPayload 3
+            }
+
+            "matches components without click events" {
+                Component.text("Plain").shouldNotHaveClickEvent()
+            }
+
+            "reports missing click events" {
+                val expected = ClickEvent.openUrl("https://example.com")
+
+                val failure =
+                    shouldThrow<AssertionError> {
+                        Component.text("Plain") shouldHaveClickEvent expected
+                    }
+                val expectedMessage = "Expected click event <$expected>, but was <null>."
+
+                failure.message shouldContain expectedMessage
+            }
+
+            "reports click action mismatches" {
+                val failure =
+                    shouldThrow<AssertionError> {
+                        Component
+                            .text("Run")
+                            .clickEvent(ClickEvent.runCommand("/spawn")) shouldHaveClickAction
+                            ClickEvent.Action.SUGGEST_COMMAND
+                    }
+                val expectedMessage =
+                    "Expected click action <${ClickEvent.Action.SUGGEST_COMMAND}>, " +
+                            "but was <${ClickEvent.Action.RUN_COMMAND}>."
+
+                failure.message shouldContain expectedMessage
+            }
+
+            "reports text click payload mismatches" {
+                val failure =
+                    shouldThrow<AssertionError> {
+                        Component
+                            .text("Copy")
+                            .clickEvent(ClickEvent.copyToClipboard("actual")) shouldHaveClickTextPayload "expected"
+                    }
+                val expectedMessage = "Expected click text payload <expected>, but was <actual>."
+
+                failure.message shouldContain expectedMessage
+            }
+
+            "reports integer click payload mismatches" {
+                val failure =
+                    shouldThrow<AssertionError> {
+                        Component
+                            .text("Page")
+                            .clickEvent(ClickEvent.changePage(2)) shouldHaveClickIntPayload 3
+                    }
+                val expectedMessage = "Expected click integer payload <3>, but was <2>."
+
+                failure.message shouldContain expectedMessage
+            }
+
+            "reports unexpected click events" {
+                val actual = ClickEvent.suggestCommand("/help")
+
+                val failure =
+                    shouldThrow<AssertionError> {
+                        Component.text("Suggest").clickEvent(actual).shouldNotHaveClickEvent()
+                    }
+                val expectedMessage = "Expected click event to be absent, but was <$actual>."
 
                 failure.message shouldContain expectedMessage
             }

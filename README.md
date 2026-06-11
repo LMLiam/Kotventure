@@ -97,6 +97,29 @@ val message = component {
 }
 ```
 
+Click events wrap Adventure's typed `ClickEvent` factories directly and can be applied through component scopes or
+reusable styles:
+
+```kotlin
+val linkStyle = style {
+    openUrl("https://example.com")
+}
+
+val actions = component {
+    text("Website") {
+        style(linkStyle)
+    }
+    text(" copy invite") {
+        copyToClipboard("play.example.com")
+    }
+    text(" claim reward") {
+        callback(uses = 1, lifetime = Duration.ofMinutes(5)) { audience ->
+            audience.sendMessage(Component.text("Reward claimed"))
+        }
+    }
+}
+```
+
 Colour helpers wrap Adventure `TextColor` factories directly and keep `core` free of serializer dependencies. Lower-case
 named colours such as `red`, `blue`, `gold`, and `aqua` are available from `io.github.lmliam.kotventure.core.color`;
 `NamedTextColor.*` works too when you prefer qualified Adventure constants.
@@ -183,7 +206,7 @@ val plain = message.toPlainText()
 `kotventure-test` starts the testing toolkit with structural component matchers such as `shouldContainText`,
 `shouldHaveColor`, `shouldHaveDecoration`, `shouldNotHaveDecoration`, `shouldHaveChildCount`, and translatable-specific
 assertions for keys, fallbacks, and arguments. It also includes keybind, score, selector, object component, block, entity,
-and storage NBT assertions for the smaller component DSLs.
+storage NBT, and click-event assertions for the smaller component DSLs.
 
 ---
 
