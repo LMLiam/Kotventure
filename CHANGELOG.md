@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land in any release.
 
+## [0.0.8](https://github.com/LMLiam/Kotventure/compare/0.0.7...0.0.8) (2026-06-11)
+
+
+### ✨ Features
+
+* **core:** add colour and gradient helpers ([#123](https://github.com/LMLiam/Kotventure/issues/123)) ([0482b7f](https://github.com/LMLiam/Kotventure/commit/0482b7f2c135419f1cc46ec2f78372bba5749b67))
+
 ## [0.0.7](https://github.com/LMLiam/Kotventure/compare/0.0.6...0.0.7) (2026-06-10)
 
 
