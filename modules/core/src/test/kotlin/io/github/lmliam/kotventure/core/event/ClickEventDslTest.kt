@@ -196,6 +196,12 @@ class ClickEventDslTest :
                     component {
                         click(manualEvent)
                     }
+                val styledComponent =
+                    component {
+                        style {
+                            click(manualEvent)
+                        }
+                    }
                 val clearedComponent =
                     component {
                         click(manualEvent)
@@ -210,6 +216,7 @@ class ClickEventDslTest :
                     }
 
                 component shouldHaveClickEvent manualEvent
+                styledComponent shouldHaveClickEvent manualEvent
                 clearedComponent.shouldNotHaveClickEvent()
                 clearedStyle.shouldNotHaveClickEvent()
             }
@@ -364,32 +371,69 @@ class ClickEventDslTest :
             "removes direct action helpers from explicit click scopes" {
                 val helperCalls =
                     mapOf(
-                        "Open" to """scope.open("https://example.com")""",
-                        "OpenUrl" to """scope.openUrl("https://example.com")""",
-                        "OpenFile" to """scope.openFile("/tmp/example.txt")""",
-                        "Run" to """scope.run("/spawn")""",
-                        "Suggest" to """scope.suggest("/msg Alex ")""",
-                        "ChangePage" to """scope.changePage(2)""",
-                        "Copy" to """scope.copy("secret")""",
+                        "Open" to
+                                CompileFailureCase(
+                                    """scope.open("https://example.com")""",
+                                    "Unresolved reference 'open'",
+                                ),
+                        "OpenUrl" to
+                                CompileFailureCase(
+                                    """scope.openUrl("https://example.com")""",
+                                    "Unresolved reference 'openUrl'",
+                                ),
+                        "OpenFile" to
+                                CompileFailureCase(
+                                    """scope.openFile("/tmp/example.txt")""",
+                                    "Unresolved reference 'openFile'",
+                                ),
+                        "Run" to
+                                CompileFailureCase(
+                                    """scope.run("/spawn")""",
+                                    "Argument type mismatch",
+                                ),
+                        "Suggest" to
+                                CompileFailureCase(
+                                    """scope.suggest("/msg Alex ")""",
+                                    "Unresolved reference 'suggest'",
+                                ),
+                        "ChangePage" to
+                                CompileFailureCase(
+                                    """scope.changePage(2)""",
+                                    "Unresolved reference 'changePage'",
+                                ),
+                        "Copy" to
+                                CompileFailureCase(
+                                    """scope.copy("secret")""",
+                                    "Unresolved reference 'copy'",
+                                ),
                         "Callback" to
-                                """
-                                val callback = ClickCallback<Audience> { }
-                                scope.callback(callback)
-                                """.trimIndent(),
+                                CompileFailureCase(
+                                    """
+                                    val callback = ClickCallback<Audience> { }
+                                    scope.callback(callback)
+                                    """.trimIndent(),
+                                    "Unresolved reference 'callback'",
+                                ),
                         "CallbackWithOptions" to
-                                """
-                                val callback = ClickCallback<Audience> { }
-                                val options = ClickCallback.Options.builder().uses(1).build()
-                                scope.callback(options, callback)
-                                """.trimIndent(),
+                                CompileFailureCase(
+                                    """
+                                    val callback = ClickCallback<Audience> { }
+                                    val options = ClickCallback.Options.builder().uses(1).build()
+                                    scope.callback(options, callback)
+                                    """.trimIndent(),
+                                    "Unresolved reference 'callback'",
+                                ),
                         "CallbackWithUsesAndLifetime" to
-                                """
-                                val callback = ClickCallback<Audience> { }
-                                scope.callback(1, 1.minutes, callback)
-                                """.trimIndent(),
+                                CompileFailureCase(
+                                    """
+                                    val callback = ClickCallback<Audience> { }
+                                    scope.callback(1, 1.minutes, callback)
+                                    """.trimIndent(),
+                                    "Unresolved reference 'callback'",
+                                ),
                     )
 
-                helperCalls.forEach { (name, call) ->
+                helperCalls.forEach { (name, failure) ->
                     assertDoesNotCompile(
                         "Removed${name}ClickScopeHelperTest.kt",
                         """
@@ -399,14 +443,20 @@ class ClickEventDslTest :
                         import kotlin.time.Duration.Companion.minutes
 
                         fun shouldNotCompile(scope: ClickScope) {
-                            $call
+                            ${failure.source}
                         }
                         """.trimIndent(),
+                        failure.expectedMessage,
                     )
                 }
             }
         },
     )
+
+private data class CompileFailureCase(
+    val source: String,
+    val expectedMessage: String,
+)
 
 @OptIn(ExperimentalCompilerApi::class)
 private fun assertDoesNotCompile(
