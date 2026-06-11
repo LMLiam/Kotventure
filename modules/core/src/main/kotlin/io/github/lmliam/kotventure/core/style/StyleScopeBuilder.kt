@@ -1,6 +1,7 @@
 package io.github.lmliam.kotventure.core.style
 
 import net.kyori.adventure.key.Key
+import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.format.Style
 import net.kyori.adventure.text.format.TextColor
 import net.kyori.adventure.text.format.TextDecoration
@@ -19,6 +20,10 @@ internal class StyleScopeBuilder(
 
     override fun insertion(insertion: String?) {
         builder.insertion(insertion)
+    }
+
+    override fun click(event: ClickEvent<*>?) {
+        builder.clickEvent(event)
     }
 
     override fun decoration(

@@ -1,6 +1,7 @@
 package io.github.lmliam.kotventure.core.component
 
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
+import io.github.lmliam.kotventure.core.event.ClickScope
 import io.github.lmliam.kotventure.core.keybind.KeybindScope
 import io.github.lmliam.kotventure.core.nbt.BlockNbtScope
 import io.github.lmliam.kotventure.core.nbt.EntityNbtScope
@@ -23,7 +24,7 @@ import net.kyori.adventure.text.`object`.ObjectContents
  * Scope for configuring behavior shared by every Adventure component builder.
  */
 @KotventureDslMarker
-public interface ComponentScope {
+public interface ComponentScope : ClickScope {
     /**
      * Applies a text color to the component being configured.
      */

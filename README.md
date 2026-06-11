@@ -97,6 +97,34 @@ val message = component {
 }
 ```
 
+Click events wrap Adventure's typed `ClickEvent` factories directly and can be applied through component scopes or
+reusable styles:
+
+```kotlin
+val linkStyle = style {
+    open("https://example.com")
+}
+
+val actions = component {
+    text("Website") {
+        style(linkStyle)
+    }
+    text(" copy invite") {
+        copy("play.example.com")
+    }
+    text(" claim reward") {
+        callback(uses = 1, lifetime = 5.minutes) { audience ->
+            audience.sendMessage(component { text("Reward claimed") })
+        }
+    }
+}
+```
+
+Inside component and style scopes, `open(...)` creates an open-file event for `file:` URIs and an open-URL event
+otherwise; `openUrl(...)` and `openFile(...)` remain available when you want the action to be explicit.
+Click events are available on reusable styles because Adventure models click events as part of `Style`; Kotventure keeps
+that shape instead of introducing a separate link wrapper.
+
 Colour helpers wrap Adventure `TextColor` factories directly and keep `core` free of serializer dependencies. Lower-case
 named colours such as `red`, `blue`, `gold`, and `aqua` are available from `io.github.lmliam.kotventure.core.color`;
 `NamedTextColor.*` works too when you prefer qualified Adventure constants.
@@ -183,7 +211,7 @@ val plain = message.toPlainText()
 `kotventure-test` starts the testing toolkit with structural component matchers such as `shouldContainText`,
 `shouldHaveColor`, `shouldHaveDecoration`, `shouldNotHaveDecoration`, `shouldHaveChildCount`, and translatable-specific
 assertions for keys, fallbacks, and arguments. It also includes keybind, score, selector, object component, block, entity,
-and storage NBT assertions for the smaller component DSLs.
+and storage NBT assertions for the smaller component DSLs, plus click-event assertions for all components.
 
 ---
 

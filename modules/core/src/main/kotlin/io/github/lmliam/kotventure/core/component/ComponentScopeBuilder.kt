@@ -16,6 +16,7 @@ import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.BlockNBTComponent
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentBuilder
+import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.format.Style
 import net.kyori.adventure.text.format.TextColor
 import net.kyori.adventure.text.format.TextDecoration
@@ -42,6 +43,10 @@ internal abstract class ComponentScopeBuilder<C : Component, B : ComponentBuilde
 
     override fun style(init: StyleScope.() -> Unit) {
         builder.style { styleBuilder -> StyleScopeBuilder(styleBuilder).init() }
+    }
+
+    override fun click(event: ClickEvent<*>?) {
+        builder.clickEvent(event)
     }
 
     override fun decorate(decoration: TextDecoration) {
