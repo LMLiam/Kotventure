@@ -245,8 +245,51 @@ content. Provide a fallback when the component might appear in places that do no
 as server MOTDs or plain-text logs. Call `stoneIcon.renderObjectFallbacks()` before handing the component to renderer
 paths that should replace configured object fallbacks with regular components.
 
-`AdventureDsl` stores typed extension registrations for MiniMessage tag providers, theme providers, animation drivers,
-and the active platform adapter. Registration is explicit at startup; there is no classpath scanning.
+Design-system themes are Kotlin objects extending `Theme`. Palette values are ordinary properties and semantic styles
+are delegated properties built with the style DSL, so `Brand.header` is compile-checked while the property name doubles
+as the key for dynamic lookup. Standalone components come from the top-level `text(...)` factory and `styled`:
+
+```kotlin
+object Brand : Theme("brand") {
+    val primary = hex("#5865F2")
+
+    val header: Style by style {
+        color(primary)
+        bold()
+        italic(false)
+    }
+
+    val danger: Style by style {
+        color(red)
+        bold()
+    }
+
+    val callout: Style by style("call-out") {
+        color(primary)
+        underlined()
+    }
+}
+
+Brand.register()                                   // explicit startup wiring; register(default = true) marks the default
+
+val title = text("Welcome") styled Brand.header    // compile-checked semantic styles
+
+val message = component {
+    text("Careful") {
+        style(Brand.danger)
+    }
+}
+
+val dynamic = AdventureDsl.theme("brand")?.style("header")   // dynamic interop lookup
+val fallback = AdventureDsl.defaultTheme()?.style("header")
+```
+
+Declaring a theme never registers it; call `register()` during startup. Use `style("call-out") { ... }` when the
+dynamic key should differ from the property name, and declare palette properties before the styles that use them.
+
+`AdventureDsl` stores typed extension registrations for MiniMessage tag providers, theme providers (including an
+optional default theme), animation drivers, and the active platform adapter. Registration is explicit at startup;
+there is no classpath scanning.
 
 Serializer helpers live in `kotventure-serializer` so `kotventure-core` can stay limited to `adventure-api` while
 callers opt into concrete Adventure serializers:

@@ -125,11 +125,15 @@ val title = component {
 }
 
 // ── Themes (design system, registered once) ────────────────────
-val Brand = theme {
-    palette { primary = hex("#5865F2"); error = RED }
-    style("header") { color(primary); bold() }
+object Brand : Theme("brand") {
+    val primary = hex("#5865F2")
+
+    val header: Style by style { color(primary); bold() }
+    val error: Style by style { color(RED) }
 }
-text("Title") styled Brand.header
+Brand.register()                             // explicit startup wiring
+text("Title") styled Brand.header            // compile-checked property
+AdventureDsl.theme("brand")?.style("header") // dynamic interop lookup
 
 // ── Sending (Audience extensions) ──────────────────────────────
 player.message { text("hi") }
