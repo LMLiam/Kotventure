@@ -16,6 +16,7 @@ import io.github.lmliam.kotventure.core.theme.ThemeProvider
 public object AdventureDsl {
     private val miniMessageTagProviders: MutableMap<String, MiniMessageTagProvider> = mutableMapOf()
     private val themeProviders: MutableMap<String, ThemeProvider> = mutableMapOf()
+    private var defaultThemeName: String? = null
     private val animationDrivers: MutableMap<String, AnimationDriver> = mutableMapOf()
     private var platformAdapter: PlatformAdapter? = null
 
@@ -37,16 +38,28 @@ public object AdventureDsl {
     public fun miniMessageTags(): Map<String, MiniMessageTagProvider> = miniMessageTagProviders.immutableSnapshot()
 
     /**
-     * Registers [provider] as the active theme provider for its name.
+     * Registers [provider] as the active theme provider for its name, optionally marking it as
+     * the [default] theme.
      */
-    public fun registerTheme(provider: ThemeProvider) {
+    public fun registerTheme(
+        provider: ThemeProvider,
+        default: Boolean = false,
+    ) {
         themeProviders[provider.name] = provider
+        if (default) {
+            defaultThemeName = provider.name
+        }
     }
 
     /**
      * Returns the theme provider registered as [name], or null when none exists.
      */
     public fun theme(name: String): ThemeProvider? = themeProviders[name]
+
+    /**
+     * Returns the theme provider registered as the default theme, or null when none exists.
+     */
+    public fun defaultTheme(): ThemeProvider? = defaultThemeName?.let(::theme)
 
     /**
      * Returns an immutable snapshot of registered theme providers by name.
@@ -85,6 +98,7 @@ public object AdventureDsl {
     internal fun reset() {
         miniMessageTagProviders.clear()
         themeProviders.clear()
+        defaultThemeName = null
         animationDrivers.clear()
         platformAdapter = null
     }

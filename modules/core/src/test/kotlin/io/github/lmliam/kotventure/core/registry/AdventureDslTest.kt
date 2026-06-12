@@ -5,6 +5,7 @@ import io.github.lmliam.kotventure.core.minimessage.MiniMessageTagProvider
 import io.github.lmliam.kotventure.core.platform.PlatformAdapter
 import io.github.lmliam.kotventure.core.platform.PlatformTask
 import io.github.lmliam.kotventure.core.theme.ThemeProvider
+import io.github.lmliam.kotventure.core.theme.register
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.maps.shouldContainExactly
@@ -45,6 +46,67 @@ class AdventureDslTest :
 
                 AdventureDsl.theme("brand") shouldBe provider
                 AdventureDsl.themes() shouldContainExactly mapOf("brand" to provider)
+            }
+
+            "returns null when no default theme is registered" {
+                AdventureDsl.registerTheme(TestThemeProvider("brand", emptyMap()))
+
+                AdventureDsl.defaultTheme().shouldBeNull()
+            }
+
+            "registers and retrieves the default theme provider" {
+                val provider = TestThemeProvider("server", emptyMap())
+
+                AdventureDsl.registerTheme(provider, default = true)
+
+                AdventureDsl.defaultTheme() shouldBe provider
+                AdventureDsl.theme("server") shouldBe provider
+            }
+
+            "replaces the default theme when another provider registers as default" {
+                val first = TestThemeProvider("server", emptyMap())
+                val second = TestThemeProvider("brand", emptyMap())
+
+                AdventureDsl.registerTheme(first, default = true)
+                AdventureDsl.registerTheme(second, default = true)
+
+                AdventureDsl.defaultTheme() shouldBe second
+            }
+
+            "keeps the default theme when another provider registers without default" {
+                val first = TestThemeProvider("server", emptyMap())
+                val second = TestThemeProvider("brand", emptyMap())
+
+                AdventureDsl.registerTheme(first, default = true)
+                AdventureDsl.registerTheme(second)
+
+                AdventureDsl.defaultTheme() shouldBe first
+            }
+
+            "clears the default theme on reset" {
+                AdventureDsl.registerTheme(TestThemeProvider("server", emptyMap()), default = true)
+
+                AdventureDsl.reset()
+
+                AdventureDsl.defaultTheme().shouldBeNull()
+            }
+
+            "registers theme providers through the register extension" {
+                val provider = TestThemeProvider("brand", emptyMap())
+
+                val returned = provider.register()
+
+                returned shouldBe provider
+                AdventureDsl.theme("brand") shouldBe provider
+                AdventureDsl.defaultTheme().shouldBeNull()
+            }
+
+            "registers a default theme through the register extension" {
+                val provider = TestThemeProvider("server", emptyMap())
+
+                provider.register(default = true)
+
+                AdventureDsl.defaultTheme() shouldBe provider
             }
 
             "registers and retrieves animation drivers by name" {
