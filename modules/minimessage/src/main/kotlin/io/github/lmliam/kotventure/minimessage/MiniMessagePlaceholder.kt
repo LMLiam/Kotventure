@@ -27,6 +27,8 @@ public class MiniMessagePlaceholder<T : Any>
  *
  * Supported value families are [ComponentLike], [String], [Number], and [Boolean]. String, number, and boolean
  * placeholders bind as literal text; use [MiniMessageResolverScope.parsed] for markup-bearing string substitutions.
+ *
+ * @throws IllegalArgumentException when [T] is outside the supported value families.
  */
 public inline fun <reified T : Any> placeholder(name: String): MiniMessagePlaceholder<T> =
     MiniMessagePlaceholder(name, miniMessagePlaceholderStrategy<T>())

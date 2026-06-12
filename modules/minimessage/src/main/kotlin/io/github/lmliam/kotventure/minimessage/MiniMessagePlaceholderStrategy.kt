@@ -15,9 +15,9 @@ internal inline fun <reified T : Any> miniMessagePlaceholderStrategy(): MiniMess
     val valueType = T::class.javaObjectType
 
     return when {
-        ComponentLike::class.java.isAssignableFrom(valueType) -> MiniMessagePlaceholderStrategy.COMPONENT
-        String::class.java.isAssignableFrom(valueType) -> MiniMessagePlaceholderStrategy.LITERAL
-        Number::class.java.isAssignableFrom(valueType) -> MiniMessagePlaceholderStrategy.LITERAL
+        ComponentLike::class.javaObjectType.isAssignableFrom(valueType) -> MiniMessagePlaceholderStrategy.COMPONENT
+        String::class.javaObjectType.isAssignableFrom(valueType) -> MiniMessagePlaceholderStrategy.LITERAL
+        Number::class.javaObjectType.isAssignableFrom(valueType) -> MiniMessagePlaceholderStrategy.LITERAL
         Boolean::class.javaObjectType.isAssignableFrom(valueType) -> MiniMessagePlaceholderStrategy.LITERAL
         else ->
             throw IllegalArgumentException(
