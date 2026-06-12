@@ -249,18 +249,39 @@ val count = placeholder<Int>("count")
 val channel = placeholder<String>("channel")
 
 val announcement = mini("<gold>[Server]</gold> <player> joined") {
-    resolve(player, Component.text("Alex", NamedTextColor.AQUA))
+    resolve(
+        player,
+        component {
+            text("Alex") {
+                color(NamedTextColor.AQUA)
+            }
+        },
+    )
 }
 
 val invites = mini("<gray>[<channel>]</gray> <player> has <count> invites") {
     resolve(channel, "chat")
-    resolve(player, Component.text("Alex", NamedTextColor.AQUA))
+    resolve(
+        player,
+        component {
+            text("Alex") {
+                color(NamedTextColor.AQUA)
+            }
+        },
+    )
     resolve(count, 3)
 }
 
 val rich = mini("<prefix> <player>") {
     parsed("prefix", "<gray>[chat]</gray>") // explicit bridge for markup-bearing strings
-    resolve(player, Component.text("Alex", NamedTextColor.AQUA))
+    resolve(
+        player,
+        component {
+            text("Alex") {
+                color(NamedTextColor.AQUA)
+            }
+        },
+    )
 }
 
 val nested = component {

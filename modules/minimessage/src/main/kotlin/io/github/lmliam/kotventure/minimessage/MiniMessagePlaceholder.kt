@@ -1,7 +1,6 @@
 package io.github.lmliam.kotventure.minimessage
 
 import net.kyori.adventure.text.ComponentLike
-import kotlin.jvm.javaObjectType
 
 /**
  * A typed MiniMessage placeholder descriptor.
@@ -33,25 +32,3 @@ public class MiniMessagePlaceholder<T : Any>
  */
 public inline fun <reified T : Any> placeholder(name: String): MiniMessagePlaceholder<T> =
     MiniMessagePlaceholder(name, miniMessagePlaceholderStrategy<T>())
-
-@PublishedApi
-internal enum class MiniMessagePlaceholderStrategy {
-    COMPONENT,
-    LITERAL,
-}
-
-@PublishedApi
-internal inline fun <reified T : Any> miniMessagePlaceholderStrategy(): MiniMessagePlaceholderStrategy =
-    when {
-        ComponentLike::class.java.isAssignableFrom(T::class.javaObjectType) -> MiniMessagePlaceholderStrategy.COMPONENT
-        String::class.java.isAssignableFrom(T::class.javaObjectType) -> MiniMessagePlaceholderStrategy.LITERAL
-        Number::class.java.isAssignableFrom(T::class.javaObjectType) -> MiniMessagePlaceholderStrategy.LITERAL
-        Boolean::class.javaObjectType.isAssignableFrom(
-            T::class.javaObjectType,
-        ) -> MiniMessagePlaceholderStrategy.LITERAL
-        else ->
-            error(
-                "Supported MiniMessage placeholder types are ComponentLike, String, Number, and Boolean; " +
-                    "received ${T::class.qualifiedName}.",
-            )
-    }
