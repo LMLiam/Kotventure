@@ -8,7 +8,7 @@ import net.kyori.adventure.text.format.TextColor
 import net.kyori.adventure.text.format.TextDecoration
 import net.kyori.adventure.text.format.TextDecoration.State
 
-internal class StyleScopeBuilder(
+internal class StyleBuilder(
     private val builder: Style.Builder,
 ) : StyleScope {
     override fun color(color: TextColor?) {

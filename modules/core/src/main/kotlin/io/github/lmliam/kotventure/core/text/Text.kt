@@ -17,4 +17,4 @@ public fun text(
 /**
  * Builds an Adventure text [Component] from a Kotventure text DSL block.
  */
-public fun text(init: TextScope.() -> Unit): Component = TextComponentBuilder().apply(init).build()
+public fun text(init: TextScope.() -> Unit): Component = TextBuilder().apply(init).build()

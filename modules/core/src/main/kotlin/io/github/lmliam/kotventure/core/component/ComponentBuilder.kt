@@ -7,15 +7,14 @@ import io.github.lmliam.kotventure.core.nbt.StorageNbtScope
 import io.github.lmliam.kotventure.core.objectcomponent.ObjectScope
 import io.github.lmliam.kotventure.core.score.ScoreScope
 import io.github.lmliam.kotventure.core.selector.SelectorScope
+import io.github.lmliam.kotventure.core.style.StyleBuilder
 import io.github.lmliam.kotventure.core.style.StyleScope
-import io.github.lmliam.kotventure.core.style.StyleScopeBuilder
-import io.github.lmliam.kotventure.core.text.TextComponentBuilder
+import io.github.lmliam.kotventure.core.text.TextBuilder
 import io.github.lmliam.kotventure.core.text.TextScope
 import io.github.lmliam.kotventure.core.translatable.TranslatableScope
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.BlockNBTComponent
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.ComponentBuilder
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.HoverEventSource
 import net.kyori.adventure.text.format.Style
@@ -30,8 +29,9 @@ import io.github.lmliam.kotventure.core.objectcomponent.display as displayCompon
 import io.github.lmliam.kotventure.core.score.score as scoreComponent
 import io.github.lmliam.kotventure.core.selector.selector as selectorComponent
 import io.github.lmliam.kotventure.core.translatable.translatable as translatableComponent
+import net.kyori.adventure.text.ComponentBuilder as AdventureComponentBuilder
 
-internal abstract class ComponentScopeBuilder<C : Component, B : ComponentBuilder<C, B>>(
+internal abstract class ComponentBuilder<C : Component, B : AdventureComponentBuilder<C, B>>(
     protected val builder: B,
 ) : ComponentScope {
     override fun color(color: TextColor) {
@@ -43,7 +43,7 @@ internal abstract class ComponentScopeBuilder<C : Component, B : ComponentBuilde
     }
 
     override fun style(init: StyleScope.() -> Unit) {
-        builder.style { styleBuilder -> StyleScopeBuilder(styleBuilder).init() }
+        builder.style { styleBuilder -> StyleBuilder(styleBuilder).init() }
     }
 
     override fun click(event: ClickEvent<*>?) {
@@ -97,7 +97,7 @@ internal abstract class ComponentScopeBuilder<C : Component, B : ComponentBuilde
     }
 
     override fun text(init: TextScope.() -> Unit) {
-        append(TextComponentBuilder().apply(init).build())
+        append(TextBuilder().apply(init).build())
     }
 
     override fun translatable(
