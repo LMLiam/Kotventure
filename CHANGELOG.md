@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land in any release.
 
+## [0.0.11](https://github.com/LMLiam/Kotventure/compare/0.0.10...0.0.11) (2026-06-12)
+
+
+### ✨ Features
+
+* **core:** add the component joining dsl ([#134](https://github.com/LMLiam/Kotventure/issues/134)) ([384e620](https://github.com/LMLiam/Kotventure/commit/384e620a4bbd9a5b39990009d28c8bee7d8487d7))
+
+
+### 🔧 Refactors
+
+* **core:** rename XScopeBuilder classes to XBuilder ([#137](https://github.com/LMLiam/Kotventure/issues/137)) ([a95b834](https://github.com/LMLiam/Kotventure/commit/a95b834959e21b3fe6075c29ded8228fc464095a))
+
+
+### 📝 Documentation
+
+* **skills:** clarify API design guidelines and enforce pre-planning checks ([ab5e4a9](https://github.com/LMLiam/Kotventure/commit/ab5e4a9fcecd4b81291144bbe8fb5ab5347b95e2))
+
 ## [0.0.10](https://github.com/LMLiam/Kotventure/compare/0.0.9...0.0.10) (2026-06-12)
 
 
