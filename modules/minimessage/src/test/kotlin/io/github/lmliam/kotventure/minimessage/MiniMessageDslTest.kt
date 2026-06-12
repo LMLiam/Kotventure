@@ -8,6 +8,7 @@ import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.github.lmliam.kotventure.test.text.shouldHaveChildCount
 import io.github.lmliam.kotventure.test.text.shouldHaveColor
 import io.github.lmliam.kotventure.test.text.shouldNotHaveColor
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -146,7 +147,7 @@ class MiniMessageDslTest :
                     }
 
                 parsed shouldContainText "[chat] Alex has 2 invites"
-                parsed.children().contains(playerComponent) shouldBe true
+                parsed.containsComponent(playerComponent) shouldBe true
             }
 
             "supports typed placeholders inside the component DSL" {
@@ -177,11 +178,11 @@ class MiniMessageDslTest :
 
             "rejects unsupported placeholder value families" {
                 val error =
-                    runCatching {
+                    shouldThrow<IllegalArgumentException> {
                         placeholder<List<String>>("items")
-                    }.exceptionOrNull()
+                    }
 
-                error?.message shouldContain "Supported MiniMessage placeholder types"
+                error.message shouldContain "Supported MiniMessage placeholder types"
             }
 
             "treats equivalent typed placeholders as equal values" {
@@ -250,3 +251,6 @@ private fun assertDoesNotCompile(
     result.exitCode shouldBe KotlinCompilation.ExitCode.COMPILATION_ERROR
     result.messages shouldContain expectedMessage
 }
+
+private fun Component.containsComponent(expected: Component): Boolean =
+    this == expected || children().any { child -> child.containsComponent(expected) }

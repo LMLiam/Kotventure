@@ -20,7 +20,7 @@ internal inline fun <reified T : Any> miniMessagePlaceholderStrategy(): MiniMess
         Number::class.java.isAssignableFrom(valueType) -> MiniMessagePlaceholderStrategy.LITERAL
         Boolean::class.javaObjectType.isAssignableFrom(valueType) -> MiniMessagePlaceholderStrategy.LITERAL
         else ->
-            error(
+            throw IllegalArgumentException(
                 "Supported MiniMessage placeholder types are ComponentLike, String, Number, and Boolean; " +
                     "received ${T::class.qualifiedName}.",
             )

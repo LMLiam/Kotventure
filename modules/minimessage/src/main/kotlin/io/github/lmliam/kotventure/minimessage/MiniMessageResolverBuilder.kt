@@ -42,7 +42,15 @@ internal class MiniMessageResolverBuilder : MiniMessageResolverScope {
         value: T,
     ) {
         when (placeholder.strategy) {
-            MiniMessagePlaceholderStrategy.COMPONENT -> component(placeholder.name, value as ComponentLike)
+            MiniMessagePlaceholderStrategy.COMPONENT -> {
+                val componentValue =
+                    value as? ComponentLike
+                        ?: throw IllegalArgumentException(
+                            "Placeholder '${placeholder.name}' expects a ComponentLike value.",
+                        )
+
+                component(placeholder.name, componentValue)
+            }
             MiniMessagePlaceholderStrategy.LITERAL -> unparsed(placeholder.name, value.toString())
         }
     }
