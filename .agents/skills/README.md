@@ -9,7 +9,7 @@ Each skill is a directory with a `SKILL.md` (YAML frontmatter `name` + `descript
 | Skill                                                             | Use when                                                      |
 |-------------------------------------------------------------------|---------------------------------------------------------------|
 | [`adding-a-dsl-feature`](adding-a-dsl-feature/SKILL.md)           | Implementing any new DSL feature / picking up a feature issue |
-| [`idiomatic-kotlin-dsl`](idiomatic-kotlin-dsl/SKILL.md)           | Designing or reviewing DSL/builder code                       |
+| [`idiomatic-kotlin-dsl`](idiomatic-kotlin-dsl/SKILL.md)           | **Required before designing/planning any API surface**; reviewing DSL code |
 | [`kyori-adventure-reference`](kyori-adventure-reference/SKILL.md) | You need an Adventure API and must not guess its shape        |
 | [`writing-component-tests`](writing-component-tests/SKILL.md)     | Writing tests for components / audiences                      |
 

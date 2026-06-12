@@ -76,6 +76,24 @@ See `docs/DESIGN.md` §4 for the full map. Non-negotiables:
 - Public DSL entry points live in the feature package; keep implementation detail `internal`.
 - No `util`/`misc`/`common` dumping grounds. If something needs a home, it belongs to a feature.
 
+### API design judgment — decide the shape before you plan
+
+Before sketching any public surface (and **before posting an implementation plan to an issue**), read
+"Designing the API shape" in the skill `idiomatic-kotlin-dsl` and apply it. The short form:
+
+- **Compile-time beats runtime.** If a named thing can be a property, make it a property. Delegated properties
+  (`by` + `PropertyDelegateProvider`) give you a compile-checked property *and* its name for runtime/registry interop —
+  reach for them before inventing key types or string lookups. Every runtime `require(...)` for a missing/typo'd/duplicate
+  name is a compile error you failed to design for.
+- **One way per use case.** Never ship a typed API and string overloads of it in parallel. Pick one; expose a single
+  explicit string bridge only where interop (config, MiniMessage, cross-plugin) demands it.
+- **No side effects on construction.** Defining a value never registers it; registration in `AdventureDsl` is a
+  separate explicit call.
+- **Smallest surface that passes the acceptance criteria.** Count your public declarations and make each pay rent.
+  Lookup sugar and convenience overloads can be added later; they can't be removed.
+- **Snippets in issues / `docs/DESIGN.md` are illustrative, not contracts.** If a sketch can't type-check as written,
+  design the API that delivers its *intent* — don't replicate its syntax with runtime machinery.
+
 ### Idiomatic Kotlin — do
 
 - Build DSLs with **lambda-with-receiver builders** + `@DslMarker` to prevent scope leakage.
@@ -130,7 +148,8 @@ See `docs/DESIGN.md` §4 for the full map. Non-negotiables:
 Reusable playbooks live in [`.agents/skills/`](.agents/skills/). Consult them:
 
 - **`adding-a-dsl-feature`** — the end-to-end workflow for a new DSL feature.
-- **`idiomatic-kotlin-dsl`** — DSL idioms with do/don't examples.
+- **`idiomatic-kotlin-dsl`** — **required reading before designing or planning any API surface**: the resolution
+  ladder (property → delegate → typed key → string), the design pressure-test, and DSL idioms with do/don't examples.
 - **`kyori-adventure-reference`** — a map of the Adventure API so you don't hallucinate types.
 - **`writing-component-tests`** — Kotest + the component matchers + snapshots.
 
