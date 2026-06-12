@@ -1,7 +1,7 @@
 package io.github.lmliam.kotventure.core.nbt
 
-import io.github.lmliam.kotventure.core.component.ComponentScopeBuilder
-import io.github.lmliam.kotventure.core.text.TextComponentBuilder
+import io.github.lmliam.kotventure.core.component.ComponentBuilder
+import io.github.lmliam.kotventure.core.text.TextBuilder
 import io.github.lmliam.kotventure.core.text.TextScope
 import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.NBTComponent
@@ -9,7 +9,7 @@ import net.kyori.adventure.text.NBTComponentBuilder
 
 internal abstract class NbtComponentBuilder<C : NBTComponent<C>, B : NBTComponentBuilder<C, B>>(
     builder: B,
-) : ComponentScopeBuilder<C, B>(builder),
+) : ComponentBuilder<C, B>(builder),
     NbtScope {
     override fun interpret(interpret: Boolean) {
         builder.interpret(interpret)
@@ -20,6 +20,6 @@ internal abstract class NbtComponentBuilder<C : NBTComponent<C>, B : NBTComponen
     }
 
     override fun separator(init: TextScope.() -> Unit) {
-        builder.separator(TextComponentBuilder().apply(init).build())
+        builder.separator(TextBuilder().apply(init).build())
     }
 }

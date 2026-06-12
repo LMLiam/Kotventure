@@ -1,7 +1,7 @@
 package io.github.lmliam.kotventure.core.event
 
 import io.github.lmliam.kotventure.core.component.ComponentScope
-import io.github.lmliam.kotventure.core.text.TextComponentBuilder
+import io.github.lmliam.kotventure.core.text.TextBuilder
 import io.github.lmliam.kotventure.core.text.TextScope
 import io.github.lmliam.kotventure.core.text.component
 import net.kyori.adventure.key.Key
@@ -10,7 +10,7 @@ import net.kyori.adventure.text.event.DataComponentValue
 import net.kyori.adventure.text.event.HoverEvent
 import java.util.UUID
 
-internal class HoverContentScopeBuilder : HoverContentScope {
+internal class HoverBuilder : HoverContentScope {
     private var selected = false
     private var event: HoverEvent<*>? = null
 
@@ -23,7 +23,7 @@ internal class HoverContentScopeBuilder : HoverContentScope {
         init: TextScope.() -> Unit,
     ) {
         text(
-            TextComponentBuilder()
+            TextBuilder()
                 .apply {
                     content(value)
                     init()

@@ -6,7 +6,7 @@ import net.kyori.adventure.text.event.ClickEvent
 import kotlin.time.toJavaDuration
 import kotlin.time.Duration as KotlinDuration
 
-internal class ClickActionScopeBuilder : ClickActionScope {
+internal class ClickBuilder : ClickActionScope {
     private var selected = false
     private var event: ClickEvent<*>? = null
 

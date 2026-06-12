@@ -1,15 +1,15 @@
 package io.github.lmliam.kotventure.core.text
 
 import io.github.lmliam.kotventure.core.color.ColorGradient
-import io.github.lmliam.kotventure.core.component.ComponentScopeBuilder
+import io.github.lmliam.kotventure.core.component.ComponentBuilder
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.format.TextColor
 import io.github.lmliam.kotventure.core.color.gradient as colorGradient
 import io.github.lmliam.kotventure.core.color.gradientText as gradientComponent
 
-internal class TextComponentBuilder :
-    ComponentScopeBuilder<TextComponent, TextComponent.Builder>(Component.text()),
+internal class TextBuilder :
+    ComponentBuilder<TextComponent, TextComponent.Builder>(Component.text()),
     TextScope {
     private var gradient: ColorGradient? = null
 

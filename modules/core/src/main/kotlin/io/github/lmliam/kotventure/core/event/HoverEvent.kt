@@ -11,7 +11,7 @@ import net.kyori.adventure.text.event.HoverEvent
 public fun hover(init: HoverContentScope.() -> Unit): HoverEvent<*> = buildHoverEvent(init)
 
 internal fun buildHoverEvent(init: HoverContentScope.() -> Unit): HoverEvent<*> =
-    HoverContentScopeBuilder()
+    HoverBuilder()
         .apply(init)
         .build()
 
