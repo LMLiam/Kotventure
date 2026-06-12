@@ -287,7 +287,12 @@ val rich = mini("<prefix> <player>") {
 val nested = component {
     text("Notice: ")
     mini("<gold><player></gold> joined") {
-        resolve(player, Component.text("Alex"))
+        resolve(
+            player,
+            component {
+                text("Alex")
+            },
+        )
     }
 }
 ```
