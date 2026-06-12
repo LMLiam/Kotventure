@@ -40,11 +40,14 @@ public object AdventureDsl {
     /**
      * Registers [provider] as the active theme provider for its name, optionally marking it as
      * the [default] theme.
+     *
+     * @throws IllegalArgumentException when the provider name is blank.
      */
     public fun registerTheme(
         provider: ThemeProvider,
         default: Boolean = false,
     ) {
+        require(provider.name.isNotBlank()) { "Theme provider name must not be blank." }
         themeProviders[provider.name] = provider
         if (default) {
             defaultThemeName = provider.name

@@ -28,7 +28,7 @@ import io.github.lmliam.kotventure.core.style.style as buildStyle
  * Declaring a theme does not register it; call [register] explicitly during startup.
  */
 public abstract class Theme(
-    override val name: String,
+    public override val name: String,
 ) : ThemeProvider {
     private val styles: LinkedHashMap<String, Style> = LinkedHashMap()
 
@@ -36,7 +36,7 @@ public abstract class Theme(
         require(name.isNotBlank()) { "Theme name must not be blank." }
     }
 
-    override fun style(name: String): Style? = styles[name]
+    public override fun style(name: String): Style? = styles[name]
 
     /**
      * Returns an immutable snapshot of the declared styles keyed by semantic name.

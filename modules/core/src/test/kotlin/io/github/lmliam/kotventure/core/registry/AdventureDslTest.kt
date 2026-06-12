@@ -11,6 +11,7 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeSameInstanceAs
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.Style
@@ -46,6 +47,14 @@ class AdventureDslTest :
 
                 AdventureDsl.theme("brand") shouldBe provider
                 AdventureDsl.themes() shouldContainExactly mapOf("brand" to provider)
+            }
+
+            "rejects theme providers with blank names" {
+                shouldThrow<IllegalArgumentException> {
+                    AdventureDsl.registerTheme(TestThemeProvider(" ", emptyMap()))
+                }
+
+                AdventureDsl.themes() shouldContainExactly emptyMap()
             }
 
             "returns null when no default theme is registered" {
@@ -96,7 +105,7 @@ class AdventureDslTest :
 
                 val returned = provider.register()
 
-                returned shouldBe provider
+                returned shouldBeSameInstanceAs provider
                 AdventureDsl.theme("brand") shouldBe provider
                 AdventureDsl.defaultTheme().shouldBeNull()
             }
