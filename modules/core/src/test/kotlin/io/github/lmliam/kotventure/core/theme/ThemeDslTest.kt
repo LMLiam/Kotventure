@@ -100,12 +100,12 @@ class ThemeDslTest :
                 val snapshot = BrandTheme.styles()
 
                 snapshot shouldContainExactly
-                    mapOf(
-                        "header" to BrandTheme.header,
-                        "saved" to BrandTheme.saved,
-                        "danger" to BrandTheme.danger,
-                        "call-out" to BrandTheme.callout,
-                    )
+                        mapOf(
+                            "header" to BrandTheme.header,
+                            "saved" to BrandTheme.saved,
+                            "danger" to BrandTheme.danger,
+                            "call-out" to BrandTheme.callout,
+                        )
                 snapshot.keys.toList() shouldBe listOf("header", "saved", "danger", "call-out")
                 shouldThrow<UnsupportedOperationException> {
                     @Suppress("UNCHECKED_CAST")
