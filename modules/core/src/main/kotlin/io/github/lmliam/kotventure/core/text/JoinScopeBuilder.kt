@@ -42,5 +42,5 @@ internal class JoinScopeBuilder : JoinScope {
         builder.suffix(component)
     }
 
-    fun build(): JoinConfiguration = builder.build()
+    internal fun build(): JoinConfiguration = builder.build()
 }
