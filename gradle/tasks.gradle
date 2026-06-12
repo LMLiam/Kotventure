@@ -185,8 +185,8 @@ tasks.register('verifyReleasePleaseConfiguration') {
                 'release-please-config.json must set bump-minor-pre-major for 0.x releases.'
         )
         requireReleaseAutomationValue(
-                releaseConfig['bump-patch-for-minor-pre-major'] == true,
-                'release-please-config.json must set bump-patch-for-minor-pre-major for 0.x releases.'
+                releaseConfig['bump-patch-for-minor-pre-major'] == false,
+                'release-please-config.json must disable bump-patch-for-minor-pre-major so pre-1.0 feature releases follow the roadmap and bump the minor version.'
         )
         requireReleaseAutomationValue(
                 releaseConfig['include-v-in-tag'] == false,
