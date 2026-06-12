@@ -12,6 +12,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
@@ -192,6 +193,23 @@ class MiniMessageDslTest :
 
                 first shouldBe second
                 setOf(first, second) shouldHaveSize 1
+            }
+
+            "distinguishes typed placeholders with different value types" {
+                val count = placeholder<Int>("count")
+                val label = placeholder<String>("count")
+
+                count shouldNotBe label
+                setOf(count, label) shouldHaveSize 2
+            }
+
+            "rejects invalid placeholder names" {
+                val error =
+                    shouldThrow<IllegalArgumentException> {
+                        placeholder<String>("BadName")
+                    }
+
+                error.message shouldContain "placeholder names must match"
             }
 
             "does not compile when a typed placeholder is resolved with the wrong value type" {
