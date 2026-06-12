@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land in any release.
 
+## [0.1.0](https://github.com/LMLiam/Kotventure/compare/0.0.11...0.1.0) (2026-06-12)
+
+
+### ✨ Features
+
+* **minimessage:** add mini() passthrough and a tag-resolver DSL ([#138](https://github.com/LMLiam/Kotventure/issues/138)) ([5cd2a6b](https://github.com/LMLiam/Kotventure/commit/5cd2a6b03f6fe6385ea8a106ab3af3e59d75b6d4))
+
 ## [0.0.11](https://github.com/LMLiam/Kotventure/compare/0.0.10...0.0.11) (2026-06-12)
 
 
