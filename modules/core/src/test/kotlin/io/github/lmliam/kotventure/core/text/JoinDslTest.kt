@@ -19,8 +19,8 @@ class JoinDslTest :
             "joins three components with a separator between each" {
                 val result =
                     listOf(alex, steve, notch).join {
-                    separator(", ")
-                }
+                        separator(", ")
+                    }
 
                 result shouldHaveChildCount 5
                 result.childAt(0) shouldBe alex
@@ -33,9 +33,9 @@ class JoinDslTest :
             "uses lastSeparator before the final element" {
                 val result =
                     listOf(alex, steve, notch).join {
-                    separator(", ")
-                    lastSeparator(" and ")
-                }
+                        separator(", ")
+                        lastSeparator(" and ")
+                    }
 
                 result shouldHaveChildCount 5
                 result.childAt(0) shouldBe alex
@@ -48,8 +48,8 @@ class JoinDslTest :
             "falls back to separator when lastSeparator is not set" {
                 val result =
                     listOf(alex, steve, notch).join {
-                    separator(", ")
-                }
+                        separator(", ")
+                    }
 
                 result.childAt(1) shouldContainText ", "
                 result.childAt(3) shouldContainText ", "
@@ -58,10 +58,10 @@ class JoinDslTest :
             "wraps the result with prefix and suffix" {
                 val result =
                     listOf(alex, steve, notch).join {
-                    separator(", ")
-                    prefix("Online: ")
-                    suffix(".")
-                }
+                        separator(", ")
+                        prefix("Online: ")
+                        suffix(".")
+                    }
 
                 result shouldHaveChildCount 7
                 result.childAt(0) shouldContainText "Online: "
@@ -74,8 +74,8 @@ class JoinDslTest :
             "string knob with styling block produces a styled separator" {
                 val result =
                     listOf(alex, steve, notch).join {
-                    separator(", ") { color(NamedTextColor.GRAY) }
-                }
+                        separator(", ") { color(NamedTextColor.GRAY) }
+                    }
 
                 result.childAt(1) shouldHaveColor NamedTextColor.GRAY
                 result.childAt(3) shouldHaveColor NamedTextColor.GRAY
@@ -86,18 +86,54 @@ class JoinDslTest :
 
                 val result =
                     listOf(alex, steve, notch).join {
-                    separator(dot)
-                }
+                        separator(dot)
+                    }
 
                 result.childAt(1) shouldBe dot
                 result.childAt(3) shouldBe dot
             }
 
+            "component knob form accepts a prebuilt lastSeparator unchanged" {
+                val and = Component.text(" and ", NamedTextColor.GRAY)
+
+                val result =
+                    listOf(alex, steve, notch).join {
+                        separator(", ")
+                        lastSeparator(and)
+                    }
+
+                result.childAt(3) shouldBe and
+            }
+
+            "component knob form accepts a prebuilt prefix unchanged" {
+                val online = Component.text("Online: ", NamedTextColor.GREEN)
+
+                val result =
+                    listOf(alex, steve).join {
+                        separator(", ")
+                        prefix(online)
+                    }
+
+                result.childAt(0) shouldBe online
+            }
+
+            "component knob form accepts a prebuilt suffix unchanged" {
+                val period = Component.text(".", NamedTextColor.GRAY)
+
+                val result =
+                    listOf(alex, steve).join {
+                        separator(", ")
+                        suffix(period)
+                    }
+
+                result.childAt(3) shouldBe period
+            }
+
             "empty list produces a component with no element children" {
                 val result =
                     emptyList<Component>().join {
-                    separator(", ")
-                }
+                        separator(", ")
+                    }
 
                 result shouldHaveChildCount 0
             }
@@ -105,9 +141,9 @@ class JoinDslTest :
             "empty list with prefix and suffix still applies them" {
                 val result =
                     emptyList<Component>().join {
-                    prefix("Online: ")
-                    suffix(".")
-                }
+                        prefix("Online: ")
+                        suffix(".")
+                    }
 
                 result shouldHaveChildCount 2
                 result.childAt(0) shouldContainText "Online: "
@@ -117,8 +153,8 @@ class JoinDslTest :
             "singleton list preserves the element with no separators" {
                 val result =
                     listOf(alex).join {
-                    separator(", ")
-                }
+                        separator(", ")
+                    }
 
                 result shouldHaveChildCount 0
                 result shouldContainText "Alex"
@@ -127,10 +163,10 @@ class JoinDslTest :
             "singleton list with prefix and suffix still applies them" {
                 val result =
                     listOf(alex).join {
-                    separator(", ")
-                    prefix("Online: ")
-                    suffix(".")
-                }
+                        separator(", ")
+                        prefix("Online: ")
+                        suffix(".")
+                    }
 
                 result shouldHaveChildCount 3
                 result.childAt(0) shouldContainText "Online: "
@@ -150,9 +186,9 @@ class JoinDslTest :
             "last-write wins when a knob is called multiple times" {
                 val result =
                     listOf(alex, steve).join {
-                    separator(", ")
-                    separator(" | ")
-                }
+                        separator(", ")
+                        separator(" | ")
+                    }
 
                 result.childAt(1) shouldContainText " | "
             }

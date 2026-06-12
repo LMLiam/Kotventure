@@ -3,7 +3,7 @@ package io.github.lmliam.kotventure.core.text
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.JoinConfiguration
 
-internal class JoinScopeBuilder : JoinScope {
+internal class JoinBuilder : JoinScope {
     private val builder = JoinConfiguration.builder()
 
     override fun separator(
