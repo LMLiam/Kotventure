@@ -44,6 +44,7 @@ repositories {
 
 def bomConsumerModules = [
         'core',
+        'minimessage',
         'serializer',
         'test'
 ]

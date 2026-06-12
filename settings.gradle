@@ -14,10 +14,12 @@ rootProject.name = 'Kotventure'
 // Modules are introduced lazily, one phase at a time (see docs/DESIGN.md §4 and issue #7).
 // Each module lives under modules/<name>; enable only modules that have landed.
 include 'core'
+include 'minimessage'
 include 'serializer'
 include 'test'
 include 'bom'
 project(':core').projectDir = file('modules/core')
+project(':minimessage').projectDir = file('modules/minimessage')
 project(':serializer').projectDir = file('modules/serializer')
 project(':test').projectDir = file('modules/test')
 project(':bom').projectDir = file('modules/bom')

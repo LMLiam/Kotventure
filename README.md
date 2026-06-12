@@ -59,6 +59,7 @@ See [`docs/DESIGN.md`](docs/DESIGN.md) for the full design and the [Roadmap](doc
 The current build enables the first lazy modules:
 
 - `kotventure-core` — the plain component builder and explicit startup registry
+- `kotventure-minimessage` — `mini(...)` parsing plus parsed, unparsed, and component placeholder resolvers
 - `kotventure-serializer` — `Component.toMiniMessage()` and `Component.toPlainText()` wrappers around Adventure
   serializers
 - `kotventure-test` — Kotest component matchers consumed test-scoped by library modules
@@ -236,6 +237,30 @@ val storedTitle = storageNbt(key("kotventure", "messages"), "welcome.title") {
 val stoneIcon = display(sprite(key("minecraft", "block/stone"))) {
     fallback {
         text("[stone]")
+    }
+}
+```
+
+MiniMessage passthrough parsing is available as an opt-in module so `core` stays free of MiniMessage dependencies:
+
+```kotlin
+val announcement = mini("<gold>[Server]</gold> <player> joined") {
+    unparsed("player", "Alex")
+}
+
+val rich = mini("<prefix> <badge>") {
+    parsed("prefix", "<gray>[chat]</gray>")
+    component("badge") {
+        text("VIP") {
+            color(NamedTextColor.AQUA)
+        }
+    }
+}
+
+val nested = component {
+    text("Notice: ")
+    mini("<gold><player></gold> joined") {
+        unparsed("player", "Alex")
     }
 }
 ```
