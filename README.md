@@ -60,7 +60,7 @@ The current build enables the first lazy modules:
 
 - `kotventure-core` — the plain component builder and explicit startup registry
 - `kotventure-minimessage` — `mini(...)` parsing plus typed placeholders via `placeholder<T>(name)` and
-  `resolve(placeholder, value)`
+  `resolve(placeholder, value)`, alongside the `parsed`, `unparsed`, and `component` resolvers
 - `kotventure-serializer` — `Component.toMiniMessage()` and `Component.toPlainText()` wrappers around Adventure
   serializers
 - `kotventure-test` — Kotest component matchers consumed test-scoped by library modules
@@ -249,51 +249,31 @@ val player = placeholder<Component>("player")
 val count = placeholder<Int>("count")
 val channel = placeholder<String>("channel")
 
+val alex = component {
+    text("Alex") {
+        color(NamedTextColor.AQUA)
+    }
+}
+
 val announcement = mini("<gold>[Server]</gold> <player> joined") {
-    resolve(
-        player,
-        component {
-            text("Alex") {
-                color(NamedTextColor.AQUA)
-            }
-        },
-    )
+    resolve(player, alex)
 }
 
 val invites = mini("<gray>[<channel>]</gray> <player> has <count> invites") {
     resolve(channel, "chat")
-    resolve(
-        player,
-        component {
-            text("Alex") {
-                color(NamedTextColor.AQUA)
-            }
-        },
-    )
+    resolve(player, alex)
     resolve(count, 3)
 }
 
 val rich = mini("<prefix> <player>") {
     parsed("prefix", "<gray>[chat]</gray>") // explicit bridge for markup-bearing strings
-    resolve(
-        player,
-        component {
-            text("Alex") {
-                color(NamedTextColor.AQUA)
-            }
-        },
-    )
+    resolve(player, alex)
 }
 
 val nested = component {
     text("Notice: ")
     mini("<gold><player></gold> joined") {
-        resolve(
-            player,
-            component {
-                text("Alex")
-            },
-        )
+        resolve(player, alex)
     }
 }
 ```
