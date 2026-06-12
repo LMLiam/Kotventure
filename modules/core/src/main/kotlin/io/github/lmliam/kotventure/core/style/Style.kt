@@ -8,5 +8,5 @@ import net.kyori.adventure.text.format.Style
 public fun style(init: StyleScope.() -> Unit): Style =
     Style
         .style()
-        .also { builder -> StyleScopeBuilder(builder).init() }
+        .also { builder -> StyleBuilder(builder).init() }
         .build()

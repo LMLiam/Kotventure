@@ -18,7 +18,7 @@ internal fun openTarget(target: String): ClickEvent<ClickEvent.Payload.Text> =
 public fun click(init: ClickActionScope.() -> Unit): ClickEvent<*> = buildClickEvent(init)
 
 internal fun buildClickEvent(init: ClickActionScope.() -> Unit): ClickEvent<*> =
-    ClickActionScopeBuilder()
+    ClickBuilder()
         .apply(init)
         .build()
 
