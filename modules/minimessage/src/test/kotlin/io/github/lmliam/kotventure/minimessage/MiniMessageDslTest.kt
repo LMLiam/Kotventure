@@ -107,6 +107,7 @@ class MiniMessageDslTest :
                 parsed.childAt(0) shouldContainText "VIP"
                 parsed.childAt(0) shouldHaveColor NamedTextColor.AQUA
                 parsed.childAt(1) shouldContainText " joined"
+                parsed.childAt(1).shouldNotHaveColor()
             }
 
             "resolves string typed placeholders as literal text" {
@@ -209,7 +210,9 @@ class MiniMessageDslTest :
                             }
                         }
                         """.trimIndent(),
-                    expectedMessage = "Argument type mismatch",
+                    "Argument type mismatch",
+                    "String",
+                    "Int",
                 )
 
                 assertDoesNotCompile(
@@ -228,7 +231,9 @@ class MiniMessageDslTest :
                             }
                         }
                         """.trimIndent(),
-                    expectedMessage = "Argument type mismatch",
+                    "Argument type mismatch",
+                    "Int",
+                    "Component",
                 )
             }
         },
@@ -238,7 +243,7 @@ class MiniMessageDslTest :
 private fun assertDoesNotCompile(
     fileName: String,
     source: String,
-    expectedMessage: String,
+    vararg expectedMessages: String,
 ) {
     val compilation =
         KotlinCompilation().apply {
@@ -249,7 +254,9 @@ private fun assertDoesNotCompile(
     val result = compilation.compile()
 
     result.exitCode shouldBe KotlinCompilation.ExitCode.COMPILATION_ERROR
-    result.messages shouldContain expectedMessage
+    expectedMessages.forEach { expectedMessage ->
+        result.messages shouldContain expectedMessage
+    }
 }
 
 private fun Component.containsComponent(expected: Component): Boolean =
