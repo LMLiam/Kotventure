@@ -75,7 +75,9 @@ Modules are introduced **lazily, per phase** — not all scaffolded up front —
 
 ### 4.1 The registry (extension points)
 
-A single explicit `AdventureDsl` registry (plain Kotlin, no classpath scanning) holds the pluggable pieces:
+A single explicit internal registry (plain Kotlin, no classpath scanning) holds the pluggable pieces. Application code
+never touches the registry directly: each feature package exposes a small public facade — a `register()` extension on
+the extension-point type plus a lookup function — and the registry stays an implementation detail behind them:
 
 - **Custom MiniMessage tags** (`TagResolver`s) registered by name.
 - **Theme providers** — named design systems resolvable across the app.
@@ -133,7 +135,7 @@ object Brand : Theme("brand") {
 }
 Brand.register()                             // explicit startup wiring
 text("Title") styled Brand.header            // compile-checked property
-AdventureDsl.theme("brand")?.style("header") // dynamic interop lookup
+theme("brand")?.style("header")              // dynamic interop lookup
 
 // ── Sending (Audience extensions) ──────────────────────────────
 player.message { text("hi") }

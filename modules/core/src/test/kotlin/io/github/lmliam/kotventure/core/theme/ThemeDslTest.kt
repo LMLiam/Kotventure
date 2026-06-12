@@ -119,7 +119,7 @@ class ThemeDslTest :
                 try {
                     BrandTheme.register()
 
-                    val registered = AdventureDsl.theme("brand")
+                    val registered = theme("brand")
                     registered shouldBe BrandTheme
                     val header = registered?.style("header")
                     header shouldBe BrandTheme.header
