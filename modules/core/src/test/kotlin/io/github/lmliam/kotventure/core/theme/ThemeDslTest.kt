@@ -3,6 +3,7 @@ package io.github.lmliam.kotventure.core.theme
 import io.github.lmliam.kotventure.core.color.green
 import io.github.lmliam.kotventure.core.color.hex
 import io.github.lmliam.kotventure.core.color.red
+import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.registry.AdventureDsl
 import io.github.lmliam.kotventure.core.style.styled
 import io.github.lmliam.kotventure.core.text.component
@@ -27,7 +28,7 @@ import net.kyori.adventure.text.format.TextDecoration.State
 
 private object BrandTheme : Theme("brand") {
     val primary = hex("#5865F2")
-    val headerFont: Key = Key.key("minecraft", "uniform")
+    val headerFont: Key = key("minecraft", "uniform")
 
     val header: Style by style {
         color(primary)
