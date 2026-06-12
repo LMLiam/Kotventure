@@ -9,6 +9,7 @@ import io.github.lmliam.kotventure.test.text.shouldHaveChildCount
 import io.github.lmliam.kotventure.test.text.shouldHaveColor
 import io.github.lmliam.kotventure.test.text.shouldNotHaveColor
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import net.kyori.adventure.text.Component
@@ -181,6 +182,14 @@ class MiniMessageDslTest :
                     }.exceptionOrNull()
 
                 error?.message shouldContain "Supported MiniMessage placeholder types"
+            }
+
+            "treats equivalent typed placeholders as equal values" {
+                val first = placeholder<String>("name")
+                val second = placeholder<String>("name")
+
+                first shouldBe second
+                setOf(first, second) shouldHaveSize 1
             }
 
             "does not compile when a typed placeholder is resolved with the wrong value type" {

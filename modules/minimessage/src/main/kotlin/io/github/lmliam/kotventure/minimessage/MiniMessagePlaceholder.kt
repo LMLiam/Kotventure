@@ -13,7 +13,17 @@ public class MiniMessagePlaceholder<T : Any>
     internal constructor(
         public val name: String,
         internal val strategy: MiniMessagePlaceholderStrategy,
-    )
+    ) {
+        override fun equals(other: Any?): Boolean =
+            this === other ||
+                other is MiniMessagePlaceholder<*> &&
+                name == other.name &&
+                strategy == other.strategy
+
+        override fun hashCode(): Int = 31 * name.hashCode() + strategy.hashCode()
+
+        override fun toString(): String = "MiniMessagePlaceholder(name=$name)"
+    }
 
 /**
  * Creates a typed MiniMessage placeholder descriptor named [name].
