@@ -20,8 +20,6 @@ public class MiniMessagePlaceholder<T : Any>
                 strategy == other.strategy
 
         override fun hashCode(): Int = 31 * name.hashCode() + strategy.hashCode()
-
-        override fun toString(): String = "MiniMessagePlaceholder(name=$name)"
     }
 
 /**
