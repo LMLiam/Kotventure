@@ -1,6 +1,7 @@
 package io.github.lmliam.kotventure.core.animation
 
 import io.github.lmliam.kotventure.core.registry.AdventureDsl
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
@@ -38,6 +39,12 @@ class AnimationDriverRegistrationTest :
 
             "returns null for unknown animation driver names" {
                 animationDriver("missing").shouldBeNull()
+            }
+
+            "rejects animation drivers with blank names" {
+                shouldThrow<IllegalArgumentException> {
+                    TestAnimationDriver(" ").register()
+                }
             }
         },
     )

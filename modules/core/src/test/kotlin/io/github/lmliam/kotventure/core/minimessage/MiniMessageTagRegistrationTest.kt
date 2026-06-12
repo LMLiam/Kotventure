@@ -1,6 +1,7 @@
 package io.github.lmliam.kotventure.core.minimessage
 
 import io.github.lmliam.kotventure.core.registry.AdventureDsl
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
@@ -38,6 +39,12 @@ class MiniMessageTagRegistrationTest :
 
             "returns null for unknown tag provider names" {
                 miniMessageTag("missing").shouldBeNull()
+            }
+
+            "rejects tag providers with blank names" {
+                shouldThrow<IllegalArgumentException> {
+                    TestMiniMessageTagProvider(" ").register()
+                }
             }
         },
     )

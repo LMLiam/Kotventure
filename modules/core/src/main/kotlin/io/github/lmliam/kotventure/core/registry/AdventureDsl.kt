@@ -24,8 +24,11 @@ internal object AdventureDsl {
 
     /**
      * Registers [provider] as the active MiniMessage tag provider for its name.
+     *
+     * @throws IllegalArgumentException when the provider name is blank.
      */
     public fun registerMiniMessageTag(provider: MiniMessageTagProvider) {
+        require(provider.name.isNotBlank()) { "MiniMessage tag provider name must not be blank." }
         miniMessageTagProviders[provider.name] = provider
     }
 
@@ -73,8 +76,11 @@ internal object AdventureDsl {
 
     /**
      * Registers [driver] as the active animation driver for its name.
+     *
+     * @throws IllegalArgumentException when the driver name is blank.
      */
     public fun registerAnimationDriver(driver: AnimationDriver) {
+        require(driver.name.isNotBlank()) { "Animation driver name must not be blank." }
         animationDrivers[driver.name] = driver
     }
 
