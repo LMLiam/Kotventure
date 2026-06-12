@@ -3,7 +3,7 @@ package io.github.lmliam.kotventure.core.text
 import net.kyori.adventure.text.Component
 
 /**
- * Builds an Adventure text [Component] with [value] as its content, configured by [init].
+ * Builds an Adventure text [Component] with [value] as its initial content, configured by [init].
  */
 public fun text(
     value: String,

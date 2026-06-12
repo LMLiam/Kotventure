@@ -39,7 +39,8 @@ public abstract class Theme(
     public override fun style(name: String): Style? = styles[name]
 
     /**
-     * Returns an immutable snapshot of the declared styles keyed by semantic name.
+     * Returns an immutable snapshot of the declared styles keyed by semantic name, in
+     * declaration order.
      */
     public fun styles(): Map<String, Style> =
         buildMap {

@@ -106,6 +106,7 @@ class ThemeDslTest :
                         "danger" to BrandTheme.danger,
                         "call-out" to BrandTheme.callout,
                     )
+                snapshot.keys.toList() shouldBe listOf("header", "saved", "danger", "call-out")
                 shouldThrow<UnsupportedOperationException> {
                     @Suppress("UNCHECKED_CAST")
                     (snapshot as MutableMap<String, Style>)["other"] = Style.empty()
