@@ -8,12 +8,14 @@ import io.github.lmliam.kotventure.core.theme.ThemeProvider
 /**
  * Explicit startup registry for Kotventure extension points.
  *
- * Register extensions during application startup before concurrent use. The registry stores
- * MiniMessage tag providers, theme providers, animation drivers, and a single active platform
- * adapter without classpath scanning. Concrete MiniMessage resolver adaptation belongs to the
- * MiniMessage module so `core` depends only on Adventure API.
+ * This registry is an implementation detail: application code registers and resolves extensions
+ * through the public facades in each feature package (`core.theme`, `core.minimessage`,
+ * `core.animation`, `core.platform`). Register extensions during application startup before
+ * concurrent use. The registry stores MiniMessage tag providers, theme providers, animation
+ * drivers, and a single active platform adapter without classpath scanning. Concrete MiniMessage
+ * resolver adaptation belongs to the MiniMessage module so `core` depends only on Adventure API.
  */
-public object AdventureDsl {
+internal object AdventureDsl {
     private val miniMessageTagProviders: MutableMap<String, MiniMessageTagProvider> = mutableMapOf()
     private val themeProviders: MutableMap<String, ThemeProvider> = mutableMapOf()
     private var defaultThemeName: String? = null
@@ -22,8 +24,11 @@ public object AdventureDsl {
 
     /**
      * Registers [provider] as the active MiniMessage tag provider for its name.
+     *
+     * @throws IllegalArgumentException when the provider name is blank.
      */
     public fun registerMiniMessageTag(provider: MiniMessageTagProvider) {
+        require(provider.name.isNotBlank()) { "MiniMessage tag provider name must not be blank." }
         miniMessageTagProviders[provider.name] = provider
     }
 
@@ -71,8 +76,11 @@ public object AdventureDsl {
 
     /**
      * Registers [driver] as the active animation driver for its name.
+     *
+     * @throws IllegalArgumentException when the driver name is blank.
      */
     public fun registerAnimationDriver(driver: AnimationDriver) {
+        require(driver.name.isNotBlank()) { "Animation driver name must not be blank." }
         animationDrivers[driver.name] = driver
     }
 

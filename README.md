@@ -280,16 +280,18 @@ val message = component {
     }
 }
 
-val dynamic = AdventureDsl.theme("brand")?.style("header")   // dynamic interop lookup
-val fallback = AdventureDsl.defaultTheme()?.style("header")
+val dynamic = theme("brand")?.style("header")      // dynamic interop lookup
+val fallback = defaultTheme()?.style("header")
 ```
 
 Declaring a theme never registers it; call `register()` during startup. Use `style("call-out") { ... }` when the
 dynamic key should differ from the property name, and declare palette properties before the styles that use them.
 
-`AdventureDsl` stores typed extension registrations for MiniMessage tag providers, theme providers (including an
-optional default theme), animation drivers, and the active platform adapter. Registration is explicit at startup;
-there is no classpath scanning.
+Kotventure keeps typed extension registrations — MiniMessage tag providers, theme providers (including an optional
+default theme), animation drivers, and the active platform adapter — in an internal registry. Each feature package
+exposes its own small facade: a `register()` extension on the extension-point type plus a lookup such as
+`theme(name)`, `defaultTheme()`, `miniMessageTag(name)`, `animationDriver(name)`, or `platformAdapter()`.
+Registration is explicit at startup; there is no classpath scanning.
 
 Serializer helpers live in `kotventure-serializer` so `kotventure-core` can stay limited to `adventure-api` while
 callers opt into concrete Adventure serializers:
