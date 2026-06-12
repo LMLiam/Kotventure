@@ -240,6 +240,26 @@ val stoneIcon = display(sprite(key("minecraft", "block/stone"))) {
 }
 ```
 
+Join a list of components using `Iterable<Component>.join { }`, with optional separator, `lastSeparator`, `prefix`, and
+`suffix` knobs that each accept a string-plus-styling block or a prebuilt component:
+
+```kotlin
+val players = listOf(text("Alex"), text("Steve"), text("Notch"))
+
+val online = players.join {
+    separator(", ") { color(NamedTextColor.GRAY) }
+    lastSeparator(" and ") { color(NamedTextColor.GRAY) }
+    prefix("Online: ") { bold() }
+    suffix(".")
+}
+// → "Online: Alex, Steve and Notch."
+
+val plain = players.join()            // no separators — plain concatenation
+
+val dot = Component.text(" • ", NamedTextColor.DARK_GRAY)
+val dotted = players.join { separator(dot) }   // prebuilt separator
+```
+
 Use `display` for Adventure object components such as sprites where the client can render structured non-text
 content. Provide a fallback when the component might appear in places that do not support object components, such
 as server MOTDs or plain-text logs. Call `stoneIcon.renderObjectFallbacks()` before handing the component to renderer
