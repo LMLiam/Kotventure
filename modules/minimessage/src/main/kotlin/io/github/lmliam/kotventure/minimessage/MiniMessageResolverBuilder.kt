@@ -37,5 +37,15 @@ internal class MiniMessageResolverBuilder : MiniMessageResolverScope {
         component(name, component(init))
     }
 
+    override fun <T : Any> resolve(
+        placeholder: MiniMessagePlaceholder<T>,
+        value: T,
+    ) {
+        when (placeholder.strategy) {
+            MiniMessagePlaceholderStrategy.COMPONENT -> component(placeholder.name, value as ComponentLike)
+            MiniMessagePlaceholderStrategy.LITERAL -> unparsed(placeholder.name, value.toString())
+        }
+    }
+
     internal fun build(): TagResolver = TagResolver.resolver(resolvers)
 }

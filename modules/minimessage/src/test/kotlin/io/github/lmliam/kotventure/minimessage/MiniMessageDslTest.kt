@@ -1,5 +1,7 @@
 package io.github.lmliam.kotventure.minimessage
 
+import com.tschuchort.compiletesting.KotlinCompilation
+import com.tschuchort.compiletesting.SourceFile
 import io.github.lmliam.kotventure.core.text.component
 import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldContainText
@@ -8,8 +10,10 @@ import io.github.lmliam.kotventure.test.text.shouldHaveColor
 import io.github.lmliam.kotventure.test.text.shouldNotHaveColor
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 
 class MiniMessageDslTest :
     StringSpec(
@@ -89,5 +93,151 @@ class MiniMessageDslTest :
                 message.childAt(1).childAt(1) shouldContainText " joined"
                 message.childAt(1).childAt(1).shouldNotHaveColor()
             }
+
+            "resolves component typed placeholders" {
+                val badge = placeholder<Component>("badge")
+                val parsed =
+                    mini("<badge> joined") {
+                        resolve(badge, Component.text("VIP", NamedTextColor.AQUA))
+                    }
+
+                parsed shouldHaveChildCount 2
+                parsed.childAt(0) shouldContainText "VIP"
+                parsed.childAt(0) shouldHaveColor NamedTextColor.AQUA
+                parsed.childAt(1) shouldContainText " joined"
+            }
+
+            "resolves string typed placeholders as literal text" {
+                val name = placeholder<String>("name")
+                val parsed =
+                    mini("<name>") {
+                        resolve(name, "<red>Alex")
+                    }
+
+                parsed shouldContainText "<red>Alex"
+                parsed.shouldNotHaveColor()
+            }
+
+            "resolves numeric and boolean typed placeholders as literal text" {
+                val count = placeholder<Int>("count")
+                val ratio = placeholder<Double>("ratio")
+                val online = placeholder<Boolean>("online")
+                val parsed =
+                    mini("<count> / <ratio> / <online>") {
+                        resolve(count, 3)
+                        resolve(ratio, 1.5)
+                        resolve(online, true)
+                    }
+
+                parsed shouldContainText "3 / 1.5 / true"
+            }
+
+            "resolves mixed typed placeholders in one message" {
+                val channel = placeholder<String>("channel")
+                val player = placeholder<Component>("player")
+                val count = placeholder<Long>("count")
+                val playerComponent = Component.text("Alex", NamedTextColor.AQUA)
+                val parsed =
+                    mini("<gray>[<channel>]</gray> <gold><player></gold> has <count> invites") {
+                        resolve(channel, "chat")
+                        resolve(player, playerComponent)
+                        resolve(count, 2L)
+                    }
+
+                parsed shouldContainText "[chat] Alex has 2 invites"
+                parsed.children().contains(playerComponent) shouldBe true
+            }
+
+            "supports typed placeholders inside the component DSL" {
+                val player = placeholder<String>("player")
+                val message =
+                    component {
+                        text("Notice: ")
+                        mini("<gold><player></gold> joined") {
+                            resolve(player, "Alex")
+                        }
+                    }
+
+                message shouldHaveChildCount 2
+                message.childAt(1) shouldContainText "Alex joined"
+                message.childAt(1).childAt(0) shouldHaveColor NamedTextColor.GOLD
+            }
+
+            "keeps parsed string bridge available for markup-aware substitutions" {
+                val parsed =
+                    mini("<prefix> <name>") {
+                        parsed("prefix", "<gray>[chat]</gray>")
+                        resolve(placeholder<String>("name"), "Alex")
+                    }
+
+                parsed shouldContainText "[chat] Alex"
+                parsed.childAt(0) shouldHaveColor NamedTextColor.GRAY
+            }
+
+            "rejects unsupported placeholder value families" {
+                val error =
+                    runCatching {
+                        placeholder<List<String>>("items")
+                    }.exceptionOrNull()
+
+                error?.message shouldContain "Supported MiniMessage placeholder types"
+            }
+
+            "does not compile when a typed placeholder is resolved with the wrong value type" {
+                assertDoesNotCompile(
+                    fileName = "TypedPlaceholderMismatchTest.kt",
+                    source =
+                        """
+                        import io.github.lmliam.kotventure.minimessage.mini
+                        import io.github.lmliam.kotventure.minimessage.placeholder
+
+                        fun shouldNotCompile() {
+                            val count = placeholder<Int>("count")
+
+                            mini("<count>") {
+                                resolve(count, "three")
+                            }
+                        }
+                        """.trimIndent(),
+                    expectedMessage = "Argument type mismatch",
+                )
+
+                assertDoesNotCompile(
+                    fileName = "ComponentPlaceholderMismatchTest.kt",
+                    source =
+                        """
+                        import io.github.lmliam.kotventure.minimessage.mini
+                        import io.github.lmliam.kotventure.minimessage.placeholder
+                        import net.kyori.adventure.text.Component
+
+                        fun shouldNotCompile() {
+                            val player = placeholder<Component>("player")
+
+                            mini("<player>") {
+                                resolve(player, 3)
+                            }
+                        }
+                        """.trimIndent(),
+                    expectedMessage = "Argument type mismatch",
+                )
+            }
         },
     )
+
+@OptIn(ExperimentalCompilerApi::class)
+private fun assertDoesNotCompile(
+    fileName: String,
+    source: String,
+    expectedMessage: String,
+) {
+    val compilation =
+        KotlinCompilation().apply {
+            inheritClassPath = true
+            sources = listOf(SourceFile.kotlin(fileName, source))
+        }
+
+    val result = compilation.compile()
+
+    result.exitCode shouldBe KotlinCompilation.ExitCode.COMPILATION_ERROR
+    result.messages shouldContain expectedMessage
+}
