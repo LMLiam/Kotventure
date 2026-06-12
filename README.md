@@ -59,7 +59,8 @@ See [`docs/DESIGN.md`](docs/DESIGN.md) for the full design and the [Roadmap](doc
 The current build enables the first lazy modules:
 
 - `kotventure-core` — the plain component builder and explicit startup registry
-- `kotventure-minimessage` — `mini(...)` parsing plus typed, parsed, unparsed, and component placeholder resolvers
+- `kotventure-minimessage` — `mini(...)` parsing plus typed placeholders via `placeholder<T>(name)` and
+  `resolve(placeholder, value)`
 - `kotventure-serializer` — `Component.toMiniMessage()` and `Component.toPlainText()` wrappers around Adventure
   serializers
 - `kotventure-test` — Kotest component matchers consumed test-scoped by library modules
