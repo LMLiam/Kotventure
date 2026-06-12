@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land in any release.
 
+## [0.0.10](https://github.com/LMLiam/Kotventure/compare/0.0.9...0.0.10) (2026-06-12)
+
+
+### ✨ Features
+
+* **core:** add design-system themes and a registry ([#130](https://github.com/LMLiam/Kotventure/issues/130)) ([e968324](https://github.com/LMLiam/Kotventure/commit/e9683249b1d2c9d51c4aa0138d299f144dd2d0b4))
+
+
+### 🔧 Refactors
+
+* **core:** internalize the registry behind feature facades ([#133](https://github.com/LMLiam/Kotventure/issues/133)) ([0b0cdb3](https://github.com/LMLiam/Kotventure/commit/0b0cdb3bec43dd9fdb0e961480ebcf8399d74acc))
+
 ## [0.0.9](https://github.com/LMLiam/Kotventure/compare/0.0.8...0.0.9) (2026-06-11)
 
 
