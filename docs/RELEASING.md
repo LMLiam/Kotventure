@@ -14,6 +14,18 @@ Prefer `RELEASE_PLEASE_TOKEN` for normal releases because PRs, tags, and release
 `GITHUB_TOKEN` do not trigger follow-up workflows. Use a fine-grained PAT or GitHub App token for the GitHub Actions bot
 with repository access and the ability to write contents, issues, and pull requests.
 
+## Version Policy
+
+Release automation follows the roadmap version ranges literally:
+
+- `0.0.x` is reserved for the pre-alpha spike.
+- The first feature release after `0.0.x` is `0.1.0`, which marks the start of the alpha line.
+- Before `1.0.0`, `feat(...)` and breaking changes bump the minor version; patch releases remain available for
+  non-feature follow-up work on the current minor line.
+
+When adjusting release automation, verify the policy still matches [ROADMAP.md](./ROADMAP.md) and the phase ranges in
+[DESIGN.md](./DESIGN.md).
+
 ## Branch Protection
 
 Keep `master` protected and release through the Release PR. Branch protection must allow the GitHub Actions bot or the
