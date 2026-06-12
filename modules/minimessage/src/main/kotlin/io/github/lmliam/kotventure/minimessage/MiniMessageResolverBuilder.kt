@@ -37,5 +37,23 @@ internal class MiniMessageResolverBuilder : MiniMessageResolverScope {
         component(name, component(init))
     }
 
+    override fun <T : Any> resolve(
+        placeholder: MiniMessagePlaceholder<T>,
+        value: T,
+    ) {
+        when (placeholder.strategy) {
+            MiniMessagePlaceholderStrategy.COMPONENT -> {
+                val componentValue =
+                    value as? ComponentLike
+                        ?: throw IllegalArgumentException(
+                            "Placeholder '${placeholder.name}' expects a ComponentLike value.",
+                        )
+
+                component(placeholder.name, componentValue)
+            }
+            MiniMessagePlaceholderStrategy.LITERAL -> unparsed(placeholder.name, value.toString())
+        }
+    }
+
     internal fun build(): TagResolver = TagResolver.resolver(resolvers)
 }

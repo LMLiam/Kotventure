@@ -7,4 +7,5 @@ dependencies {
 
     testImplementation project(':core')
     testImplementation project(':test')
+    testImplementation kotventureDependencies."kctfork-core"
 }
