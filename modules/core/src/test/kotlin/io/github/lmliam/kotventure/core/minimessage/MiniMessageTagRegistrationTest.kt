@@ -45,6 +45,8 @@ class MiniMessageTagRegistrationTest :
                 shouldThrow<IllegalArgumentException> {
                     TestMiniMessageTagProvider(" ").register()
                 }
+
+                miniMessageTag(" ").shouldBeNull()
             }
         },
     )

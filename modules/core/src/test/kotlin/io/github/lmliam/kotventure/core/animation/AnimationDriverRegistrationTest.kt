@@ -45,6 +45,8 @@ class AnimationDriverRegistrationTest :
                 shouldThrow<IllegalArgumentException> {
                     TestAnimationDriver(" ").register()
                 }
+
+                animationDriver(" ").shouldBeNull()
             }
         },
     )
