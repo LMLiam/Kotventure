@@ -185,8 +185,8 @@ tasks.register('verifyReleasePleaseConfiguration') {
                 'release-please-config.json must set bump-minor-pre-major for 0.x releases.'
         )
         requireReleaseAutomationValue(
-                releaseConfig['bump-patch-for-minor-pre-major'] == true,
-                'release-please-config.json must set bump-patch-for-minor-pre-major for 0.x releases.'
+                releaseConfig['bump-patch-for-minor-pre-major'] == false,
+                'release-please-config.json must disable bump-patch-for-minor-pre-major so pre-1.0 feature releases follow the roadmap and bump the minor version.'
         )
         requireReleaseAutomationValue(
                 releaseConfig['include-v-in-tag'] == false,
@@ -262,6 +262,8 @@ tasks.register('verifyReleasePleaseConfiguration') {
 
         def releaseDocs = requireReleaseAutomationFile('docs/RELEASING.md').text
         requireReleaseAutomationText(releaseDocs, 'RELEASE_PLEASE_TOKEN', 'release documentation must describe the bot token secret')
+        requireReleaseAutomationText(releaseDocs, '`0.0.x` is reserved for the pre-alpha spike.', 'release documentation must reserve 0.0.x for the pre-alpha phase.')
+        requireReleaseAutomationText(releaseDocs, '`0.1.0`, which marks the start of the alpha line.', 'release documentation must describe 0.1.0 as the first alpha feature release.')
         requireReleaseAutomationText(releaseDocs, 'branch protection', 'release documentation must cover branch protection')
         requireReleaseAutomationText(releaseDocs, 'GitHub Actions bot', 'release documentation must cover bot permissions')
         requireReleaseAutomationText(releaseDocs, 'Maven Central', 'release documentation must keep publishing coordination explicit')
