@@ -1,0 +1,43 @@
+package io.github.lmliam.kotventure.minimessage
+
+import io.github.lmliam.kotventure.core.component.ComponentScope
+import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
+import net.kyori.adventure.text.ComponentLike
+
+/**
+ * Configures placeholder resolvers applied while parsing MiniMessage markup.
+ */
+@KotventureDslMarker
+public interface MiniMessageResolverScope {
+    /**
+     * Inserts [value] as parsed MiniMessage markup for the placeholder named [name].
+     */
+    public fun parsed(
+        name: String,
+        value: String,
+    ): Unit
+
+    /**
+     * Inserts [value] as literal text for the placeholder named [name].
+     */
+    public fun unparsed(
+        name: String,
+        value: String,
+    ): Unit
+
+    /**
+     * Inserts [value] as a self-closing component placeholder for the placeholder named [name].
+     */
+    public fun component(
+        name: String,
+        value: ComponentLike,
+    ): Unit
+
+    /**
+     * Builds a component placeholder named [name] from a Kotventure component DSL block.
+     */
+    public fun component(
+        name: String,
+        init: ComponentScope.() -> Unit,
+    ): Unit
+}
