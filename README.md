@@ -60,7 +60,8 @@ The current build enables the first lazy modules:
 
 - `kotventure-core` — the plain component builder and explicit startup registry
 - `kotventure-minimessage` — `mini(...)` parsing plus typed placeholders via `placeholder<T>(name)` and
-  `resolve(placeholder, value)`, alongside the `parsed`, `unparsed`, and `component` resolvers
+  `resolve(placeholder, value)`, alongside the `parsed`, `unparsed`, and `component` resolvers; typed reusable
+  templates via `MiniTemplate` with compile-checked `bind(placeholder, value)` at the call site
 - `kotventure-serializer` — `Component.toMiniMessage()` and `Component.toPlainText()` wrappers around Adventure
   serializers
 - `kotventure-test` — Kotest component matchers consumed test-scoped by library modules
@@ -276,6 +277,33 @@ val nested = component {
         resolve(player, alex)
     }
 }
+```
+
+For messages that are rendered many times with different values, declare a typed template once and reuse it. Each
+placeholder is a compile-checked `val` whose name drives the MiniMessage tag; value types are enforced at the call site;
+and missing bindings fail with a helpful message listing what was omitted:
+
+```kotlin
+object WelcomeTemplate : MiniTemplate("<gold>Welcome <player>, <count> new messages") {
+    val player = placeholder<Component>("player")
+    val count = placeholder<Int>("count")
+}
+
+val forAlex = WelcomeTemplate {
+    bind(player, Component.text("Alex"))
+    bind(count, 3)
+}
+val forSam = WelcomeTemplate {
+    bind(player, Component.text("Sam"))
+    bind(count, 0)
+}
+
+// Compile error — wrong value type:
+//   WelcomeTemplate { bind(count, "three") }   // String is not Int
+
+// Use-time error — forgot a placeholder:
+//   WelcomeTemplate { bind(player, Component.text("Alex")) }
+//   → IllegalArgumentException: Template is missing required placeholder(s): [count].
 ```
 
 Join a list of components using `Iterable<Component>.join { }`, with optional separator, `lastSeparator`, `prefix`, and
