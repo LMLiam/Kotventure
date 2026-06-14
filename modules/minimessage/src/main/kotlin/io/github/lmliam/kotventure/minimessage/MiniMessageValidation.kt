@@ -66,6 +66,10 @@ public fun MiniTemplate.validate(): ValidationResult = validate(markup, placehol
  * Spec names are resolved as self-closing tags so they never trigger a false "unclosed tag"
  * diagnostic under strict mode. Returns at most one [MiniMessageDiagnostic.MalformedTag]
  * because Adventure's strict parser throws on the first violation.
+ *
+ * [ParsingException] is the expected signal for strict-mode violations. Other [RuntimeException]
+ * subclasses can be thrown by Adventure's parser internals on severely malformed inputs; they
+ * are caught to preserve the no-throw contract of [validate].
  */
 private fun detectMalformedTags(
     markup: String,
@@ -85,15 +89,22 @@ private fun detectMalformedTags(
                 endIndex = e.endIndex(),
             ),
         )
+    } catch (_: RuntimeException) {
+        // Adventure parser bug on edge-case malformed input — no position info available.
+        emptyList()
     }
 }
 
 /**
  * Pass 2: lenient parse with a recording resolver to enumerate tags referenced in the markup.
  *
- * Records every non-standard tag name (i.e. names for which [TagResolver.standard] returns
- * `false` from [TagResolver.has]) encountered by the recording resolver. Non-standard names
- * are exactly the placeholder-like tags; standard Adventure formatting tags are excluded.
+ * Records a tag name when it is either non-standard (i.e. [TagResolver.standard] does not
+ * claim it) **or** present in the spec. The second condition handles the edge case where a
+ * spec placeholder shares its name with a standard Adventure tag (e.g. `"gold"`): without it,
+ * the recording resolver would silently skip `<gold>` and produce a false `MissingPlaceholder`.
+ *
+ * Standard tags whose names are NOT in the spec are still excluded, preserving the existing
+ * behaviour that prevents ordinary formatting tags from showing up as extra placeholders.
  *
  * Returns a pair of (missing diagnostics, extra diagnostics):
  * - missing: spec names absent from the recorded tags (in spec declaration order).
@@ -103,12 +114,20 @@ private fun detectPlaceholderMismatches(
     markup: String,
     spec: List<MiniMessagePlaceholder<*>>,
 ): Pair<List<MiniMessageDiagnostic.MissingPlaceholder>, List<MiniMessageDiagnostic.ExtraPlaceholder>> {
-    val recorder = RecordingTagResolver()
+    val specNames = spec.map { it.name }.toSet()
+    val recorder = RecordingTagResolver(specNames)
     val combined = TagResolver.resolver(TagResolver.standard(), recorder)
-    MiniMessage.miniMessage().deserialize(markup, combined)
+    // The lenient parser is designed not to throw ParsingException, but Adventure's internals
+    // can still throw RuntimeException (e.g. StringIndexOutOfBoundsException) on certain
+    // edge-case malformed inputs (PaperMC/adventure#1011). Catch it so validate() never
+    // propagates an exception; the recording side-effects gathered so far remain usable.
+    try {
+        MiniMessage.miniMessage().deserialize(markup, combined)
+    } catch (_: RuntimeException) {
+        // Proceed with whatever the recorder captured before the throw.
+    }
 
     val tagsInMarkup = recorder.encounteredNames
-    val specNames = spec.map { it.name }.toSet()
 
     val missing =
         spec
@@ -137,16 +156,27 @@ private fun buildSpecNameResolver(spec: List<MiniMessagePlaceholder<*>>): TagRes
 }
 
 /**
- * A [TagResolver] that records the names of every non-standard tag it is asked to resolve.
+ * A [TagResolver] that records the names of tags it is asked to resolve.
  *
  * [has] returns `true` for all names so that Adventure calls [resolve] for every `<tag>` in
- * the markup. [resolve] records the name only when [TagResolver.standard] does not claim it,
- * preventing standard Adventure formatting tags from appearing in the recorded set.
+ * the markup. [resolve] records the name when either:
+ * - [TagResolver.standard] does not claim it (it's a custom/unknown tag), or
+ * - it appears in [specNames] (a spec placeholder whose name collides with a standard tag).
+ *
+ * This dual condition prevents standard formatting tags (e.g. `<red>`, `<bold>`) from polluting
+ * the recorded set, while still recording spec-named placeholders that share a standard tag
+ * name (e.g. a placeholder declared as `"gold"`).
+ *
  * [resolve] returns `null` so the lenient parser silently skips each tag.
  *
  * Tags are recorded in encounter order (the order [resolve] is first called for each name).
+ *
+ * @param specNames the set of placeholder names declared in the spec; used to force-record
+ *   names that would otherwise be filtered by the standard-tag check.
  */
-private class RecordingTagResolver : TagResolver {
+private class RecordingTagResolver(
+    private val specNames: Set<String>,
+) : TagResolver {
     /** Tag names encountered in the markup, in the order they were first seen. */
     val encounteredNames: LinkedHashSet<String> = LinkedHashSet()
 
@@ -155,7 +185,7 @@ private class RecordingTagResolver : TagResolver {
         arguments: ArgumentQueue,
         ctx: Context,
     ): Tag? {
-        if (!TagResolver.standard().has(name)) {
+        if (name in specNames || !TagResolver.standard().has(name)) {
             encounteredNames.add(name)
         }
         return null
