@@ -163,6 +163,26 @@ public infix fun Component.shouldHaveChildCount(expected: Int): Component =
     }
 
 /**
+ * Asserts that this component's tree contains [expected] (by structural equality).
+ */
+public infix fun Component.shouldContainComponent(expected: Component): Component =
+    apply {
+        this should containComponent(expected)
+    }
+
+private fun containComponent(expected: Component): Matcher<Component> =
+    Matcher { actual ->
+        MatcherResult(
+            actual.containsComponent(expected),
+            { "Expected component tree to contain $expected" },
+            { "Expected component tree not to contain $expected" },
+        )
+    }
+
+private fun Component.containsComponent(expected: Component): Boolean =
+    this == expected || children().any { it.containsComponent(expected) }
+
+/**
  * Asserts that this component is translatable and has [expected] as its translation key.
  */
 public infix fun Component.shouldHaveTranslationKey(expected: String): Component =

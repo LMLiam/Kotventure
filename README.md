@@ -59,7 +59,8 @@ See [`docs/DESIGN.md`](docs/DESIGN.md) for the full design and the [Roadmap](doc
 The current build enables the first lazy modules:
 
 - `kotventure-core` — the plain component builder and explicit startup registry
-- `kotventure-minimessage` — `mini(...)` parsing plus parsed, unparsed, and component placeholder resolvers
+- `kotventure-minimessage` — `mini(...)` parsing plus typed placeholders via `placeholder<T>(name)` and
+  `resolve(placeholder, value)`, alongside the `parsed`, `unparsed`, and `component` resolvers
 - `kotventure-serializer` — `Component.toMiniMessage()` and `Component.toPlainText()` wrappers around Adventure
   serializers
 - `kotventure-test` — Kotest component matchers consumed test-scoped by library modules
@@ -244,23 +245,35 @@ val stoneIcon = display(sprite(key("minecraft", "block/stone"))) {
 MiniMessage passthrough parsing is available as an opt-in module so `core` stays free of MiniMessage dependencies:
 
 ```kotlin
-val announcement = mini("<gold>[Server]</gold> <player> joined") {
-    unparsed("player", "Alex")
+val player = placeholder<Component>("player")
+val count = placeholder<Int>("count")
+val channel = placeholder<String>("channel")
+
+val alex = component {
+    text("Alex") {
+        color(NamedTextColor.AQUA)
+    }
 }
 
-val rich = mini("<prefix> <badge>") {
-    parsed("prefix", "<gray>[chat]</gray>")
-    component("badge") {
-        text("VIP") {
-            color(NamedTextColor.AQUA)
-        }
-    }
+val announcement = mini("<gold>[Server]</gold> <player> joined") {
+    resolve(player, alex)
+}
+
+val invites = mini("<gray>[<channel>]</gray> <player> has <count> invites") {
+    resolve(channel, "chat")
+    resolve(player, alex)
+    resolve(count, 3)
+}
+
+val rich = mini("<prefix> <player>") {
+    parsed("prefix", "<gray>[chat]</gray>") // explicit bridge for markup-bearing strings
+    resolve(player, alex)
 }
 
 val nested = component {
     text("Notice: ")
     mini("<gold><player></gold> joined") {
-        unparsed("player", "Alex")
+        resolve(player, alex)
     }
 }
 ```
