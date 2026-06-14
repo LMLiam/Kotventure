@@ -75,9 +75,7 @@ public abstract class MiniTemplate(
      *   is outside the supported value families, or when [name] is not a valid MiniMessage tag name.
      */
     protected inline fun <reified T : Any> placeholder(name: String): MiniMessagePlaceholder<T> =
-        // Import alias `createPlaceholder` refers to the public top-level factory; avoids the
-        // unqualified call resolving back to this member inside a subclass body (members win over
-        // top-level functions in scope).
+        // Delegates to the top-level factory via import alias to avoid shadowing.
         register(createPlaceholder<T>(name))
 
     /**
