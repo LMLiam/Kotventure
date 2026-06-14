@@ -15,8 +15,8 @@ import net.kyori.adventure.text.minimessage.MiniMessage
  * }
  *
  * val forAlex = WelcomeTemplate {
- *     bind(player, Component.text("Alex"))
- *     bind(count, 3)
+ *     bind(WelcomeTemplate.player, Component.text("Alex"))
+ *     bind(WelcomeTemplate.count, 3)
  * }
  * ```
  *
@@ -70,8 +70,8 @@ public abstract class MiniTemplate(
         // back to this member inside a subclass body (members win over top-level functions in scope).
         register(
             io.github.lmliam.kotventure.minimessage
-            .placeholder<T>(name),
-                )
+                .placeholder<T>(name),
+        )
 
     /**
      * Records [descriptor] in the declared-placeholder set, rejecting duplicate names. Non-inline

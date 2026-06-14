@@ -290,19 +290,19 @@ object WelcomeTemplate : MiniTemplate("<gold>Welcome <player>, <count> new messa
 }
 
 val forAlex = WelcomeTemplate {
-    bind(player, Component.text("Alex"))
-    bind(count, 3)
+    bind(WelcomeTemplate.player, Component.text("Alex"))
+    bind(WelcomeTemplate.count, 3)
 }
 val forSam = WelcomeTemplate {
-    bind(player, Component.text("Sam"))
-    bind(count, 0)
+    bind(WelcomeTemplate.player, Component.text("Sam"))
+    bind(WelcomeTemplate.count, 0)
 }
 
 // Compile error — wrong value type:
-//   WelcomeTemplate { bind(count, "three") }   // String is not Int
+//   WelcomeTemplate { bind(WelcomeTemplate.count, "three") }   // String is not Int
 
 // Use-time error — forgot a placeholder:
-//   WelcomeTemplate { bind(player, Component.text("Alex")) }
+//   WelcomeTemplate { bind(WelcomeTemplate.player, Component.text("Alex")) }
 //   → IllegalArgumentException: Template is missing required placeholder(s): [count].
 ```
 
