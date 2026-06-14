@@ -3,10 +3,12 @@ package io.github.lmliam.kotventure.minimessage
 import io.github.lmliam.kotventure.test.compilation.assertDoesNotCompile
 import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.github.lmliam.kotventure.test.text.shouldHaveColor
+import io.github.lmliam.kotventure.test.text.shouldNotContainText
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 
@@ -213,6 +215,26 @@ class MiniTemplateTest :
                     }
 
                 firstWins shouldContainText "First"
+                firstWins shouldNotContainText "Second"
+            }
+
+            // ---------------------------------------------------------------
+            // Declaration-order: missing error names only the first-omitted placeholder
+            // ---------------------------------------------------------------
+
+            "error message names only the first-declared placeholder when only the second is bound" {
+                // WelcomeTemplate declares 'player' then 'count' (LinkedHashMap preserves order).
+                // Binding only 'count' should produce an error that names 'player' but not 'count'.
+                val error =
+                    shouldThrow<IllegalArgumentException> {
+                        WelcomeTemplate {
+                            bind(WelcomeTemplate.count, 99)
+                            // player intentionally omitted
+                        }
+                    }
+
+                error.message shouldContain "player"
+                error.message shouldNotContain "count"
             }
 
             // ---------------------------------------------------------------
