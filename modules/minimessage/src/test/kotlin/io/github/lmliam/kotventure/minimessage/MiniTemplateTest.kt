@@ -4,7 +4,6 @@ import io.github.lmliam.kotventure.test.compilation.assertDoesNotCompile
 import io.github.lmliam.kotventure.test.text.shouldContainComponent
 import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.github.lmliam.kotventure.test.text.shouldHaveColor
-import io.github.lmliam.kotventure.test.text.shouldNotContainText
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
@@ -269,20 +268,49 @@ class MiniTemplateTest :
             }
 
             // ---------------------------------------------------------------
-            // Double-bind first-wins
+            // Blank placeholder names
             // ---------------------------------------------------------------
 
-            "uses the first bound value when the same placeholder is bound twice" {
-                val firstWins =
-                    WelcomeTemplate {
-                        bind(player, Component.text("First", NamedTextColor.GREEN))
-                        bind(count, 1)
-                        // Second bind for player — should be silently ignored (first-wins).
-                        bind(player, Component.text("Second", NamedTextColor.RED))
+            "throws IllegalArgumentException when placeholder name is empty" {
+                shouldThrow<IllegalArgumentException> {
+                    placeholder<String>("")
+                }.message shouldContain "MiniMessage placeholder names must match"
+            }
+
+            // ---------------------------------------------------------------
+            // Duplicate render-time binding
+            // ---------------------------------------------------------------
+
+            "throws IllegalArgumentException when the same placeholder is bound twice" {
+                val error =
+                    shouldThrow<IllegalArgumentException> {
+                        WelcomeTemplate {
+                            bind(player, Component.text("First", NamedTextColor.GREEN))
+                            bind(count, 1)
+                            bind(player, Component.text("Second", NamedTextColor.RED))
+                        }
                     }
 
-                firstWins shouldContainText "First"
-                firstWins shouldNotContainText "Second"
+                error.message shouldContain "player"
+                error.message shouldContain "already bound"
+            }
+
+            "throws IllegalArgumentException when same-name placeholders are bound twice before missing validation" {
+                val error =
+                    shouldThrow<IllegalArgumentException> {
+                        object : MiniTemplate("<name>") {
+                            val name = placeholder<String>("name")
+                            val unused = placeholder<Int>("unused")
+                        }.run {
+                            this {
+                                bind(name, "Alex")
+                                bind(name, "Sam")
+                            }
+                        }
+                    }
+
+                error.message shouldContain "name"
+                error.message shouldContain "already bound"
             }
 
             // ---------------------------------------------------------------
@@ -321,11 +349,11 @@ class MiniTemplateTest :
             }
 
             // ---------------------------------------------------------------
-            // requiredPlaceholders surface
+            // declaredPlaceholders surface
             // ---------------------------------------------------------------
 
-            "requiredPlaceholders returns the names of all declared placeholders" {
-                WelcomeTemplate.requiredPlaceholders shouldBe setOf("player", "count")
+            "declaredPlaceholders returns the names of all declared placeholders" {
+                WelcomeTemplate.declaredPlaceholders shouldBe setOf("player", "count")
             }
 
             // ---------------------------------------------------------------

@@ -109,7 +109,7 @@ public abstract class MiniTemplate(
      *
      * Useful for introspection or for generating helpful error messages in higher-level utilities.
      */
-    public val requiredPlaceholders: Set<String>
+    public val declaredPlaceholders: Set<String>
         get() = placeholders.keys.toSet()
 }
 
@@ -129,7 +129,7 @@ context(_: MiniTemplateBindingScope) public fun <T : Any> MiniTemplate.bind(
 ): Unit = contextOf<MiniTemplateBindingScope>().bind(placeholder, value)
 
 /**
- * Renders this template by binding every required placeholder via [bind], then deserializing the
+ * Renders this template by binding every declared placeholder via [bind], then deserializing the
  * markup with the built [TagResolver].
  *
  * The render lambda uses the concrete template as its receiver and carries a
@@ -143,14 +143,12 @@ context(_: MiniTemplateBindingScope) public fun <T : Any> MiniTemplate.bind(
  * [IllegalArgumentException] listing the missing name(s). Also rejects binding a placeholder not
  * declared on this template, or a descriptor from a different template that happens to share a name.
  *
- * Double-binding the same placeholder within one call follows first-wins semantics — the natural
- * default of [TagResolver.resolver].
- *
  * @param block lambda that receives the template [T] as receiver and a [MiniTemplateBindingScope]
  *   as context.
  * @return a fresh [Component] for this render call; independent of all prior and future renders.
  * @throws IllegalArgumentException when any declared placeholder is not bound, or when [block]
- *   attempts to bind a placeholder not declared on this template (checked by descriptor identity).
+ *   attempts to bind a placeholder not declared on this template (checked by descriptor identity),
+ *   or when the same placeholder is bound more than once in a single render.
  */
 public operator fun <T : MiniTemplate> T.invoke(block: context(MiniTemplateBindingScope) T.() -> Unit): Component {
     val builder = MiniMessageResolverBuilder()
@@ -166,10 +164,10 @@ public operator fun <T : MiniTemplate> T.invoke(block: context(MiniTemplateBindi
                     "Placeholder '${placeholder.name}' is not declared on this template. " +
                         "Declared placeholders: ${placeholders.keys}."
                 }
-                // Record first-bind only; double-bind is first-wins via TagResolver.resolver(list).
-                if (boundNames.add(placeholder.name)) {
-                    builder.resolve(placeholder, value)
+                require(boundNames.add(placeholder.name)) {
+                    "Placeholder '${placeholder.name}' is already bound in this template render."
                 }
+                builder.resolve(placeholder, value)
             }
         }
 
