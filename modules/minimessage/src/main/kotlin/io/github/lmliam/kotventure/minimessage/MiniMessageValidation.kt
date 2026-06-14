@@ -117,10 +117,10 @@ private fun detectPlaceholderMismatches(
     val specNames = spec.map { it.name }.toSet()
     val recorder = RecordingTagResolver(specNames)
     val combined = TagResolver.resolver(TagResolver.standard(), recorder)
-    // The lenient parser is designed not to throw ParsingException, but Adventure's internals
-    // can still throw RuntimeException (e.g. StringIndexOutOfBoundsException) on certain
-    // edge-case malformed inputs (PaperMC/adventure#1011). Catch it so validate() never
-    // propagates an exception; the recording side-effects gathered so far remain usable.
+    // The lenient parser is designed not to throw ParsingException, but Adventure's parser
+    // internals can still throw RuntimeException (e.g. StringIndexOutOfBoundsException) on
+    // edge-case malformed inputs. Guard defensively so validate() never propagates an exception;
+    // the recording side-effects gathered so far remain usable.
     try {
         MiniMessage.miniMessage().deserialize(markup, combined)
     } catch (_: RuntimeException) {

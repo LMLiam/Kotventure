@@ -409,12 +409,10 @@ class MiniMessageValidationTest :
             // ---------------------------------------------------------------
 
             // Adventure's lenient parser can throw RuntimeException (e.g. StringIndexOutOfBoundsException)
-            // for certain edge-case inputs such as unclosed double-quotes in tag arguments
-            // (PaperMC/adventure#1011).  Reliably crafting such an input is version-dependent
-            // and may be silently fixed in a future Adventure release, so we verify the contract
-            // through the regular test suite passing without uncaught exceptions rather than a
-            // single fragile input.  The guard in detectPlaceholderMismatches catches RuntimeException
-            // so that validate() always returns ValidationResult rather than throwing.
+            // for certain edge-case malformed inputs. Reliably crafting such an input is
+            // version-dependent, so the contract (validate() never throws) is verified by running
+            // a range of inputs through the lenient-parse path without an uncaught exception.
+            // The guard in detectPlaceholderMismatches catches RuntimeException defensively.
             "validate returns a result rather than throwing for markup that is well-formed in lenient mode" {
                 // This exercises the lenient-parse path (Pass 2) for a variety of inputs; none
                 // should propagate an exception.
