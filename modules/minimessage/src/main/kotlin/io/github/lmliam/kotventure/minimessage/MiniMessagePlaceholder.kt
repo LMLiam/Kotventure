@@ -3,8 +3,8 @@ package io.github.lmliam.kotventure.minimessage
 import net.kyori.adventure.text.ComponentLike
 import kotlin.jvm.javaObjectType
 
-// Mirrors Adventure's TagPattern.TAG_NAME_REGEX so invalid names fail at declaration instead of first render.
-private val TAG_NAME_REGEX = Regex("[!?#]?[a-z0-9_-]*")
+// Reject invalid or blank names at declaration instead of first render.
+private val TAG_NAME_REGEX = Regex("[!?#]?[a-z0-9_-]+")
 
 /**
  * A typed MiniMessage placeholder descriptor.

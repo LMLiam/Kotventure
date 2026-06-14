@@ -3,6 +3,7 @@ package io.github.lmliam.kotventure.test.text
 import io.kotest.matchers.Matcher
 import io.kotest.matchers.MatcherResult
 import io.kotest.matchers.should
+import io.kotest.matchers.shouldNot
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.BlockNBTComponent
 import net.kyori.adventure.text.Component
@@ -29,6 +30,14 @@ import net.kyori.adventure.text.`object`.ObjectContents
 public infix fun Component.shouldContainText(expected: String): Component =
     apply {
         this should haveTextContent(expected)
+    }
+
+/**
+ * Asserts that this component tree does NOT contain [expected] in its text content.
+ */
+public infix fun Component.shouldNotContainText(expected: String): Component =
+    apply {
+        this shouldNot haveTextContent(expected)
     }
 
 /**
