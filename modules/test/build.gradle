@@ -6,4 +6,5 @@ description = 'Kotest matchers and testing utilities for Kotventure components.'
 dependencies {
     api project(':core')
     api kotventureDependencies."kotest-assertions-core"
+    implementation kotventureDependencies."kctfork-core"
 }

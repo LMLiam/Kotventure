@@ -1,9 +1,9 @@
 package io.github.lmliam.kotventure.minimessage
 
-import com.tschuchort.compiletesting.KotlinCompilation
-import com.tschuchort.compiletesting.SourceFile
 import io.github.lmliam.kotventure.core.text.component
+import io.github.lmliam.kotventure.test.compilation.assertDoesNotCompile
 import io.github.lmliam.kotventure.test.text.childAt
+import io.github.lmliam.kotventure.test.text.shouldContainComponent
 import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.github.lmliam.kotventure.test.text.shouldHaveChildCount
 import io.github.lmliam.kotventure.test.text.shouldHaveColor
@@ -16,7 +16,6 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
-import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 
 class MiniMessageDslTest :
     StringSpec(
@@ -149,7 +148,7 @@ class MiniMessageDslTest :
                     }
 
                 parsed shouldContainText "[chat] Alex has 2 invites"
-                parsed.containsComponent(playerComponent) shouldBe true
+                parsed shouldContainComponent playerComponent
             }
 
             "supports typed placeholders inside the component DSL" {
@@ -256,26 +255,3 @@ class MiniMessageDslTest :
             }
         },
     )
-
-@OptIn(ExperimentalCompilerApi::class)
-private fun assertDoesNotCompile(
-    fileName: String,
-    source: String,
-    vararg expectedMessages: String,
-) {
-    val compilation =
-        KotlinCompilation().apply {
-            inheritClassPath = true
-            sources = listOf(SourceFile.kotlin(fileName, source))
-        }
-
-    val result = compilation.compile()
-
-    result.exitCode shouldBe KotlinCompilation.ExitCode.COMPILATION_ERROR
-    expectedMessages.forEach { expectedMessage ->
-        result.messages shouldContain expectedMessage
-    }
-}
-
-private fun Component.containsComponent(expected: Component): Boolean =
-    this == expected || children().any { child -> child.containsComponent(expected) }

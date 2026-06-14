@@ -1,10 +1,9 @@
 package io.github.lmliam.kotventure.core.event
 
-import com.tschuchort.compiletesting.KotlinCompilation
-import com.tschuchort.compiletesting.SourceFile
 import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.style.style
 import io.github.lmliam.kotventure.core.text.component
+import io.github.lmliam.kotventure.test.compilation.assertDoesNotCompile
 import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldHaveClickAction
 import io.github.lmliam.kotventure.test.text.shouldHaveClickEvent
@@ -19,12 +18,10 @@ import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickCallback
 import net.kyori.adventure.text.event.ClickEvent
-import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import java.nio.file.Path
 import kotlin.time.Duration.Companion.minutes
 import java.time.Duration as JavaDuration
 
-@OptIn(ExperimentalCompilerApi::class)
 class ClickEventDslTest :
     StringSpec(
         {
@@ -457,23 +454,3 @@ private data class CompileFailureCase(
     val source: String,
     val expectedMessage: String,
 )
-
-@OptIn(ExperimentalCompilerApi::class)
-private fun assertDoesNotCompile(
-    fileName: String,
-    source: String,
-    expectedMessage: String? = null,
-) {
-    val compilation =
-        KotlinCompilation().apply {
-            inheritClassPath = true
-            sources = listOf(SourceFile.kotlin(fileName, source))
-        }
-
-    val result = compilation.compile()
-
-    result.exitCode shouldBe KotlinCompilation.ExitCode.COMPILATION_ERROR
-    if (expectedMessage != null) {
-        result.messages shouldContain expectedMessage
-    }
-}

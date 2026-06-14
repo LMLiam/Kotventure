@@ -7,5 +7,4 @@ dependencies {
     api kotventureDependencies."adventure-api"
 
     testImplementation project(':test')
-    testImplementation kotventureDependencies."kctfork-core"
 }
