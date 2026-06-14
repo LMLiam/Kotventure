@@ -312,6 +312,99 @@ val forSam = WelcomeTemplate {
 //   → IllegalArgumentException: Template is missing required placeholder(s): [count].
 ```
 
+`validate(markup, spec)` checks a MiniMessage string against a declared placeholder spec and returns a structured
+`ValidationResult` — no exception escapes to the caller. It runs two passes: a strict-mode parse that catches malformed
+or unclosed tags, and a recording parse that cross-checks which placeholder tags appear in the markup. Note that strict
+mode requires all standard child-allowing tags (such as `<gold>`) to be explicitly closed; an unclosed standard tag is
+reported as a `MalformedTag` diagnostic.
+
+```kotlin
+import io.github.lmliam.kotventure.minimessage.placeholder
+import io.github.lmliam.kotventure.minimessage.validate
+import io.github.lmliam.kotventure.minimessage.validation.MiniMessageDiagnostic
+import io.github.lmliam.kotventure.minimessage.validation.ValidationResult
+import net.kyori.adventure.text.Component
+
+val player = placeholder<Component>("player")
+val count = placeholder<Int>("count")
+
+// Success — well-formed markup, all placeholders present, standard tags closed
+val result = validate(
+    markup = "<gold>Welcome <player></gold>, you have <count> messages",
+    spec = listOf(player, count),
+)
+// result == ValidationResult.Success
+
+// MissingPlaceholder — 'count' declared in spec but absent from markup
+val missingResult = validate(
+    markup = "<gold>Welcome <player></gold>",
+    spec = listOf(player, count),
+)
+// missingResult == ValidationResult.Failure(
+//   diagnostics = [MissingPlaceholder("count")]
+// )
+
+// MalformedTag — '<gold>' opened but not closed (strict mode)
+val malformedResult = validate(
+    markup = "<gold>Hello world",
+    spec = listOf(player),
+)
+// malformedResult == ValidationResult.Failure(
+//   diagnostics = [
+//     MalformedTag("...", startIndex, endIndex),  // unclosed <gold>
+//     MissingPlaceholder("player"),               // declared but absent from markup
+//   ]
+// )
+
+// ExtraPlaceholder — '<mystery>' tag in markup has no spec entry
+val extraResult = validate(
+    markup = "<gold>Hello <player></gold> <mystery>",
+    spec = listOf(player),
+)
+// extraResult == ValidationResult.Failure(
+//   diagnostics = [ExtraPlaceholder("mystery")]
+// )
+
+// Inspect diagnostics with an exhaustive when
+when (val r = missingResult) {
+    is ValidationResult.Success -> println("All good!")
+    is ValidationResult.Failure -> {
+        for (diag in r.diagnostics) {
+            when (diag) {
+                is MiniMessageDiagnostic.MalformedTag ->
+                    println("Malformed tag at [${diag.startIndex}–${diag.endIndex}]: ${diag.message}")
+                is MiniMessageDiagnostic.MissingPlaceholder ->
+                    println("Missing placeholder: <${diag.name}>")
+                is MiniMessageDiagnostic.ExtraPlaceholder ->
+                    println("Extra placeholder: <${diag.name}>")
+            }
+        }
+    }
+}
+```
+
+`MiniTemplate.validate()` is a convenience extension that validates a template's own markup against its declared
+placeholders without needing to pass the spec manually:
+
+```kotlin
+import io.github.lmliam.kotventure.minimessage.MiniTemplate
+import io.github.lmliam.kotventure.minimessage.placeholder
+import io.github.lmliam.kotventure.minimessage.validate
+import net.kyori.adventure.text.Component
+
+object WelcomeTemplate : MiniTemplate("<gold>Welcome <player>, <count> new messages</gold>") {
+    val player = placeholder<Component>("player")
+    val count = placeholder<Int>("count")
+}
+
+val templateResult = WelcomeTemplate.validate()
+// templateResult == ValidationResult.Success
+```
+
+Diagnostic ordering in `ValidationResult.Failure.diagnostics`: malformed-tag diagnostics appear first, then missing
+placeholders in spec declaration order, then extra placeholders in the order they were encountered in the markup.
+`result.isSuccess` and `result.isFailure` are available as extension properties for concise checks.
+
 Join a list of components using `Iterable<Component>.join { }`, with optional separator, `lastSeparator`, `prefix`, and
 `suffix` knobs that each accept a string-plus-styling block or a prebuilt component:
 
