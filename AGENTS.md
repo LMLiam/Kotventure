@@ -116,7 +116,7 @@ Before sketching any public surface (and **before posting an implementation plan
 
 - Every builder must produce a **valid Adventure object** — verify by constructing and asserting on the real `net.kyori`
   type.
-- See the skill `kyori-adventure-reference` before using an API you're unsure of — **do not guess API shapes.**
+- See the skill `adventure-reference` before using an API you're unsure of — **do not guess API shapes.**
 
 ## 6. Testing
 
@@ -145,12 +145,12 @@ Before sketching any public surface (and **before posting an implementation plan
 
 ## 9. Project skills
 
-Reusable playbooks live in [`.agents/skills/`](.agents/skills/). Consult them:
+Reusable playbooks — available via the `Skill` tool (Claude Code: `.claude/skills/`) or the `skill` tool (Copilot/Codex: `.agents/skills/`):
 
 - **`adding-a-dsl-feature`** — the end-to-end workflow for a new DSL feature.
 - **`idiomatic-kotlin-dsl`** — **required reading before designing or planning any API surface**: the resolution
   ladder (property → delegate → typed key → string), the design pressure-test, and DSL idioms with do/don't examples.
-- **`kyori-adventure-reference`** — a map of the Adventure API so you don't hallucinate types.
+- **`adventure-reference`** — a map of the Adventure API so you don't hallucinate types.
 - **`writing-component-tests`** — Kotest + the component matchers + snapshots.
 
 ## 10. Don't touch without a reason tied to your issue
