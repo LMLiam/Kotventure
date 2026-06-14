@@ -40,4 +40,15 @@ public interface MiniMessageResolverScope {
         name: String,
         init: ComponentScope.() -> Unit,
     ): Unit
+
+    /**
+     * Resolves [placeholder] to [value] using the placeholder's typed binding strategy.
+     *
+     * [String], [Number], and [Boolean] values are inserted as literal text. [ComponentLike] values are inserted as
+     * component placeholders.
+     */
+    public fun <T : Any> resolve(
+        placeholder: MiniMessagePlaceholder<T>,
+        value: T,
+    ): Unit
 }

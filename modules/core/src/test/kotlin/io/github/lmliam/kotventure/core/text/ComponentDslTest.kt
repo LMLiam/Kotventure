@@ -1,8 +1,7 @@
 package io.github.lmliam.kotventure.core.text
 
-import com.tschuchort.compiletesting.KotlinCompilation
-import com.tschuchort.compiletesting.SourceFile
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
+import io.github.lmliam.kotventure.test.compilation.assertDoesNotCompile
 import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldBeBlockNbtComponent
 import io.github.lmliam.kotventure.test.text.shouldBeEntityNbtComponent
@@ -28,16 +27,13 @@ import io.github.lmliam.kotventure.test.text.shouldHaveTranslationKey
 import io.github.lmliam.kotventure.test.text.shouldNotHaveDecoration
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.BlockNBTComponent
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.Style
 import net.kyori.adventure.text.format.TextDecoration
-import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 
-@OptIn(ExperimentalCompilerApi::class)
 class ComponentDslTest :
     StringSpec(
         {
@@ -315,94 +311,73 @@ class ComponentDslTest :
             }
 
             "prevents implicit outer scope access in Kotventure-marked DSL blocks" {
-                val source =
-                    """
-                    import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
-                    import io.github.lmliam.kotventure.core.text.component
+                assertDoesNotCompile(
+                    fileName = "DslMarkerScopeTest.kt",
+                    source =
+                        """
+                        import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
+                        import io.github.lmliam.kotventure.core.text.component
 
-                    @KotventureDslMarker
-                    class OuterScope {
-                        fun outerOnly() {
-                        }
-                    }
-
-                    fun outer(init: OuterScope.() -> Unit) {
-                        OuterScope().init()
-                    }
-
-                    fun shouldNotCompile() {
-                        outer {
-                            component {
-                                outerOnly()
+                        @KotventureDslMarker
+                        class OuterScope {
+                            fun outerOnly() {
                             }
                         }
-                    }
-                    """.trimIndent()
 
-                val compilation =
-                    KotlinCompilation().apply {
-                        inheritClassPath = true
-                        sources = listOf(SourceFile.kotlin("DslMarkerScopeTest.kt", source))
-                    }
-
-                val result = compilation.compile()
-
-                result.exitCode shouldBe KotlinCompilation.ExitCode.COMPILATION_ERROR
-                result.messages shouldContain "implicit receiver"
-            }
-
-            "prevents text content access from the generic component root" {
-                val source =
-                    """
-                    import io.github.lmliam.kotventure.core.text.component
-
-                    fun shouldNotCompile() {
-                        component {
-                            content("root text")
+                        fun outer(init: OuterScope.() -> Unit) {
+                            OuterScope().init()
                         }
-                    }
-                    """.trimIndent()
 
-                val compilation =
-                    KotlinCompilation().apply {
-                        inheritClassPath = true
-                        sources = listOf(SourceFile.kotlin("ComponentRootScopeTest.kt", source))
-                    }
-
-                val result = compilation.compile()
-
-                result.exitCode shouldBe KotlinCompilation.ExitCode.COMPILATION_ERROR
-                result.messages shouldContain "Unresolved reference 'content'"
-            }
-
-            "prevents text scope access inside style blocks" {
-                val source =
-                    """
-                    import io.github.lmliam.kotventure.core.text.component
-                    import net.kyori.adventure.text.format.NamedTextColor
-
-                    fun shouldNotCompile() {
-                        component {
-                            text {
-                                style {
-                                    color(NamedTextColor.GOLD)
-                                    content("leaked")
+                        fun shouldNotCompile() {
+                            outer {
+                                component {
+                                    outerOnly()
                                 }
                             }
                         }
-                    }
-                    """.trimIndent()
+                        """.trimIndent(),
+                    "implicit receiver",
+                )
+            }
 
-                val compilation =
-                    KotlinCompilation().apply {
-                        inheritClassPath = true
-                        sources = listOf(SourceFile.kotlin("StyleScopeLeakTest.kt", source))
-                    }
+            "prevents text content access from the generic component root" {
+                assertDoesNotCompile(
+                    fileName = "ComponentRootScopeTest.kt",
+                    source =
+                        """
+                        import io.github.lmliam.kotventure.core.text.component
 
-                val result = compilation.compile()
+                        fun shouldNotCompile() {
+                            component {
+                                content("root text")
+                            }
+                        }
+                        """.trimIndent(),
+                    "Unresolved reference 'content'",
+                )
+            }
 
-                result.exitCode shouldBe KotlinCompilation.ExitCode.COMPILATION_ERROR
-                result.messages shouldContain "implicit receiver"
+            "prevents text scope access inside style blocks" {
+                assertDoesNotCompile(
+                    fileName = "StyleScopeLeakTest.kt",
+                    source =
+                        """
+                        import io.github.lmliam.kotventure.core.text.component
+                        import net.kyori.adventure.text.format.NamedTextColor
+
+                        fun shouldNotCompile() {
+                            component {
+                                text {
+                                    style {
+                                        color(NamedTextColor.GOLD)
+                                        content("leaked")
+                                    }
+                                }
+                            }
+                        }
+                        """.trimIndent(),
+                    "implicit receiver",
+                )
             }
 
             "builds a component tree when nested scopes stay explicit" {

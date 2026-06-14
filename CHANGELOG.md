@@ -130,6 +130,8 @@ once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land i
 
 ### Added
 
+- Typed MiniMessage placeholders via `placeholder<T>(name)` and `resolve(...)`, covering component, string, numeric,
+  and boolean values.
 - MiniMessage passthrough parsing via `kotventure-minimessage`, including `mini(...)`, placeholder resolvers for parsed,
   unparsed, and component values, and `ComponentScope.mini(...)` integration for use inside the core DSL.
 - Text DSL composition helpers: `append(Component)`, `newline()`, and inline `style { }` blocks for the current
