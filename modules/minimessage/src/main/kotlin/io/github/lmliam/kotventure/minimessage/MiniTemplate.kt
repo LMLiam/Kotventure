@@ -2,6 +2,8 @@ package io.github.lmliam.kotventure.minimessage
 
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
+import io.github.lmliam.kotventure.minimessage.placeholder as createPlaceholder
 
 /**
  * Base class for typed, reusable MiniMessage templates.
@@ -9,14 +11,19 @@ import net.kyori.adventure.text.minimessage.MiniMessage
  * Subclass as an `object` to declare a template with compile-checked typed placeholder properties:
  *
  * ```kotlin
+ * import io.github.lmliam.kotventure.minimessage.MiniTemplate
+ * import io.github.lmliam.kotventure.minimessage.bind
+ * import io.github.lmliam.kotventure.minimessage.invoke
+ * import net.kyori.adventure.text.Component
+ *
  * object WelcomeTemplate : MiniTemplate("<gold>Welcome <player>, <count> new messages") {
  *     val player = placeholder<Component>("player")
  *     val count = placeholder<Int>("count")
  * }
  *
  * val forAlex = WelcomeTemplate {
- *     bind(WelcomeTemplate.player, Component.text("Alex"))
- *     bind(WelcomeTemplate.count, 3)
+ *     bind(player, Component.text("Alex"))
+ *     bind(count, 3)
  * }
  * ```
  *
@@ -53,25 +60,25 @@ public abstract class MiniTemplate(
      * `val x = placeholder<T>("x")`.
      *
      * Returns the descriptor unchanged so it can be stored as a `val` and referenced at render time.
-     * `inline reified` so it can delegate to the public top-level [placeholder] factory from #26,
+     * `inline reified` so it can delegate to the top-level [createPlaceholder] factory from #26,
      * forwarding the reified type without requiring a `Class` or `KClass` argument. The member is
      * non-`open`, satisfying the Kotlin requirement that `inline` members are not virtual.
      *
      * @param T the value type that must be supplied when binding this placeholder; must belong to
      *   one of the supported families: [net.kyori.adventure.text.ComponentLike], [String],
      *   [Number], or [Boolean].
-     * @param name the MiniMessage tag name that this placeholder resolves in the markup.
+     * @param name the string argument that defines both the MiniMessage tag resolved in the markup
+     *   and the name by which the descriptor is tracked; the returned `val` gives compile-checked
+     *   scoped access to the descriptor.
      * @return the registered [MiniMessagePlaceholder] descriptor.
      * @throws IllegalArgumentException when [name] is already declared on this template, when [T]
      *   is outside the supported value families, or when [name] is not a valid MiniMessage tag name.
      */
     protected inline fun <reified T : Any> placeholder(name: String): MiniMessagePlaceholder<T> =
-        // Fully-qualified call to the public top-level factory avoids the unqualified call resolving
-        // back to this member inside a subclass body (members win over top-level functions in scope).
-        register(
-            io.github.lmliam.kotventure.minimessage
-                .placeholder<T>(name),
-        )
+        // Import alias `createPlaceholder` refers to the public top-level factory; avoids the
+        // unqualified call resolving back to this member inside a subclass body (members win over
+        // top-level functions in scope).
+        register(createPlaceholder<T>(name))
 
     /**
      * Records [descriptor] in the declared-placeholder set, rejecting duplicate names. Non-inline
@@ -91,32 +98,73 @@ public abstract class MiniTemplate(
     }
 
     /**
-     * Renders this template by binding every required placeholder via [bind], then deserializing the
-     * markup with the built [net.kyori.adventure.text.minimessage.tag.resolver.TagResolver].
+     * Deserializes [markup] with [resolver] and returns a fresh [Component].
      *
-     * Validates that every declared placeholder was bound before rendering; throws
-     * [IllegalArgumentException] listing the missing name(s). Also rejects binding a placeholder not
-     * declared on this template.
-     *
-     * Double-binding the same placeholder within one call follows first-wins semantics — the natural
-     * default of [net.kyori.adventure.text.minimessage.tag.resolver.TagResolver.resolver].
-     *
-     * @param bind lambda that receives a [MiniTemplateBindingScope] to supply placeholder values.
-     * @return a fresh [Component] for this render call; independent of all prior and future renders.
-     * @throws IllegalArgumentException when any declared placeholder is not bound, or when [bind]
-     *   attempts to bind a placeholder not declared on this template.
+     * Called by the top-level [invoke] extension after validating all bindings. The method is
+     * `internal` rather than `private` so the extension function can reach it without reflection,
+     * while keeping the low-level deserialization detail out of the public surface.
      */
-    public operator fun invoke(bind: MiniTemplateBindingScope.() -> Unit): Component {
-        val builder = MiniMessageResolverBuilder()
-        val boundNames = mutableSetOf<String>()
+    internal fun deserialize(resolver: TagResolver): Component = miniMessage.deserialize(markup, resolver)
 
-        val scope =
-            object : MiniTemplateBindingScope {
-            override fun <T : Any> bind(
-                placeholder: MiniMessagePlaceholder<T>,
-                value: T,
+    /**
+     * The names of every placeholder this template declares, in declaration order.
+     *
+     * Useful for introspection or for generating helpful error messages in higher-level utilities.
+     */
+    public val requiredPlaceholders: Set<String>
+        get() = placeholders.keys.toSet()
+}
+
+/**
+ * Binds [value] to [placeholder] inside a [MiniTemplate] render lambda.
+ *
+ * The concrete template is the extension receiver, which keeps template placeholder properties in
+ * scope, while the context parameter supplies the per-render state used by
+ * [MiniTemplateBindingScope.bind].
+ *
+ * @param placeholder a descriptor declared on this template.
+ * @param value the value to substitute for [placeholder].
+ */
+context(_: MiniTemplateBindingScope) public fun <T : Any> MiniTemplate.bind(
+    placeholder: MiniMessagePlaceholder<T>,
+    value: T,
+): Unit = contextOf<MiniTemplateBindingScope>().bind(placeholder, value)
+
+/**
+ * Renders this template by binding every required placeholder via [bind], then deserializing the
+ * markup with the built [TagResolver].
+ *
+ * The render lambda uses the concrete template as its receiver and carries a
+ * [MiniTemplateBindingScope] context parameter, so placeholder descriptors declared on the template
+ * (e.g. `player`, `count`) are accessible unqualified while [bind] is available in the same block.
+ *
+ * Per-render state (the resolver builder and bound-name set) is created fresh on each call and
+ * never touches the shared template object, preserving thread-safety and declare-once semantics.
+ *
+ * Validates that every declared placeholder was bound before rendering; throws
+ * [IllegalArgumentException] listing the missing name(s). Also rejects binding a placeholder not
+ * declared on this template, or a descriptor from a different template that happens to share a name.
+ *
+ * Double-binding the same placeholder within one call follows first-wins semantics — the natural
+ * default of [TagResolver.resolver].
+ *
+ * @param block lambda that receives the template [T] as receiver and a [MiniTemplateBindingScope]
+ *   as context.
+ * @return a fresh [Component] for this render call; independent of all prior and future renders.
+ * @throws IllegalArgumentException when any declared placeholder is not bound, or when [block]
+ *   attempts to bind a placeholder not declared on this template (checked by descriptor identity).
+ */
+public operator fun <T : MiniTemplate> T.invoke(block: context(MiniTemplateBindingScope) T.() -> Unit): Component {
+    val builder = MiniMessageResolverBuilder()
+    val boundNames = mutableSetOf<String>()
+
+    val scope =
+        object : MiniTemplateBindingScope {
+            override fun <V : Any> bind(
+                placeholder: MiniMessagePlaceholder<V>,
+                value: V,
             ) {
-                require(placeholders.containsKey(placeholder.name)) {
+                require(placeholders[placeholder.name] === placeholder) {
                     "Placeholder '${placeholder.name}' is not declared on this template. " +
                         "Declared placeholders: ${placeholders.keys}."
                 }
@@ -127,21 +175,12 @@ public abstract class MiniTemplate(
             }
         }
 
-        scope.bind()
+    context(scope) { block() }
 
-        val missing = placeholders.keys - boundNames
-        require(missing.isEmpty()) {
-            "Template is missing required placeholder(s): $missing."
-        }
-
-        return miniMessage.deserialize(markup, builder.build())
+    val missing = placeholders.keys - boundNames
+    require(missing.isEmpty()) {
+        "Template is missing required placeholder(s): $missing."
     }
 
-    /**
-     * The names of every placeholder this template declares, in declaration order.
-     *
-     * Useful for introspection or for generating helpful error messages in higher-level utilities.
-     */
-    public val requiredPlaceholders: Set<String>
-        get() = placeholders.keys.toSet()
+    return deserialize(builder.build())
 }

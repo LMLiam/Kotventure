@@ -1,6 +1,7 @@
 package io.github.lmliam.kotventure.minimessage
 
 import io.github.lmliam.kotventure.test.compilation.assertDoesNotCompile
+import io.github.lmliam.kotventure.test.text.shouldContainComponent
 import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.github.lmliam.kotventure.test.text.shouldHaveColor
 import io.github.lmliam.kotventure.test.text.shouldNotContainText
@@ -28,6 +29,16 @@ private object SparseTemplate : MiniTemplate("<gold>Hello <name>") {
     val unused = placeholder<Int>("unused")
 }
 
+// Cross-template fixture: declares a "player" placeholder of a DIFFERENT type than WelcomeTemplate.
+private object AltTemplate : MiniTemplate("<red>Alt <player>") {
+    val player = placeholder<String>("player")
+}
+
+// Cross-template fixture: declares a structurally equal "player" descriptor to WelcomeTemplate.
+private object SameTypeAltTemplate : MiniTemplate("<red>Alt <player>") {
+    val player = placeholder<Component>("player")
+}
+
 class MiniTemplateTest :
     StringSpec(
         {
@@ -39,7 +50,7 @@ class MiniTemplateTest :
                 val error =
                     shouldThrow<IllegalArgumentException> {
                         WelcomeTemplate {
-                            bind(WelcomeTemplate.player, Component.text("Alex"))
+                            bind(player, Component.text("Alex"))
                             // count intentionally omitted
                         }
                     }
@@ -63,8 +74,8 @@ class MiniTemplateTest :
                 val error =
                     shouldThrow<IllegalArgumentException> {
                         WelcomeTemplate {
-                            bind(WelcomeTemplate.player, Component.text("Alex"))
-                            bind(WelcomeTemplate.count, 1)
+                            bind(player, Component.text("Alex"))
+                            bind(count, 1)
                             @Suppress("UNCHECKED_CAST")
                             bind(outsider as MiniMessagePlaceholder<Component>, Component.text("x"))
                         }
@@ -74,20 +85,55 @@ class MiniTemplateTest :
             }
 
             // ---------------------------------------------------------------
+            // Priority 2 — Descriptor identity: same name, different template
+            // ---------------------------------------------------------------
+
+            "throws IllegalArgumentException when binding another template's same-named descriptor" {
+                // WelcomeTemplate.player is placeholder<Component>("player")
+                // AltTemplate.player     is placeholder<String>("player")
+                // Binding AltTemplate.player inside WelcomeTemplate must be rejected by identity,
+                // even though the names match, because they are different descriptor objects.
+                val error =
+                    shouldThrow<IllegalArgumentException> {
+                        WelcomeTemplate {
+                            @Suppress("UNCHECKED_CAST")
+                            bind(AltTemplate.player as MiniMessagePlaceholder<Component>, Component.text("Alex"))
+                            bind(count, 1)
+                        }
+                    }
+
+                error.message shouldContain "player"
+                error.message shouldContain "not declared on this template"
+            }
+
+            "throws IllegalArgumentException when binding another template's structurally equal descriptor" {
+                val error =
+                    shouldThrow<IllegalArgumentException> {
+                        WelcomeTemplate {
+                            bind(SameTypeAltTemplate.player, Component.text("Alex"))
+                            bind(count, 1)
+                        }
+                    }
+
+                error.message shouldContain "player"
+                error.message shouldContain "not declared on this template"
+            }
+
+            // ---------------------------------------------------------------
             // AC2 — Reuse correctness: two independent, correct components
             // ---------------------------------------------------------------
 
             "renders correct component for each of two independent invocations" {
                 val forAlex =
                     WelcomeTemplate {
-                        bind(WelcomeTemplate.player, Component.text("Alex", NamedTextColor.GREEN))
-                        bind(WelcomeTemplate.count, 3)
+                        bind(player, Component.text("Alex", NamedTextColor.GREEN))
+                        bind(count, 3)
                     }
 
                 val forSam =
                     WelcomeTemplate {
-                        bind(WelcomeTemplate.player, Component.text("Sam", NamedTextColor.RED))
-                        bind(WelcomeTemplate.count, 0)
+                        bind(player, Component.text("Sam", NamedTextColor.RED))
+                        bind(count, 0)
                     }
 
                 // Gold color is applied to the root component by the <gold> tag.
@@ -109,18 +155,14 @@ class MiniTemplateTest :
 
                 val rendered =
                     WelcomeTemplate {
-                        bind(WelcomeTemplate.player, alex)
-                        bind(WelcomeTemplate.count, 5)
+                        bind(player, alex)
+                        bind(count, 5)
                     }
 
-                // The bound component appears as a direct child within the rendered tree.
+                // The bound component appears as a node in the rendered tree (structural equality).
                 rendered shouldContainText "Alex"
                 rendered shouldHaveColor NamedTextColor.GOLD
-
-                // Locate the child that IS the bound component and verify its color.
-                val childrenFlat = buildList { collectChildren(rendered, this) }
-                val alexChild = childrenFlat.firstOrNull { it == alex }
-                alexChild shouldBe alex
+                rendered shouldContainComponent alex
             }
 
             // ---------------------------------------------------------------
@@ -129,8 +171,6 @@ class MiniTemplateTest :
 
             "does not compile when an Int placeholder is bound with a String value" {
                 // Test the type safety of MiniTemplateBindingScope.bind via the public interface.
-                // Using placeholder<T>() top-level (matching the existing compile-fail test pattern)
-                // to avoid calling the protected inline member inside a subclass body in the snippet.
                 assertDoesNotCompile(
                     fileName = "TemplateIntStringMismatch.kt",
                     source =
@@ -166,6 +206,33 @@ class MiniTemplateTest :
                     "Argument type mismatch",
                     "Int",
                     "Component",
+                )
+            }
+
+            // ---------------------------------------------------------------
+            // AC3 — Scope safety: placeholder() is NOT callable inside the render lambda
+            // ---------------------------------------------------------------
+
+            "does not compile when placeholder() is called inside the render lambda" {
+                // The protected placeholder() member must be inaccessible at the render site.
+                // User code in the render lambda is NOT inside a subclass body, so `protected`
+                // blocks the call even though the template type is a context receiver.
+                assertDoesNotCompile(
+                    fileName = "TemplatePlaceholderAtRenderSite.kt",
+                    source =
+                        """
+                        import io.github.lmliam.kotventure.minimessage.MiniTemplate
+                        import io.github.lmliam.kotventure.minimessage.invoke
+
+                        private object ScopeTestTemplate : MiniTemplate("<gold><name>") { }
+
+                        fun test() {
+                            ScopeTestTemplate {
+                                placeholder<Int>("x")
+                            }
+                        }
+                        """.trimIndent(),
+                    "Cannot access",
                 )
             }
 
@@ -208,10 +275,10 @@ class MiniTemplateTest :
             "uses the first bound value when the same placeholder is bound twice" {
                 val firstWins =
                     WelcomeTemplate {
-                        bind(WelcomeTemplate.player, Component.text("First", NamedTextColor.GREEN))
-                        bind(WelcomeTemplate.count, 1)
+                        bind(player, Component.text("First", NamedTextColor.GREEN))
+                        bind(count, 1)
                         // Second bind for player — should be silently ignored (first-wins).
-                        bind(WelcomeTemplate.player, Component.text("Second", NamedTextColor.RED))
+                        bind(player, Component.text("Second", NamedTextColor.RED))
                     }
 
                 firstWins shouldContainText "First"
@@ -228,7 +295,7 @@ class MiniTemplateTest :
                 val error =
                     shouldThrow<IllegalArgumentException> {
                         WelcomeTemplate {
-                            bind(WelcomeTemplate.count, 99)
+                            bind(count, 99)
                             // player intentionally omitted
                         }
                     }
@@ -245,8 +312,8 @@ class MiniTemplateTest :
                 // SparseTemplate declares 'unused' which does not appear in "<gold>Hello <name>".
                 val rendered =
                     SparseTemplate {
-                        bind(SparseTemplate.name, "Alex")
-                        bind(SparseTemplate.unused, 99)
+                        bind(name, "Alex")
+                        bind(unused, 99)
                     }
 
                 rendered shouldContainText "Alex"
@@ -262,14 +329,14 @@ class MiniTemplateTest :
             }
 
             // ---------------------------------------------------------------
-            // Child structure assertion helper (inline, no logic in test body)
+            // Child structure assertion
             // ---------------------------------------------------------------
 
             "renders a multi-segment component with the player and count inline" {
                 val rendered =
                     WelcomeTemplate {
-                        bind(WelcomeTemplate.player, Component.text("Alex"))
-                        bind(WelcomeTemplate.count, 7)
+                        bind(player, Component.text("Alex"))
+                        bind(count, 7)
                     }
 
                 // Root carries the <gold> colour; text is contained across the tree.
@@ -280,16 +347,3 @@ class MiniTemplateTest :
             }
         },
     )
-
-// ---------------------------------------------------------------------------
-// Private helper — collects all components in the tree (root + descendants).
-// Used only in the "children with bound component placeholder" test above.
-// ---------------------------------------------------------------------------
-
-private fun collectChildren(
-    component: Component,
-    into: MutableList<Component>,
-) {
-    into += component
-    component.children().forEach { collectChildren(it, into) }
-}

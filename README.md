@@ -280,29 +280,35 @@ val nested = component {
 ```
 
 For messages that are rendered many times with different values, declare a typed template once and reuse it. Each
-placeholder is a compile-checked `val` whose name drives the MiniMessage tag; value types are enforced at the call site;
-and missing bindings fail with a helpful message listing what was omitted:
+placeholder is a compile-checked `val`; the string argument passed to `placeholder(...)` defines the MiniMessage tag,
+the `val` gives scoped typed access for `bind(placeholder, value)`, and missing bindings fail with a helpful message
+listing what was omitted:
 
 ```kotlin
+import io.github.lmliam.kotventure.minimessage.MiniTemplate
+import io.github.lmliam.kotventure.minimessage.bind
+import io.github.lmliam.kotventure.minimessage.invoke
+import net.kyori.adventure.text.Component
+
 object WelcomeTemplate : MiniTemplate("<gold>Welcome <player>, <count> new messages") {
     val player = placeholder<Component>("player")
     val count = placeholder<Int>("count")
 }
 
 val forAlex = WelcomeTemplate {
-    bind(WelcomeTemplate.player, Component.text("Alex"))
-    bind(WelcomeTemplate.count, 3)
+    bind(player, Component.text("Alex"))
+    bind(count, 3)
 }
 val forSam = WelcomeTemplate {
-    bind(WelcomeTemplate.player, Component.text("Sam"))
-    bind(WelcomeTemplate.count, 0)
+    bind(player, Component.text("Sam"))
+    bind(count, 0)
 }
 
 // Compile error — wrong value type:
-//   WelcomeTemplate { bind(WelcomeTemplate.count, "three") }   // String is not Int
+//   WelcomeTemplate { bind(count, "three") }   // String is not Int
 
 // Use-time error — forgot a placeholder:
-//   WelcomeTemplate { bind(WelcomeTemplate.player, Component.text("Alex")) }
+//   WelcomeTemplate { bind(player, Component.text("Alex")) }
 //   → IllegalArgumentException: Template is missing required placeholder(s): [count].
 ```
 
