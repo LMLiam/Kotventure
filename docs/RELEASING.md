@@ -33,7 +33,8 @@ release bot behind `RELEASE_PLEASE_TOKEN` to create and update the Release PR br
 only after the required checks pass.
 
 If branch protection requires all PR checks, use `RELEASE_PLEASE_TOKEN` so the Release PR triggers the same CI workflows
-as human-authored PRs. If the repository falls back to `GITHUB_TOKEN`, release-please can still open PRs, but GitHub will
+as human-authored PRs. If the repository falls back to `GITHUB_TOKEN`, release-please can still open PRs, but GitHub
+will
 suppress workflows triggered by that token's PR, tag, and release events.
 
 ## Publishing Coordination
