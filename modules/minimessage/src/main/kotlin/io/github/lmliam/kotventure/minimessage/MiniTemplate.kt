@@ -35,7 +35,7 @@ import io.github.lmliam.kotventure.minimessage.placeholder as createPlaceholder
  * @throws IllegalArgumentException when [markup] is blank.
  */
 public abstract class MiniTemplate(
-    private val markup: String,
+    internal val markup: String,
 ) {
     init {
         require(markup.isNotBlank()) { "MiniMessage template markup must not be blank." }
