@@ -36,19 +36,19 @@ This project aims to:
 
 ## 📦 Modules (target architecture)
 
-| Module                          | Purpose                                                                          |
-|---------------------------------|----------------------------------------------------------------------------------|
-| `core`                          | Component / style / colour DSL, themes, audience-send DSL                        |
-| `serializer`                    | Optional Adventure serializer extension functions                                |
-| `minimessage`                   | Typed MiniMessage templates, validation, MiniMessage ⇄ DSL converter             |
-| `i18n`                          | Translation registry + per-player locale DSL                                     |
-| `test`                          | Kotest/JUnit component matchers + snapshot testing                               |
-| `ansi`                          | Render a `Component` to coloured terminal output                                 |
-| `coroutines`                    | suspend click-callbacks, async sending, animation scheduling                     |
-| `paper` / `velocity` / `fabric` | Platform adapters & extras                                                       |
-| `ksp`                           | Typed message-catalog codegen + compile-time validation                          |
-| `gradle-plugin`                 | Validate / pre-compile MiniMessage resource bundles at build time                |
-| `bom`                           | Bill of materials for aligning Kotventure and Adventure module versions          |
+| Module                          | Purpose                                                                 |
+|---------------------------------|-------------------------------------------------------------------------|
+| `core`                          | Component / style / colour DSL, themes, audience-send DSL               |
+| `serializer`                    | Optional Adventure serializer extension functions                       |
+| `minimessage`                   | Typed MiniMessage templates, validation, MiniMessage ⇄ DSL converter    |
+| `i18n`                          | Translation registry + per-player locale DSL                            |
+| `test`                          | Kotest/JUnit component matchers + snapshot testing                      |
+| `ansi`                          | Render a `Component` to coloured terminal output                        |
+| `coroutines`                    | suspend click-callbacks, async sending, animation scheduling            |
+| `paper` / `velocity` / `fabric` | Platform adapters & extras                                              |
+| `ksp`                           | Typed message-catalog codegen + compile-time validation                 |
+| `gradle-plugin`                 | Validate / pre-compile MiniMessage resource bundles at build time       |
+| `bom`                           | Bill of materials for aligning Kotventure and Adventure module versions |
 
 See [`docs/DESIGN.md`](docs/DESIGN.md) for the full design and the [Roadmap](docs/ROADMAP.md) for sequencing.
 
@@ -323,7 +323,8 @@ val forSam = WelcomeTemplate {
 
 `validate(input, placeholders)` checks a MiniMessage string against a declared set of placeholders and returns a
 structured `ValidationResult` — no exception escapes to the caller. It runs two passes: a strict-mode parse that catches
-malformed or unclosed tags, and a recording parse that cross-checks which placeholder tags appear in the input. Note that
+malformed or unclosed tags, and a recording parse that cross-checks which placeholder tags appear in the input. Note
+that
 strict mode requires all standard child-allowing tags (such as `<gold>`) to be explicitly closed; an unclosed standard
 tag is reported as a `MalformedTag` diagnostic.
 
@@ -495,7 +496,8 @@ val plain = message.toPlainText()
 
 `kotventure-test` starts the testing toolkit with structural component matchers such as `shouldContainText`,
 `shouldHaveColor`, `shouldHaveDecoration`, `shouldNotHaveDecoration`, `shouldHaveChildCount`, and translatable-specific
-assertions for keys, fallbacks, and arguments. It also includes keybind, score, selector, object component, block, entity,
+assertions for keys, fallbacks, and arguments. It also includes keybind, score, selector, object component, block,
+entity,
 and storage NBT assertions for the smaller component DSLs, plus click-event and hover-event assertions for all
 components.
 

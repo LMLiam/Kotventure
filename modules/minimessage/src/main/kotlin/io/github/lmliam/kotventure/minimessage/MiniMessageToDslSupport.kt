@@ -49,6 +49,7 @@ internal object MiniMessageToDslSupport {
                 val entity = hover.value() as HoverEvent.ShowEntity
                 entity.name()?.let { name -> requireSupported(name) }
             }
+
             else -> Unit
         }
     }

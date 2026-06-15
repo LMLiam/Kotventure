@@ -30,9 +30,9 @@ internal object MiniMessageToDslWriter {
 
     private fun Component.isEmptyComponent(): Boolean =
         this is TextComponent &&
-            content().isEmpty() &&
-            children().isEmpty() &&
-            !MiniMessageToDslSupport.hasDslOutput(style())
+                content().isEmpty() &&
+                children().isEmpty() &&
+                !MiniMessageToDslSupport.hasDslOutput(style())
 }
 
 /** Emits [component], unwrapping a content-less, style-less root into a bare sequence of its children. */

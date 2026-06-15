@@ -24,27 +24,28 @@ import net.kyori.adventure.text.minimessage.MiniMessage
 import java.util.UUID
 
 class MiniMessageToDslTest :
-    FunSpec({
-        context("text and style emission") {
-            test("generates snapshot-style source for the join-message example") {
-                val input = "<gold>[<gray>Server</gray>]</gold> <aqua>Alex</aqua> joined the game"
-                val expected =
-                    component {
-                        text("[") {
-                            color(NamedTextColor.GOLD)
-                            text("Server") {
-                                color(NamedTextColor.GRAY)
+    FunSpec(
+        {
+            context("text and style emission") {
+                test("generates snapshot-style source for the join-message example") {
+                    val input = "<gold>[<gray>Server</gray>]</gold> <aqua>Alex</aqua> joined the game"
+                    val expected =
+                        component {
+                            text("[") {
+                                color(NamedTextColor.GOLD)
+                                text("Server") {
+                                    color(NamedTextColor.GRAY)
+                                }
+                                text("]")
                             }
-                            text("]")
+                            text(" ")
+                            text("Alex") {
+                                color(NamedTextColor.AQUA)
+                            }
+                            text(" joined the game")
                         }
-                        text(" ")
-                        text("Alex") {
-                            color(NamedTextColor.AQUA)
-                        }
-                        text(" joined the game")
-                    }
-                val expectedSource =
-                    """
+                    val expectedSource =
+                        """
                     component {
                         text("[") {
                             color(NamedTextColor.GOLD)
@@ -61,27 +62,27 @@ class MiniMessageToDslTest :
                     }
                     """.trimIndent()
 
-                assertGoldenRoundTrip(input, expectedSource, expected)
-            }
+                    assertGoldenRoundTrip(input, expectedSource, expected)
+                }
 
-            test("escapes Kotlin string content in generated source") {
-                val dollar = '$'
-                val escapedDollar = "\\$dollar"
-                val input = "say \\ \"hi\"\n\t${dollar}5\rcr"
+                test("escapes Kotlin string content in generated source") {
+                    val dollar = '$'
+                    val escapedDollar = "\\$dollar"
+                    val input = "say \\ \"hi\"\n\t${dollar}5\rcr"
 
-                miniToDsl(input) shouldBe
-                        """
+                    miniToDsl(input) shouldBe
+                            """
                     component {
                         text("say \\ \"hi\"\n\t${escapedDollar}5\rcr")
                     }
                     """.trimIndent()
-            }
+                }
 
-            test("emits all standard text decorations") {
-                val input = "<bold><italic><underlined><strikethrough><obfuscated>styled"
+                test("emits all standard text decorations") {
+                    val input = "<bold><italic><underlined><strikethrough><obfuscated>styled"
 
-                miniToDsl(input) shouldBe
-                        """
+                    miniToDsl(input) shouldBe
+                            """
                     component {
                         text("styled") {
                             bold()
@@ -93,19 +94,19 @@ class MiniMessageToDslTest :
                     }
                     """.trimIndent()
 
-                val styled = mini(input)
-                styled shouldHaveDecoration TextDecoration.BOLD
-                styled shouldHaveDecoration TextDecoration.ITALIC
-                styled shouldHaveDecoration TextDecoration.UNDERLINED
-                styled shouldHaveDecoration TextDecoration.STRIKETHROUGH
-                styled shouldHaveDecoration TextDecoration.OBFUSCATED
-            }
+                    val styled = mini(input)
+                    styled shouldHaveDecoration TextDecoration.BOLD
+                    styled shouldHaveDecoration TextDecoration.ITALIC
+                    styled shouldHaveDecoration TextDecoration.UNDERLINED
+                    styled shouldHaveDecoration TextDecoration.STRIKETHROUGH
+                    styled shouldHaveDecoration TextDecoration.OBFUSCATED
+                }
 
-            test("emits disabled decoration states that override inherited style") {
-                val input = "<bold>hot <!bold>cold"
+                test("emits disabled decoration states that override inherited style") {
+                    val input = "<bold>hot <!bold>cold"
 
-                miniToDsl(input) shouldBe
-                        """
+                    miniToDsl(input) shouldBe
+                            """
                     component {
                         text("hot ") {
                             bold()
@@ -118,77 +119,77 @@ class MiniMessageToDslTest :
                     }
                     """.trimIndent()
 
-                val hot = mini(input)
-                hot shouldHaveDecoration TextDecoration.BOLD
-                hot.childAt(0).shouldHaveDecoration(TextDecoration.BOLD, TextDecoration.State.FALSE)
-            }
+                    val hot = mini(input)
+                    hot shouldHaveDecoration TextDecoration.BOLD
+                    hot.childAt(0).shouldHaveDecoration(TextDecoration.BOLD, TextDecoration.State.FALSE)
+                }
 
-            test("round-trips named colours and decorations against compiled expected DSL") {
-                val input = "<red><bold>Hello"
-                val expected =
-                    component {
-                        text("Hello") {
-                            color(NamedTextColor.RED)
-                            bold()
-                        }
-                    }
-                val expectedSource =
-                    """
-                    component {
-                        text("Hello") {
-                            color(NamedTextColor.RED)
-                            bold()
-                        }
-                    }
-                    """.trimIndent()
-
-                assertGoldenRoundTrip(input, expectedSource, expected)
-                expected shouldHaveChildCount 1
-                expected.childAt(0) shouldHaveColor NamedTextColor.RED
-                expected.childAt(0) shouldHaveDecoration TextDecoration.BOLD
-            }
-
-            test("round-trips nested colours against compiled expected DSL") {
-                val input = "<gray>Hello <#12ab34>world</#12ab34></gray>"
-                val expected =
-                    component {
-                        text("Hello ") {
-                            color(NamedTextColor.GRAY)
-                            text("world") {
-                                color(TextColor.color(0x12AB34))
+                test("round-trips named colours and decorations against compiled expected DSL") {
+                    val input = "<red><bold>Hello"
+                    val expected =
+                        component {
+                            text("Hello") {
+                                color(NamedTextColor.RED)
+                                bold()
                             }
                         }
-                    }
-                val expectedSource =
-                    """
-                    component {
-                        text("Hello ") {
-                            color(NamedTextColor.GRAY)
-                            text("world") {
-                                color(TextColor.color(0x12AB34))
-                            }
-                        }
-                    }
-                    """.trimIndent()
-
-                assertGoldenRoundTrip(input, expectedSource, expected)
-                expected shouldHaveChildCount 1
-                expected.childAt(0) shouldHaveColor NamedTextColor.GRAY
-                expected.childAt(0).childAt(0) shouldHaveColor TextColor.color(0x12AB34)
-            }
-
-            test("renders an empty component for empty input") {
-                val expected = component {}
-
-                assertGoldenRoundTrip("", "component {}", expected)
-            }
-        }
-
-        context("click event emission") {
-            test("round-trips open url click events against compiled expected DSL") {
-                assertGoldenRoundTrip(
-                    expectedSource =
+                    val expectedSource =
                         """
+                    component {
+                        text("Hello") {
+                            color(NamedTextColor.RED)
+                            bold()
+                        }
+                    }
+                    """.trimIndent()
+
+                    assertGoldenRoundTrip(input, expectedSource, expected)
+                    expected shouldHaveChildCount 1
+                    expected.childAt(0) shouldHaveColor NamedTextColor.RED
+                    expected.childAt(0) shouldHaveDecoration TextDecoration.BOLD
+                }
+
+                test("round-trips nested colours against compiled expected DSL") {
+                    val input = "<gray>Hello <#12ab34>world</#12ab34></gray>"
+                    val expected =
+                        component {
+                            text("Hello ") {
+                                color(NamedTextColor.GRAY)
+                                text("world") {
+                                    color(TextColor.color(0x12AB34))
+                                }
+                            }
+                        }
+                    val expectedSource =
+                        """
+                    component {
+                        text("Hello ") {
+                            color(NamedTextColor.GRAY)
+                            text("world") {
+                                color(TextColor.color(0x12AB34))
+                            }
+                        }
+                    }
+                    """.trimIndent()
+
+                    assertGoldenRoundTrip(input, expectedSource, expected)
+                    expected shouldHaveChildCount 1
+                    expected.childAt(0) shouldHaveColor NamedTextColor.GRAY
+                    expected.childAt(0).childAt(0) shouldHaveColor TextColor.color(0x12AB34)
+                }
+
+                test("renders an empty component for empty input") {
+                    val expected = component {}
+
+                    assertGoldenRoundTrip("", "component {}", expected)
+                }
+            }
+
+            context("click event emission") {
+                test("round-trips open url click events against compiled expected DSL") {
+                    assertGoldenRoundTrip(
+                        expectedSource =
+                            """
                         component {
                             text("Open") {
                                 click {
@@ -197,19 +198,19 @@ class MiniMessageToDslTest :
                             }
                         }
                         """.trimIndent(),
-                    expectedComponent =
-                        component {
-                            text("Open") {
-                                click { openUrl("https://example.com") }
-                            }
-                        },
-                )
-            }
+                        expectedComponent =
+                            component {
+                                text("Open") {
+                                    click { openUrl("https://example.com") }
+                                }
+                            },
+                    )
+                }
 
-            test("round-trips open file click events against compiled expected DSL") {
-                assertGoldenRoundTrip(
-                    expectedSource =
-                        """
+                test("round-trips open file click events against compiled expected DSL") {
+                    assertGoldenRoundTrip(
+                        expectedSource =
+                            """
                         component {
                             text("File") {
                                 click {
@@ -218,19 +219,19 @@ class MiniMessageToDslTest :
                             }
                         }
                         """.trimIndent(),
-                    expectedComponent =
-                        component {
-                            text("File") {
-                                click { openFile("/tmp/example.txt") }
-                            }
-                        },
-                )
-            }
+                        expectedComponent =
+                            component {
+                                text("File") {
+                                    click { openFile("/tmp/example.txt") }
+                                }
+                            },
+                    )
+                }
 
-            test("round-trips run command click events against compiled expected DSL") {
-                assertGoldenRoundTrip(
-                    expectedSource =
-                        """
+                test("round-trips run command click events against compiled expected DSL") {
+                    assertGoldenRoundTrip(
+                        expectedSource =
+                            """
                         component {
                             text("Spawn") {
                                 click {
@@ -239,19 +240,19 @@ class MiniMessageToDslTest :
                             }
                         }
                         """.trimIndent(),
-                    expectedComponent =
-                        component {
-                            text("Spawn") {
-                                click { run("/spawn") }
-                            }
-                        },
-                )
-            }
+                        expectedComponent =
+                            component {
+                                text("Spawn") {
+                                    click { run("/spawn") }
+                                }
+                            },
+                    )
+                }
 
-            test("round-trips suggest command click events against compiled expected DSL") {
-                assertGoldenRoundTrip(
-                    expectedSource =
-                        """
+                test("round-trips suggest command click events against compiled expected DSL") {
+                    assertGoldenRoundTrip(
+                        expectedSource =
+                            """
                         component {
                             text("Reply") {
                                 click {
@@ -260,19 +261,19 @@ class MiniMessageToDslTest :
                             }
                         }
                         """.trimIndent(),
-                    expectedComponent =
-                        component {
-                            text("Reply") {
-                                click { suggest("/msg Alex ") }
-                            }
-                        },
-                )
-            }
+                        expectedComponent =
+                            component {
+                                text("Reply") {
+                                    click { suggest("/msg Alex ") }
+                                }
+                            },
+                    )
+                }
 
-            test("round-trips change page click events against compiled expected DSL") {
-                assertGoldenRoundTrip(
-                    expectedSource =
-                        """
+                test("round-trips change page click events against compiled expected DSL") {
+                    assertGoldenRoundTrip(
+                        expectedSource =
+                            """
                         component {
                             text("Page") {
                                 click {
@@ -281,19 +282,19 @@ class MiniMessageToDslTest :
                             }
                         }
                         """.trimIndent(),
-                    expectedComponent =
-                        component {
-                            text("Page") {
-                                click { changePage(4) }
-                            }
-                        },
-                )
-            }
+                        expectedComponent =
+                            component {
+                                text("Page") {
+                                    click { changePage(4) }
+                                }
+                            },
+                    )
+                }
 
-            test("round-trips copy click events against compiled expected DSL") {
-                assertGoldenRoundTrip(
-                    expectedSource =
-                        """
+                test("round-trips copy click events against compiled expected DSL") {
+                    assertGoldenRoundTrip(
+                        expectedSource =
+                            """
                         component {
                             text("Copy") {
                                 click {
@@ -302,26 +303,26 @@ class MiniMessageToDslTest :
                             }
                         }
                         """.trimIndent(),
-                    expectedComponent =
+                        expectedComponent =
+                            component {
+                                text("Copy") {
+                                    click { copy("copied") }
+                                }
+                            },
+                    )
+                }
+
+                test("emits a marker for non-representable click actions") {
+                    val payload = ClickEvent.Payload.custom(key("kotventure", "claim"))
+                    val expected =
                         component {
-                            text("Copy") {
-                                click { copy("copied") }
+                            text("Claim") {
+                                click(ClickEvent.Action.CUSTOM, payload)
                             }
-                        },
-                )
-            }
-
-            test("emits a marker for non-representable click actions") {
-                val payload = ClickEvent.Payload.custom(key("kotventure", "claim"))
-                val expected =
-                    component {
-                        text("Claim") {
-                            click(ClickEvent.Action.CUSTOM, payload)
                         }
-                    }
 
-                MiniMessageToDslWriter.write(expected) shouldBe
-                        """
+                    MiniMessageToDslWriter.write(expected) shouldBe
+                            """
                     component {
                         text("Claim") {
                             click {
@@ -330,21 +331,21 @@ class MiniMessageToDslTest :
                         }
                     }
                     """.trimIndent()
-            }
+                }
 
-            test("escapes Kotlin string content in click payloads") {
-                val dollar = '$'
-                val escapedDollar = "\\$dollar"
-                val expected =
-                    component {
-                        text("Copy") {
-                            click {
-                                copy("say \\ \"hi\"\n\t${dollar}5\rcr")
+                test("escapes Kotlin string content in click payloads") {
+                    val dollar = '$'
+                    val escapedDollar = "\\$dollar"
+                    val expected =
+                        component {
+                            text("Copy") {
+                                click {
+                                    copy("say \\ \"hi\"\n\t${dollar}5\rcr")
+                                }
                             }
                         }
-                    }
-                val expectedSource =
-                    """
+                    val expectedSource =
+                        """
                     component {
                         text("Copy") {
                             click {
@@ -354,15 +355,15 @@ class MiniMessageToDslTest :
                     }
                     """.trimIndent()
 
-                assertGoldenRoundTrip(expectedSource, expected)
+                    assertGoldenRoundTrip(expectedSource, expected)
+                }
             }
-        }
 
-        context("hover event emission") {
-            test("round-trips show text hover events against compiled expected DSL") {
-                assertGoldenRoundTrip(
-                    expectedSource =
-                        """
+            context("hover event emission") {
+                test("round-trips show text hover events against compiled expected DSL") {
+                    assertGoldenRoundTrip(
+                        expectedSource =
+                            """
                         component {
                             text("Spawn") {
                                 hover {
@@ -375,25 +376,25 @@ class MiniMessageToDslTest :
                             }
                         }
                         """.trimIndent(),
-                    expectedComponent =
-                        component {
-                            text("Spawn") {
-                                hover {
-                                    text {
-                                        text("Warp now") {
-                                            color(NamedTextColor.GOLD)
+                        expectedComponent =
+                            component {
+                                text("Spawn") {
+                                    hover {
+                                        text {
+                                            text("Warp now") {
+                                                color(NamedTextColor.GOLD)
+                                            }
                                         }
                                     }
                                 }
-                            }
-                        },
-                )
-            }
+                            },
+                    )
+                }
 
-            test("round-trips show item hover events against compiled expected DSL") {
-                assertGoldenRoundTrip(
-                    expectedSource =
-                        """
+                test("round-trips show item hover events against compiled expected DSL") {
+                    assertGoldenRoundTrip(
+                        expectedSource =
+                            """
                         component {
                             text("Loot") {
                                 hover {
@@ -405,24 +406,24 @@ class MiniMessageToDslTest :
                             }
                         }
                         """.trimIndent(),
-                    expectedComponent =
-                        component {
-                            text("Loot") {
-                                hover {
-                                    item(
-                                        key = key("minecraft", "diamond_sword"),
-                                        count = 2,
-                                    )
+                        expectedComponent =
+                            component {
+                                text("Loot") {
+                                    hover {
+                                        item(
+                                            key = key("minecraft", "diamond_sword"),
+                                            count = 2,
+                                        )
+                                    }
                                 }
-                            }
-                        },
-                )
-            }
+                            },
+                    )
+                }
 
-            test("round-trips show item hover data components against compiled expected DSL") {
-                assertGoldenRoundTrip(
-                    expectedSource =
-                        """
+                test("round-trips show item hover data components against compiled expected DSL") {
+                    assertGoldenRoundTrip(
+                        expectedSource =
+                            """
                         component {
                             text("Loot data") {
                                 hover {
@@ -436,7 +437,26 @@ class MiniMessageToDslTest :
                             }
                         }
                         """.trimIndent(),
-                    expectedComponent =
+                        expectedComponent =
+                            component {
+                                text("Loot data") {
+                                    hover {
+                                        item(
+                                            key = key("minecraft", "diamond_sword"),
+                                            dataComponents =
+                                                mapOf<Key, DataComponentValue>(
+                                                    key("minecraft", "custom_data") to
+                                                            BinaryTagHolder.binaryTagHolder("{kotventure:1b}"),
+                                                ),
+                                        )
+                                    }
+                                }
+                            },
+                    )
+                }
+
+                test("emits show item data components in a stable key order") {
+                    val loot =
                         component {
                             text("Loot data") {
                                 hover {
@@ -444,36 +464,20 @@ class MiniMessageToDslTest :
                                         key = key("minecraft", "diamond_sword"),
                                         dataComponents =
                                             mapOf<Key, DataComponentValue>(
+                                                key(
+                                                    "minecraft",
+                                                    "damage",
+                                                ) to BinaryTagHolder.binaryTagHolder("{value:5b}"),
                                                 key("minecraft", "custom_data") to
-                                                    BinaryTagHolder.binaryTagHolder("{kotventure:1b}"),
+                                                        BinaryTagHolder.binaryTagHolder("{kotventure:1b}"),
                                             ),
                                     )
                                 }
                             }
-                        },
-                )
-            }
-
-            test("emits show item data components in a stable key order") {
-                val loot =
-                    component {
-                        text("Loot data") {
-                            hover {
-                                item(
-                                    key = key("minecraft", "diamond_sword"),
-                                    dataComponents =
-                                        mapOf<Key, DataComponentValue>(
-                                            key("minecraft", "damage") to BinaryTagHolder.binaryTagHolder("{value:5b}"),
-                                            key("minecraft", "custom_data") to
-                                                BinaryTagHolder.binaryTagHolder("{kotventure:1b}"),
-                                        ),
-                                )
-                            }
                         }
-                    }
 
-                MiniMessageToDslWriter.write(loot) shouldBe
-                    """
+                    MiniMessageToDslWriter.write(loot) shouldBe
+                            """
                     component {
                         text("Loot data") {
                             hover {
@@ -488,12 +492,12 @@ class MiniMessageToDslTest :
                         }
                     }
                     """.trimIndent()
-            }
+                }
 
-            test("round-trips show entity hover events against compiled expected DSL") {
-                assertGoldenRoundTrip(
-                    expectedSource =
-                        """
+                test("round-trips show entity hover events against compiled expected DSL") {
+                    assertGoldenRoundTrip(
+                        expectedSource =
+                            """
                         component {
                             text("Mob") {
                                 hover {
@@ -505,24 +509,24 @@ class MiniMessageToDslTest :
                             }
                         }
                         """.trimIndent(),
-                    expectedComponent =
-                        component {
-                            text("Mob") {
-                                hover {
-                                    entity(
-                                        type = key("minecraft", "zombie"),
-                                        id = UUID.fromString("0d1630e2-fc7c-48ef-b7a0-8dfb9e57ec25"),
-                                    )
+                        expectedComponent =
+                            component {
+                                text("Mob") {
+                                    hover {
+                                        entity(
+                                            type = key("minecraft", "zombie"),
+                                            id = UUID.fromString("0d1630e2-fc7c-48ef-b7a0-8dfb9e57ec25"),
+                                        )
+                                    }
                                 }
-                            }
-                        },
-                )
-            }
+                            },
+                    )
+                }
 
-            test("round-trips named show entity hover events against compiled expected DSL") {
-                assertGoldenRoundTrip(
-                    expectedSource =
-                        """
+                test("round-trips named show entity hover events against compiled expected DSL") {
+                    assertGoldenRoundTrip(
+                        expectedSource =
+                            """
                         component {
                             text("Named mob") {
                                 hover {
@@ -538,122 +542,123 @@ class MiniMessageToDslTest :
                             }
                         }
                         """.trimIndent(),
-                    expectedComponent =
-                        component {
-                            text("Named mob") {
-                                hover {
-                                    entity(
-                                        type = key("minecraft", "player"),
-                                        id = UUID.fromString("3f5f1f4e-29cb-4c98-93f0-3c7f4b52ddee"),
-                                    ) {
-                                        text("Alex \"$5\"") {
-                                            color(NamedTextColor.AQUA)
+                        expectedComponent =
+                            component {
+                                text("Named mob") {
+                                    hover {
+                                        entity(
+                                            type = key("minecraft", "player"),
+                                            id = UUID.fromString("3f5f1f4e-29cb-4c98-93f0-3c7f4b52ddee"),
+                                        ) {
+                                            text("Alex \"$5\"") {
+                                                color(NamedTextColor.AQUA)
+                                            }
                                         }
                                     }
                                 }
-                            }
-                        },
-                )
-            }
-        }
-
-        context("unsupported input") {
-            test("rejects unsupported shadow colours instead of dropping them") {
-                val error =
-                    shouldThrow<IllegalArgumentException> {
-                        miniToDsl("<shadow:red>shadow</shadow>")
-                    }
-
-                error.message shouldContain "miniToDsl does not yet support shadow colours"
+                            },
+                    )
+                }
             }
 
-            test("rejects unsupported component types") {
-                val error =
-                    shouldThrow<IllegalArgumentException> {
-                        miniToDsl("<key:key.jump>")
-                    }
+            context("unsupported input") {
+                test("rejects unsupported shadow colours instead of dropping them") {
+                    val error =
+                        shouldThrow<IllegalArgumentException> {
+                            miniToDsl("<shadow:red>shadow</shadow>")
+                        }
 
-                error.message shouldContain "supports only text component trees"
-            }
+                    error.message shouldContain "miniToDsl does not yet support shadow colours"
+                }
 
-            test("rejects unsupported component types in children") {
-                val error =
-                    shouldThrow<IllegalArgumentException> {
-                        MiniMessageToDslWriter.write(Component.empty().append(Component.keybind("key.jump")))
-                    }
+                test("rejects unsupported component types") {
+                    val error =
+                        shouldThrow<IllegalArgumentException> {
+                            miniToDsl("<key:key.jump>")
+                        }
 
-                error.message shouldContain "supports only text component trees"
-            }
+                    error.message shouldContain "supports only text component trees"
+                }
 
-            test("rejects unsupported styles nested in hover text payloads") {
-                val payload = Component.text("tip").insertion("/warp")
-                val component = Component.text("hover me").hoverEvent(HoverEvent.showText(payload))
+                test("rejects unsupported component types in children") {
+                    val error =
+                        shouldThrow<IllegalArgumentException> {
+                            MiniMessageToDslWriter.write(Component.empty().append(Component.keybind("key.jump")))
+                        }
 
-                val error =
-                    shouldThrow<IllegalArgumentException> {
-                        MiniMessageToDslWriter.write(component)
-                    }
+                    error.message shouldContain "supports only text component trees"
+                }
 
-                error.message shouldContain "insertion text"
-            }
+                test("rejects unsupported styles nested in hover text payloads") {
+                    val payload = Component.text("tip").insertion("/warp")
+                    val component = Component.text("hover me").hoverEvent(HoverEvent.showText(payload))
 
-            test("rejects legacy show-item NBT payloads") {
-                val legacyItem =
-                    Component
-                        .text("Loot")
-                        .hoverEvent(
-                            HoverEvent.showItem(
-                                key("minecraft", "diamond_sword"),
-                                1,
-                                BinaryTagHolder.binaryTagHolder("{}"),
-                            ),
-                        )
+                    val error =
+                        shouldThrow<IllegalArgumentException> {
+                            MiniMessageToDslWriter.write(component)
+                        }
 
-                val error =
-                    shouldThrow<IllegalArgumentException> {
-                        MiniMessageToDslWriter.write(legacyItem)
-                    }
+                    error.message shouldContain "insertion text"
+                }
 
-                error.message shouldContain "legacy show-item NBT"
-            }
+                test("rejects legacy show-item NBT payloads") {
+                    val legacyItem =
+                        Component
+                            .text("Loot")
+                            .hoverEvent(
+                                HoverEvent.showItem(
+                                    key("minecraft", "diamond_sword"),
+                                    1,
+                                    BinaryTagHolder.binaryTagHolder("{}"),
+                                ),
+                            )
 
-            test("rejects unsupported data component values") {
-                val unsupportedValue: DataComponentValue = object : DataComponentValue {}
-                val component =
-                    component {
-                        text("Loot") {
-                            hover {
-                                item(
-                                    key = key("minecraft", "diamond_sword"),
-                                    dataComponents = mapOf(key("minecraft", "custom_data") to unsupportedValue),
-                                )
+                    val error =
+                        shouldThrow<IllegalArgumentException> {
+                            MiniMessageToDslWriter.write(legacyItem)
+                        }
+
+                    error.message shouldContain "legacy show-item NBT"
+                }
+
+                test("rejects unsupported data component values") {
+                    val unsupportedValue: DataComponentValue = object : DataComponentValue {}
+                    val component =
+                        component {
+                            text("Loot") {
+                                hover {
+                                    item(
+                                        key = key("minecraft", "diamond_sword"),
+                                        dataComponents = mapOf(key("minecraft", "custom_data") to unsupportedValue),
+                                    )
+                                }
                             }
                         }
-                    }
 
-                val error =
-                    shouldThrow<IllegalArgumentException> {
-                        MiniMessageToDslWriter.write(component)
-                    }
+                    val error =
+                        shouldThrow<IllegalArgumentException> {
+                            MiniMessageToDslWriter.write(component)
+                        }
 
-                error.message shouldContain "data component value"
+                    error.message shouldContain "data component value"
+                }
             }
-        }
 
-        context("literal MiniMessage input") {
-            test("renders escaped MiniMessage tags as literal text") {
-                val generated = miniToDsl("\\<red>literal")
+            context("literal MiniMessage input") {
+                test("renders escaped MiniMessage tags as literal text") {
+                    val generated = miniToDsl("\\<red>literal")
 
-                generated shouldBe
-                        """
+                    generated shouldBe
+                            """
                     component {
                         text("<red>literal")
                     }
                     """.trimIndent()
-                mini("\\<red>literal") shouldContainText "<red>literal"
+                    mini("\\<red>literal") shouldContainText "<red>literal"
+                }
             }
-        }
-    })
+        },
+    )
 
 private fun assertGoldenRoundTrip(
     input: String,

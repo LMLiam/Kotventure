@@ -123,7 +123,8 @@ public abstract class MiniTemplate(
  * @param placeholder a descriptor declared on this template.
  * @param value the value to substitute for [placeholder].
  */
-context(_: MiniTemplateBindingScope) public fun <T : Any> MiniTemplate.bind(
+context(_: MiniTemplateBindingScope)
+public fun <T : Any> MiniTemplate.bind(
     placeholder: MiniMessagePlaceholder<T>,
     value: T,
 ): Unit = contextOf<MiniTemplateBindingScope>().bind(placeholder, value)

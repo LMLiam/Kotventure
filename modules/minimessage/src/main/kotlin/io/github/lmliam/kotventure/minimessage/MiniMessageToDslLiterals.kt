@@ -25,6 +25,7 @@ internal fun dataComponentValueLiteral(value: DataComponentValue): String =
         is BinaryTagHolder -> "BinaryTagHolder.binaryTagHolder(\"${escapeKotlinString(value.string())}\")"
         is DataComponentValue.TagSerializable ->
             "BinaryTagHolder.binaryTagHolder(\"${escapeKotlinString(value.asBinaryTag().string())}\")"
+
         is DataComponentValue.Removed -> "DataComponentValue.removed()"
         else -> throw IllegalArgumentException(
             "miniToDsl does not yet support data component value ${value::class.qualifiedName}.",
