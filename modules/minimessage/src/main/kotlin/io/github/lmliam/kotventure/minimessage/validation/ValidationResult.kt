@@ -1,42 +1,44 @@
 package io.github.lmliam.kotventure.minimessage.validation
 
 /**
- * The result of a [io.github.lmliam.kotventure.minimessage.validate] call.
+ * The result of a [validate] call.
  *
- * Either [Success] (markup is well-formed and every spec placeholder is present) or
+ * Either [Success] (input is well-formed and every declared placeholder is present) or
  * [Failure] (one or more [MiniMessageDiagnostic] were found).
  */
-public sealed class ValidationResult {
+public sealed interface ValidationResult {
+    /** `true` when this result is [Success]; `false` otherwise. */
+    public val isSuccess: Boolean get() = this is Success
+
+    /** `true` when this result is [Failure]; `false` otherwise. */
+    public val isFailure: Boolean get() = this is Failure
+
     /**
-     * Validation found no issues: the markup is well-formed and every declared placeholder
-     * has a corresponding tag in the markup (and vice versa).
+     * Validation found no issues: the input is well-formed and every declared placeholder
+     * has a corresponding tag in the input (and vice versa).
      */
-    public data object Success : ValidationResult()
+    public data object Success : ValidationResult
 
     /**
      * Validation found one or more issues.
      *
      * @property diagnostics Non-empty list of diagnostics. Ordering guarantee: malformed-tag
-     *   diagnostics appear first, then missing-placeholder diagnostics in spec declaration order,
-     *   then extra-placeholder diagnostics in the order the tags were encountered in the markup.
+     *   diagnostics appear first, then missing-placeholder diagnostics in placeholder declaration
+     *   order, then extra-placeholder diagnostics in the order the tags were encountered in the
+     *   input.
      */
-    public data class Failure(
+    @ConsistentCopyVisibility
+    public data class Failure private constructor(
         public val diagnostics: List<MiniMessageDiagnostic>,
-    ) : ValidationResult() {
+    ) : ValidationResult {
         init {
             require(diagnostics.isNotEmpty()) { "Failure must carry at least one diagnostic." }
         }
+
+        public companion object {
+            /** Creates a [Failure] with a defensive copy of [diagnostics]. */
+            public operator fun invoke(diagnostics: List<MiniMessageDiagnostic>): Failure =
+                Failure(diagnostics.toList())
+        }
     }
 }
-
-/**
- * `true` when this result is [ValidationResult.Success]; `false` otherwise.
- */
-public val ValidationResult.isSuccess: Boolean
-    get() = this is ValidationResult.Success
-
-/**
- * `true` when this result is [ValidationResult.Failure]; `false` otherwise.
- */
-public val ValidationResult.isFailure: Boolean
-    get() = this is ValidationResult.Failure
