@@ -29,12 +29,12 @@ access.
 
 ## 2. Prior art & differentiation
 
-| Project                            | What it is                                                                  | Gap we exploit                                                              |
-|------------------------------------|-----------------------------------------------------------------------------|-----------------------------------------------------------------------------|
-| Adventure's retired Kotlin extras  | Former official Kotlin builders/operators                                   | Removed in Adventure 5.0; no MiniMessage tooling, testing, or platform UX   |
-| Pluto‑Studio/`adventure-kt`        | The serious rival — component DSL, `mini()`, styles, titles, multi‑platform | No typed/validated MiniMessage, no testing toolkit, no codegen/ANSI tooling |
-| HoshiKurama component DSL          | `buildComponent {}`                                                         | Stale (2021), narrow                                                        |
-| KSpigot / KPaper                   | Broad Kotlin server libs that *include* a chat DSL                          | Not Adventure‑focused; tied to broader frameworks                           |
+| Project                           | What it is                                                                  | Gap we exploit                                                              |
+|-----------------------------------|-----------------------------------------------------------------------------|-----------------------------------------------------------------------------|
+| Adventure's retired Kotlin extras | Former official Kotlin builders/operators                                   | Removed in Adventure 5.0; no MiniMessage tooling, testing, or platform UX   |
+| Pluto‑Studio/`adventure-kt`       | The serious rival — component DSL, `mini()`, styles, titles, multi‑platform | No typed/validated MiniMessage, no testing toolkit, no codegen/ANSI tooling |
+| HoshiKurama component DSL         | `buildComponent {}`                                                         | Stale (2021), narrow                                                        |
+| KSpigot / KPaper                  | Broad Kotlin server libs that *include* a chat DSL                          | Not Adventure‑focused; tied to broader frameworks                           |
 
 **Conclusion:** compete on *breadth + correctness tooling*, not on the basic component builder alone.
 
@@ -54,22 +54,22 @@ A **hybrid** structure: idiomatic DSL for ~95% of the surface, a small **explici
 behaviour, and **KSP** for compile‑time codegen. The previous `ServiceLoader`/`@ServiceContract` factory indirection is
 **removed** — it is unnecessary ceremony for a DSL library.
 
-| Module                | Depends on                             | Purpose                                                                                                                               |
-|-----------------------|----------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
-| `core`                | `adventure-api`                        | Component/style/colour/gradient DSL, theme engine, the registry, audience‑send DSL, animation **abstractions**                         |
-| `serializer`          | `adventure-api`, concrete serializers  | Optional `Component` serializer extensions such as MiniMessage and plain text                                                          |
-| `minimessage`         | `core`, `adventure-text-minimessage`   | Typed tag/placeholder DSL, typed templates, validation, MiniMessage ⇄ DSL converter                                                   |
-| `i18n`                | `core`, `minimessage`                  | Translation registry + per‑player locale DSL                                                                                          |
-| `test`                | `core` (test‑scoped for consumers)     | Kotest/JUnit matchers + snapshot testing                                                                                              |
-| `ansi`                | `core`                                 | Render a `Component` to coloured terminal output                                                                                      |
-| `coroutines`          | `core`, `kotlinx-coroutines`           | suspend click‑callbacks, async sending, animation scheduling                                                                          |
-| `annotations` + `ksp` | —                                      | Typed message‑catalog codegen + compile‑time style validation                                                                         |
-| `paper`               | `core` (+ Paper)                       | Scheduler/audience adapter, item **lore**/display‑name builders                                                                       |
-| `velocity`            | `core` (+ Velocity)                    | Proxy scheduler/audience adapter                                                                                                      |
-| `fabric`              | `core` (+ `adventure-platform-fabric`) | Fabric adapter                                                                                                                        |
-| `gradle-plugin`       | (own build)                            | Validate / pre‑compile MiniMessage resource bundles at build time                                                                     |
-| `bom`                 | —                                      | Bill‑of‑materials so consumers pin one version                                                                                        |
-| `e2e`                 | (all)                                  | Cross‑module integration tests                                                                                                        |
+| Module                | Depends on                             | Purpose                                                                                                        |
+|-----------------------|----------------------------------------|----------------------------------------------------------------------------------------------------------------|
+| `core`                | `adventure-api`                        | Component/style/colour/gradient DSL, theme engine, the registry, audience‑send DSL, animation **abstractions** |
+| `serializer`          | `adventure-api`, concrete serializers  | Optional `Component` serializer extensions such as MiniMessage and plain text                                  |
+| `minimessage`         | `core`, `adventure-text-minimessage`   | Typed tag/placeholder DSL, typed templates, validation, MiniMessage ⇄ DSL converter                            |
+| `i18n`                | `core`, `minimessage`                  | Translation registry + per‑player locale DSL                                                                   |
+| `test`                | `core` (test‑scoped for consumers)     | Kotest/JUnit matchers + snapshot testing                                                                       |
+| `ansi`                | `core`                                 | Render a `Component` to coloured terminal output                                                               |
+| `coroutines`          | `core`, `kotlinx-coroutines`           | suspend click‑callbacks, async sending, animation scheduling                                                   |
+| `annotations` + `ksp` | —                                      | Typed message‑catalog codegen + compile‑time style validation                                                  |
+| `paper`               | `core` (+ Paper)                       | Scheduler/audience adapter, item **lore**/display‑name builders                                                |
+| `velocity`            | `core` (+ Velocity)                    | Proxy scheduler/audience adapter                                                                               |
+| `fabric`              | `core` (+ `adventure-platform-fabric`) | Fabric adapter                                                                                                 |
+| `gradle-plugin`       | (own build)                            | Validate / pre‑compile MiniMessage resource bundles at build time                                              |
+| `bom`                 | —                                      | Bill‑of‑materials so consumers pin one version                                                                 |
+| `e2e`                 | (all)                                  | Cross‑module integration tests                                                                                 |
 
 Modules are introduced **lazily, per phase** — not all scaffolded up front — to keep each change small.
 
@@ -252,23 +252,23 @@ with its own tests — to keep changes small and incremental.
 
 ## 12. Feature → phase matrix
 
-| Feature                           | Phase               |
-|-----------------------------------|---------------------|
-| Component test matchers           | 0 (seed) → 1 (full) |
-| Snapshot / golden testing         | 1                   |
-| Compile‑time style validation     | 4                   |
-| MiniMessage ⇄ DSL converter       | 1                   |
-| Animations                        | 3                   |
-| Chat pagination                   | 2                   |
-| GUI / lore & item‑text builders   | 2                   |
-| Managed boss bars / titles        | 2                   |
-| Typed message catalog (codegen)   | 3                   |
-| Translation registry + locale DSL | 3                   |
-| Design‑system themes              | 1                   |
-| Colour & gradient helpers         | 1                   |
-| ANSI terminal preview             | 3                   |
-| Coroutine integration             | 2                   |
-| Gradle build plugin               | 3                   |
+| Feature                           | Phase                             |
+|-----------------------------------|-----------------------------------|
+| Component test matchers           | 0 (seed) → 1 (full)               |
+| Snapshot / golden testing         | 1                                 |
+| Compile‑time style validation     | 4                                 |
+| MiniMessage ⇄ DSL converter       | 1                                 |
+| Animations                        | 3                                 |
+| Chat pagination                   | 2                                 |
+| GUI / lore & item‑text builders   | 2                                 |
+| Managed boss bars / titles        | 2                                 |
+| Typed message catalog (codegen)   | 3                                 |
+| Translation registry + locale DSL | 3                                 |
+| Design‑system themes              | 1                                 |
+| Colour & gradient helpers         | 1                                 |
+| ANSI terminal preview             | 3                                 |
+| Coroutine integration             | 2                                 |
+| Gradle build plugin               | 3                                 |
 | Serializer extensions             | 0 (seed, `serializer`) → 1 (full) |
 
 ## 13. Open questions / future

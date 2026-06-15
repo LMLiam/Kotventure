@@ -83,7 +83,8 @@ Before sketching any public surface (and **before posting an implementation plan
 
 - **Compile-time beats runtime.** If a named thing can be a property, make it a property. Delegated properties
   (`by` + `PropertyDelegateProvider`) give you a compile-checked property *and* its name for runtime/registry interop —
-  reach for them before inventing key types or string lookups. Every runtime `require(...)` for a missing/typo'd/duplicate
+  reach for them before inventing key types or string lookups. Every runtime `require(...)` for a
+  missing/typo'd/duplicate
   name is a compile error you failed to design for.
 - **One way per use case.** Never ship a typed API and string overloads of it in parallel. Pick one; expose a single
   explicit string bridge only where interop (config, MiniMessage, cross-plugin) demands it.
@@ -145,7 +146,8 @@ Before sketching any public surface (and **before posting an implementation plan
 
 ## 9. Project skills
 
-Reusable playbooks — available via the `Skill` tool (Claude Code: `.claude/skills/`) or the `skill` tool (Copilot/Codex: `.agents/skills/`):
+Reusable playbooks — available via the `Skill` tool (Claude Code: `.claude/skills/`) or the `skill` tool (Copilot/Codex:
+`.agents/skills/`):
 
 - **`adding-a-dsl-feature`** — the end-to-end workflow for a new DSL feature.
 - **`idiomatic-kotlin-dsl`** — **required reading before designing or planning any API surface**: the resolution
