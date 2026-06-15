@@ -174,7 +174,7 @@ class ComponentMatchersTest :
                 val failure =
                     shouldThrow<AssertionError> {
                         Component.translatable("item.minecraft.diamond") shouldHaveTranslationKey
-                            "item.minecraft.emerald"
+                                "item.minecraft.emerald"
                     }
                 val expectedMessage =
                     "Expected translation key <item.minecraft.emerald>, " +
@@ -564,7 +564,7 @@ class ComponentMatchersTest :
                         Component
                             .text("Run")
                             .clickEvent(ClickEvent.runCommand("/spawn")) shouldHaveClickAction
-                            ClickEvent.Action.SUGGEST_COMMAND
+                                ClickEvent.Action.SUGGEST_COMMAND
                     }
                 val expectedMessage =
                     "Expected click action <${ClickEvent.Action.SUGGEST_COMMAND}>, " +

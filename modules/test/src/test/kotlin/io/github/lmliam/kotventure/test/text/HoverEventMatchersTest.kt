@@ -21,14 +21,14 @@ class HoverEventMatchersTest :
                 Component
                     .text("Hover")
                     .hoverEvent(HoverEvent.showText(Component.text("Tooltip"))) shouldHaveHoverAction
-                    HoverEvent.Action.SHOW_TEXT
+                        HoverEvent.Action.SHOW_TEXT
             }
 
             "matches text hover payloads" {
                 Component
                     .text("Hover")
                     .hoverEvent(HoverEvent.showText(Component.text("Tooltip"))) shouldHaveHoverText
-                    Component.text("Tooltip")
+                        Component.text("Tooltip")
             }
 
             "matches item hover payloads" {
@@ -70,7 +70,7 @@ class HoverEventMatchersTest :
                         Component
                             .text("Hover")
                             .hoverEvent(HoverEvent.showText(Component.text("Tooltip"))) shouldHaveHoverAction
-                            HoverEvent.Action.SHOW_ITEM
+                                HoverEvent.Action.SHOW_ITEM
                     }
                 val expectedMessage =
                     "Expected hover action <${HoverEvent.Action.SHOW_ITEM}>, " +
@@ -85,7 +85,7 @@ class HoverEventMatchersTest :
                         Component
                             .text("Hover")
                             .hoverEvent(HoverEvent.showText(Component.text("actual"))) shouldHaveHoverText
-                            Component.text("expected")
+                                Component.text("expected")
                     }
                 val expectedMessage =
                     "Expected hover text payload <${Component.text("expected")}>, " +
@@ -100,7 +100,7 @@ class HoverEventMatchersTest :
                 val failure =
                     shouldThrow<AssertionError> {
                         Component.text("Hover").hoverEvent(HoverEvent.showItem(item)) shouldHaveHoverText
-                            Component.text("expected")
+                                Component.text("expected")
                     }
                 val expectedMessage =
                     "Expected hover text payload <${Component.text("expected")}>, " +

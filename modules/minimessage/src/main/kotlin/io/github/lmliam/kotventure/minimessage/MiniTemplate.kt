@@ -162,7 +162,7 @@ public operator fun <T : MiniTemplate> T.invoke(block: context(MiniTemplateBindi
             ) {
                 require(placeholders[placeholder.name] === placeholder) {
                     "Placeholder '${placeholder.name}' is not declared on this template. " +
-                        "Declared placeholders: ${placeholders.keys}."
+                            "Declared placeholders: ${placeholders.keys}."
                 }
                 require(boundNames.add(placeholder.name)) {
                     "Placeholder '${placeholder.name}' is already bound in this template render."

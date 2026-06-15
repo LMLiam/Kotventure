@@ -37,9 +37,9 @@ class MiniMessageValidationTest :
 
                 val result =
                     validate(
-                    input = "<gold>Welcome <player>, <count> new messages</gold>",
-                    placeholders = listOf(player, count),
-                )
+                        input = "<gold>Welcome <player>, <count> new messages</gold>",
+                        placeholders = listOf(player, count),
+                    )
 
                 result shouldBe ValidationResult.Success
             }
@@ -47,9 +47,9 @@ class MiniMessageValidationTest :
             "markup with no spec and no placeholder tags returns Success" {
                 val result =
                     validate(
-                    input = "<gold>Hello world</gold>",
-                    placeholders = emptyList(),
-                )
+                        input = "<gold>Hello world</gold>",
+                        placeholders = emptyList(),
+                    )
 
                 result shouldBe ValidationResult.Success
             }
@@ -61,9 +61,9 @@ class MiniMessageValidationTest :
             "unclosed standard tag returns Failure with MalformedTag diagnostic" {
                 val result =
                     validate(
-                    input = "<gold>Hello world",
-                    placeholders = emptyList(),
-                )
+                        input = "<gold>Hello world",
+                        placeholders = emptyList(),
+                    )
 
                 // <gold> without </gold> is well-formed in lenient mode but strict mode requires close
                 // — however Adventure strict mode only throws for unclosed child-allowing tags at EOF.
@@ -77,9 +77,9 @@ class MiniMessageValidationTest :
                 // Adventure reports position info for unclosed child-allowing tags at end-of-string.
                 val result =
                     validate(
-                    input = "<gold>Hello world",
-                    placeholders = emptyList(),
-                )
+                        input = "<gold>Hello world",
+                        placeholders = emptyList(),
+                    )
 
                 val failure = result.shouldBeInstanceOf<ValidationResult.Failure>()
                 val malformed = failure.diagnostics.filterIsInstance<MiniMessageDiagnostic.MalformedTag>()
@@ -96,9 +96,9 @@ class MiniMessageValidationTest :
                 // <gold> without close WILL trigger malformed under strict mode
                 val result =
                     validate(
-                    input = "<gold><player>joined",
-                    placeholders = listOf(player),
-                )
+                        input = "<gold><player>joined",
+                        placeholders = listOf(player),
+                    )
 
                 val failure = result.shouldBeInstanceOf<ValidationResult.Failure>()
                 val malformed = failure.diagnostics.filterIsInstance<MiniMessageDiagnostic.MalformedTag>()
@@ -120,9 +120,9 @@ class MiniMessageValidationTest :
             "MalformedTag start and end indices are passed through from Adventure without modification" {
                 val result =
                     validate(
-                    input = "<gold>Hello world",
-                    placeholders = emptyList(),
-                )
+                        input = "<gold>Hello world",
+                        placeholders = emptyList(),
+                    )
 
                 val failure = result.shouldBeInstanceOf<ValidationResult.Failure>()
                 val malformed = failure.diagnostics.filterIsInstance<MiniMessageDiagnostic.MalformedTag>()
@@ -142,9 +142,9 @@ class MiniMessageValidationTest :
 
                 val result =
                     validate(
-                    input = "<player> joined",
-                    placeholders = listOf(player, count),
-                )
+                        input = "<player> joined",
+                        placeholders = listOf(player, count),
+                    )
 
                 val failure = result.shouldBeInstanceOf<ValidationResult.Failure>()
                 val missing = failure.diagnostics.filterIsInstance<MiniMessageDiagnostic.MissingPlaceholder>()
@@ -161,9 +161,9 @@ class MiniMessageValidationTest :
 
                 val result =
                     validate(
-                    input = "<player> joined with <oops>",
-                    placeholders = listOf(player),
-                )
+                        input = "<player> joined with <oops>",
+                        placeholders = listOf(player),
+                    )
 
                 val failure = result.shouldBeInstanceOf<ValidationResult.Failure>()
                 val extra = failure.diagnostics.filterIsInstance<MiniMessageDiagnostic.ExtraPlaceholder>()
@@ -180,9 +180,9 @@ class MiniMessageValidationTest :
 
                 val result =
                     validate(
-                    input = "<player> <missing-one> <extra-one>",
-                    placeholders = listOf(player, placeholder<String>("missing-one")),
-                )
+                        input = "<player> <missing-one> <extra-one>",
+                        placeholders = listOf(player, placeholder<String>("missing-one")),
+                    )
 
                 // <player> and <missing-one> are in both spec and markup — neither is missing or extra.
                 // <extra-one> is in markup but not in spec — reported as ExtraPlaceholder.
@@ -202,9 +202,9 @@ class MiniMessageValidationTest :
                 // <extra> in markup but not spec -> extra
                 val result =
                     validate(
-                    input = "<gold>Hello <extra>",
-                    placeholders = listOf(player),
-                )
+                        input = "<gold>Hello <extra>",
+                        placeholders = listOf(player),
+                    )
 
                 val failure = result.shouldBeInstanceOf<ValidationResult.Failure>()
                 val malformed = failure.diagnostics.filterIsInstance<MiniMessageDiagnostic.MalformedTag>()
@@ -232,9 +232,9 @@ class MiniMessageValidationTest :
             "standard Adventure tags are not reported as extra placeholders" {
                 val result =
                     validate(
-                    input = "<gold>Hello</gold> <bold>world</bold>",
-                    placeholders = emptyList(),
-                )
+                        input = "<gold>Hello</gold> <bold>world</bold>",
+                        placeholders = emptyList(),
+                    )
 
                 // <gold> and <bold> are standard tags; strict mode still requires close — both are
                 // closed properly here, so no malformed. No spec -> no missing. No extra either.
@@ -244,9 +244,9 @@ class MiniMessageValidationTest :
             "standard tags with no spec and one extra non-standard tag reports only extra" {
                 val result =
                     validate(
-                    input = "<gold>Hello</gold> <my-placeholder>",
-                    placeholders = emptyList(),
-                )
+                        input = "<gold>Hello</gold> <my-placeholder>",
+                        placeholders = emptyList(),
+                    )
 
                 val failure = result.shouldBeInstanceOf<ValidationResult.Failure>()
                 val extra = failure.diagnostics.filterIsInstance<MiniMessageDiagnostic.ExtraPlaceholder>()
@@ -317,9 +317,9 @@ class MiniMessageValidationTest :
 
                 val result =
                     validate(
-                    input = "<gold>No placeholders</gold>",
-                    placeholders = listOf(alpha, beta, gamma),
-                )
+                        input = "<gold>No placeholders</gold>",
+                        placeholders = listOf(alpha, beta, gamma),
+                    )
 
                 val failure = result.shouldBeInstanceOf<ValidationResult.Failure>()
                 val missing = failure.diagnostics.filterIsInstance<MiniMessageDiagnostic.MissingPlaceholder>()
@@ -329,9 +329,9 @@ class MiniMessageValidationTest :
             "extra placeholders are emitted in markup-encounter order" {
                 val result =
                     validate(
-                    input = "<gold>Hello</gold> <first> then <second> then <third>",
-                    placeholders = emptyList(),
-                )
+                        input = "<gold>Hello</gold> <first> then <second> then <third>",
+                        placeholders = emptyList(),
+                    )
 
                 val failure = result.shouldBeInstanceOf<ValidationResult.Failure>()
                 val extra = failure.diagnostics.filterIsInstance<MiniMessageDiagnostic.ExtraPlaceholder>()
@@ -347,9 +347,9 @@ class MiniMessageValidationTest :
 
                 val result =
                     validate(
-                    input = "<player> joined, then <player> left",
-                    placeholders = listOf(player),
-                )
+                        input = "<player> joined, then <player> left",
+                        placeholders = listOf(player),
+                    )
 
                 result shouldBe ValidationResult.Success
             }
@@ -365,9 +365,9 @@ class MiniMessageValidationTest :
 
                 val result =
                     validate(
-                    input = "<gold>text</gold>",
-                    placeholders = listOf(gold),
-                )
+                        input = "<gold>text</gold>",
+                        placeholders = listOf(gold),
+                    )
 
                 // No MissingPlaceholder("gold") — the tag IS in the markup.
                 result shouldBe ValidationResult.Success
@@ -378,9 +378,9 @@ class MiniMessageValidationTest :
 
                 val result =
                     validate(
-                    input = "<red>no gold here</red>",
-                    placeholders = listOf(gold),
-                )
+                        input = "<red>no gold here</red>",
+                        placeholders = listOf(gold),
+                    )
 
                 val failure = result.shouldBeInstanceOf<ValidationResult.Failure>()
                 val missing = failure.diagnostics.filterIsInstance<MiniMessageDiagnostic.MissingPlaceholder>()
@@ -395,9 +395,9 @@ class MiniMessageValidationTest :
 
                 val result =
                     validate(
-                    input = "<bold><gold>text</gold></bold>",
-                    placeholders = listOf(gold),
-                )
+                        input = "<bold><gold>text</gold></bold>",
+                        placeholders = listOf(gold),
+                    )
 
                 result shouldBe ValidationResult.Success
             }
@@ -415,12 +415,12 @@ class MiniMessageValidationTest :
                 // should propagate an exception.
                 val inputs =
                     listOf(
-                    "",
-                    "plain text",
-                    "<gold>unclosed",
-                    "<unknown-tag>",
-                    "<gold arg='value'>text</gold>",
-                )
+                        "",
+                        "plain text",
+                        "<gold>unclosed",
+                        "<unknown-tag>",
+                        "<gold arg='value'>text</gold>",
+                    )
 
                 for (input in inputs) {
                     // shouldNotThrow is enforced by the test harness — any exception fails the test.
