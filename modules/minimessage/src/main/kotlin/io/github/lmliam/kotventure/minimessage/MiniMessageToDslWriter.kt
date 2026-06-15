@@ -10,6 +10,8 @@ import java.util.Locale
 
 internal object MiniMessageToDslWriter {
     fun write(component: Component): String {
+        MiniMessageToDslSupport.requireSupported(component)
+
         if (component.isEmptyDslComponent()) {
             return "component {}"
         }
@@ -40,7 +42,6 @@ internal object MiniMessageToDslWriter {
         indent: Int,
         lines: MutableList<String>,
     ) {
-        MiniMessageToDslSupport.requireSupported(component)
         component as TextComponent
 
         val text = component.content()
@@ -68,8 +69,6 @@ internal object MiniMessageToDslWriter {
         indent: Int,
         lines: MutableList<String>,
     ) {
-        MiniMessageToDslSupport.requireSupported(style)
-
         style.color()?.let { color ->
             lines += "${indent(indent)}color(${formatColor(color)})"
         }

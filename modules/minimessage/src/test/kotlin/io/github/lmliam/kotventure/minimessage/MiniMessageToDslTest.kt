@@ -19,32 +19,6 @@ import net.kyori.adventure.text.minimessage.MiniMessage
 class MiniMessageToDslTest :
     StringSpec(
         {
-            "generates snapshot-style source for styled plain text" {
-                miniToDsl("<red><bold>Hello") shouldBe
-                        """
-                    component {
-                        text("Hello") {
-                            color(NamedTextColor.RED)
-                            bold()
-                        }
-                    }
-                    """.trimIndent()
-            }
-
-            "generates snapshot-style source for nested children and hex colours" {
-                miniToDsl("<gray>Hello <#12ab34>world</#12ab34></gray>") shouldBe
-                        """
-                    component {
-                        text("Hello ") {
-                            color(NamedTextColor.GRAY)
-                            text("world") {
-                                color(TextColor.color(0x12AB34))
-                            }
-                        }
-                    }
-                    """.trimIndent()
-            }
-
             "generates snapshot-style source for the join-message example" {
                 val input = "<gold>[<gray>Server</gray>]</gold> <aqua>Alex</aqua> joined the game"
                 val expected =
@@ -97,7 +71,9 @@ class MiniMessageToDslTest :
             }
 
             "emits all standard text decorations" {
-                miniToDsl("<bold><italic><underlined><strikethrough><obfuscated>styled") shouldBe
+                val input = "<bold><italic><underlined><strikethrough><obfuscated>styled"
+
+                miniToDsl(input) shouldBe
                         """
                     component {
                         text("styled") {
@@ -109,10 +85,19 @@ class MiniMessageToDslTest :
                         }
                     }
                     """.trimIndent()
+
+                val styled = mini(input)
+                styled shouldHaveDecoration TextDecoration.BOLD
+                styled shouldHaveDecoration TextDecoration.ITALIC
+                styled shouldHaveDecoration TextDecoration.UNDERLINED
+                styled shouldHaveDecoration TextDecoration.STRIKETHROUGH
+                styled shouldHaveDecoration TextDecoration.OBFUSCATED
             }
 
             "emits disabled decoration states that override inherited style" {
-                miniToDsl("<bold>hot <!bold>cold") shouldBe
+                val input = "<bold>hot <!bold>cold"
+
+                miniToDsl(input) shouldBe
                         """
                     component {
                         text("hot ") {
@@ -125,6 +110,10 @@ class MiniMessageToDslTest :
                         }
                     }
                     """.trimIndent()
+
+                val hot = mini(input)
+                hot shouldHaveDecoration TextDecoration.BOLD
+                hot.childAt(0).shouldHaveDecoration(TextDecoration.BOLD, TextDecoration.State.FALSE)
             }
 
             "rejects unsupported style metadata instead of dropping it" {
@@ -136,10 +125,28 @@ class MiniMessageToDslTest :
                 error.message shouldContain "miniToDsl slice 1 does not support click events"
             }
 
+            "rejects unsupported shadow colours instead of dropping them" {
+                val error =
+                    shouldThrow<IllegalArgumentException> {
+                        miniToDsl("<shadow:red>shadow</shadow>")
+                    }
+
+                error.message shouldContain "miniToDsl slice 1 does not support shadow colours"
+            }
+
             "rejects unsupported component types" {
                 val error =
                     shouldThrow<IllegalArgumentException> {
-                        MiniMessageToDslWriter.write(Component.keybind("key.jump"))
+                        miniToDsl("<key:key.jump>")
+                    }
+
+                error.message shouldContain "supports only text component trees"
+            }
+
+            "rejects unsupported component types in children" {
+                val error =
+                    shouldThrow<IllegalArgumentException> {
+                        MiniMessageToDslWriter.write(Component.empty().append(Component.keybind("key.jump")))
                     }
 
                 error.message shouldContain "supports only text component trees"

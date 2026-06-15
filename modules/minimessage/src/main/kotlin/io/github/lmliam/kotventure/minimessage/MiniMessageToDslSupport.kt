@@ -21,6 +21,7 @@ internal object MiniMessageToDslSupport {
             "miniToDsl slice 1 supports only text component trees, but found ${component::class.simpleName}."
         }
         requireSupported(component.style())
+        component.children().forEach(::requireSupported)
     }
 
     fun requireSupported(style: Style) {
@@ -35,6 +36,9 @@ internal object MiniMessageToDslSupport {
         }
         require(style.font() == null) {
             "miniToDsl slice 1 does not support font styles."
+        }
+        require(style.shadowColor() == null) {
+            "miniToDsl slice 1 does not support shadow colours."
         }
     }
 
