@@ -145,7 +145,7 @@ once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land i
 ### Added
 
 - `miniToDsl(input)` in `kotventure-minimessage` for converting MiniMessage text into Kotventure DSL source for plain
-  text, recursive children, named/hex colours, and standard text decorations.
+  text, recursive children, named/hex colours, standard text decorations, and click/hover events.
 - Typed MiniMessage placeholders via `placeholder<T>(name)` and `resolve(...)`, covering component, string, numeric,
   and boolean values.
 - MiniMessage passthrough parsing via `kotventure-minimessage`, including `mini(...)`, placeholder resolvers for parsed,

@@ -25,24 +25,20 @@ internal object MiniMessageToDslSupport {
     }
 
     fun requireSupported(style: Style) {
-        require(style.clickEvent() == null) {
-            "miniToDsl slice 1 does not support click events."
-        }
-        require(style.hoverEvent() == null) {
-            "miniToDsl slice 1 does not support hover events."
-        }
         require(style.insertion() == null) {
-            "miniToDsl slice 1 does not support insertion text."
+            "miniToDsl slice 2 does not support insertion text."
         }
         require(style.font() == null) {
-            "miniToDsl slice 1 does not support font styles."
+            "miniToDsl slice 2 does not support font styles."
         }
         require(style.shadowColor() == null) {
-            "miniToDsl slice 1 does not support shadow colours."
+            "miniToDsl slice 2 does not support shadow colours."
         }
     }
 
     fun hasDslOutput(style: Style): Boolean =
         style.color() != null ||
+                style.clickEvent() != null ||
+                style.hoverEvent() != null ||
                 decorations.any { (decoration) -> style.decoration(decoration) != State.NOT_SET }
 }

@@ -285,6 +285,7 @@ val dslSource = miniToDsl("<red><bold>Hello")
 //         bold()
 //     }
 // }
+// Supported output also includes click { ... } and hover { ... } blocks for Adventure click and hover events.
 ```
 
 For messages that are rendered many times with different values, declare a typed template once and reuse it. Each
