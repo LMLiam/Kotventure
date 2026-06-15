@@ -242,7 +242,7 @@ class ClickEventDslTest :
                 val audience = Audience.empty()
 
                 Component.text("Callback").clickEvent(event) shouldHaveClickEvent
-                    RecordingClickCallbackProvider.lastEvent
+                        RecordingClickCallbackProvider.lastEvent
                 RecordingClickCallbackProvider.lastOptions?.uses() shouldBe 3
                 RecordingClickCallbackProvider.lastOptions?.lifetime() shouldBe JavaDuration.ofMinutes(10)
 
@@ -264,7 +264,7 @@ class ClickEventDslTest :
                 val audience = Audience.empty()
 
                 Component.text("Callback").clickEvent(event) shouldHaveClickEvent
-                    RecordingClickCallbackProvider.lastEvent
+                        RecordingClickCallbackProvider.lastEvent
 
                 RecordingClickCallbackProvider.fire(audience)
 
@@ -289,7 +289,7 @@ class ClickEventDslTest :
                     }
 
                 Component.text("Callback").clickEvent(event) shouldHaveClickEvent
-                    RecordingClickCallbackProvider.lastEvent
+                        RecordingClickCallbackProvider.lastEvent
                 RecordingClickCallbackProvider.lastOptions shouldBe options
                 RecordingClickCallbackProvider.lastOptions?.uses() shouldBe 4
                 RecordingClickCallbackProvider.lastOptions?.lifetime() shouldBe lifetime

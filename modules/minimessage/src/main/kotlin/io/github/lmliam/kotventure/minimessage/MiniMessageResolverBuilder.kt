@@ -51,6 +51,7 @@ internal class MiniMessageResolverBuilder : MiniMessageResolverScope {
 
                 component(placeholder.name, componentValue)
             }
+
             MiniMessagePlaceholderStrategy.LITERAL -> unparsed(placeholder.name, value.toString())
         }
     }
