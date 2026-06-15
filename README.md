@@ -328,17 +328,17 @@ import net.kyori.adventure.text.Component
 val player = placeholder<Component>("player")
 val count = placeholder<Int>("count")
 
-// Success — well-formed markup, all placeholders present, standard tags closed
+// Success — well-formed input, all placeholders present, standard tags closed
 val result = validate(
-    markup = "<gold>Welcome <player></gold>, you have <count> messages",
-    spec = listOf(player, count),
+    input = "<gold>Welcome <player></gold>, you have <count> messages",
+    placeholders = listOf(player, count),
 )
 // result == ValidationResult.Success
 
-// MissingPlaceholder — 'count' declared in spec but absent from markup
+// MissingPlaceholder — 'count' declared in placeholders but absent from input
 val missingResult = validate(
-    markup = "<gold>Welcome <player></gold>",
-    spec = listOf(player, count),
+    input = "<gold>Welcome <player></gold>",
+    placeholders = listOf(player, count),
 )
 // missingResult == ValidationResult.Failure(
 //   diagnostics = [MissingPlaceholder("count")]
@@ -346,38 +346,36 @@ val missingResult = validate(
 
 // MalformedTag — '<gold>' opened but not closed (strict mode)
 val malformedResult = validate(
-    markup = "<gold>Hello world",
-    spec = listOf(player),
+    input = "<gold>Hello world",
+    placeholders = listOf(player),
 )
 // malformedResult == ValidationResult.Failure(
 //   diagnostics = [
 //     MalformedTag("...", startIndex, endIndex),  // unclosed <gold>
-//     MissingPlaceholder("player"),               // declared but absent from markup
+//     MissingPlaceholder("player"),               // declared but absent from input
 //   ]
 // )
 
-// ExtraPlaceholder — '<mystery>' tag in markup has no spec entry
+// ExtraPlaceholder — '<mystery>' tag in input has no placeholder entry
 val extraResult = validate(
-    markup = "<gold>Hello <player></gold> <mystery>",
-    spec = listOf(player),
+    input = "<gold>Hello <player></gold> <mystery>",
+    placeholders = listOf(player),
 )
 // extraResult == ValidationResult.Failure(
 //   diagnostics = [ExtraPlaceholder("mystery")]
 // )
 
-// Inspect diagnostics with an exhaustive when
-when (val r = missingResult) {
-    is ValidationResult.Success -> println("All good!")
-    is ValidationResult.Failure -> {
-        for (diag in r.diagnostics) {
-            when (diag) {
-                is MiniMessageDiagnostic.MalformedTag ->
-                    println("Malformed tag at [${diag.startIndex}–${diag.endIndex}]: ${diag.message}")
-                is MiniMessageDiagnostic.MissingPlaceholder ->
-                    println("Missing placeholder: <${diag.name}>")
-                is MiniMessageDiagnostic.ExtraPlaceholder ->
-                    println("Extra placeholder: <${diag.name}>")
-            }
+// Inspect diagnostics exhaustively
+val diagnosticMessages = when (val r = missingResult) {
+    is ValidationResult.Success -> emptyList()
+    is ValidationResult.Failure -> r.diagnostics.map { diag ->
+        when (diag) {
+            is MiniMessageDiagnostic.MalformedTag ->
+                "Malformed tag at [${diag.startIndex}–${diag.endIndex}]: ${diag.message}"
+            is MiniMessageDiagnostic.MissingPlaceholder ->
+                "Missing placeholder: <${diag.name}>"
+            is MiniMessageDiagnostic.ExtraPlaceholder ->
+                "Extra placeholder: <${diag.name}>"
         }
     }
 }
@@ -402,8 +400,8 @@ val templateResult = WelcomeTemplate.validate()
 ```
 
 Diagnostic ordering in `ValidationResult.Failure.diagnostics`: malformed-tag diagnostics appear first, then missing
-placeholders in spec declaration order, then extra placeholders in the order they were encountered in the markup.
-`result.isSuccess` and `result.isFailure` are available as extension properties for concise checks.
+placeholders in declaration order, then extra placeholders in the order they were encountered in the input.
+`result.isSuccess` and `result.isFailure` are available as concise boolean checks.
 
 Join a list of components using `Iterable<Component>.join { }`, with optional separator, `lastSeparator`, `prefix`, and
 `suffix` knobs that each accept a string-plus-styling block or a prebuilt component:
