@@ -254,7 +254,7 @@ tasks.register('verifyReleasePleaseConfiguration') {
         requireReleaseAutomationText(workflow, 'pull-requests: write', 'release-please workflow must be able to open Release PRs')
         requireReleaseAutomationText(workflow, 'id: release', 'release-please workflow must expose action outputs')
         requireReleaseAutomationText(workflow, 'uses: googleapis/release-please-action@', 'release-please workflow must run release-please-action')
-        requireReleaseAutomationText(workflow, '# v4', 'release-please workflow action pin must document the v4 tag')
+        requireReleaseAutomationText(workflow, '# v5', 'release-please workflow action pin must document the v4 tag')
         requireReleaseAutomationText(workflow, 'config-file: release-please-config.json', 'release-please workflow must use the repository config file')
         requireReleaseAutomationText(workflow, 'manifest-file: .release-please-manifest.json', 'release-please workflow must use the repository manifest')
         requireReleaseAutomationText(workflow, 'release_created:', 'release-please workflow must expose release_created for downstream publishing')
