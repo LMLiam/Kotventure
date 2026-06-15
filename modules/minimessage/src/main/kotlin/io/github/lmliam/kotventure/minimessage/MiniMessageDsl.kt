@@ -9,6 +9,11 @@ import net.kyori.adventure.text.minimessage.MiniMessage
 public fun mini(input: String): Component = parseMiniMessage(input)
 
 /**
+ * Converts MiniMessage [input] into Kotventure component DSL source.
+ */
+public fun miniToDsl(input: String): String = MiniMessageToDslWriter().write(mini(input))
+
+/**
  * Parses [input] with Adventure's default MiniMessage parser after configuring placeholder resolvers with [init].
  */
 public fun mini(

@@ -277,6 +277,14 @@ val nested = component {
         resolve(player, alex)
     }
 }
+
+val converted = miniToDsl("<red><bold>Hello")
+// component {
+//     text("Hello") {
+//         color(NamedTextColor.RED)
+//         bold()
+//     }
+// }
 ```
 
 For messages that are rendered many times with different values, declare a typed template once and reuse it. Each
