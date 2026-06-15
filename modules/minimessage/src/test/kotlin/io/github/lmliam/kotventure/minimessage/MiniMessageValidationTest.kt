@@ -406,11 +406,10 @@ class MiniMessageValidationTest :
             // F1 regression: validate() must never throw, even on malformed input
             // ---------------------------------------------------------------
 
-            // Adventure's lenient parser can throw RuntimeException (e.g. StringIndexOutOfBoundsException)
-            // for certain edge-case malformed inputs. Reliably crafting such an input is
-            // version-dependent, so the contract (validate() never throws) is verified by running
-            // a range of inputs through the lenient-parse path without an uncaught exception.
-            // The guard in the placeholder-mismatch detection pass catches RuntimeException defensively.
+            // validate() must return a result rather than throw for any input. The lenient parser is
+            // not contractually guaranteed exception-free, so both passes guard against RuntimeException.
+            // Crafting an input that actually trips that guard is version-dependent, so the contract is
+            // verified here by running a range of inputs through the lenient-parse path with no throw.
             "validate returns a result rather than throwing for markup that is well-formed in lenient mode" {
                 // This exercises the lenient-parse path (Pass 2) for a variety of inputs; none
                 // should propagate an exception.

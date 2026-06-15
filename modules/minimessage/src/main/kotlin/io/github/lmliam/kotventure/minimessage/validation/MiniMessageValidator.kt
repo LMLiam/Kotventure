@@ -16,9 +16,10 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
  * Diagnostic ordering: malformed tags first, then missing placeholders in [placeholders]
  * declaration order, then extra placeholders in input-encounter order.
  *
- * [ParsingException] is the expected signal for strict-mode violations. Other [RuntimeException]
- * subclasses can be thrown by Adventure's parser internals on severely malformed inputs; they are
- * caught to preserve the no-throw contract.
+ * [ParsingException] is the documented signal for strict-mode violations and is reported as a
+ * malformed-tag diagnostic. The lenient parser is not contractually guaranteed exception-free for
+ * every input, so any other [RuntimeException] is turned into a diagnostic rather than propagated —
+ * `validate` never throws for the caller.
  *
  * @param input the MiniMessage input string to validate.
  * @param placeholders the declared placeholders the input is expected to use.
@@ -43,9 +44,9 @@ internal fun runValidation(
  * [MiniMessageDiagnostic.MalformedTag] because Adventure's strict parser throws on the first
  * violation.
  *
- * [ParsingException] is the expected signal for strict-mode violations. Other [RuntimeException]
- * subclasses can be thrown by Adventure's parser internals on severely malformed inputs; they are
- * caught to preserve the no-throw contract of the public entry point.
+ * [ParsingException] is the documented signal for strict-mode violations. Any other
+ * [RuntimeException] from the parser is also reported as a malformed-tag diagnostic (with an unknown
+ * position) so a crash-inducing input is never silently treated as valid and `validate` never throws.
  */
 private fun detectMalformedTags(
     input: String,
@@ -65,9 +66,16 @@ private fun detectMalformedTags(
                 endIndex = e.endIndex(),
             ),
         )
-    } catch (_: RuntimeException) {
-        // Adventure parser bug on edge-case malformed input — no position info available.
-        emptyList()
+    } catch (e: RuntimeException) {
+        // The parser rejected the input outside the documented ParsingException path (no position
+        // info available). Report it as malformed so it is never silently treated as valid.
+        listOf(
+            MiniMessageDiagnostic.MalformedTag(
+                message = e.message ?: "Input rejected by the MiniMessage parser.",
+                startIndex = MiniMessageDiagnostic.MalformedTag.LOCATION_UNKNOWN,
+                endIndex = MiniMessageDiagnostic.MalformedTag.LOCATION_UNKNOWN,
+            ),
+        )
     }
 }
 
@@ -93,10 +101,9 @@ private fun detectPlaceholderMismatches(
     val specNames = placeholders.map { it.name }.toSet()
     val recorder = RecordingTagResolver(specNames)
     val combined = TagResolver.resolver(TagResolver.standard(), recorder)
-    // The lenient parser is designed not to throw ParsingException, but Adventure's parser
-    // internals can still throw RuntimeException (e.g. StringIndexOutOfBoundsException) on
-    // edge-case malformed inputs. Guard defensively so validate() never propagates an exception;
-    // the recording side-effects gathered so far remain usable.
+    // The lenient parser is not contractually guaranteed exception-free for every input. Guard so
+    // validate() never propagates an exception; any input that crashes the parser is already
+    // reported as malformed by the strict pass, and the recorder's side-effects so far remain usable.
     try {
         MiniMessage.miniMessage().deserialize(input, combined)
     } catch (_: RuntimeException) {
