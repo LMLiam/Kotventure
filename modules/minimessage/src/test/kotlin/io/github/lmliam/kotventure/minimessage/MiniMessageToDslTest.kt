@@ -16,6 +16,7 @@ import net.kyori.adventure.nbt.api.BinaryTagHolder
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.DataComponentValue
+import net.kyori.adventure.text.event.HoverEvent
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextColor
 import net.kyori.adventure.text.format.TextDecoration
@@ -184,10 +185,130 @@ class MiniMessageToDslTest :
         }
 
         context("click event emission") {
-            clickRoundTripCases.forEach { roundTrip ->
-                test(roundTrip.name) {
-                    assertGoldenRoundTrip(roundTrip.expectedSource, roundTrip.expectedComponent)
-                }
+            test("round-trips open url click events against compiled expected DSL") {
+                assertGoldenRoundTrip(
+                    expectedSource =
+                        """
+                        component {
+                            text("Open") {
+                                click {
+                                    openUrl("https://example.com")
+                                }
+                            }
+                        }
+                        """.trimIndent(),
+                    expectedComponent =
+                        component {
+                            text("Open") {
+                                click { openUrl("https://example.com") }
+                            }
+                        },
+                )
+            }
+
+            test("round-trips open file click events against compiled expected DSL") {
+                assertGoldenRoundTrip(
+                    expectedSource =
+                        """
+                        component {
+                            text("File") {
+                                click {
+                                    openFile("/tmp/example.txt")
+                                }
+                            }
+                        }
+                        """.trimIndent(),
+                    expectedComponent =
+                        component {
+                            text("File") {
+                                click { openFile("/tmp/example.txt") }
+                            }
+                        },
+                )
+            }
+
+            test("round-trips run command click events against compiled expected DSL") {
+                assertGoldenRoundTrip(
+                    expectedSource =
+                        """
+                        component {
+                            text("Spawn") {
+                                click {
+                                    run("/spawn")
+                                }
+                            }
+                        }
+                        """.trimIndent(),
+                    expectedComponent =
+                        component {
+                            text("Spawn") {
+                                click { run("/spawn") }
+                            }
+                        },
+                )
+            }
+
+            test("round-trips suggest command click events against compiled expected DSL") {
+                assertGoldenRoundTrip(
+                    expectedSource =
+                        """
+                        component {
+                            text("Reply") {
+                                click {
+                                    suggest("/msg Alex ")
+                                }
+                            }
+                        }
+                        """.trimIndent(),
+                    expectedComponent =
+                        component {
+                            text("Reply") {
+                                click { suggest("/msg Alex ") }
+                            }
+                        },
+                )
+            }
+
+            test("round-trips change page click events against compiled expected DSL") {
+                assertGoldenRoundTrip(
+                    expectedSource =
+                        """
+                        component {
+                            text("Page") {
+                                click {
+                                    changePage(4)
+                                }
+                            }
+                        }
+                        """.trimIndent(),
+                    expectedComponent =
+                        component {
+                            text("Page") {
+                                click { changePage(4) }
+                            }
+                        },
+                )
+            }
+
+            test("round-trips copy click events against compiled expected DSL") {
+                assertGoldenRoundTrip(
+                    expectedSource =
+                        """
+                        component {
+                            text("Copy") {
+                                click {
+                                    copy("copied")
+                                }
+                            }
+                        }
+                        """.trimIndent(),
+                    expectedComponent =
+                        component {
+                            text("Copy") {
+                                click { copy("copied") }
+                            }
+                        },
+                )
             }
 
             test("emits a marker for non-representable click actions") {
@@ -238,10 +359,201 @@ class MiniMessageToDslTest :
         }
 
         context("hover event emission") {
-            hoverRoundTripCases.forEach { roundTrip ->
-                test(roundTrip.name) {
-                    assertGoldenRoundTrip(roundTrip.expectedSource, roundTrip.expectedComponent)
-                }
+            test("round-trips show text hover events against compiled expected DSL") {
+                assertGoldenRoundTrip(
+                    expectedSource =
+                        """
+                        component {
+                            text("Spawn") {
+                                hover {
+                                    text {
+                                        text("Warp now") {
+                                            color(NamedTextColor.GOLD)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        """.trimIndent(),
+                    expectedComponent =
+                        component {
+                            text("Spawn") {
+                                hover {
+                                    text {
+                                        text("Warp now") {
+                                            color(NamedTextColor.GOLD)
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                )
+            }
+
+            test("round-trips show item hover events against compiled expected DSL") {
+                assertGoldenRoundTrip(
+                    expectedSource =
+                        """
+                        component {
+                            text("Loot") {
+                                hover {
+                                    item(
+                                        key = key("minecraft", "diamond_sword"),
+                                        count = 2
+                                    )
+                                }
+                            }
+                        }
+                        """.trimIndent(),
+                    expectedComponent =
+                        component {
+                            text("Loot") {
+                                hover {
+                                    item(
+                                        key = key("minecraft", "diamond_sword"),
+                                        count = 2,
+                                    )
+                                }
+                            }
+                        },
+                )
+            }
+
+            test("round-trips show item hover data components against compiled expected DSL") {
+                assertGoldenRoundTrip(
+                    expectedSource =
+                        """
+                        component {
+                            text("Loot data") {
+                                hover {
+                                    item(
+                                        key = key("minecraft", "diamond_sword"),
+                                        dataComponents = mapOf(
+                                            key("minecraft", "custom_data") to BinaryTagHolder.binaryTagHolder("{kotventure:1b}")
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                        """.trimIndent(),
+                    expectedComponent =
+                        component {
+                            text("Loot data") {
+                                hover {
+                                    item(
+                                        key = key("minecraft", "diamond_sword"),
+                                        dataComponents =
+                                            mapOf<Key, DataComponentValue>(
+                                                key("minecraft", "custom_data") to
+                                                    BinaryTagHolder.binaryTagHolder("{kotventure:1b}"),
+                                            ),
+                                    )
+                                }
+                            }
+                        },
+                )
+            }
+
+            test("emits show item data components in a stable key order") {
+                val loot =
+                    component {
+                        text("Loot data") {
+                            hover {
+                                item(
+                                    key = key("minecraft", "diamond_sword"),
+                                    dataComponents =
+                                        mapOf<Key, DataComponentValue>(
+                                            key("minecraft", "damage") to BinaryTagHolder.binaryTagHolder("{value:5b}"),
+                                            key("minecraft", "custom_data") to
+                                                BinaryTagHolder.binaryTagHolder("{kotventure:1b}"),
+                                        ),
+                                )
+                            }
+                        }
+                    }
+
+                MiniMessageToDslWriter.write(loot) shouldBe
+                    """
+                    component {
+                        text("Loot data") {
+                            hover {
+                                item(
+                                    key = key("minecraft", "diamond_sword"),
+                                    dataComponents = mapOf(
+                                        key("minecraft", "custom_data") to BinaryTagHolder.binaryTagHolder("{kotventure:1b}"),
+                                        key("minecraft", "damage") to BinaryTagHolder.binaryTagHolder("{value:5b}")
+                                    )
+                                )
+                            }
+                        }
+                    }
+                    """.trimIndent()
+            }
+
+            test("round-trips show entity hover events against compiled expected DSL") {
+                assertGoldenRoundTrip(
+                    expectedSource =
+                        """
+                        component {
+                            text("Mob") {
+                                hover {
+                                    entity(
+                                        type = key("minecraft", "zombie"),
+                                        id = UUID.fromString("0d1630e2-fc7c-48ef-b7a0-8dfb9e57ec25")
+                                    )
+                                }
+                            }
+                        }
+                        """.trimIndent(),
+                    expectedComponent =
+                        component {
+                            text("Mob") {
+                                hover {
+                                    entity(
+                                        type = key("minecraft", "zombie"),
+                                        id = UUID.fromString("0d1630e2-fc7c-48ef-b7a0-8dfb9e57ec25"),
+                                    )
+                                }
+                            }
+                        },
+                )
+            }
+
+            test("round-trips named show entity hover events against compiled expected DSL") {
+                assertGoldenRoundTrip(
+                    expectedSource =
+                        """
+                        component {
+                            text("Named mob") {
+                                hover {
+                                    entity(
+                                        type = key("minecraft", "player"),
+                                        id = UUID.fromString("3f5f1f4e-29cb-4c98-93f0-3c7f4b52ddee")
+                                    ) {
+                                        text("Alex \"\$5\"") {
+                                            color(NamedTextColor.AQUA)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        """.trimIndent(),
+                    expectedComponent =
+                        component {
+                            text("Named mob") {
+                                hover {
+                                    entity(
+                                        type = key("minecraft", "player"),
+                                        id = UUID.fromString("3f5f1f4e-29cb-4c98-93f0-3c7f4b52ddee"),
+                                    ) {
+                                        text("Alex \"$5\"") {
+                                            color(NamedTextColor.AQUA)
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                )
             }
         }
 
@@ -272,6 +584,60 @@ class MiniMessageToDslTest :
 
                 error.message shouldContain "supports only text component trees"
             }
+
+            test("rejects unsupported styles nested in hover text payloads") {
+                val payload = Component.text("tip").insertion("/warp")
+                val component = Component.text("hover me").hoverEvent(HoverEvent.showText(payload))
+
+                val error =
+                    shouldThrow<IllegalArgumentException> {
+                        MiniMessageToDslWriter.write(component)
+                    }
+
+                error.message shouldContain "insertion text"
+            }
+
+            test("rejects legacy show-item NBT payloads") {
+                val legacyItem =
+                    Component
+                        .text("Loot")
+                        .hoverEvent(
+                            HoverEvent.showItem(
+                                key("minecraft", "diamond_sword"),
+                                1,
+                                BinaryTagHolder.binaryTagHolder("{}"),
+                            ),
+                        )
+
+                val error =
+                    shouldThrow<IllegalArgumentException> {
+                        MiniMessageToDslWriter.write(legacyItem)
+                    }
+
+                error.message shouldContain "legacy show-item NBT"
+            }
+
+            test("rejects unsupported data component values") {
+                val unsupportedValue: DataComponentValue = object : DataComponentValue {}
+                val component =
+                    component {
+                        text("Loot") {
+                            hover {
+                                item(
+                                    key = key("minecraft", "diamond_sword"),
+                                    dataComponents = mapOf(key("minecraft", "custom_data") to unsupportedValue),
+                                )
+                            }
+                        }
+                    }
+
+                val error =
+                    shouldThrow<IllegalArgumentException> {
+                        MiniMessageToDslWriter.write(component)
+                    }
+
+                error.message shouldContain "data component value"
+            }
         }
 
         context("literal MiniMessage input") {
@@ -288,297 +654,6 @@ class MiniMessageToDslTest :
             }
         }
     })
-
-private val clickRoundTripCases: List<RoundTripCase> =
-    listOf(
-        RoundTripCase(
-            name = "round-trips open url click events against compiled expected DSL",
-            expectedSource =
-                """
-                component {
-                    text("Open") {
-                        click {
-                            openUrl("https://example.com")
-                        }
-                    }
-                }
-                """.trimIndent(),
-            expectedComponent =
-                component {
-                    text("Open") {
-                        click {
-                            openUrl("https://example.com")
-                        }
-                    }
-                },
-        ),
-        RoundTripCase(
-            name = "round-trips open file click events against compiled expected DSL",
-            expectedSource =
-                """
-                component {
-                    text("File") {
-                        click {
-                            openFile("/tmp/example.txt")
-                        }
-                    }
-                }
-                """.trimIndent(),
-            expectedComponent =
-                component {
-                    text("File") {
-                        click {
-                            openFile("/tmp/example.txt")
-                        }
-                    }
-                },
-        ),
-        RoundTripCase(
-            name = "round-trips run command click events against compiled expected DSL",
-            expectedSource =
-                """
-                component {
-                    text("Spawn") {
-                        click {
-                            run("/spawn")
-                        }
-                    }
-                }
-                """.trimIndent(),
-            expectedComponent =
-                component {
-                    text("Spawn") {
-                        click {
-                            run("/spawn")
-                        }
-                    }
-                },
-        ),
-        RoundTripCase(
-            name = "round-trips suggest command click events against compiled expected DSL",
-            expectedSource =
-                """
-                component {
-                    text("Reply") {
-                        click {
-                            suggest("/msg Alex ")
-                        }
-                    }
-                }
-                """.trimIndent(),
-            expectedComponent =
-                component {
-                    text("Reply") {
-                        click {
-                            suggest("/msg Alex ")
-                        }
-                    }
-                },
-        ),
-        RoundTripCase(
-            name = "round-trips change page click events against compiled expected DSL",
-            expectedSource =
-                """
-                component {
-                    text("Page") {
-                        click {
-                            changePage(4)
-                        }
-                    }
-                }
-                """.trimIndent(),
-            expectedComponent =
-                component {
-                    text("Page") {
-                        click {
-                            changePage(4)
-                        }
-                    }
-                },
-        ),
-        RoundTripCase(
-            name = "round-trips copy click events against compiled expected DSL",
-            expectedSource =
-                """
-                component {
-                    text("Copy") {
-                        click {
-                            copy("copied")
-                        }
-                    }
-                }
-                """.trimIndent(),
-            expectedComponent =
-                component {
-                    text("Copy") {
-                        click {
-                            copy("copied")
-                        }
-                    }
-                },
-        ),
-    )
-
-private val hoverRoundTripCases: List<RoundTripCase> =
-    listOf(
-        RoundTripCase(
-            name = "round-trips show text hover events against compiled expected DSL",
-            expectedSource =
-                """
-                component {
-                    text("Spawn") {
-                        hover {
-                            text {
-                                text("Warp now") {
-                                    color(NamedTextColor.GOLD)
-                                }
-                            }
-                        }
-                    }
-                }
-                """.trimIndent(),
-            expectedComponent =
-                component {
-                    text("Spawn") {
-                        hover {
-                            text {
-                                text("Warp now") {
-                                    color(NamedTextColor.GOLD)
-                                }
-                            }
-                        }
-                    }
-                },
-        ),
-        RoundTripCase(
-            name = "round-trips show item hover events against compiled expected DSL",
-            expectedSource =
-                """
-                component {
-                    text("Loot") {
-                        hover {
-                            item(
-                                key = key("minecraft", "diamond_sword"),
-                                count = 2
-                            )
-                        }
-                    }
-                }
-                """.trimIndent(),
-            expectedComponent =
-                component {
-                    text("Loot") {
-                        hover {
-                            item(
-                                key = key("minecraft", "diamond_sword"),
-                                count = 2,
-                            )
-                        }
-                    }
-                },
-        ),
-        RoundTripCase(
-            name = "round-trips show item hover data components against compiled expected DSL",
-            expectedSource =
-                """
-                component {
-                    text("Loot data") {
-                        hover {
-                            item(
-                                key = key("minecraft", "diamond_sword"),
-                                dataComponents = mapOf(
-                                    key("minecraft", "custom_data") to BinaryTagHolder.binaryTagHolder("{kotventure:1b}")
-                                )
-                            )
-                        }
-                    }
-                }
-                """.trimIndent(),
-            expectedComponent =
-                component {
-                    text("Loot data") {
-                        hover {
-                            item(
-                                key = key("minecraft", "diamond_sword"),
-                                dataComponents =
-                                    mapOf<Key, DataComponentValue>(
-                                        key("minecraft", "custom_data") to
-                                                BinaryTagHolder.binaryTagHolder("{kotventure:1b}"),
-                                    ),
-                            )
-                        }
-                    }
-                },
-        ),
-        RoundTripCase(
-            name = "round-trips show entity hover events against compiled expected DSL",
-            expectedSource =
-                """
-                component {
-                    text("Mob") {
-                        hover {
-                            entity(
-                                type = key("minecraft", "zombie"),
-                                id = UUID.fromString("0d1630e2-fc7c-48ef-b7a0-8dfb9e57ec25")
-                            )
-                        }
-                    }
-                }
-                """.trimIndent(),
-            expectedComponent =
-                component {
-                    text("Mob") {
-                        hover {
-                            entity(
-                                type = key("minecraft", "zombie"),
-                                id = UUID.fromString("0d1630e2-fc7c-48ef-b7a0-8dfb9e57ec25"),
-                            )
-                        }
-                    }
-                },
-        ),
-        RoundTripCase(
-            name = "round-trips named show entity hover events against compiled expected DSL",
-            expectedSource =
-                """
-                component {
-                    text("Named mob") {
-                        hover {
-                            entity(
-                                type = key("minecraft", "player"),
-                                id = UUID.fromString("3f5f1f4e-29cb-4c98-93f0-3c7f4b52ddee")
-                            ) {
-                                text("Alex \"\$5\"") {
-                                    color(NamedTextColor.AQUA)
-                                }
-                            }
-                        }
-                    }
-                }
-                """.trimIndent(),
-            expectedComponent =
-                component {
-                    text("Named mob") {
-                        hover {
-                            entity(
-                                type = key("minecraft", "player"),
-                                id = UUID.fromString("3f5f1f4e-29cb-4c98-93f0-3c7f4b52ddee"),
-                            ) {
-                                text("Alex \"$5\"") {
-                                    color(NamedTextColor.AQUA)
-                                }
-                            }
-                        }
-                    }
-                },
-        ),
-    )
-
-private data class RoundTripCase(
-    val name: String,
-    val expectedSource: String,
-    val expectedComponent: Component,
-)
 
 private fun assertGoldenRoundTrip(
     input: String,
