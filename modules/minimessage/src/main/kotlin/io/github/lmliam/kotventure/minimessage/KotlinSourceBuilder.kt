@@ -3,6 +3,10 @@ package io.github.lmliam.kotventure.minimessage
 /**
  * Accumulates indented lines of Kotlin source, owning indentation so callers describe the structure to emit rather than
  * the whitespace in front of it.
+ *
+ * This type is generic Kotlin codegen and is not specific to MiniMessage; it lives here while `minimessage` is its only
+ * consumer. When a second consumer appears it should be promoted to a shared codegen module (tracked under the module
+ * restructure, issue #7) rather than reaching across feature packages.
  */
 internal class KotlinSourceBuilder {
     private val lines = mutableListOf<String>()

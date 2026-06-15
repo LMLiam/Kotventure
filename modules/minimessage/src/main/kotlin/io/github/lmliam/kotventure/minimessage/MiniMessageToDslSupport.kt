@@ -2,6 +2,7 @@ package io.github.lmliam.kotventure.minimessage
 
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
+import net.kyori.adventure.text.event.HoverEvent
 import net.kyori.adventure.text.format.Style
 import net.kyori.adventure.text.format.TextDecoration
 import net.kyori.adventure.text.format.TextDecoration.State
@@ -33,6 +34,22 @@ internal object MiniMessageToDslSupport {
         }
         require(style.shadowColor() == null) {
             "miniToDsl does not yet support shadow colours."
+        }
+        style.hoverEvent()?.let { hover -> requireSupportedHoverPayload(hover) }
+    }
+
+    /**
+     * Validates the nested component a hover event renders, so unsupported styles or non-text payloads are rejected up
+     * front instead of being silently dropped or triggering a cast failure while the DSL is written.
+     */
+    private fun requireSupportedHoverPayload(hover: HoverEvent<*>) {
+        when (hover.action()) {
+            HoverEvent.Action.SHOW_TEXT -> requireSupported(hover.value() as Component)
+            HoverEvent.Action.SHOW_ENTITY -> {
+                val entity = hover.value() as HoverEvent.ShowEntity
+                entity.name()?.let { name -> requireSupported(name) }
+            }
+            else -> Unit
         }
     }
 

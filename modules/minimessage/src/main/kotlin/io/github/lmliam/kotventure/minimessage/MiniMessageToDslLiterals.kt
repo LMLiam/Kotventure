@@ -41,7 +41,7 @@ internal fun escapeKotlinString(value: String): String =
                 '\n' -> append("\\n")
                 '\r' -> append("\\r")
                 '\t' -> append("\\t")
-                '$' -> append("\\\$")
+                '$' -> append('\\').append('$')
                 else -> append(character)
             }
         }

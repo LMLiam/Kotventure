@@ -139,9 +139,11 @@ private fun KotlinSourceBuilder.appendShowItem(item: HoverEvent.ShowItem) {
 
 private fun KotlinSourceBuilder.appendDataComponents(dataComponents: Map<Key, DataComponentValue>) {
     val entries: List<() -> Unit> =
-        dataComponents.entries.map { (key, value) ->
-            { line("${keyLiteral(key)} to ${dataComponentValueLiteral(value)}") }
-        }
+        dataComponents.entries
+            .sortedBy { (key, _) -> key.asString() }
+            .map { (key, value) ->
+                { line("${keyLiteral(key)} to ${dataComponentValueLiteral(value)}") }
+            }
 
     openArguments("dataComponents = mapOf(", entries)
     line(")")
