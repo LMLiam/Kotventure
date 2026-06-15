@@ -312,11 +312,11 @@ val forSam = WelcomeTemplate {
 //   → IllegalArgumentException: Template is missing required placeholder(s): [count].
 ```
 
-`validate(markup, spec)` checks a MiniMessage string against a declared placeholder spec and returns a structured
-`ValidationResult` — no exception escapes to the caller. It runs two passes: a strict-mode parse that catches malformed
-or unclosed tags, and a recording parse that cross-checks which placeholder tags appear in the markup. Note that strict
-mode requires all standard child-allowing tags (such as `<gold>`) to be explicitly closed; an unclosed standard tag is
-reported as a `MalformedTag` diagnostic.
+`validate(input, placeholders)` checks a MiniMessage string against a declared set of placeholders and returns a
+structured `ValidationResult` — no exception escapes to the caller. It runs two passes: a strict-mode parse that catches
+malformed or unclosed tags, and a recording parse that cross-checks which placeholder tags appear in the input. Note that
+strict mode requires all standard child-allowing tags (such as `<gold>`) to be explicitly closed; an unclosed standard
+tag is reported as a `MalformedTag` diagnostic.
 
 ```kotlin
 import io.github.lmliam.kotventure.minimessage.placeholder
@@ -381,8 +381,8 @@ val diagnosticMessages = when (val r = missingResult) {
 }
 ```
 
-`MiniTemplate.validate()` is a convenience extension that validates a template's own markup against its declared
-placeholders without needing to pass the spec manually:
+`MiniTemplate.validate()` is a convenience extension that validates a template's own MiniMessage string against its
+declared placeholders without needing to pass them manually:
 
 ```kotlin
 import io.github.lmliam.kotventure.minimessage.MiniTemplate
