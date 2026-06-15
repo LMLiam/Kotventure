@@ -252,7 +252,7 @@ class MiniMessageToDslTest :
                         miniToDsl("<shadow:red>shadow</shadow>")
                     }
 
-                error.message shouldContain "miniToDsl slice 2 does not support shadow colours"
+                error.message shouldContain "miniToDsl does not yet support shadow colours"
             }
 
             test("rejects unsupported component types") {
