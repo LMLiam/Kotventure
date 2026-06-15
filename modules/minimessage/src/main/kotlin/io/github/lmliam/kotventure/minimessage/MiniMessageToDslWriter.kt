@@ -5,10 +5,10 @@ import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.Style
 import net.kyori.adventure.text.format.TextColor
-import net.kyori.adventure.text.format.TextDecoration
+import net.kyori.adventure.text.format.TextDecoration.State
 import java.util.Locale
 
-internal class MiniMessageToDslWriter {
+internal object MiniMessageToDslWriter {
     fun write(component: Component): String {
         if (component.isEmptyDslComponent()) {
             return "component {}"
@@ -24,7 +24,10 @@ internal class MiniMessageToDslWriter {
         component: Component,
         lines: MutableList<String>,
     ) {
-        if (component is TextComponent && component.content().isEmpty() && !component.style().hasDslOutput()) {
+        if (component is TextComponent &&
+            component.content().isEmpty() &&
+            !MiniMessageToDslSupport.hasDslOutput(component.style())
+        ) {
             component.children().forEach { child -> appendComponent(child, 1, lines) }
             return
         }
@@ -37,12 +40,11 @@ internal class MiniMessageToDslWriter {
         indent: Int,
         lines: MutableList<String>,
     ) {
-        require(component is TextComponent) {
-            "miniToDsl slice 1 supports only text component trees, but found ${component::class.simpleName}."
-        }
+        MiniMessageToDslSupport.requireSupported(component)
+        component as TextComponent
 
         val text = component.content()
-        val hasBlockBody = component.style().hasDslOutput() || component.children().isNotEmpty()
+        val hasBlockBody = MiniMessageToDslSupport.hasDslOutput(component.style()) || component.children().isNotEmpty()
 
         if (!hasBlockBody) {
             lines += "${indent(indent)}text(\"${escapeString(text)}\")"
@@ -66,14 +68,26 @@ internal class MiniMessageToDslWriter {
         indent: Int,
         lines: MutableList<String>,
     ) {
+        MiniMessageToDslSupport.requireSupported(style)
+
         style.color()?.let { color ->
             lines += "${indent(indent)}color(${formatColor(color)})"
         }
 
-        decorationFunctions.forEach { (decoration, functionName) ->
-            if (style.decoration(decoration) == TextDecoration.State.TRUE) {
+        MiniMessageToDslSupport.decorations.forEach { (decoration, functionName) ->
+            if (style.decoration(decoration) == State.TRUE) {
                 lines += "${indent(indent)}$functionName()"
             }
+        }
+
+        val disabledDecorations =
+            MiniMessageToDslSupport.decorations.filter { (decoration) -> style.decoration(decoration) == State.FALSE }
+        if (disabledDecorations.isNotEmpty()) {
+            lines += "${indent(indent)}style {"
+            disabledDecorations.forEach { (_, functionName) ->
+                lines += "${indent(indent + 1)}$functionName(false)"
+            }
+            lines += "${indent(indent)}}"
         }
     }
 
@@ -91,33 +105,19 @@ internal class MiniMessageToDslWriter {
                     '\\' -> append("\\\\")
                     '"' -> append("\\\"")
                     '\n' -> append("\\n")
+                    '\r' -> append("\\r")
                     '\t' -> append("\\t")
-                    '$' -> append("\\$")
+                    '$' -> append('\\').append('$')
                     else -> append(character)
                 }
             }
         }
 
-    private fun Style.hasDslOutput(): Boolean =
-        color() != null ||
-            decorationFunctions.keys.any { decoration -> decoration(decoration) == TextDecoration.State.TRUE }
-
     private fun Component.isEmptyDslComponent(): Boolean =
         this is TextComponent &&
             content().isEmpty() &&
             children().isEmpty() &&
-            !style().hasDslOutput()
+            !MiniMessageToDslSupport.hasDslOutput(style())
 
     private fun indent(level: Int): String = "    ".repeat(level)
-
-    private companion object {
-        private val decorationFunctions: LinkedHashMap<TextDecoration, String> =
-            linkedMapOf(
-                TextDecoration.BOLD to "bold",
-                TextDecoration.ITALIC to "italic",
-                TextDecoration.UNDERLINED to "underlined",
-                TextDecoration.STRIKETHROUGH to "strikethrough",
-                TextDecoration.OBFUSCATED to "obfuscated",
-            )
-    }
 }

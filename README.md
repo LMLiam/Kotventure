@@ -278,7 +278,7 @@ val nested = component {
     }
 }
 
-val converted = miniToDsl("<red><bold>Hello")
+val dslSource = miniToDsl("<red><bold>Hello")
 // component {
 //     text("Hello") {
 //         color(NamedTextColor.RED)

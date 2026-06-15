@@ -6,8 +6,10 @@ import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.github.lmliam.kotventure.test.text.shouldHaveChildCount
 import io.github.lmliam.kotventure.test.text.shouldHaveColor
 import io.github.lmliam.kotventure.test.text.shouldHaveDecoration
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextColor
@@ -82,14 +84,65 @@ class MiniMessageToDslTest :
             }
 
             "escapes Kotlin string content in generated source" {
-                val input = "say \\ \"hi\"\n\t\$5"
+                val dollar = '$'
+                val escapedDollar = "\\$dollar"
+                val input = "say \\ \"hi\"\n\t${dollar}5\rcr"
 
                 miniToDsl(input) shouldBe
                     """
                     component {
-                        text("say \\ \"hi\"\n\t\$5")
+                        text("say \\ \"hi\"\n\t${escapedDollar}5\rcr")
                     }
                     """.trimIndent()
+            }
+
+            "emits all standard text decorations" {
+                miniToDsl("<bold><italic><underlined><strikethrough><obfuscated>styled") shouldBe
+                    """
+                    component {
+                        text("styled") {
+                            bold()
+                            italic()
+                            underlined()
+                            strikethrough()
+                            obfuscated()
+                        }
+                    }
+                    """.trimIndent()
+            }
+
+            "emits disabled decoration states that override inherited style" {
+                miniToDsl("<bold>hot <!bold>cold") shouldBe
+                    """
+                    component {
+                        text("hot ") {
+                            bold()
+                            text("cold") {
+                                style {
+                                    bold(false)
+                                }
+                            }
+                        }
+                    }
+                    """.trimIndent()
+            }
+
+            "rejects unsupported style metadata instead of dropping it" {
+                val error =
+                    shouldThrow<IllegalArgumentException> {
+                        miniToDsl("<click:run_command:'/spawn'>spawn</click>")
+                    }
+
+                error.message shouldContain "miniToDsl slice 1 does not support click events"
+            }
+
+            "rejects unsupported component types" {
+                val error =
+                    shouldThrow<IllegalArgumentException> {
+                        MiniMessageToDslWriter.write(Component.keybind("key.jump"))
+                    }
+
+                error.message shouldContain "supports only text component trees"
             }
 
             "renders escaped MiniMessage tags as literal text" {
