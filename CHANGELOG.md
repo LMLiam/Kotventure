@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land in any release.
 
+## [0.2.0](https://github.com/LMLiam/Kotventure/compare/0.1.0...0.2.0) (2026-06-15)
+
+
+### ✨ Features
+
+* **minimessage:** add typed placeholders ([#142](https://github.com/LMLiam/Kotventure/issues/142)) ([02ce043](https://github.com/LMLiam/Kotventure/commit/02ce04337ad870b4a7f09cbfd7e09a670a1a13b8))
+* **minimessage:** add typed reusable message templates ([#144](https://github.com/LMLiam/Kotventure/issues/144)) ([722a5cd](https://github.com/LMLiam/Kotventure/commit/722a5cd92a9425e6e6e88b2e00abb1377fc8a5a1))
+* **minimessage:** validate markup and placeholders ([#145](https://github.com/LMLiam/Kotventure/issues/145)) ([bd3d6be](https://github.com/LMLiam/Kotventure/commit/bd3d6be2230b64aaeaafe39cc4c49de73a1c4f10))
+
+
+### 📝 Documentation
+
+* **skills:** add detailed guidelines for agents and DSL workflows ([182a423](https://github.com/LMLiam/Kotventure/commit/182a4235bf20454eb351788c30871051b1fe228f))
+
 ## [0.1.0](https://github.com/LMLiam/Kotventure/compare/0.0.11...0.1.0) (2026-06-12)
 
 
