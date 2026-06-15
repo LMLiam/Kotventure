@@ -133,7 +133,7 @@ class HoverEventDslTest :
                 component.childAt(0) shouldHaveHoverText Component.text("Text hover")
                 component.childAt(1) shouldHaveHoverItem HoverEvent.ShowItem.showItem(key("minecraft", "stone"), 1)
                 component.childAt(2) shouldHaveHoverEntity
-                    HoverEvent.ShowEntity.showEntity(key("minecraft", "zombie"), id)
+                        HoverEvent.ShowEntity.showEntity(key("minecraft", "zombie"), id)
             }
 
             "builds rich hover text from nested component DSL content" {

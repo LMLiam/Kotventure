@@ -13,26 +13,26 @@ private val TAG_NAME_REGEX = Regex("[!?#]?[a-z0-9_-]+")
  * equal when they share both name and value type.
  */
 public class MiniMessagePlaceholder<T : Any>
-    @PublishedApi
-    internal constructor(
-        public val name: String,
-        internal val type: Class<T>,
-        internal val strategy: MiniMessagePlaceholderStrategy,
-    ) {
-        init {
-            require(TAG_NAME_REGEX.matches(name)) {
-                "MiniMessage placeholder names must match ${TAG_NAME_REGEX.pattern}; received '$name'."
-            }
+@PublishedApi
+internal constructor(
+    public val name: String,
+    internal val type: Class<T>,
+    internal val strategy: MiniMessagePlaceholderStrategy,
+) {
+    init {
+        require(TAG_NAME_REGEX.matches(name)) {
+            "MiniMessage placeholder names must match ${TAG_NAME_REGEX.pattern}; received '$name'."
         }
+    }
 
-        override fun equals(other: Any?): Boolean =
-            this === other ||
+    override fun equals(other: Any?): Boolean =
+        this === other ||
                 other is MiniMessagePlaceholder<*> &&
                 name == other.name &&
                 type == other.type
 
-        override fun hashCode(): Int = 31 * name.hashCode() + type.hashCode()
-    }
+    override fun hashCode(): Int = 31 * name.hashCode() + type.hashCode()
+}
 
 /**
  * Creates a typed MiniMessage placeholder descriptor named [name].

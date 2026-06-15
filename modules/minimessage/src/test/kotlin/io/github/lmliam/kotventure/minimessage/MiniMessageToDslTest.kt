@@ -21,7 +21,7 @@ class MiniMessageToDslTest :
         {
             "generates snapshot-style source for styled plain text" {
                 miniToDsl("<red><bold>Hello") shouldBe
-                    """
+                        """
                     component {
                         text("Hello") {
                             color(NamedTextColor.RED)
@@ -33,7 +33,7 @@ class MiniMessageToDslTest :
 
             "generates snapshot-style source for nested children and hex colours" {
                 miniToDsl("<gray>Hello <#12ab34>world</#12ab34></gray>") shouldBe
-                    """
+                        """
                     component {
                         text("Hello ") {
                             color(NamedTextColor.GRAY)
@@ -89,7 +89,7 @@ class MiniMessageToDslTest :
                 val input = "say \\ \"hi\"\n\t${dollar}5\rcr"
 
                 miniToDsl(input) shouldBe
-                    """
+                        """
                     component {
                         text("say \\ \"hi\"\n\t${escapedDollar}5\rcr")
                     }
@@ -98,7 +98,7 @@ class MiniMessageToDslTest :
 
             "emits all standard text decorations" {
                 miniToDsl("<bold><italic><underlined><strikethrough><obfuscated>styled") shouldBe
-                    """
+                        """
                     component {
                         text("styled") {
                             bold()
@@ -113,7 +113,7 @@ class MiniMessageToDslTest :
 
             "emits disabled decoration states that override inherited style" {
                 miniToDsl("<bold>hot <!bold>cold") shouldBe
-                    """
+                        """
                     component {
                         text("hot ") {
                             bold()
@@ -149,7 +149,7 @@ class MiniMessageToDslTest :
                 val generated = miniToDsl("\\<red>literal")
 
                 generated shouldBe
-                    """
+                        """
                     component {
                         text("<red>literal")
                     }

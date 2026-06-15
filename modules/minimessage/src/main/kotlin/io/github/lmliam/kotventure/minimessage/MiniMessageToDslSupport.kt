@@ -40,5 +40,5 @@ internal object MiniMessageToDslSupport {
 
     fun hasDslOutput(style: Style): Boolean =
         style.color() != null ||
-            decorations.any { (decoration) -> style.decoration(decoration) != State.NOT_SET }
+                decorations.any { (decoration) -> style.decoration(decoration) != State.NOT_SET }
 }

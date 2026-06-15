@@ -123,7 +123,8 @@ public abstract class MiniTemplate(
  * @param placeholder a descriptor declared on this template.
  * @param value the value to substitute for [placeholder].
  */
-context(_: MiniTemplateBindingScope) public fun <T : Any> MiniTemplate.bind(
+context(_: MiniTemplateBindingScope)
+public fun <T : Any> MiniTemplate.bind(
     placeholder: MiniMessagePlaceholder<T>,
     value: T,
 ): Unit = contextOf<MiniTemplateBindingScope>().bind(placeholder, value)
@@ -162,7 +163,7 @@ public operator fun <T : MiniTemplate> T.invoke(block: context(MiniTemplateBindi
             ) {
                 require(placeholders[placeholder.name] === placeholder) {
                     "Placeholder '${placeholder.name}' is not declared on this template. " +
-                        "Declared placeholders: ${placeholders.keys}."
+                            "Declared placeholders: ${placeholders.keys}."
                 }
                 require(boundNames.add(placeholder.name)) {
                     "Placeholder '${placeholder.name}' is already bound in this template render."

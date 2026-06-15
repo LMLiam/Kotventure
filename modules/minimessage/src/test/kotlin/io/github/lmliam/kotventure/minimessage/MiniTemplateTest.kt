@@ -257,13 +257,13 @@ class MiniTemplateTest :
 
             "throws IllegalArgumentException when markup is empty" {
                 shouldThrow<IllegalArgumentException> {
-                    object : MiniTemplate("") { }
+                    object : MiniTemplate("") {}
                 }
             }
 
             "throws IllegalArgumentException when markup is blank" {
                 shouldThrow<IllegalArgumentException> {
-                    object : MiniTemplate("   ") { }
+                    object : MiniTemplate("   ") {}
                 }
             }
 

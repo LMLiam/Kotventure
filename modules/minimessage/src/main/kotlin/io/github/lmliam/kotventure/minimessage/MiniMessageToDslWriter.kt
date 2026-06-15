@@ -115,9 +115,9 @@ internal object MiniMessageToDslWriter {
 
     private fun Component.isEmptyDslComponent(): Boolean =
         this is TextComponent &&
-            content().isEmpty() &&
-            children().isEmpty() &&
-            !MiniMessageToDslSupport.hasDslOutput(style())
+                content().isEmpty() &&
+                children().isEmpty() &&
+                !MiniMessageToDslSupport.hasDslOutput(style())
 
     private fun indent(level: Int): String = "    ".repeat(level)
 }

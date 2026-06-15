@@ -22,7 +22,7 @@ internal inline fun <reified T : Any> miniMessagePlaceholderStrategy(): MiniMess
         else ->
             throw IllegalArgumentException(
                 "Supported MiniMessage placeholder types are ComponentLike, String, Number, and Boolean; " +
-                    "received ${T::class.qualifiedName}.",
+                        "received ${T::class.qualifiedName}.",
             )
     }
 }
