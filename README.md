@@ -312,6 +312,97 @@ val forSam = WelcomeTemplate {
 //   → IllegalArgumentException: Template is missing required placeholder(s): [count].
 ```
 
+`validate(input, placeholders)` checks a MiniMessage string against a declared set of placeholders and returns a
+structured `ValidationResult` — no exception escapes to the caller. It runs two passes: a strict-mode parse that catches
+malformed or unclosed tags, and a recording parse that cross-checks which placeholder tags appear in the input. Note that
+strict mode requires all standard child-allowing tags (such as `<gold>`) to be explicitly closed; an unclosed standard
+tag is reported as a `MalformedTag` diagnostic.
+
+```kotlin
+import io.github.lmliam.kotventure.minimessage.placeholder
+import io.github.lmliam.kotventure.minimessage.validate
+import io.github.lmliam.kotventure.minimessage.validation.MiniMessageDiagnostic
+import io.github.lmliam.kotventure.minimessage.validation.ValidationResult
+import net.kyori.adventure.text.Component
+
+val player = placeholder<Component>("player")
+val count = placeholder<Int>("count")
+
+// Success — well-formed input, all placeholders present, standard tags closed
+val result = validate(
+    input = "<gold>Welcome <player></gold>, you have <count> messages",
+    placeholders = listOf(player, count),
+)
+// result == ValidationResult.Success
+
+// MissingPlaceholder — 'count' declared in placeholders but absent from input
+val missingResult = validate(
+    input = "<gold>Welcome <player></gold>",
+    placeholders = listOf(player, count),
+)
+// missingResult == ValidationResult.Failure(
+//   diagnostics = [MissingPlaceholder("count")]
+// )
+
+// MalformedTag — '<gold>' opened but not closed (strict mode)
+val malformedResult = validate(
+    input = "<gold>Hello world",
+    placeholders = listOf(player),
+)
+// malformedResult == ValidationResult.Failure(
+//   diagnostics = [
+//     MalformedTag("...", startIndex, endIndex),  // unclosed <gold>
+//     MissingPlaceholder("player"),               // declared but absent from input
+//   ]
+// )
+
+// ExtraPlaceholder — '<mystery>' tag in input has no placeholder entry
+val extraResult = validate(
+    input = "<gold>Hello <player></gold> <mystery>",
+    placeholders = listOf(player),
+)
+// extraResult == ValidationResult.Failure(
+//   diagnostics = [ExtraPlaceholder("mystery")]
+// )
+
+// Inspect diagnostics exhaustively
+val diagnosticMessages = when (val r = missingResult) {
+    is ValidationResult.Success -> emptyList()
+    is ValidationResult.Failure -> r.diagnostics.map { diag ->
+        when (diag) {
+            is MiniMessageDiagnostic.MalformedTag ->
+                "Malformed tag at [${diag.startIndex}–${diag.endIndex}]: ${diag.message}"
+            is MiniMessageDiagnostic.MissingPlaceholder ->
+                "Missing placeholder: <${diag.name}>"
+            is MiniMessageDiagnostic.ExtraPlaceholder ->
+                "Extra placeholder: <${diag.name}>"
+        }
+    }
+}
+```
+
+`MiniTemplate.validate()` is a convenience extension that validates a template's own MiniMessage string against its
+declared placeholders without needing to pass them manually:
+
+```kotlin
+import io.github.lmliam.kotventure.minimessage.MiniTemplate
+import io.github.lmliam.kotventure.minimessage.placeholder
+import io.github.lmliam.kotventure.minimessage.validate
+import net.kyori.adventure.text.Component
+
+object WelcomeTemplate : MiniTemplate("<gold>Welcome <player>, <count> new messages</gold>") {
+    val player = placeholder<Component>("player")
+    val count = placeholder<Int>("count")
+}
+
+val templateResult = WelcomeTemplate.validate()
+// templateResult == ValidationResult.Success
+```
+
+Diagnostic ordering in `ValidationResult.Failure.diagnostics`: malformed-tag diagnostics appear first, then missing
+placeholders in declaration order, then extra placeholders in the order they were encountered in the input.
+`result.isSuccess` and `result.isFailure` are available as concise boolean checks.
+
 Join a list of components using `Iterable<Component>.join { }`, with optional separator, `lastSeparator`, `prefix`, and
 `suffix` knobs that each accept a string-plus-styling block or a prebuilt component:
 
