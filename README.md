@@ -504,12 +504,13 @@ val fromPlain = "Hello".asPlainComponent()
 val fromMini = "<red>Hello".asMiniComponent()
 ```
 
-`kotventure-test` starts the testing toolkit with structural component matchers such as `shouldContainText`,
-`shouldHaveColor`, `shouldHaveDecoration`, `shouldNotHaveDecoration`, `shouldHaveChildCount`, and translatable-specific
-assertions for keys, fallbacks, and arguments. It also includes keybind, score, selector, object component, block,
-entity,
-and storage NBT assertions for the smaller component DSLs, plus click-event and hover-event assertions for all
-components.
+`kotventure-test` is a complete component-matcher library. Every attribute — content, colour, shadow colour, style,
+each decoration, font, insertion, children (count, order, contains), click and hover events, translatable keys,
+fallbacks and arguments, and the keybind / score / selector / object / NBT component types — is covered by two surfaces:
+a `shouldHave…` / `shouldBe…` assertion for the common case, and a composable, negatable `Matcher<Component>` factory
+(`haveColor`, `haveDecoration`, `haveChildren`, …) you can combine with Kotest's `and` / `or` / `shouldNot`. Convenience
+assertions such as `shouldBeBold()` and `shouldHaveContent` keep message tests expressive. See the
+[`kotventure-test` README](modules/test/README.md) for the full catalogue.
 
 ---
 
