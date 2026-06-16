@@ -14,6 +14,7 @@ import io.kotest.matchers.string.shouldContain
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.nbt.api.BinaryTagHolder
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.TranslationArgument
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.DataComponentValue
 import net.kyori.adventure.text.event.HoverEvent
@@ -561,6 +562,226 @@ class MiniMessageToDslTest :
                 }
             }
 
+            context("structured component emission") {
+                test("round-trips keybind components against compiled expected DSL") {
+                    assertGoldenRoundTrip(
+                        input = "<key:key.jump>",
+                        expectedSource =
+                            """
+                        component {
+                            keybind("key.jump")
+                        }
+                        """.trimIndent(),
+                        expectedComponent = component { keybind("key.jump") },
+                    )
+                }
+
+                test("round-trips keybind components carrying style against compiled expected DSL") {
+                    assertGoldenRoundTrip(
+                        expectedSource =
+                            """
+                        component {
+                            keybind("key.sneak") {
+                                color(NamedTextColor.GREEN)
+                            }
+                        }
+                        """.trimIndent(),
+                        expectedComponent =
+                            component {
+                                keybind("key.sneak") {
+                                    color(NamedTextColor.GREEN)
+                                }
+                            },
+                    )
+                }
+
+                test("round-trips keybind components carrying click events against compiled expected DSL") {
+                    assertGoldenRoundTrip(
+                        expectedSource =
+                            """
+                        component {
+                            keybind("key.jump") {
+                                click {
+                                    run("/help")
+                                }
+                            }
+                        }
+                        """.trimIndent(),
+                        expectedComponent =
+                            component {
+                                keybind("key.jump") {
+                                    click { run("/help") }
+                                }
+                            },
+                    )
+                }
+
+                test("round-trips score components against compiled expected DSL") {
+                    assertGoldenRoundTrip(
+                        input = "<score:player:objective>",
+                        expectedSource =
+                            """
+                        component {
+                            score("player", "objective")
+                        }
+                        """.trimIndent(),
+                        expectedComponent = component { score("player", "objective") },
+                    )
+                }
+
+                test("round-trips selector components against compiled expected DSL") {
+                    assertGoldenRoundTrip(
+                        input = "<selector:'@p'>",
+                        expectedSource =
+                            """
+                        component {
+                            selector("@p")
+                        }
+                        """.trimIndent(),
+                        expectedComponent = component { selector("@p") },
+                    )
+                }
+
+                test("round-trips selector separators against compiled expected DSL") {
+                    assertGoldenRoundTrip(
+                        input = "<selector:'@e':', '>",
+                        expectedSource =
+                            """
+                        component {
+                            selector("@e") {
+                                separator {
+                                    text(", ")
+                                }
+                            }
+                        }
+                        """.trimIndent(),
+                        expectedComponent =
+                            component {
+                                selector("@e") {
+                                    separator { text(", ") }
+                                }
+                            },
+                    )
+                }
+
+                test("round-trips argument-free translatable components against compiled expected DSL") {
+                    assertGoldenRoundTrip(
+                        input = "<lang:death.fell.accident.ladder>",
+                        expectedSource =
+                            """
+                        component {
+                            translatable("death.fell.accident.ladder")
+                        }
+                        """.trimIndent(),
+                        expectedComponent = component { translatable("death.fell.accident.ladder") },
+                    )
+                }
+
+                test("round-trips translatable arguments against compiled expected DSL") {
+                    assertGoldenRoundTrip(
+                        input = "<lang:multiplayer.player.joined:Alex>",
+                        expectedSource =
+                            """
+                        component {
+                            translatable("multiplayer.player.joined") {
+                                arg {
+                                    text("Alex")
+                                }
+                            }
+                        }
+                        """.trimIndent(),
+                        expectedComponent =
+                            component {
+                                translatable("multiplayer.player.joined") {
+                                    arg { text("Alex") }
+                                }
+                            },
+                    )
+                }
+
+                test("recurses nested styled translatable arguments against compiled expected DSL") {
+                    assertGoldenRoundTrip(
+                        input = "<lang:'k':'<red>x<bold>y'>",
+                        expectedSource =
+                            """
+                        component {
+                            translatable("k") {
+                                arg {
+                                    text("x") {
+                                        color(NamedTextColor.RED)
+                                        text("y") {
+                                            bold()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        """.trimIndent(),
+                        expectedComponent =
+                            component {
+                                translatable("k") {
+                                    arg {
+                                        text("x") {
+                                            color(NamedTextColor.RED)
+                                            text("y") { bold() }
+                                        }
+                                    }
+                                }
+                            },
+                    )
+                }
+
+                test("round-trips translatable components nesting other structured components") {
+                    assertGoldenRoundTrip(
+                        input = "<lang:k:a>:<lang:k:b>",
+                        expectedSource =
+                            """
+                        component {
+                            translatable("k") {
+                                arg {
+                                    text("a")
+                                }
+                                text(":")
+                                translatable("k") {
+                                    arg {
+                                        text("b")
+                                    }
+                                }
+                            }
+                        }
+                        """.trimIndent(),
+                        expectedComponent =
+                            component {
+                                translatable("k") {
+                                    arg { text("a") }
+                                    text(":")
+                                    translatable("k") {
+                                        arg { text("b") }
+                                    }
+                                }
+                            },
+                    )
+                }
+
+                test("emits translatable fallback text") {
+                    val translatable =
+                        component {
+                            translatable("menu.singleplayer") {
+                                fallback("Singleplayer")
+                            }
+                        }
+
+                    MiniMessageToDslWriter.write(translatable) shouldBe
+                            """
+                    component {
+                        translatable("menu.singleplayer") {
+                            fallback("Singleplayer")
+                        }
+                    }
+                    """.trimIndent()
+                }
+            }
+
             context("unsupported input") {
                 test("rejects unsupported shadow colours instead of dropping them") {
                     val error =
@@ -571,22 +792,68 @@ class MiniMessageToDslTest :
                     error.message shouldContain "miniToDsl does not yet support shadow colours"
                 }
 
-                test("rejects unsupported component types") {
+                test("rejects component types from later slices") {
                     val error =
                         shouldThrow<IllegalArgumentException> {
-                            miniToDsl("<key:key.jump>")
+                            MiniMessageToDslWriter.write(Component.storageNBT("CustomData", key("minecraft", "data")))
                         }
 
-                    error.message shouldContain "supports only text component trees"
+                    error.message shouldContain "does not yet support"
+                    error.message shouldContain "StorageNBT"
                 }
 
-                test("rejects unsupported component types in children") {
+                test("rejects component types from later slices nested in children") {
+                    val nested = Component.empty().append(Component.storageNBT("CustomData", key("minecraft", "data")))
+
                     val error =
                         shouldThrow<IllegalArgumentException> {
-                            MiniMessageToDslWriter.write(Component.empty().append(Component.keybind("key.jump")))
+                            MiniMessageToDslWriter.write(nested)
                         }
 
-                    error.message shouldContain "supports only text component trees"
+                    error.message shouldContain "does not yet support"
+                }
+
+                test("rejects non-component translatable arguments") {
+                    val translatable =
+                        Component
+                            .translatable()
+                            .key("stat.generic")
+                            .arguments(TranslationArgument.bool(true))
+                            .build()
+
+                    val error =
+                        shouldThrow<IllegalArgumentException> {
+                            MiniMessageToDslWriter.write(translatable)
+                        }
+
+                    error.message shouldContain "non-component translatable arguments"
+                }
+
+                test("rejects unsupported styles nested in translatable arguments") {
+                    val translatable =
+                        Component
+                            .translatable()
+                            .key("chat.type.text")
+                            .arguments(Component.text("Alex").insertion("/msg Alex "))
+                            .build()
+
+                    val error =
+                        shouldThrow<IllegalArgumentException> {
+                            MiniMessageToDslWriter.write(translatable)
+                        }
+
+                    error.message shouldContain "insertion text"
+                }
+
+                test("rejects unsupported styles nested in selector separators") {
+                    val selector = Component.selector("@e").separator(Component.text(", ").insertion("/spy"))
+
+                    val error =
+                        shouldThrow<IllegalArgumentException> {
+                            MiniMessageToDslWriter.write(selector)
+                        }
+
+                    error.message shouldContain "insertion text"
                 }
 
                 test("rejects unsupported styles nested in hover text payloads") {
