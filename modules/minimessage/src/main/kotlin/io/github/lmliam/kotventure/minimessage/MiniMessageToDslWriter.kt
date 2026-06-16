@@ -147,8 +147,8 @@ private fun KotlinSourceBuilder.appendStructured(
 
 private fun KotlinSourceBuilder.appendArgument(argument: TranslationArgument) {
     val value = argument.value()
-    require(value is Component) {
-        "miniToDsl does not yet support non-component translatable arguments (${value::class.qualifiedName})."
+    check(value is Component) {
+        "miniToDsl reached an unvalidated ${value::class.simpleName} translatable argument."
     }
     appendComponentArgument("arg", value)
 }

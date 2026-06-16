@@ -780,6 +780,30 @@ class MiniMessageToDslTest :
                     }
                     """.trimIndent()
                 }
+
+                test("emits a structured component carrying arguments, style, and children together") {
+                    val translatable =
+                        component {
+                            translatable("commands.give.success.single") {
+                                arg { text("Alex") }
+                                color(NamedTextColor.GREEN)
+                                text("!")
+                            }
+                        }
+
+                    MiniMessageToDslWriter.write(translatable) shouldBe
+                            """
+                    component {
+                        translatable("commands.give.success.single") {
+                            arg {
+                                text("Alex")
+                            }
+                            color(NamedTextColor.GREEN)
+                            text("!")
+                        }
+                    }
+                    """.trimIndent()
+                }
             }
 
             context("unsupported input") {
@@ -811,6 +835,17 @@ class MiniMessageToDslTest :
                         }
 
                     error.message shouldContain "does not yet support"
+                }
+
+                test("rejects score components with a fixed value instead of dropping it") {
+                    val score = Component.score("player", "objective").value("7")
+
+                    val error =
+                        shouldThrow<IllegalArgumentException> {
+                            MiniMessageToDslWriter.write(score)
+                        }
+
+                    error.message shouldContain "score components with a fixed value"
                 }
 
                 test("rejects non-component translatable arguments") {

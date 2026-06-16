@@ -37,11 +37,20 @@ internal object MiniMessageToDslSupport {
         requireSupportedPayload(component)
     }
 
-    /** Validates the nested components a structured component carries so unsupported styles are rejected up front. */
+    /**
+     * Validates the payload a structured component carries beyond its style and children — translatable arguments and
+     * selector separators are recursed so unsupported styles are rejected up front, and a score's obsolete fixed
+     * [ScoreComponent.value] is rejected because the DSL cannot represent it and dropping it would be lossy.
+     */
     private fun requireSupportedPayload(component: Component) {
         when (component) {
             is TranslatableComponent -> component.arguments().forEach(::requireSupportedArgument)
             is SelectorComponent -> component.separator()?.let(::requireSupported)
+            is ScoreComponent ->
+                require(component.value() == null) {
+                    "miniToDsl does not yet support score components with a fixed value."
+                }
+
             else -> Unit
         }
     }
