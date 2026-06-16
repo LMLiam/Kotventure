@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land in any release.
 
+## [0.3.0](https://github.com/LMLiam/Kotventure/compare/0.2.0...0.3.0) (2026-06-16)
+
+
+### ✨ Features
+
+* **core:** shadow-colour and player-head DSL surfaces ([#159](https://github.com/LMLiam/Kotventure/issues/159)) ([41cc6df](https://github.com/LMLiam/Kotventure/commit/41cc6df8106d13715f25f5924e8f4088341fb8f0))
+* **minimessage:** convert MiniMessage to DSL ([#149](https://github.com/LMLiam/Kotventure/issues/149)) ([2c91d97](https://github.com/LMLiam/Kotventure/commit/2c91d9702708b49b3d6200d55191144fa104c028))
+* **minimessage:** mini→DSL converter — click & hover events (slice 2) ([#151](https://github.com/LMLiam/Kotventure/issues/151)) ([78fcf70](https://github.com/LMLiam/Kotventure/commit/78fcf708d4ab5a82154bf2a7fcfbbc14bb77ae8f))
+* **minimessage:** mini→DSL converter — NBT/object/font/insertion/gradient (slice 4) ([#156](https://github.com/LMLiam/Kotventure/issues/156)) ([82ea8b0](https://github.com/LMLiam/Kotventure/commit/82ea8b009173b14b1223f9639efa1f16476f0add))
+* **minimessage:** mini→DSL converter — structured components (slice 3) ([#155](https://github.com/LMLiam/Kotventure/issues/155)) ([e82db7d](https://github.com/LMLiam/Kotventure/commit/e82db7d82b2ac3cb7fb4497ead942580a7233f1b))
+
 ## [0.2.0](https://github.com/LMLiam/Kotventure/compare/0.1.0...0.2.0) (2026-06-15)
 
 ### ✨ Features
