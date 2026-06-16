@@ -1,6 +1,8 @@
 package io.github.lmliam.kotventure.minimessage
 
 import io.github.lmliam.kotventure.core.key.key
+import io.github.lmliam.kotventure.core.nbt.blockPos
+import io.github.lmliam.kotventure.core.objectcomponent.sprite
 import io.github.lmliam.kotventure.core.text.component
 import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldContainText
@@ -19,9 +21,11 @@ import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.DataComponentValue
 import net.kyori.adventure.text.event.HoverEvent
 import net.kyori.adventure.text.format.NamedTextColor
+import net.kyori.adventure.text.format.ShadowColor
 import net.kyori.adventure.text.format.TextColor
 import net.kyori.adventure.text.format.TextDecoration
 import net.kyori.adventure.text.minimessage.MiniMessage
+import net.kyori.adventure.text.`object`.ObjectContents
 import java.util.UUID
 
 class MiniMessageToDslTest :
@@ -123,6 +127,74 @@ class MiniMessageToDslTest :
                     val hot = mini(input)
                     hot shouldHaveDecoration TextDecoration.BOLD
                     hot.childAt(0).shouldHaveDecoration(TextDecoration.BOLD, TextDecoration.State.FALSE)
+                }
+
+                test("emits font styles inside a style block") {
+                    val styled =
+                        component {
+                            text("title") {
+                                style { font(key("minecraft", "uniform")) }
+                            }
+                        }
+
+                    MiniMessageToDslWriter.write(styled) shouldBe
+                            """
+                    component {
+                        text("title") {
+                            style {
+                                font(key("minecraft", "uniform"))
+                            }
+                        }
+                    }
+                    """.trimIndent()
+                }
+
+                test("emits insertion text inside a style block") {
+                    val styled =
+                        component {
+                            text("Alex") {
+                                style { insertion("/msg Alex ") }
+                            }
+                        }
+
+                    MiniMessageToDslWriter.write(styled) shouldBe
+                            """
+                    component {
+                        text("Alex") {
+                            style {
+                                insertion("/msg Alex ")
+                            }
+                        }
+                    }
+                    """.trimIndent()
+                }
+
+                test("groups font, insertion, and disabled decorations into one style block") {
+                    val styled =
+                        component {
+                            text("badge") {
+                                bold()
+                                style {
+                                    font(key("minecraft", "uniform"))
+                                    insertion("/claim")
+                                    italic(false)
+                                }
+                            }
+                        }
+
+                    MiniMessageToDslWriter.write(styled) shouldBe
+                            """
+                    component {
+                        text("badge") {
+                            bold()
+                            style {
+                                font(key("minecraft", "uniform"))
+                                insertion("/claim")
+                                italic(false)
+                            }
+                        }
+                    }
+                    """.trimIndent()
                 }
 
                 test("round-trips named colours and decorations against compiled expected DSL") {
@@ -731,6 +803,25 @@ class MiniMessageToDslTest :
                     )
                 }
 
+                test("emits boolean and numeric translatable arguments through the arg overloads") {
+                    val translatable =
+                        Component
+                            .translatable()
+                            .key("stat.generic")
+                            .arguments(TranslationArgument.bool(true), TranslationArgument.numeric(42))
+                            .build()
+
+                    MiniMessageToDslWriter.write(translatable) shouldBe
+                            """
+                    component {
+                        translatable("stat.generic") {
+                            arg(true)
+                            arg(42)
+                        }
+                    }
+                    """.trimIndent()
+                }
+
                 test("round-trips translatable components nesting other structured components") {
                     assertGoldenRoundTrip(
                         input = "<lang:k:a>:<lang:k:b>",
@@ -806,121 +897,323 @@ class MiniMessageToDslTest :
                 }
             }
 
-            context("unsupported input") {
-                test("rejects unsupported shadow colours instead of dropping them") {
-                    val error =
-                        shouldThrow<IllegalArgumentException> {
-                            miniToDsl("<shadow:red>shadow</shadow>")
-                        }
+            context("NBT component emission") {
+                test("emits bare block NBT components from a compiled expected DSL") {
+                    val nbt = component { blockNbt(blockPos("1 64 -3"), "Items") }
 
-                    error.message shouldContain "miniToDsl does not yet support shadow colours"
+                    MiniMessageToDslWriter.write(nbt) shouldBe
+                            """
+                    component {
+                        blockNbt(blockPos("1 64 -3"), "Items")
+                    }
+                    """.trimIndent()
                 }
 
-                test("rejects component types from later slices") {
-                    val error =
-                        shouldThrow<IllegalArgumentException> {
-                            MiniMessageToDslWriter.write(Component.storageNBT("CustomData", key("minecraft", "data")))
+                test("emits block NBT interpretation, separators, and style together") {
+                    val nbt =
+                        component {
+                            blockNbt(blockPos("1 64 -3"), "Items") {
+                                interpret(true)
+                                separator { text(", ") }
+                                color(NamedTextColor.AQUA)
+                            }
                         }
 
-                    error.message shouldContain "does not yet support"
-                    error.message shouldContain "StorageNBT"
+                    MiniMessageToDslWriter.write(nbt) shouldBe
+                            """
+                    component {
+                        blockNbt(blockPos("1 64 -3"), "Items") {
+                            interpret(true)
+                            separator {
+                                text(", ")
+                            }
+                            color(NamedTextColor.AQUA)
+                        }
+                    }
+                    """.trimIndent()
                 }
 
-                test("rejects component types from later slices nested in children") {
-                    val nested = Component.empty().append(Component.storageNBT("CustomData", key("minecraft", "data")))
+                test("emits entity NBT components from a compiled expected DSL") {
+                    val nbt = component { entityNbt("@e[type=armor_stand]", "Pos") }
 
-                    val error =
-                        shouldThrow<IllegalArgumentException> {
-                            MiniMessageToDslWriter.write(nested)
+                    MiniMessageToDslWriter.write(nbt) shouldBe
+                            """
+                    component {
+                        entityNbt("@e[type=armor_stand]", "Pos")
+                    }
+                    """.trimIndent()
+                }
+
+                test("emits storage NBT components carrying interpretation") {
+                    val nbt =
+                        component {
+                            storageNbt(key("minecraft", "data"), "Contents") {
+                                interpret(true)
+                            }
                         }
 
-                    error.message shouldContain "does not yet support"
+                    MiniMessageToDslWriter.write(nbt) shouldBe
+                            """
+                    component {
+                        storageNbt(key("minecraft", "data"), "Contents") {
+                            interpret(true)
+                        }
+                    }
+                    """.trimIndent()
                 }
 
-                test("rejects score components with a fixed value instead of dropping it") {
-                    val score = Component.score("player", "objective").value("7")
+                test("round-trips block NBT from MiniMessage input through the full parse-write path") {
+                    assertGoldenRoundTrip(
+                        input = "<nbt:block:'1 64 -3':Items>",
+                        expectedSource =
+                            """
+                        component {
+                            blockNbt(blockPos("1 64 -3"), "Items")
+                        }
+                        """.trimIndent(),
+                        expectedComponent = component { blockNbt(blockPos("1 64 -3"), "Items") },
+                    )
+                }
+            }
 
-                    val error =
-                        shouldThrow<IllegalArgumentException> {
-                            MiniMessageToDslWriter.write(score)
+            context("object component emission") {
+                test("emits sprite contents that use the default atlas with the single-argument form") {
+                    val display = component { display(sprite(key("minecraft", "icon/star"))) }
+
+                    MiniMessageToDslWriter.write(display) shouldBe
+                            """
+                    component {
+                        display(sprite(key("minecraft", "icon/star")))
+                    }
+                    """.trimIndent()
+                }
+
+                test("emits sprite contents from a non-default atlas with the two-argument form") {
+                    val display =
+                        component {
+                            display(sprite(key("minecraft", "gui"), key("minecraft", "icon/heart")))
                         }
 
-                    error.message shouldContain "score components with a fixed value"
+                    MiniMessageToDslWriter.write(display) shouldBe
+                            """
+                    component {
+                        display(sprite(key("minecraft", "gui"), key("minecraft", "icon/heart")))
+                    }
+                    """.trimIndent()
                 }
 
-                test("rejects non-component translatable arguments") {
-                    val translatable =
+                test("emits object fallbacks and style together") {
+                    val display =
+                        component {
+                            display(sprite(key("minecraft", "icon/heart"))) {
+                                fallback { text("<3") }
+                                color(NamedTextColor.RED)
+                            }
+                        }
+
+                    MiniMessageToDslWriter.write(display) shouldBe
+                            """
+                    component {
+                        display(sprite(key("minecraft", "icon/heart"))) {
+                            fallback {
+                                text("<3")
+                            }
+                            color(NamedTextColor.RED)
+                        }
+                    }
+                    """.trimIndent()
+                }
+
+                test("round-trips object sprites from MiniMessage input through the full parse-write path") {
+                    assertGoldenRoundTrip(
+                        input = "<sprite:icon/heart>",
+                        expectedSource =
+                            """
+                        component {
+                            display(sprite(key("minecraft", "icon/heart")))
+                        }
+                        """.trimIndent(),
+                        expectedComponent = component { display(sprite(key("minecraft", "icon/heart"))) },
+                    )
+                }
+            }
+
+            context("gradient emission") {
+                test("expands a gradient into per-character coloured children (lossy-but-faithful)") {
+                    val input = "<gradient:#ff0000:#0000ff>Hi"
+                    val expectedSource =
+                        """
+                    component {
+                        text {
+                            text("H") {
+                                color(TextColor.color(0xFF0000))
+                            }
+                            text("i") {
+                                color(TextColor.color(0x0000FF))
+                            }
+                        }
+                    }
+                    """.trimIndent()
+
+                    // The parser expands the gradient into per-character children before the converter runs, so the DSL
+                    // reproduces those children verbatim. (Component equality is asserted via the matchers below rather
+                    // than a serialised round-trip, which would re-compress the children back into `<gradient>`.)
+                    miniToDsl(input) shouldBe expectedSource
+
+                    val gradient = mini(input).childAt(0)
+                    gradient shouldHaveChildCount 2
+                    gradient.childAt(0) shouldContainText "H"
+                    gradient.childAt(0) shouldHaveColor TextColor.color(0xFF0000)
+                    gradient.childAt(1) shouldContainText "i"
+                    gradient.childAt(1) shouldHaveColor TextColor.color(0x0000FF)
+                }
+            }
+
+            context("shadow emission") {
+                test("emits a shadow colour from the <shadow> tag instead of dropping it") {
+                    miniToDsl("<shadow:#112233>shadow</shadow>") shouldBe
+                            """
+                        component {
+                            text("shadow") {
+                                shadow(ShadowColor.shadowColor(0x3F112233.toInt()))
+                            }
+                        }
+                    """.trimIndent()
+                }
+
+                test("emits shadow colours nested in children") {
+                    val nested =
                         Component
-                            .translatable()
-                            .key("stat.generic")
-                            .arguments(TranslationArgument.bool(true))
-                            .build()
+                            .text("ok")
+                            .append(Component.text("bad").shadowColor(ShadowColor.shadowColor(0xFF112233.toInt())))
 
-                    val error =
-                        shouldThrow<IllegalArgumentException> {
-                            MiniMessageToDslWriter.write(translatable)
+                    MiniMessageToDslWriter.write(nested) shouldBe
+                        """
+                        component {
+                            text("ok") {
+                                text("bad") {
+                                    shadow(ShadowColor.shadowColor(0xFF112233.toInt()))
+                                }
+                            }
                         }
-
-                    error.message shouldContain "non-component translatable arguments"
+                        """.trimIndent()
                 }
 
-                test("rejects unsupported styles nested in translatable arguments") {
+                test("emits shadow colours nested in translatable arguments") {
                     val translatable =
                         Component
                             .translatable()
                             .key("chat.type.text")
-                            .arguments(Component.text("Alex").insertion("/msg Alex "))
+                            .arguments(Component.text("Alex").shadowColor(ShadowColor.shadowColor(0xFF112233.toInt())))
                             .build()
 
-                    val error =
-                        shouldThrow<IllegalArgumentException> {
-                            MiniMessageToDslWriter.write(translatable)
+                    MiniMessageToDslWriter.write(translatable) shouldBe
+                        """
+                        component {
+                            translatable("chat.type.text") {
+                                arg {
+                                    text("Alex") {
+                                        shadow(ShadowColor.shadowColor(0xFF112233.toInt()))
+                                    }
+                                }
+                            }
                         }
-
-                    error.message shouldContain "insertion text"
+                        """.trimIndent()
                 }
 
-                test("rejects unsupported styles nested in selector separators") {
-                    val selector = Component.selector("@e").separator(Component.text(", ").insertion("/spy"))
+                test("emits shadow colours nested in selector separators") {
+                    val separator = Component.text(", ").shadowColor(ShadowColor.shadowColor(0xFF112233.toInt()))
+                    val selector = Component.selector("@e").separator(separator)
 
-                    val error =
-                        shouldThrow<IllegalArgumentException> {
-                            MiniMessageToDslWriter.write(selector)
+                    MiniMessageToDslWriter.write(selector) shouldBe
+                        """
+                        component {
+                            selector("@e") {
+                                separator {
+                                    text(", ") {
+                                        shadow(ShadowColor.shadowColor(0xFF112233.toInt()))
+                                    }
+                                }
+                            }
                         }
-
-                    error.message shouldContain "insertion text"
+                        """.trimIndent()
                 }
 
-                test("rejects unsupported styles nested in hover text payloads") {
-                    val payload = Component.text("tip").insertion("/warp")
+                test("emits shadow colours nested in hover text payloads") {
+                    val payload = Component.text("tip").shadowColor(ShadowColor.shadowColor(0xFF112233.toInt()))
                     val component = Component.text("hover me").hoverEvent(HoverEvent.showText(payload))
 
-                    val error =
-                        shouldThrow<IllegalArgumentException> {
-                            MiniMessageToDslWriter.write(component)
+                    MiniMessageToDslWriter.write(component) shouldBe
+                        """
+                        component {
+                            text("hover me") {
+                                hover {
+                                    text {
+                                        text("tip") {
+                                            shadow(ShadowColor.shadowColor(0xFF112233.toInt()))
+                                        }
+                                    }
+                                }
+                            }
                         }
+                        """.trimIndent()
+                }
+            }
 
-                    error.message shouldContain "insertion text"
+            context("player-head emission") {
+                test("emits a named player head from the <head> tag instead of dropping it") {
+                    miniToDsl("<head:Steve>") shouldBe
+                            """
+                    component {
+                        display(head("Steve"))
+                    }
+                    """.trimIndent()
                 }
 
-                test("rejects legacy show-item NBT payloads") {
-                    val legacyItem =
+                test("emits a player head from a uuid") {
+                    val playerHead =
                         Component
-                            .text("Loot")
-                            .hoverEvent(
-                                HoverEvent.showItem(
-                                    key("minecraft", "diamond_sword"),
-                                    1,
-                                    BinaryTagHolder.binaryTagHolder("{}"),
-                                ),
-                            )
+                            .`object`()
+                            .contents(
+                                ObjectContents.playerHead(UUID.fromString("0d1630e2-fc7c-48ef-b7a0-8dfb9e57ec25")),
+                            ).build()
+
+                    MiniMessageToDslWriter.write(playerHead) shouldBe
+                        """
+                        component {
+                            display(head(UUID.fromString("0d1630e2-fc7c-48ef-b7a0-8dfb9e57ec25")))
+                        }
+                        """.trimIndent()
+                }
+
+                test("emits a player head texture key and hat toggle") {
+                    val contents =
+                        ObjectContents
+                            .playerHead()
+                            .texture(Key.key("minecraft", "entity/player/wide/steve"))
+                            .hat(false)
+                            .build()
+                    val playerHead = Component.`object`().contents(contents).build()
+
+                    MiniMessageToDslWriter.write(playerHead) shouldBe
+                        """
+                        component {
+                            display(head(key("minecraft", "entity/player/wide/steve"), hat = false))
+                        }
+                        """.trimIndent()
+                }
+            }
+
+            context("unsupported input") {
+                test("rejects a player head with no single skin source") {
+                    val playerHead = Component.`object`().contents(ObjectContents.playerHead().build()).build()
 
                     val error =
                         shouldThrow<IllegalArgumentException> {
-                            MiniMessageToDslWriter.write(legacyItem)
+                            MiniMessageToDslWriter.write(playerHead)
                         }
 
-                    error.message shouldContain "legacy show-item NBT"
+                    error.message shouldContain "skin source"
                 }
 
                 test("rejects unsupported data component values") {
