@@ -10,17 +10,15 @@ public fun mini(input: String): Component = parseMiniMessage(input)
 
 /**
  * Converts MiniMessage [input] into Kotventure component DSL source code: the text, structured (translatable, keybind,
- * score, selector), NBT, and sprite-object components MiniMessage produces, with their colours, decorations, fonts,
- * insertions, and click/hover events.
+ * score, selector), NBT, sprite- and player-head-object components MiniMessage produces, with their colours, shadow
+ * colours, decorations, fonts, insertions, and click/hover events.
  *
  * `<gradient>` is expanded by the parser into one coloured child per character before conversion, so the output
  * reproduces those children rather than a `gradient` call — a lossy-but-faithful expansion: the rendering is exact, but
  * the `<gradient>` markup itself is not reconstructed.
  *
- * Shadow colours (`<shadow>`) and player-head object contents (`<head>`) have no DSL surface yet, so they fail with an
- * [IllegalArgumentException] rather than being dropped silently.
- *
- * @throws IllegalArgumentException when [input] contains a shadow colour or player-head contents.
+ * @throws IllegalArgumentException when [input] resolves to a shape with no DSL surface, such as a player head with no
+ * single skin source or with profile properties.
  */
 public fun miniToDsl(input: String): String = MiniMessageToDslWriter.write(mini(input))
 

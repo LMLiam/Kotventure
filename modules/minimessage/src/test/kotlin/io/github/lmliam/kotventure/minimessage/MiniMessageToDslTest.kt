@@ -1069,47 +1069,37 @@ class MiniMessageToDslTest :
                 }
             }
 
-            context("unsupported input") {
-                test("rejects unsupported shadow colours instead of dropping them") {
-                    val error =
-                        shouldThrow<IllegalArgumentException> {
-                            miniToDsl("<shadow:red>shadow</shadow>")
+            context("shadow emission") {
+                test("emits a shadow colour from the <shadow> tag instead of dropping it") {
+                    miniToDsl("<shadow:#112233>shadow</shadow>") shouldBe
+                            """
+                        component {
+                            text("shadow") {
+                                shadow(ShadowColor.shadowColor(0x3F112233.toInt()))
+                            }
                         }
-
-                    error.message shouldContain "miniToDsl cannot represent shadow colours"
+                    """.trimIndent()
                 }
 
-                test("rejects unsupported styles nested in children") {
+                test("emits shadow colours nested in children") {
                     val nested =
                         Component
                             .text("ok")
                             .append(Component.text("bad").shadowColor(ShadowColor.shadowColor(0xFF112233.toInt())))
 
-                    val error =
-                        shouldThrow<IllegalArgumentException> {
-                            MiniMessageToDslWriter.write(nested)
+                    MiniMessageToDslWriter.write(nested) shouldBe
+                        """
+                        component {
+                            text("ok") {
+                                text("bad") {
+                                    shadow(ShadowColor.shadowColor(0xFF112233.toInt()))
+                                }
+                            }
                         }
-
-                    error.message shouldContain "shadow colours"
+                        """.trimIndent()
                 }
 
-                test("rejects player-head object contents that have no DSL surface") {
-                    val playerHead =
-                        Component
-                            .`object`()
-                            .contents(
-                                ObjectContents.playerHead(UUID.fromString("0d1630e2-fc7c-48ef-b7a0-8dfb9e57ec25")),
-                            ).build()
-
-                    val error =
-                        shouldThrow<IllegalArgumentException> {
-                            MiniMessageToDslWriter.write(playerHead)
-                        }
-
-                    error.message shouldContain "player-head object contents"
-                }
-
-                test("rejects unsupported styles nested in translatable arguments") {
+                test("emits shadow colours nested in translatable arguments") {
                     val translatable =
                         Component
                             .translatable()
@@ -1117,36 +1107,113 @@ class MiniMessageToDslTest :
                             .arguments(Component.text("Alex").shadowColor(ShadowColor.shadowColor(0xFF112233.toInt())))
                             .build()
 
-                    val error =
-                        shouldThrow<IllegalArgumentException> {
-                            MiniMessageToDslWriter.write(translatable)
+                    MiniMessageToDslWriter.write(translatable) shouldBe
+                        """
+                        component {
+                            translatable("chat.type.text") {
+                                arg {
+                                    text("Alex") {
+                                        shadow(ShadowColor.shadowColor(0xFF112233.toInt()))
+                                    }
+                                }
+                            }
                         }
-
-                    error.message shouldContain "shadow colours"
+                        """.trimIndent()
                 }
 
-                test("rejects unsupported styles nested in selector separators") {
+                test("emits shadow colours nested in selector separators") {
                     val separator = Component.text(", ").shadowColor(ShadowColor.shadowColor(0xFF112233.toInt()))
                     val selector = Component.selector("@e").separator(separator)
 
-                    val error =
-                        shouldThrow<IllegalArgumentException> {
-                            MiniMessageToDslWriter.write(selector)
+                    MiniMessageToDslWriter.write(selector) shouldBe
+                        """
+                        component {
+                            selector("@e") {
+                                separator {
+                                    text(", ") {
+                                        shadow(ShadowColor.shadowColor(0xFF112233.toInt()))
+                                    }
+                                }
+                            }
                         }
-
-                    error.message shouldContain "shadow colours"
+                        """.trimIndent()
                 }
 
-                test("rejects unsupported styles nested in hover text payloads") {
+                test("emits shadow colours nested in hover text payloads") {
                     val payload = Component.text("tip").shadowColor(ShadowColor.shadowColor(0xFF112233.toInt()))
                     val component = Component.text("hover me").hoverEvent(HoverEvent.showText(payload))
 
+                    MiniMessageToDslWriter.write(component) shouldBe
+                        """
+                        component {
+                            text("hover me") {
+                                hover {
+                                    text {
+                                        text("tip") {
+                                            shadow(ShadowColor.shadowColor(0xFF112233.toInt()))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        """.trimIndent()
+                }
+            }
+
+            context("player-head emission") {
+                test("emits a named player head from the <head> tag instead of dropping it") {
+                    miniToDsl("<head:Steve>") shouldBe
+                            """
+                    component {
+                        display(head("Steve"))
+                    }
+                    """.trimIndent()
+                }
+
+                test("emits a player head from a uuid") {
+                    val playerHead =
+                        Component
+                            .`object`()
+                            .contents(
+                                ObjectContents.playerHead(UUID.fromString("0d1630e2-fc7c-48ef-b7a0-8dfb9e57ec25")),
+                            ).build()
+
+                    MiniMessageToDslWriter.write(playerHead) shouldBe
+                        """
+                        component {
+                            display(head(UUID.fromString("0d1630e2-fc7c-48ef-b7a0-8dfb9e57ec25")))
+                        }
+                        """.trimIndent()
+                }
+
+                test("emits a player head texture key and hat toggle") {
+                    val contents =
+                        ObjectContents
+                            .playerHead()
+                            .texture(Key.key("minecraft", "entity/player/wide/steve"))
+                            .hat(false)
+                            .build()
+                    val playerHead = Component.`object`().contents(contents).build()
+
+                    MiniMessageToDslWriter.write(playerHead) shouldBe
+                        """
+                        component {
+                            display(head(key("minecraft", "entity/player/wide/steve"), hat = false))
+                        }
+                        """.trimIndent()
+                }
+            }
+
+            context("unsupported input") {
+                test("rejects a player head with no single skin source") {
+                    val playerHead = Component.`object`().contents(ObjectContents.playerHead().build()).build()
+
                     val error =
                         shouldThrow<IllegalArgumentException> {
-                            MiniMessageToDslWriter.write(component)
+                            MiniMessageToDslWriter.write(playerHead)
                         }
 
-                    error.message shouldContain "shadow colours"
+                    error.message shouldContain "skin source"
                 }
 
                 test("rejects unsupported data component values") {
