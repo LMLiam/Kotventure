@@ -74,12 +74,12 @@ private val decorations: List<Pair<TextDecoration, String>> =
  */
 private fun hasDslOutput(style: Style): Boolean =
     style.color() != null ||
-        style.font() != null ||
-        style.insertion() != null ||
-        style.shadowColor() != null ||
-        style.clickEvent() != null ||
-        style.hoverEvent() != null ||
-        decorations.any { (decoration) -> style.decoration(decoration) != State.NOT_SET }
+            style.font() != null ||
+            style.insertion() != null ||
+            style.shadowColor() != null ||
+            style.clickEvent() != null ||
+            style.hoverEvent() != null ||
+            decorations.any { (decoration) -> style.decoration(decoration) != State.NOT_SET }
 
 /**
  * Dispatches to the emitter for [component]'s concrete type. Every emission is a self-contained call expression, so it
