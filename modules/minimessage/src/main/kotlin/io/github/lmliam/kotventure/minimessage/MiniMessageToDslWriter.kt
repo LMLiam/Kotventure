@@ -1,10 +1,15 @@
 package io.github.lmliam.kotventure.minimessage
 
 import net.kyori.adventure.key.Key
+import net.kyori.adventure.text.BlockNBTComponent
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.EntityNBTComponent
 import net.kyori.adventure.text.KeybindComponent
+import net.kyori.adventure.text.NBTComponent
+import net.kyori.adventure.text.ObjectComponent
 import net.kyori.adventure.text.ScoreComponent
 import net.kyori.adventure.text.SelectorComponent
+import net.kyori.adventure.text.StorageNBTComponent
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.TranslatableComponent
 import net.kyori.adventure.text.TranslationArgument
@@ -57,8 +62,8 @@ private fun KotlinSourceBuilder.appendRoot(component: Component) {
  * Dispatches to the emitter for [component]'s concrete type. Every emission is a self-contained call expression, so it
  * reads the same whether it appends a child inside a scope or stands alone as a translatable argument or separator.
  *
- * [MiniMessageToDslSupport.requireSupported] runs before any emission, so an unrecognised type here is a broken
- * invariant rather than user input.
+ * The branches are exhaustive over Adventure's component types; the `else` guards only against a future Adventure type
+ * the converter has not been taught to emit.
  */
 private fun KotlinSourceBuilder.appendComponent(component: Component) {
     when (component) {
@@ -67,7 +72,11 @@ private fun KotlinSourceBuilder.appendComponent(component: Component) {
         is KeybindComponent -> appendKeybind(component)
         is ScoreComponent -> appendScore(component)
         is SelectorComponent -> appendSelector(component)
-        else -> error("miniToDsl reached an unvalidated ${component::class.simpleName} component.")
+        is BlockNBTComponent -> appendBlockNbt(component)
+        is EntityNBTComponent -> appendEntityNbt(component)
+        is StorageNBTComponent -> appendStorageNbt(component)
+        is ObjectComponent -> appendObject(component)
+        else -> error("miniToDsl encountered an unsupported ${component::class.simpleName} component.")
     }
 }
 
@@ -118,6 +127,52 @@ private fun KotlinSourceBuilder.appendSelector(component: SelectorComponent) {
         hasExtraBody = separator != null,
     ) {
         separator?.let { appendComponentArgument("separator", it) }
+    }
+}
+
+private fun KotlinSourceBuilder.appendBlockNbt(component: BlockNBTComponent) {
+    appendNbt("blockNbt", "blockPos(\"${escapeKotlinString(component.pos().asString())}\")", component)
+}
+
+private fun KotlinSourceBuilder.appendEntityNbt(component: EntityNBTComponent) {
+    appendNbt("entityNbt", "\"${escapeKotlinString(component.selector())}\"", component)
+}
+
+private fun KotlinSourceBuilder.appendStorageNbt(component: StorageNBTComponent) {
+    appendNbt("storageNbt", keyLiteral(component.storage()), component)
+}
+
+/**
+ * Emits an NBT component as `$function($source, "nbtPath")` — where [source] is the per-type first argument (a
+ * `blockPos(...)`, a selector string, or a storage `key(...)`) — followed by the `interpret` flag and separator that
+ * every NBT component can carry. Only an enabled [NBTComponent.interpret] flag is emitted, matching Adventure's default
+ * of `false`.
+ */
+private fun KotlinSourceBuilder.appendNbt(
+    function: String,
+    source: String,
+    component: NBTComponent<*>,
+) {
+    val interpret = component.interpret()
+    val separator = component.separator()
+    appendStructured(
+        header = "$function($source, \"${escapeKotlinString(component.nbtPath())}\")",
+        component = component,
+        hasExtraBody = interpret || separator != null,
+    ) {
+        if (interpret) line("interpret(true)")
+        separator?.let { appendComponentArgument("separator", it) }
+    }
+}
+
+private fun KotlinSourceBuilder.appendObject(component: ObjectComponent) {
+    val fallback = component.fallback()
+    appendStructured(
+        header = "display(${objectContentsLiteral(component.contents())})",
+        component = component,
+        hasExtraBody = fallback != null,
+    ) {
+        fallback?.let { appendComponentArgument("fallback", it) }
     }
 }
 
@@ -178,16 +233,32 @@ private fun KotlinSourceBuilder.appendStyle(style: Style) {
         }
     }
 
-    val disabledDecorations =
-        MiniMessageToDslSupport.decorations.filter { (decoration) -> style.decoration(decoration) == State.FALSE }
-    if (disabledDecorations.isNotEmpty()) {
-        block("style") {
-            disabledDecorations.forEach { (_, functionName) -> line("$functionName(false)") }
-        }
-    }
+    appendStyleBlock(style)
 
     style.clickEvent()?.let { event -> appendClickEvent(event) }
     style.hoverEvent()?.let { event -> appendHoverEvent(event) }
+}
+
+/**
+ * Emits a `style { ... }` block for the attributes that have no shorthand directly on a component scope — the font, the
+ * insertion text, and any decoration explicitly disabled to override an inherited style — or nothing when the style
+ * carries none of them.
+ */
+private fun KotlinSourceBuilder.appendStyleBlock(style: Style) {
+    val font = style.font()
+    val insertion = style.insertion()
+    val disabledDecorations =
+        MiniMessageToDslSupport.decorations.filter { (decoration) -> style.decoration(decoration) == State.FALSE }
+
+    if (font == null && insertion == null && disabledDecorations.isEmpty()) {
+        return
+    }
+
+    block("style") {
+        font?.let { line("font(${keyLiteral(it)})") }
+        insertion?.let { line("insertion(\"${escapeKotlinString(it)}\")") }
+        disabledDecorations.forEach { (_, functionName) -> line("$functionName(false)") }
+    }
 }
 
 private fun KotlinSourceBuilder.appendClickEvent(event: ClickEvent<*>) {
@@ -215,7 +286,7 @@ private fun KotlinSourceBuilder.appendHoverEvent(event: HoverEvent<*>) {
             HoverEvent.Action.SHOW_ITEM -> appendShowItem(event.value() as HoverEvent.ShowItem)
             HoverEvent.Action.SHOW_ENTITY -> appendShowEntity(event.value() as HoverEvent.ShowEntity)
             else -> throw IllegalArgumentException(
-                "miniToDsl does not yet support the ${event.action().name()} hover action.",
+                "miniToDsl cannot represent the ${event.action().name()} hover action.",
             )
         }
     }
@@ -223,7 +294,7 @@ private fun KotlinSourceBuilder.appendHoverEvent(event: HoverEvent<*>) {
 
 private fun KotlinSourceBuilder.appendShowItem(item: HoverEvent.ShowItem) {
     require(item.nbt() == null) {
-        "miniToDsl does not yet support legacy show-item NBT payloads."
+        "miniToDsl cannot represent legacy show-item NBT payloads."
     }
 
     val arguments =
