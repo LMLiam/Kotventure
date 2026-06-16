@@ -14,7 +14,8 @@ public fun mini(input: String): Component = parseMiniMessage(input)
  * insertions, and click/hover events.
  *
  * `<gradient>` is expanded by the parser into one coloured child per character before conversion, so the output
- * reproduces those children rather than a `gradient` call — verbose, but loss-free.
+ * reproduces those children rather than a `gradient` call — a lossy-but-faithful expansion: the rendering is exact, but
+ * the `<gradient>` markup itself is not reconstructed.
  *
  * Shadow colours (`<shadow>`) and player-head object contents (`<head>`) have no DSL surface yet, so they fail with an
  * [IllegalArgumentException] rather than being dropped silently.

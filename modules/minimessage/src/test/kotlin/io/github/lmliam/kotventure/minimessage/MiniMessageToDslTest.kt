@@ -961,6 +961,19 @@ class MiniMessageToDslTest :
                     }
                     """.trimIndent()
                 }
+
+                test("round-trips block NBT from MiniMessage input through the full parse-write path") {
+                    assertGoldenRoundTrip(
+                        input = "<nbt:block:'1 64 -3':Items>",
+                        expectedSource =
+                            """
+                        component {
+                            blockNbt(blockPos("1 64 -3"), "Items")
+                        }
+                        """.trimIndent(),
+                        expectedComponent = component { blockNbt(blockPos("1 64 -3"), "Items") },
+                    )
+                }
             }
 
             context("object component emission") {
@@ -1010,10 +1023,23 @@ class MiniMessageToDslTest :
                     }
                     """.trimIndent()
                 }
+
+                test("round-trips object sprites from MiniMessage input through the full parse-write path") {
+                    assertGoldenRoundTrip(
+                        input = "<sprite:icon/heart>",
+                        expectedSource =
+                            """
+                        component {
+                            display(sprite(key("minecraft", "icon/heart")))
+                        }
+                        """.trimIndent(),
+                        expectedComponent = component { display(sprite(key("minecraft", "icon/heart"))) },
+                    )
+                }
             }
 
             context("gradient emission") {
-                test("expands a gradient into per-character coloured children, loss-free") {
+                test("expands a gradient into per-character coloured children (lossy-but-faithful)") {
                     val input = "<gradient:#ff0000:#0000ff>Hi"
                     val expectedSource =
                         """
