@@ -88,6 +88,28 @@ class ComponentSerializerExtensionsTest :
                 roundTripped shouldHaveHoverText Component.text("Teleport")
             }
 
+            "deserializes legacy item hover JSON strings" {
+                val legacyJson =
+                    """
+                    {
+                      "text": "Hover",
+                      "hoverEvent": {
+                        "action": "show_item",
+                        "id": "minecraft:diamond_sword",
+                        "Count": 1
+                      }
+                    }
+                    """.trimIndent()
+                val item =
+                    HoverEvent.ShowItem.showItem(
+                        key("minecraft", "diamond_sword"),
+                        1,
+                        null as BinaryTagHolder?,
+                    )
+
+                legacyJson.fromJson() shouldHaveHoverItem item
+            }
+
             "serializes unstyled component text to MiniMessage text" {
                 val message =
                     component {

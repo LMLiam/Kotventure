@@ -3,8 +3,17 @@ package io.github.lmliam.kotventure.serializer
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
+import net.kyori.adventure.text.serializer.json.JSONOptions
+import net.kyori.adventure.text.serializer.json.legacyimpl.NBTLegacyHoverEventSerializer
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
+
+private val jsonSerializer: GsonComponentSerializer =
+    GsonComponentSerializer
+        .builder()
+        .options(JSONOptions.compatibility())
+        .legacyHoverEventSerializer(NBTLegacyHoverEventSerializer.get())
+        .build()
 
 /**
  * Serializes this component to legacy ampersand (`&`) formatting.
@@ -29,12 +38,12 @@ public fun String.section(): Component = LegacyComponentSerializer.legacySection
 /**
  * Serializes this component to Adventure's JSON component format.
  */
-public fun Component.toJson(): String = GsonComponentSerializer.gson().serialize(this)
+public fun Component.toJson(): String = jsonSerializer.serialize(this)
 
 /**
  * Deserializes this Adventure JSON component string to an Adventure component.
  */
-public fun String.fromJson(): Component = GsonComponentSerializer.gson().deserialize(this)
+public fun String.fromJson(): Component = jsonSerializer.deserialize(this)
 
 /**
  * Serializes this component to MiniMessage markup using Adventure's default MiniMessage serializer.
