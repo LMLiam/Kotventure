@@ -9,7 +9,6 @@ import io.github.lmliam.kotventure.core.score.ScoreScope
 import io.github.lmliam.kotventure.core.selector.SelectorScope
 import io.github.lmliam.kotventure.core.style.StyleBuilder
 import io.github.lmliam.kotventure.core.style.StyleScope
-import io.github.lmliam.kotventure.core.text.TextBuilder
 import io.github.lmliam.kotventure.core.text.TextScope
 import io.github.lmliam.kotventure.core.translatable.TranslatableScope
 import net.kyori.adventure.key.Key
@@ -28,6 +27,7 @@ import io.github.lmliam.kotventure.core.nbt.storageNbt as storageNbtComponent
 import io.github.lmliam.kotventure.core.objectcomponent.display as displayComponent
 import io.github.lmliam.kotventure.core.score.score as scoreComponent
 import io.github.lmliam.kotventure.core.selector.selector as selectorComponent
+import io.github.lmliam.kotventure.core.text.text as textComponent
 import io.github.lmliam.kotventure.core.translatable.translatable as translatableComponent
 import net.kyori.adventure.text.ComponentBuilder as AdventureComponentBuilder
 
@@ -97,7 +97,7 @@ internal abstract class ComponentBuilder<C : Component, B : AdventureComponentBu
     }
 
     override fun text(init: TextScope.() -> Unit) {
-        append(TextBuilder().apply(init).build())
+        append(textComponent(init))
     }
 
     override fun translatable(
