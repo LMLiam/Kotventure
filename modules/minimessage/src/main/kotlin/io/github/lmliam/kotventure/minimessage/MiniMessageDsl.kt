@@ -9,12 +9,16 @@ import net.kyori.adventure.text.minimessage.MiniMessage
 public fun mini(input: String): Component = parseMiniMessage(input)
 
 /**
- * Converts MiniMessage [input] into Kotventure component DSL source code.
+ * Converts MiniMessage [input] into Kotventure component DSL source code: the text, structured (translatable, keybind,
+ * score, selector), NBT, sprite- and player-head-object components MiniMessage produces, with their colours, shadow
+ * colours, decorations, fonts, insertions, and click/hover events.
  *
- * The current slices support plain text, recursive children, named and hex colours, the standard text decorations,
- * click events, hover events, and the structured components — translatable (with recursive arguments), keybind, score,
- * and selector. Unsupported component types or style attributes from later slices fail with an [IllegalArgumentException]
- * instead of producing lossy source.
+ * `<gradient>` is expanded by the parser into one coloured child per character before conversion, so the output
+ * reproduces those children rather than a `gradient` call — a lossy-but-faithful expansion: the rendering is exact, but
+ * the `<gradient>` markup itself is not reconstructed.
+ *
+ * @throws IllegalArgumentException when [input] resolves to a shape with no DSL surface, such as a player head with no
+ * single skin source or with profile properties.
  */
 public fun miniToDsl(input: String): String = MiniMessageToDslWriter.write(mini(input))
 

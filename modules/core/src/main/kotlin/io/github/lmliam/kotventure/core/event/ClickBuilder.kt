@@ -7,7 +7,6 @@ import kotlin.time.toJavaDuration
 import kotlin.time.Duration as KotlinDuration
 
 internal class ClickBuilder : ClickActionScope {
-    private var selected = false
     private var event: ClickEvent<*>? = null
 
     override fun open(target: String) {
@@ -70,11 +69,10 @@ internal class ClickBuilder : ClickActionScope {
             )
 
     private fun set(event: ClickEvent<*>) {
-        check(!selected) {
+        check(this.event == null) {
             "click { ... } must choose only one action: open(...), openUrl(...), openFile(...), run(...), " +
                     "suggest(...), changePage(...), copy(...), or callback(...)."
         }
-        selected = true
         this.event = event
     }
 }
