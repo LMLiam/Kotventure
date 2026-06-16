@@ -7,13 +7,16 @@ import io.github.lmliam.kotventure.test.text.shouldHaveColor
 import io.github.lmliam.kotventure.test.text.shouldHaveDecoration
 import io.github.lmliam.kotventure.test.text.shouldHaveFont
 import io.github.lmliam.kotventure.test.text.shouldHaveInsertion
+import io.github.lmliam.kotventure.test.text.shouldHaveShadowColor
 import io.github.lmliam.kotventure.test.text.shouldNotHaveColor
 import io.github.lmliam.kotventure.test.text.shouldNotHaveFont
 import io.github.lmliam.kotventure.test.text.shouldNotHaveInsertion
+import io.github.lmliam.kotventure.test.text.shouldNotHaveShadowColor
 import io.kotest.core.spec.style.StringSpec
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
+import net.kyori.adventure.text.format.ShadowColor
 import net.kyori.adventure.text.format.Style
 import net.kyori.adventure.text.format.TextDecoration
 import net.kyori.adventure.text.format.TextDecoration.State
@@ -147,6 +150,53 @@ class StyleDslTest :
                 child.shouldHaveDecoration(TextDecoration.UNDERLINED, State.NOT_SET)
                 child.shouldHaveDecoration(TextDecoration.STRIKETHROUGH, State.FALSE)
                 child.shouldHaveDecoration(TextDecoration.OBFUSCATED, State.NOT_SET)
+            }
+
+            "sets a raw shadow color on a reusable style and a component shortcut" {
+                val shadow = ShadowColor.shadowColor(0xFF112233.toInt())
+
+                val styled = Component.text("Spawn").style(style { shadow(shadow) })
+                val component =
+                    component {
+                        text("Spawn") {
+                            shadow(shadow)
+                        }
+                    }
+
+                styled shouldHaveShadowColor shadow
+                component.childAt(0) shouldHaveShadowColor shadow
+            }
+
+            "derives a shadow color from a text color and optional alpha" {
+                val opaque =
+                    component {
+                        text("Opaque") {
+                            shadow(NamedTextColor.BLACK)
+                        }
+                    }
+                val translucent =
+                    component {
+                        text("Translucent") {
+                            shadow(NamedTextColor.BLACK, alpha = 0x80)
+                        }
+                    }
+
+                opaque.childAt(0) shouldHaveShadowColor ShadowColor.shadowColor(NamedTextColor.BLACK, 0xFF)
+                translucent.childAt(0) shouldHaveShadowColor ShadowColor.shadowColor(NamedTextColor.BLACK, 0x80)
+            }
+
+            "clears the shadow color when null is provided" {
+                val base = Style.style().shadowColor(ShadowColor.shadowColor(0xFF112233.toInt())).build()
+
+                val component =
+                    component {
+                        style(base)
+                        style {
+                            shadow(null)
+                        }
+                    }
+
+                component.shouldNotHaveShadowColor()
             }
 
             "can clear nullable color font and insertion from an existing component style" {
