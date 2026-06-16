@@ -50,7 +50,7 @@ class ComponentSerializerExtensionsTest :
             }
 
             "deserializes plain text strings" {
-                val message = "Hello world".plain()
+                val message = "Hello world".plainText()
 
                 message shouldContainText "Hello world"
                 message.shouldNotHaveColor()

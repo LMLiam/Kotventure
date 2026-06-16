@@ -500,7 +500,7 @@ val mini = message.toMini()          // MiniMessage.miniMessage()
 val fromLegacy = "&aHello".legacy()
 val fromSection = "\u00a7bHello".section()
 val fromJson = json.fromJson()
-val fromPlain = "Hello".plain()
+val fromPlain = "Hello".plainText()
 val fromMini = "<red>Hello".mini()
 ```
 

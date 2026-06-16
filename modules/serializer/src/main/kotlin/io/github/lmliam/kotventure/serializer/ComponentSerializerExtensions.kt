@@ -68,7 +68,7 @@ public fun Component.toPlain(): String = PlainTextComponentSerializer.plainText(
 /**
  * Deserializes this plain text string to an Adventure text component.
  */
-public fun String.plain(): Component = PlainTextComponentSerializer.plainText().deserialize(this)
+public fun String.plainText(): Component = PlainTextComponentSerializer.plainText().deserialize(this)
 
 /**
  * Serializes this component to plain text using Adventure's default plain text serializer.
