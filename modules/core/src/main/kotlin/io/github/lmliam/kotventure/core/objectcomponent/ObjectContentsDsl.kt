@@ -27,10 +27,10 @@ public fun head(
     hat: Boolean = PlayerHeadObjectContents.DEFAULT_HAT,
 ): PlayerHeadObjectContents =
     ObjectContents
-    .playerHead()
-    .name(name)
-    .hat(hat)
-    .build()
+        .playerHead()
+        .name(name)
+        .hat(hat)
+        .build()
 
 /**
  * Builds player-head object contents for the player with UUID [id], rendering the hat layer when [hat] is `true`.
@@ -40,10 +40,10 @@ public fun head(
     hat: Boolean = PlayerHeadObjectContents.DEFAULT_HAT,
 ): PlayerHeadObjectContents =
     ObjectContents
-    .playerHead()
-    .id(id)
-    .hat(hat)
-    .build()
+        .playerHead()
+        .id(id)
+        .hat(hat)
+        .build()
 
 /**
  * Builds player-head object contents drawn from the skin [texture] key, rendering the hat layer when [hat] is `true`.
@@ -53,7 +53,7 @@ public fun head(
     hat: Boolean = PlayerHeadObjectContents.DEFAULT_HAT,
 ): PlayerHeadObjectContents =
     ObjectContents
-    .playerHead()
-    .texture(texture)
-    .hat(hat)
-    .build()
+        .playerHead()
+        .texture(texture)
+        .hat(hat)
+        .build()

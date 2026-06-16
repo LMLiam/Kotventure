@@ -23,11 +23,11 @@ internal fun colorLiteral(color: TextColor): String =
 internal fun shadowColorLiteral(color: ShadowColor): String {
     val argb =
         color
-        .value()
-        .toUInt()
-        .toString(16)
-        .uppercase(Locale.ROOT)
-        .padStart(8, '0')
+            .value()
+            .toUInt()
+            .toString(16)
+            .uppercase(Locale.ROOT)
+            .padStart(8, '0')
     return "ShadowColor.shadowColor(0x$argb.toInt())"
 }
 

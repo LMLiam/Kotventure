@@ -1088,7 +1088,7 @@ class MiniMessageToDslTest :
                             .append(Component.text("bad").shadowColor(ShadowColor.shadowColor(0xFF112233.toInt())))
 
                     MiniMessageToDslWriter.write(nested) shouldBe
-                        """
+                            """
                         component {
                             text("ok") {
                                 text("bad") {
@@ -1108,7 +1108,7 @@ class MiniMessageToDslTest :
                             .build()
 
                     MiniMessageToDslWriter.write(translatable) shouldBe
-                        """
+                            """
                         component {
                             translatable("chat.type.text") {
                                 arg {
@@ -1126,7 +1126,7 @@ class MiniMessageToDslTest :
                     val selector = Component.selector("@e").separator(separator)
 
                     MiniMessageToDslWriter.write(selector) shouldBe
-                        """
+                            """
                         component {
                             selector("@e") {
                                 separator {
@@ -1144,7 +1144,7 @@ class MiniMessageToDslTest :
                     val component = Component.text("hover me").hoverEvent(HoverEvent.showText(payload))
 
                     MiniMessageToDslWriter.write(component) shouldBe
-                        """
+                            """
                         component {
                             text("hover me") {
                                 hover {
@@ -1179,7 +1179,7 @@ class MiniMessageToDslTest :
                             ).build()
 
                     MiniMessageToDslWriter.write(playerHead) shouldBe
-                        """
+                            """
                         component {
                             display(head(UUID.fromString("0d1630e2-fc7c-48ef-b7a0-8dfb9e57ec25")))
                         }
@@ -1196,7 +1196,7 @@ class MiniMessageToDslTest :
                     val playerHead = Component.`object`().contents(contents).build()
 
                     MiniMessageToDslWriter.write(playerHead) shouldBe
-                        """
+                            """
                         component {
                             display(head(key("minecraft", "entity/player/wide/steve"), hat = false))
                         }

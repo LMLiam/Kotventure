@@ -52,11 +52,11 @@ class ObjectComponentDslTest :
 
             "toggles the player-head hat layer" {
                 head("Steve", hat = false) shouldBe
-                    ObjectContents
-                    .playerHead()
-                    .name("Steve")
-                    .hat(false)
-                    .build()
+                        ObjectContents
+                            .playerHead()
+                            .name("Steve")
+                            .hat(false)
+                            .build()
             }
 
             "builds a player-head object component with fallback" {
