@@ -162,8 +162,8 @@ component shouldHaveColor AQUA
 component shouldContainText "world"
 component.shouldMatchSnapshot()
 println(component.toAnsi())
-println(component.toMiniMessage())
-println(component.toPlainText())
+println(component.toMini())
+println(component.toPlain())
 ```
 
 ## 6. MiniMessage strategy

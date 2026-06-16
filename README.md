@@ -62,7 +62,7 @@ The current build enables the first lazy modules:
 - `kotventure-minimessage` — `mini(...)` parsing plus typed placeholders via `placeholder<T>(name)` and
   `resolve(placeholder, value)`, alongside the `parsed`, `unparsed`, and `component` resolvers; typed reusable
   templates via `MiniTemplate` with compile-checked `bind(placeholder, value)` at the call site
-- `kotventure-serializer` — `Component.toMiniMessage()` and `Component.toPlainText()` wrappers around Adventure
+- `kotventure-serializer` — `Component` and `String` helpers for Adventure legacy, JSON, plain text, and MiniMessage
   serializers
 - `kotventure-test` — Kotest component matchers consumed test-scoped by library modules
 - `kotventure-bom` — a Gradle/Maven BOM aligning enabled Kotventure artifacts and Adventure 5.1.1 dependencies
@@ -491,8 +491,17 @@ Serializer helpers live in `kotventure-serializer` so `kotventure-core` can stay
 callers opt into concrete Adventure serializers:
 
 ```kotlin
-val mini = message.toMiniMessage()
-val plain = message.toPlainText()
+val legacy = message.toLegacy()      // LegacyComponentSerializer.legacyAmpersand()
+val section = message.toSection()    // LegacyComponentSerializer.legacySection()
+val json = message.toJson()          // GsonComponentSerializer with JSONOptions.compatibility()
+val plain = message.toPlain()        // PlainTextComponentSerializer.plainText()
+val mini = message.toMini()          // MiniMessage.miniMessage()
+
+val fromLegacy = "&aHello".asLegacyComponent()
+val fromSection = "\u00a7bHello".asSectionComponent()
+val fromJson = json.asJsonComponent()
+val fromPlain = "Hello".asPlainComponent()
+val fromMini = "<red>Hello".asMiniComponent()
 ```
 
 `kotventure-test` starts the testing toolkit with structural component matchers such as `shouldContainText`,
