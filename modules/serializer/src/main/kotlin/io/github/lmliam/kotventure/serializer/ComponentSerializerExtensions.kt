@@ -23,7 +23,7 @@ public fun Component.toLegacy(): String = LegacyComponentSerializer.legacyAmpers
 /**
  * Deserializes this legacy ampersand (`&`) string to an Adventure component.
  */
-public fun String.legacy(): Component = LegacyComponentSerializer.legacyAmpersand().deserialize(this)
+public fun String.asLegacyComponent(): Component = LegacyComponentSerializer.legacyAmpersand().deserialize(this)
 
 /**
  * Serializes this component to legacy section-sign formatting.
@@ -33,7 +33,7 @@ public fun Component.toSection(): String = LegacyComponentSerializer.legacySecti
 /**
  * Deserializes this legacy section-sign string to an Adventure component.
  */
-public fun String.section(): Component = LegacyComponentSerializer.legacySection().deserialize(this)
+public fun String.asSectionComponent(): Component = LegacyComponentSerializer.legacySection().deserialize(this)
 
 /**
  * Serializes this component to Adventure's JSON component format.
@@ -43,7 +43,7 @@ public fun Component.toJson(): String = jsonSerializer.serialize(this)
 /**
  * Deserializes this Adventure JSON component string to an Adventure component.
  */
-public fun String.fromJson(): Component = jsonSerializer.deserialize(this)
+public fun String.asJsonComponent(): Component = jsonSerializer.deserialize(this)
 
 /**
  * Serializes this component to MiniMessage markup using Adventure's default MiniMessage serializer.
@@ -53,12 +53,7 @@ public fun Component.toMini(): String = MiniMessage.miniMessage().serialize(this
 /**
  * Deserializes this MiniMessage string to an Adventure component.
  */
-public fun String.mini(): Component = MiniMessage.miniMessage().deserialize(this)
-
-/**
- * Serializes this component to MiniMessage markup using Adventure's default MiniMessage serializer.
- */
-public fun Component.toMiniMessage(): String = toMini()
+public fun String.asMiniComponent(): Component = MiniMessage.miniMessage().deserialize(this)
 
 /**
  * Serializes this component to plain text using Adventure's default plain text serializer.
@@ -68,9 +63,4 @@ public fun Component.toPlain(): String = PlainTextComponentSerializer.plainText(
 /**
  * Deserializes this plain text string to an Adventure text component.
  */
-public fun String.plainText(): Component = PlainTextComponentSerializer.plainText().deserialize(this)
-
-/**
- * Serializes this component to plain text using Adventure's default plain text serializer.
- */
-public fun Component.toPlainText(): String = toPlain()
+public fun String.asPlainComponent(): Component = PlainTextComponentSerializer.plainText().deserialize(this)

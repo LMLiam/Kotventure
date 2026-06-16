@@ -497,11 +497,11 @@ val json = message.toJson()          // GsonComponentSerializer with JSONOptions
 val plain = message.toPlain()        // PlainTextComponentSerializer.plainText()
 val mini = message.toMini()          // MiniMessage.miniMessage()
 
-val fromLegacy = "&aHello".legacy()
-val fromSection = "\u00a7bHello".section()
-val fromJson = json.fromJson()
-val fromPlain = "Hello".plainText()
-val fromMini = "<red>Hello".mini()
+val fromLegacy = "&aHello".asLegacyComponent()
+val fromSection = "\u00a7bHello".asSectionComponent()
+val fromJson = json.asJsonComponent()
+val fromPlain = "Hello".asPlainComponent()
+val fromMini = "<red>Hello".asMiniComponent()
 ```
 
 `kotventure-test` starts the testing toolkit with structural component matchers such as `shouldContainText`,

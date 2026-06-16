@@ -45,19 +45,18 @@ class ComponentSerializerExtensionsTest :
                         }
                     }
 
-                message.toPlainText() shouldBe "Hello world"
                 message.toPlain() shouldBe "Hello world"
             }
 
             "deserializes plain text strings" {
-                val message = "Hello world".plainText()
+                val message = "Hello world".asPlainComponent()
 
                 message shouldContainText "Hello world"
                 message.shouldNotHaveColor()
             }
 
             "round-trips legacy ampersand strings" {
-                val message = "&aHello".legacy()
+                val message = "&aHello".asLegacyComponent()
 
                 message shouldContainText "Hello"
                 message shouldHaveColor NamedTextColor.GREEN
@@ -65,7 +64,7 @@ class ComponentSerializerExtensionsTest :
             }
 
             "round-trips legacy section strings" {
-                val message = "\u00a7bHello".section()
+                val message = "\u00a7bHello".asSectionComponent()
 
                 message shouldContainText "Hello"
                 message shouldHaveColor NamedTextColor.AQUA
@@ -80,7 +79,7 @@ class ComponentSerializerExtensionsTest :
                         .hoverEvent(Component.text("Teleport"))
 
                 val json = message.toJson()
-                val roundTripped = json.fromJson()
+                val roundTripped = json.asJsonComponent()
 
                 roundTripped shouldContainText "Portal"
                 roundTripped shouldHaveColor hex("#123ABC")
@@ -107,7 +106,7 @@ class ComponentSerializerExtensionsTest :
                         null as BinaryTagHolder?,
                     )
 
-                legacyJson.fromJson() shouldHaveHoverItem item
+                legacyJson.asJsonComponent() shouldHaveHoverItem item
             }
 
             "serializes unstyled component text to MiniMessage text" {
@@ -116,12 +115,11 @@ class ComponentSerializerExtensionsTest :
                         text("Hello")
                     }
 
-                message.toMiniMessage() shouldBe "Hello"
                 message.toMini() shouldBe "Hello"
             }
 
             "deserializes MiniMessage strings" {
-                val message = "<red>Hello".mini()
+                val message = "<red>Hello".asMiniComponent()
 
                 message shouldContainText "Hello"
                 message shouldHaveColor NamedTextColor.RED
@@ -135,7 +133,7 @@ class ComponentSerializerExtensionsTest :
                         }
                     }
 
-                val serialized = message.toMiniMessage()
+                val serialized = message.toMini()
                 serialized shouldBe "<red>Alert"
 
                 val roundTripped = MiniMessage.miniMessage().deserialize(serialized)
@@ -152,7 +150,7 @@ class ComponentSerializerExtensionsTest :
                         }
                     }
 
-                val serialized = message.toMiniMessage()
+                val serialized = message.toMini()
                 serialized shouldBe "<#123ABC>Brand"
 
                 val roundTripped = MiniMessage.miniMessage().deserialize(serialized)
@@ -169,7 +167,7 @@ class ComponentSerializerExtensionsTest :
                         }
                     }
 
-                val serialized = message.toMiniMessage()
+                val serialized = message.toMini()
                 serialized shouldBe "<red>a</red><gold>c</gold><aqua>e"
 
                 val roundTripped = MiniMessage.miniMessage().deserialize(serialized)
@@ -185,14 +183,14 @@ class ComponentSerializerExtensionsTest :
                 val contents = sprite(key("minecraft", "block/stone"))
                 val message = display(contents)
 
-                message.toPlainText() shouldBe "[block/stone]"
+                message.toPlain() shouldBe "[block/stone]"
             }
 
             "round-trips sprite object components through MiniMessage" {
                 val contents = sprite(key("minecraft", "block/stone"))
                 val message = display(contents)
 
-                val serialized = message.toMiniMessage()
+                val serialized = message.toMini()
                 serialized shouldBe "<sprite:'minecraft:block/stone'>"
 
                 val roundTripped = MiniMessage.miniMessage().deserialize(serialized).shouldBeObjectComponent()
@@ -210,7 +208,7 @@ class ComponentSerializerExtensionsTest :
                         }
                     }
 
-                val roundTripped = MiniMessage.miniMessage().deserialize(message.toMiniMessage())
+                val roundTripped = MiniMessage.miniMessage().deserialize(message.toMini())
 
                 roundTripped shouldHaveHoverText Component.text("Tooltip")
             }
@@ -233,7 +231,7 @@ class ComponentSerializerExtensionsTest :
                         }
                     }
 
-                val roundTripped = MiniMessage.miniMessage().deserialize(message.toMiniMessage())
+                val roundTripped = MiniMessage.miniMessage().deserialize(message.toMini())
 
                 roundTripped shouldHaveHoverItem item
             }
@@ -260,7 +258,7 @@ class ComponentSerializerExtensionsTest :
                         }
                     }
 
-                val roundTripped = MiniMessage.miniMessage().deserialize(message.toMiniMessage())
+                val roundTripped = MiniMessage.miniMessage().deserialize(message.toMini())
 
                 roundTripped shouldHaveHoverEntity entity
             }
