@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land in any release.
 
+## [0.4.0](https://github.com/LMLiam/Kotventure/compare/0.3.0...0.4.0) (2026-06-16)
+
+
+### ✨ Features
+
+* **core:** add component utility extensions ([#162](https://github.com/LMLiam/Kotventure/issues/162)) ([283be31](https://github.com/LMLiam/Kotventure/commit/283be31283b8e787eba789623a30bf7b37934018))
+* **serializer:** complete serializer extensions ([#160](https://github.com/LMLiam/Kotventure/issues/160)) ([6ea8938](https://github.com/LMLiam/Kotventure/commit/6ea89385a167e2678abc2bb6662a92f2aee829f8))
+
 ## [0.3.0](https://github.com/LMLiam/Kotventure/compare/0.2.0...0.3.0) (2026-06-16)
 
 
