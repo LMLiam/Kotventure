@@ -11,9 +11,10 @@ public fun mini(input: String): Component = parseMiniMessage(input)
 /**
  * Converts MiniMessage [input] into Kotventure component DSL source code.
  *
- * The current slices support plain text, recursive text children, named and hex colours, the standard text decorations,
- * click events, and hover events. Unsupported component types or style attributes from later slices fail with an
- * [IllegalArgumentException] instead of producing lossy source.
+ * The current slices support plain text, recursive children, named and hex colours, the standard text decorations,
+ * click events, hover events, and the structured components — translatable (with recursive arguments), keybind, score,
+ * and selector. Unsupported component types or style attributes from later slices fail with an [IllegalArgumentException]
+ * instead of producing lossy source.
  */
 public fun miniToDsl(input: String): String = MiniMessageToDslWriter.write(mini(input))
 

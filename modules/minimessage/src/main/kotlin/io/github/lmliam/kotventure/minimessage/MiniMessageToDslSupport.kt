@@ -1,7 +1,12 @@
 package io.github.lmliam.kotventure.minimessage
 
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.KeybindComponent
+import net.kyori.adventure.text.ScoreComponent
+import net.kyori.adventure.text.SelectorComponent
 import net.kyori.adventure.text.TextComponent
+import net.kyori.adventure.text.TranslatableComponent
+import net.kyori.adventure.text.TranslationArgument
 import net.kyori.adventure.text.event.HoverEvent
 import net.kyori.adventure.text.format.Style
 import net.kyori.adventure.text.format.TextDecoration
@@ -18,11 +23,44 @@ internal object MiniMessageToDslSupport {
         )
 
     fun requireSupported(component: Component) {
-        require(component is TextComponent) {
-            "miniToDsl supports only text component trees, but found ${component::class.simpleName}."
+        require(
+            component is TextComponent ||
+                component is TranslatableComponent ||
+                component is KeybindComponent ||
+                component is ScoreComponent ||
+                component is SelectorComponent,
+        ) {
+            "miniToDsl does not yet support ${component::class.simpleName} components."
         }
         requireSupported(component.style())
         component.children().forEach(::requireSupported)
+        requireSupportedPayload(component)
+    }
+
+    /**
+     * Validates the payload a structured component carries beyond its style and children — translatable arguments and
+     * selector separators are recursed so unsupported styles are rejected up front, and a score's obsolete fixed
+     * [ScoreComponent.value] is rejected because the DSL cannot represent it and dropping it would be lossy.
+     */
+    private fun requireSupportedPayload(component: Component) {
+        when (component) {
+            is TranslatableComponent -> component.arguments().forEach(::requireSupportedArgument)
+            is SelectorComponent -> component.separator()?.let(::requireSupported)
+            is ScoreComponent ->
+                require(component.value() == null) {
+                    "miniToDsl does not yet support score components with a fixed value."
+                }
+
+            else -> Unit
+        }
+    }
+
+    private fun requireSupportedArgument(argument: TranslationArgument) {
+        val value = argument.value()
+        require(value is Component) {
+            "miniToDsl does not yet support non-component translatable arguments (${value::class.qualifiedName})."
+        }
+        requireSupported(value)
     }
 
     fun requireSupported(style: Style) {
