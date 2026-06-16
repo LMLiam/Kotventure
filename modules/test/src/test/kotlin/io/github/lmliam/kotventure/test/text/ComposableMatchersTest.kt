@@ -46,9 +46,12 @@ class ComposableMatchersTest :
             "fails a composed or matcher when no branch matches" {
                 val component = Component.text("Alert").color(NamedTextColor.GREEN)
 
-                shouldThrow<AssertionError> {
-                    component should (haveColor(NamedTextColor.RED) or haveColor(NamedTextColor.BLUE))
-                }
+                val failure =
+                    shouldThrow<AssertionError> {
+                        component should (haveColor(NamedTextColor.RED) or haveColor(NamedTextColor.BLUE))
+                    }
+
+                failure.message shouldContain "component color"
             }
 
             "negates a matcher with shouldNot" {

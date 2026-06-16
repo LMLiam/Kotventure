@@ -50,6 +50,18 @@ class StyleMatchersTest :
                 failure.message shouldContain expectedMessage
             }
 
+            "reports a missing font as null when asserting presence" {
+                val expected = Key.key("minecraft", "uniform")
+
+                val failure =
+                    shouldThrow<AssertionError> {
+                        Component.text("Title") shouldHaveFont expected
+                    }
+                val expectedMessage = "Expected component font <$expected>, but was <null>."
+
+                failure.message shouldContain expectedMessage
+            }
+
             "matches the absence of a root font" {
                 Component.text("Title").shouldNotHaveFont()
             }
@@ -76,6 +88,16 @@ class StyleMatchersTest :
                         Component.text("Name").insertion("Steve") shouldHaveInsertion "Alex"
                     }
                 val expectedMessage = "Expected component insertion <Alex>, but was <Steve>."
+
+                failure.message shouldContain expectedMessage
+            }
+
+            "reports a missing insertion as null when asserting presence" {
+                val failure =
+                    shouldThrow<AssertionError> {
+                        Component.text("Name") shouldHaveInsertion "Steve"
+                    }
+                val expectedMessage = "Expected component insertion <Steve>, but was <null>."
 
                 failure.message shouldContain expectedMessage
             }
