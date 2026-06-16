@@ -157,6 +157,13 @@ player.message(Welcome { player = name; count = 3 })
 // ── Typed catalog (KSP from messages.yml) ──────────────────────
 Messages.welcome(player = name, count = 3)   // generated, validated placeholders
 
+// ── Normalising & traversing ───────────────────────────────────
+val tidy = msg.compacted()                   // merge adjacent same-style runs, drop empty wrappers
+msg.count()                                  // nodes in the whole tree (root + descendants)
+msg.forEach { node -> log(node) }            // depth-first, pre-order visit
+msg.asSequence()                             // lazy Sequence<Component> → full stdlib over the tree
+    .filterIsInstance<ObjectComponent>()     // e.g. every object component, object components preserved
+
 // ── Testing / preview ──────────────────────────────────────────
 component shouldHaveColor AQUA
 component shouldContainText "world"
