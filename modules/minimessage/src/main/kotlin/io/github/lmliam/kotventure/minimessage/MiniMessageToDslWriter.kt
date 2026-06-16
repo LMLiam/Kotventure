@@ -17,18 +17,19 @@ import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.DataComponentValue
 import net.kyori.adventure.text.event.HoverEvent
 import net.kyori.adventure.text.format.Style
+import net.kyori.adventure.text.format.TextDecoration
 import net.kyori.adventure.text.format.TextDecoration.State
 
 /**
  * Walks a MiniMessage-parsed component tree and emits the equivalent Kotventure component DSL source.
  *
  * The walker decides *what* to emit; [KotlinSourceBuilder] owns indentation and [MiniMessageToDslLiterals] renders leaf
- * values, so each function reads as the DSL it produces.
+ * values, so each function reads as the DSL it produces. Every payload MiniMessage can produce has a DSL form, with two
+ * exceptions the parser can still reach — shadow colours and player-head object contents — which the DSL cannot yet
+ * express; those are rejected at the point of emission rather than dropped silently.
  */
 internal object MiniMessageToDslWriter {
     fun write(component: Component): String {
-        MiniMessageToDslSupport.requireSupported(component)
-
         if (component.isEmptyComponent()) {
             return "component {}"
         }
@@ -42,14 +43,14 @@ internal object MiniMessageToDslWriter {
         this is TextComponent &&
                 content().isEmpty() &&
                 children().isEmpty() &&
-                !MiniMessageToDslSupport.hasDslOutput(style())
+                !hasDslOutput(style())
 }
 
 /** Emits [component], unwrapping a content-less, style-less text root into a bare sequence of its children. */
 private fun KotlinSourceBuilder.appendRoot(component: Component) {
     if (component is TextComponent &&
         component.content().isEmpty() &&
-        !MiniMessageToDslSupport.hasDslOutput(component.style())
+        !hasDslOutput(component.style())
     ) {
         component.children().forEach { appendComponent(it) }
         return
@@ -58,12 +59,36 @@ private fun KotlinSourceBuilder.appendRoot(component: Component) {
     appendComponent(component)
 }
 
+private val decorations: List<Pair<TextDecoration, String>> =
+    listOf(
+        TextDecoration.BOLD to "bold",
+        TextDecoration.ITALIC to "italic",
+        TextDecoration.UNDERLINED to "underlined",
+        TextDecoration.STRIKETHROUGH to "strikethrough",
+        TextDecoration.OBFUSCATED to "obfuscated",
+    )
+
+/**
+ * Whether [style] carries anything that opens a component block. A shadow colour counts even though it has no DSL form:
+ * including it routes the component through [appendStyle], which rejects it, instead of letting a block-less emission
+ * drop it silently.
+ */
+private fun hasDslOutput(style: Style): Boolean =
+    style.color() != null ||
+        style.font() != null ||
+        style.insertion() != null ||
+        style.shadowColor() != null ||
+        style.clickEvent() != null ||
+        style.hoverEvent() != null ||
+        decorations.any { (decoration) -> style.decoration(decoration) != State.NOT_SET }
+
 /**
  * Dispatches to the emitter for [component]'s concrete type. Every emission is a self-contained call expression, so it
  * reads the same whether it appends a child inside a scope or stands alone as a translatable argument or separator.
  *
- * The branches are exhaustive over Adventure's component types; the `else` guards only against a future Adventure type
- * the converter has not been taught to emit.
+ * The branches cover every Adventure component type, but [Component] is an open interface rather than a sealed
+ * hierarchy, so the compiler cannot prove exhaustiveness; the `else` guards against a future Adventure type instead of
+ * dropping it silently.
  */
 private fun KotlinSourceBuilder.appendComponent(component: Component) {
     when (component) {
@@ -82,7 +107,7 @@ private fun KotlinSourceBuilder.appendComponent(component: Component) {
 
 private fun KotlinSourceBuilder.appendText(component: TextComponent) {
     val text = component.content()
-    val hasBlockBody = MiniMessageToDslSupport.hasDslOutput(component.style()) || component.children().isNotEmpty()
+    val hasBlockBody = hasDslOutput(component.style()) || component.children().isNotEmpty()
 
     if (!hasBlockBody) {
         line("text(\"${escapeKotlinString(text)}\")")
@@ -187,7 +212,7 @@ private fun KotlinSourceBuilder.appendStructured(
     hasExtraBody: Boolean = false,
     body: KotlinSourceBuilder.() -> Unit,
 ) {
-    val hasStyle = MiniMessageToDslSupport.hasDslOutput(component.style())
+    val hasStyle = hasDslOutput(component.style())
     if (!hasExtraBody && !hasStyle && component.children().isEmpty()) {
         line(header)
         return
@@ -200,12 +225,17 @@ private fun KotlinSourceBuilder.appendStructured(
     }
 }
 
+/**
+ * Emits a translatable argument. Adventure wraps either a component or a primitive ([Boolean] / [Number]); the core
+ * `translatable` DSL has an `arg(...)` overload for each, so every argument MiniMessage can produce round-trips.
+ */
 private fun KotlinSourceBuilder.appendArgument(argument: TranslationArgument) {
-    val value = argument.value()
-    check(value is Component) {
-        "miniToDsl reached an unvalidated ${value::class.simpleName} translatable argument."
+    when (val value = argument.value()) {
+        is Component -> appendComponentArgument("arg", value)
+        is Boolean -> line("arg($value)")
+        is Number -> line("arg($value)")
+        else -> error("miniToDsl encountered an unexpected ${value::class.simpleName} translatable argument.")
     }
-    appendComponentArgument("arg", value)
 }
 
 /**
@@ -225,9 +255,13 @@ private fun KotlinSourceBuilder.appendComponentArgument(
 }
 
 private fun KotlinSourceBuilder.appendStyle(style: Style) {
+    require(style.shadowColor() == null) {
+        "miniToDsl cannot represent shadow colours: the component DSL has no shadow-colour surface."
+    }
+
     style.color()?.let { color -> line("color(${colorLiteral(color)})") }
 
-    MiniMessageToDslSupport.decorations.forEach { (decoration, functionName) ->
+    decorations.forEach { (decoration, functionName) ->
         if (style.decoration(decoration) == State.TRUE) {
             line("$functionName()")
         }
@@ -248,7 +282,7 @@ private fun KotlinSourceBuilder.appendStyleBlock(style: Style) {
     val font = style.font()
     val insertion = style.insertion()
     val disabledDecorations =
-        MiniMessageToDslSupport.decorations.filter { (decoration) -> style.decoration(decoration) == State.FALSE }
+        decorations.filter { (decoration) -> style.decoration(decoration) == State.FALSE }
 
     if (font == null && insertion == null && disabledDecorations.isEmpty()) {
         return
@@ -293,10 +327,6 @@ private fun KotlinSourceBuilder.appendHoverEvent(event: HoverEvent<*>) {
 }
 
 private fun KotlinSourceBuilder.appendShowItem(item: HoverEvent.ShowItem) {
-    require(item.nbt() == null) {
-        "miniToDsl cannot represent legacy show-item NBT payloads."
-    }
-
     val arguments =
         buildList<() -> Unit> {
             add { line("key = ${keyLiteral(item.item())}") }

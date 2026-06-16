@@ -803,6 +803,25 @@ class MiniMessageToDslTest :
                     )
                 }
 
+                test("emits boolean and numeric translatable arguments through the arg overloads") {
+                    val translatable =
+                        Component
+                            .translatable()
+                            .key("stat.generic")
+                            .arguments(TranslationArgument.bool(true), TranslationArgument.numeric(42))
+                            .build()
+
+                    MiniMessageToDslWriter.write(translatable) shouldBe
+                            """
+                    component {
+                        translatable("stat.generic") {
+                            arg(true)
+                            arg(42)
+                        }
+                    }
+                    """.trimIndent()
+                }
+
                 test("round-trips translatable components nesting other structured components") {
                     assertGoldenRoundTrip(
                         input = "<lang:k:a>:<lang:k:b>",
@@ -1010,11 +1029,9 @@ class MiniMessageToDslTest :
                     }
                     """.trimIndent()
 
-                    // The parser expands the gradient into one coloured child per character before the converter sees
-                    // it, so the generated DSL reproduces those children verbatim rather than rebuilding a `gradient`
-                    // call. A serialised round-trip would *not* match here: MiniMessage re-compresses the children back
-                    // into a single `<gradient>` tag, which is exactly the higher-level form this converter leaves
-                    // expanded (lossy-but-faithful, by design).
+                    // The parser expands the gradient into per-character children before the converter runs, so the DSL
+                    // reproduces those children verbatim. (Component equality is asserted via the matchers below rather
+                    // than a serialised round-trip, which would re-compress the children back into `<gradient>`.)
                     miniToDsl(input) shouldBe expectedSource
 
                     val gradient = mini(input).childAt(0)
@@ -1063,34 +1080,7 @@ class MiniMessageToDslTest :
                             MiniMessageToDslWriter.write(playerHead)
                         }
 
-                    error.message shouldContain "only sprite contents are supported"
-                }
-
-                test("rejects score components with a fixed value instead of dropping it") {
-                    val score = Component.score("player", "objective").value("7")
-
-                    val error =
-                        shouldThrow<IllegalArgumentException> {
-                            MiniMessageToDslWriter.write(score)
-                        }
-
-                    error.message shouldContain "score components with a fixed value"
-                }
-
-                test("rejects non-component translatable arguments") {
-                    val translatable =
-                        Component
-                            .translatable()
-                            .key("stat.generic")
-                            .arguments(TranslationArgument.bool(true))
-                            .build()
-
-                    val error =
-                        shouldThrow<IllegalArgumentException> {
-                            MiniMessageToDslWriter.write(translatable)
-                        }
-
-                    error.message shouldContain "non-component translatable arguments"
+                    error.message shouldContain "player-head object contents"
                 }
 
                 test("rejects unsupported styles nested in translatable arguments") {
@@ -1131,26 +1121,6 @@ class MiniMessageToDslTest :
                         }
 
                     error.message shouldContain "shadow colours"
-                }
-
-                test("rejects legacy show-item NBT payloads") {
-                    val legacyItem =
-                        Component
-                            .text("Loot")
-                            .hoverEvent(
-                                HoverEvent.showItem(
-                                    key("minecraft", "diamond_sword"),
-                                    1,
-                                    BinaryTagHolder.binaryTagHolder("{}"),
-                                ),
-                            )
-
-                    val error =
-                        shouldThrow<IllegalArgumentException> {
-                            MiniMessageToDslWriter.write(legacyItem)
-                        }
-
-                    error.message shouldContain "legacy show-item NBT"
                 }
 
                 test("rejects unsupported data component values") {

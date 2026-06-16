@@ -22,11 +22,11 @@ internal fun keyLiteral(key: Key): String =
     "key(\"${escapeKotlinString(key.namespace())}\", \"${escapeKotlinString(key.value())}\")"
 
 /**
- * Renders [contents] as the object-contents expression that reconstructs it, choosing the single-argument
- * [io.github.lmliam.kotventure.core.objectcomponent.sprite] form when the sprite uses Adventure's default atlas.
+ * Renders [contents] as the object-contents expression that reconstructs it, using the single-argument `sprite` form
+ * when the sprite uses Adventure's default atlas.
  *
- * Only sprite contents have a DSL surface; player-head contents are rejected because they would otherwise be silently
- * dropped.
+ * `<head:...>` produces player-head contents, which the DSL has no surface for; they are rejected so the head is not
+ * silently replaced by an empty display.
  */
 internal fun objectContentsLiteral(contents: ObjectContents): String =
     when (contents) {
@@ -38,12 +38,11 @@ internal fun objectContentsLiteral(contents: ObjectContents): String =
             }
 
         else -> throw IllegalArgumentException(
-            "miniToDsl cannot represent object contents of type ${contents::class.qualifiedName}; " +
-                "only sprite contents are supported.",
+            "miniToDsl cannot represent player-head object contents: the component DSL only has a sprite surface.",
         )
     }
 
-/** Renders [value] as the Kotlin expression that reconstructs it, rejecting payloads the DSL cannot represent. */
+/** Renders [value] as the Kotlin expression that reconstructs it. */
 internal fun dataComponentValueLiteral(value: DataComponentValue): String =
     when (value) {
         is BinaryTagHolder -> "BinaryTagHolder.binaryTagHolder(\"${escapeKotlinString(value.string())}\")"

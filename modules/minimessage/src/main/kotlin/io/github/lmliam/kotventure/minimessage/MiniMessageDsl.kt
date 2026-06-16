@@ -9,20 +9,17 @@ import net.kyori.adventure.text.minimessage.MiniMessage
 public fun mini(input: String): Component = parseMiniMessage(input)
 
 /**
- * Converts MiniMessage [input] into Kotventure component DSL source code.
+ * Converts MiniMessage [input] into Kotventure component DSL source code: the text, structured (translatable, keybind,
+ * score, selector), NBT, and sprite-object components MiniMessage produces, with their colours, decorations, fonts,
+ * insertions, and click/hover events.
  *
- * Every Adventure component type is covered: plain text with recursive children, the structured components
- * (translatable with recursive arguments, keybind, score, selector), the NBT components (block, entity, storage), and
- * object components with sprite contents. Styles emit named and hex colours, the standard text decorations, fonts,
- * insertion text, and click and hover events.
+ * `<gradient>` is expanded by the parser into one coloured child per character before conversion, so the output
+ * reproduces those children rather than a `gradient` call — verbose, but loss-free.
  *
- * A `<gradient>` is expanded by the MiniMessage parser into one coloured child per character before this converter ever
- * sees it, so the generated DSL faithfully reproduces those per-character children rather than re-deriving a `gradient`
- * call — verbose, but loss-free.
+ * Shadow colours (`<shadow>`) and player-head object contents (`<head>`) have no DSL surface yet, so they fail with an
+ * [IllegalArgumentException] rather than being dropped silently.
  *
- * Payloads that the component DSL cannot express — a shadow colour, a score's fixed value, a non-component translatable
- * argument, a legacy show-item NBT payload, or player-head object contents — fail with an [IllegalArgumentException]
- * rather than producing source that silently drops them.
+ * @throws IllegalArgumentException when [input] contains a shadow colour or player-head contents.
  */
 public fun miniToDsl(input: String): String = MiniMessageToDslWriter.write(mini(input))
 
