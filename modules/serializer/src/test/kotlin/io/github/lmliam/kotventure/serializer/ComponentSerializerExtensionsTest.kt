@@ -75,7 +75,7 @@ class ComponentSerializerExtensionsTest :
             "round-trips JSON strings with color and events" {
                 val message =
                     Component
-                        .text("Portal", NamedTextColor.LIGHT_PURPLE)
+                        .text("Portal", hex("#123ABC"))
                         .clickEvent(ClickEvent.runCommand("/spawn"))
                         .hoverEvent(Component.text("Teleport"))
 
@@ -83,7 +83,7 @@ class ComponentSerializerExtensionsTest :
                 val roundTripped = json.fromJson()
 
                 roundTripped shouldContainText "Portal"
-                roundTripped shouldHaveColor NamedTextColor.LIGHT_PURPLE
+                roundTripped shouldHaveColor hex("#123ABC")
                 roundTripped shouldHaveClickEvent ClickEvent.runCommand("/spawn")
                 roundTripped shouldHaveHoverText Component.text("Teleport")
             }
