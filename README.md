@@ -493,7 +493,7 @@ callers opt into concrete Adventure serializers:
 ```kotlin
 val legacy = message.toLegacy()      // LegacyComponentSerializer.legacyAmpersand()
 val section = message.toSection()    // LegacyComponentSerializer.legacySection()
-val json = message.toJson()          // GsonComponentSerializer.gson()
+val json = message.toJson()          // GsonComponentSerializer with JSONOptions.compatibility()
 val plain = message.toPlain()        // PlainTextComponentSerializer.plainText()
 val mini = message.toMini()          // MiniMessage.miniMessage()
 
