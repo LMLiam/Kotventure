@@ -2,6 +2,7 @@ package io.github.lmliam.kotventure.core.translatable
 
 import io.github.lmliam.kotventure.core.component.ComponentScope
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
+import io.github.lmliam.kotventure.core.text.TextScope
 import net.kyori.adventure.text.ComponentLike
 
 /**
@@ -18,6 +19,11 @@ public interface TranslatableScope : ComponentScope {
      * Appends a component-like translation argument.
      */
     public fun arg(value: ComponentLike)
+
+    /**
+     * Builds an inline component translation argument from [init] and appends it.
+     */
+    public fun arg(init: TextScope.() -> Unit)
 
     /**
      * Appends a boolean translation argument.

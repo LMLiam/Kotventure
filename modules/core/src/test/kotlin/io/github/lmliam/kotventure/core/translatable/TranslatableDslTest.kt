@@ -48,6 +48,20 @@ class TranslatableDslTest :
                 component.shouldHaveArguments(TranslationArgument.component(item))
             }
 
+            "builds an inline component argument" {
+                val component =
+                    translatable("chat.type.text") {
+                        arg {
+                            content("Alex")
+                            color(NamedTextColor.AQUA)
+                        }
+                    }
+
+                component.shouldHaveArguments(
+                    TranslationArgument.component(Component.text("Alex").color(NamedTextColor.AQUA)),
+                )
+            }
+
             "adds boolean and numeric arguments" {
                 val component =
                     translatable("settings.toggle") {
