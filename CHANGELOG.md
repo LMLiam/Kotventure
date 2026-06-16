@@ -203,6 +203,8 @@ once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land i
   matchers.
 - Hover event DSL support for typed text, item data component, and entity payloads, including reusable hover factories,
   clearing/prebuilt interop, MiniMessage round-trip coverage, and hover-event component matchers.
+- Serializer helpers for legacy ampersand, legacy section, JSON, plain text, and MiniMessage round-trips through
+  `kotventure-serializer`, including matching `String` parsing extensions.
 
 ### Changed
 

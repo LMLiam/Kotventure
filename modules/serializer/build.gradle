@@ -7,6 +7,9 @@ dependencies {
     api kotventureDependencies."adventure-api"
 
     implementation kotventureDependencies."adventure-text-minimessage"
+    implementation kotventureDependencies."adventure-text-serializer-gson"
+    implementation kotventureDependencies."adventure-text-serializer-json-legacy-impl"
+    implementation kotventureDependencies."adventure-text-serializer-legacy"
     implementation kotventureDependencies."adventure-text-serializer-plain"
 
     testImplementation project(':core')

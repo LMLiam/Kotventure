@@ -13,11 +13,14 @@ configurations {
 ext.kotventureDependencies = [
         "adventure-api"                  : catalog.findLibrary('adventure-api').get(),
         "adventure-bom"                  : catalog.findLibrary('adventure-bom').get(),
-        "adventure-text-minimessage"     : catalog.findLibrary('adventure-text-minimessage').get(),
-        "adventure-text-serializer-plain": catalog.findLibrary('adventure-text-serializer-plain').get(),
-        "kctfork-core"                   : catalog.findLibrary('kctfork-core').get(),
-        "kotest-assertions-core"         : catalog.findLibrary('kotest-assertions-core').get(),
-        "kotest-runner-junit5"           : catalog.findLibrary('kotest-runner-junit5').get()
+        "adventure-text-minimessage"              : catalog.findLibrary('adventure-text-minimessage').get(),
+        "adventure-text-serializer-gson"          : catalog.findLibrary('adventure-text-serializer-gson').get(),
+        "adventure-text-serializer-json-legacy-impl": catalog.findLibrary('adventure-text-serializer-json-legacy-impl').get(),
+        "adventure-text-serializer-legacy"        : catalog.findLibrary('adventure-text-serializer-legacy').get(),
+        "adventure-text-serializer-plain"         : catalog.findLibrary('adventure-text-serializer-plain').get(),
+        "kctfork-core"                            : catalog.findLibrary('kctfork-core').get(),
+        "kotest-assertions-core"                  : catalog.findLibrary('kotest-assertions-core').get(),
+        "kotest-runner-junit5"                    : catalog.findLibrary('kotest-runner-junit5').get()
 ]
 
 dependencies {
