@@ -109,6 +109,7 @@ val msg = component {
     entityNbt("@p", "CustomName") { interpret(true) }
     storageNbt(key("kotventure", "messages"), "motd") { interpret(true) }
     display(sprite(key("minecraft", "block/stone"))) { fallback { text("[stone]") } }
+    display(head("Steve")) { fallback { text("[Steve]") } }
     mini("<gradient:gold:red>Epic</gradient>")
 }
 

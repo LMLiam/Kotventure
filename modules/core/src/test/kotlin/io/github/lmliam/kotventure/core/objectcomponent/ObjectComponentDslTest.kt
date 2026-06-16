@@ -19,6 +19,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextDecoration
 import net.kyori.adventure.text.`object`.ObjectContents
+import java.util.UUID
 
 class ObjectComponentDslTest :
     StringSpec(
@@ -38,6 +39,37 @@ class ObjectComponentDslTest :
                 val contents = sprite(atlas, spriteKey)
 
                 contents shouldBe ObjectContents.sprite(atlas, spriteKey)
+            }
+
+            "builds player-head object contents from a name uuid or texture" {
+                val texture = key("minecraft", "entity/player/wide/steve")
+                val id = UUID.fromString("0d1630e2-fc7c-48ef-b7a0-8dfb9e57ec25")
+
+                head("Steve") shouldBe ObjectContents.playerHead("Steve")
+                head(id) shouldBe ObjectContents.playerHead(id)
+                head(texture) shouldBe ObjectContents.playerHead().texture(texture).build()
+            }
+
+            "toggles the player-head hat layer" {
+                head("Steve", hat = false) shouldBe
+                    ObjectContents
+                    .playerHead()
+                    .name("Steve")
+                    .hat(false)
+                    .build()
+            }
+
+            "builds a player-head object component with fallback" {
+                val component =
+                    display(head("Steve")) {
+                        fallback {
+                            text("[Steve]")
+                        }
+                    }.shouldBeObjectComponent()
+
+                component shouldHaveObjectContents head("Steve")
+                val fallback = checkNotNull(component.fallback())
+                fallback shouldContainText "[Steve]"
             }
 
             "builds an object component with sprite contents" {
