@@ -9,16 +9,19 @@ import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldBeObjectComponent
 import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.github.lmliam.kotventure.test.text.shouldHaveChildCount
+import io.github.lmliam.kotventure.test.text.shouldHaveClickEvent
 import io.github.lmliam.kotventure.test.text.shouldHaveColor
 import io.github.lmliam.kotventure.test.text.shouldHaveHoverEntity
 import io.github.lmliam.kotventure.test.text.shouldHaveHoverItem
 import io.github.lmliam.kotventure.test.text.shouldHaveHoverText
 import io.github.lmliam.kotventure.test.text.shouldHaveObjectContents
+import io.github.lmliam.kotventure.test.text.shouldNotHaveColor
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.nbt.api.BinaryTagHolder
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.DataComponentValue
 import net.kyori.adventure.text.event.HoverEvent
 import net.kyori.adventure.text.format.NamedTextColor
@@ -43,6 +46,46 @@ class ComponentSerializerExtensionsTest :
                     }
 
                 message.toPlainText() shouldBe "Hello world"
+                message.toPlain() shouldBe "Hello world"
+            }
+
+            "deserializes plain text strings" {
+                val message = "Hello world".plain()
+
+                message shouldContainText "Hello world"
+                message.shouldNotHaveColor()
+            }
+
+            "round-trips legacy ampersand strings" {
+                val message = "&aHello".legacy()
+
+                message shouldContainText "Hello"
+                message shouldHaveColor NamedTextColor.GREEN
+                message.toLegacy() shouldBe "&aHello"
+            }
+
+            "round-trips legacy section strings" {
+                val message = "\u00a7bHello".section()
+
+                message shouldContainText "Hello"
+                message shouldHaveColor NamedTextColor.AQUA
+                message.toSection() shouldBe "\u00a7bHello"
+            }
+
+            "round-trips JSON strings with color and events" {
+                val message =
+                    Component
+                        .text("Portal", NamedTextColor.LIGHT_PURPLE)
+                        .clickEvent(ClickEvent.runCommand("/spawn"))
+                        .hoverEvent(Component.text("Teleport"))
+
+                val json = message.toJson()
+                val roundTripped = json.fromJson()
+
+                roundTripped shouldContainText "Portal"
+                roundTripped shouldHaveColor NamedTextColor.LIGHT_PURPLE
+                roundTripped shouldHaveClickEvent ClickEvent.runCommand("/spawn")
+                roundTripped shouldHaveHoverText Component.text("Teleport")
             }
 
             "serializes unstyled component text to MiniMessage text" {
@@ -52,6 +95,14 @@ class ComponentSerializerExtensionsTest :
                     }
 
                 message.toMiniMessage() shouldBe "Hello"
+                message.toMini() shouldBe "Hello"
+            }
+
+            "deserializes MiniMessage strings" {
+                val message = "<red>Hello".mini()
+
+                message shouldContainText "Hello"
+                message shouldHaveColor NamedTextColor.RED
             }
 
             "round-trips MiniMessage output through Adventure" {
