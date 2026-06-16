@@ -7,6 +7,87 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.HoverEvent
 
 /**
+ * Matches a component whose root hover event equals [expected]. Combine with `and`/`or` or negate with `shouldNot`.
+ */
+public fun haveHoverEvent(expected: HoverEvent<*>): Matcher<Component> =
+    Matcher { value ->
+        val actual = value.hoverEvent()
+        MatcherResult(
+            actual == expected,
+            { "Expected hover event <$expected>, but was <${actual ?: "null"}>." },
+            { "Expected hover event not to be <$expected>." },
+        )
+    }
+
+/**
+ * Matches a component whose root hover event action is [expected].
+ */
+public fun haveHoverAction(expected: HoverEvent.Action<*>): Matcher<Component> =
+    Matcher { value ->
+        val actual = value.hoverEvent()?.action()
+        MatcherResult(
+            actual == expected,
+            { "Expected hover action <$expected>, but was <${actual ?: "null"}>." },
+            { "Expected hover action not to be <$expected>." },
+        )
+    }
+
+/**
+ * Matches a component whose root hover event shows the text payload [expected].
+ */
+public fun haveHoverText(expected: Component): Matcher<Component> =
+    Matcher { value ->
+        val payload = value.hoverEvent()?.value()
+        val actual = payload as? Component
+        MatcherResult(
+            actual == expected,
+            { "Expected hover text payload <$expected>, but was <${actual ?: hoverPayloadDescription(payload)}>." },
+            { "Expected hover text payload not to be <$expected>." },
+        )
+    }
+
+/**
+ * Matches a component whose root hover event shows the item payload [expected].
+ */
+public fun haveHoverItem(expected: HoverEvent.ShowItem): Matcher<Component> =
+    Matcher { value ->
+        val payload = value.hoverEvent()?.value()
+        val actual = payload as? HoverEvent.ShowItem
+        MatcherResult(
+            actual == expected,
+            { "Expected hover item payload <$expected>, but was <${actual ?: hoverPayloadDescription(payload)}>." },
+            { "Expected hover item payload not to be <$expected>." },
+        )
+    }
+
+/**
+ * Matches a component whose root hover event shows the entity payload [expected].
+ */
+public fun haveHoverEntity(expected: HoverEvent.ShowEntity): Matcher<Component> =
+    Matcher { value ->
+        val payload = value.hoverEvent()?.value()
+        val actual = payload as? HoverEvent.ShowEntity
+        MatcherResult(
+            actual == expected,
+            { "Expected hover entity payload <$expected>, but was <${actual ?: hoverPayloadDescription(payload)}>." },
+            { "Expected hover entity payload not to be <$expected>." },
+        )
+    }
+
+/**
+ * Matches a component that has no root hover event.
+ */
+public fun haveNoHoverEvent(): Matcher<Component> =
+    Matcher { value ->
+        val actual = value.hoverEvent()
+        MatcherResult(
+            actual == null,
+            { "Expected hover event to be absent, but was <$actual>." },
+            { "Expected hover event to be present." },
+        )
+    }
+
+/**
  * Asserts that this component has exactly [expected] as its root hover event.
  */
 public infix fun Component.shouldHaveHoverEvent(expected: HoverEvent<*>): Component =
@@ -52,69 +133,6 @@ public infix fun Component.shouldHaveHoverEntity(expected: HoverEvent.ShowEntity
 public fun Component.shouldNotHaveHoverEvent(): Component =
     apply {
         this should haveNoHoverEvent()
-    }
-
-private fun haveHoverEvent(expected: HoverEvent<*>): Matcher<Component> =
-    Matcher { value ->
-        val actual = value.hoverEvent()
-        MatcherResult(
-            actual == expected,
-            { "Expected hover event <$expected>, but was <${actual ?: "null"}>." },
-            { "Expected hover event not to be <$expected>." },
-        )
-    }
-
-private fun haveHoverAction(expected: HoverEvent.Action<*>): Matcher<Component> =
-    Matcher { value ->
-        val actual = value.hoverEvent()?.action()
-        MatcherResult(
-            actual == expected,
-            { "Expected hover action <$expected>, but was <${actual ?: "null"}>." },
-            { "Expected hover action not to be <$expected>." },
-        )
-    }
-
-private fun haveHoverText(expected: Component): Matcher<Component> =
-    Matcher { value ->
-        val payload = value.hoverEvent()?.value()
-        val actual = payload as? Component
-        MatcherResult(
-            actual == expected,
-            { "Expected hover text payload <$expected>, but was <${actual ?: hoverPayloadDescription(payload)}>." },
-            { "Expected hover text payload not to be <$expected>." },
-        )
-    }
-
-private fun haveHoverItem(expected: HoverEvent.ShowItem): Matcher<Component> =
-    Matcher { value ->
-        val payload = value.hoverEvent()?.value()
-        val actual = payload as? HoverEvent.ShowItem
-        MatcherResult(
-            actual == expected,
-            { "Expected hover item payload <$expected>, but was <${actual ?: hoverPayloadDescription(payload)}>." },
-            { "Expected hover item payload not to be <$expected>." },
-        )
-    }
-
-private fun haveHoverEntity(expected: HoverEvent.ShowEntity): Matcher<Component> =
-    Matcher { value ->
-        val payload = value.hoverEvent()?.value()
-        val actual = payload as? HoverEvent.ShowEntity
-        MatcherResult(
-            actual == expected,
-            { "Expected hover entity payload <$expected>, but was <${actual ?: hoverPayloadDescription(payload)}>." },
-            { "Expected hover entity payload not to be <$expected>." },
-        )
-    }
-
-private fun haveNoHoverEvent(): Matcher<Component> =
-    Matcher { value ->
-        val actual = value.hoverEvent()
-        MatcherResult(
-            actual == null,
-            { "Expected hover event to be absent, but was <$actual>." },
-            { "Expected hover event to be present." },
-        )
     }
 
 private fun hoverPayloadDescription(payload: Any?): String =
