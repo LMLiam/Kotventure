@@ -16,6 +16,7 @@ import io.github.lmliam.kotventure.core.translatable.TranslatableScope
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.BlockNBTComponent
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.ShadowColor
 import net.kyori.adventure.text.format.Style
 import net.kyori.adventure.text.format.TextColor
 import net.kyori.adventure.text.format.TextDecoration
@@ -32,6 +33,22 @@ public interface ComponentScope :
      * Applies a text color to the component being configured.
      */
     public fun color(color: TextColor)
+
+    /**
+     * Applies [color] as the shadow color of the component being configured.
+     */
+    public fun shadow(color: ShadowColor)
+
+    /**
+     * Applies [color] as a shadow color with [alpha] opacity, where [alpha] is in the `0..255` range and defaults to
+     * fully opaque.
+     */
+    public fun shadow(
+        color: TextColor,
+        alpha: Int = 0xFF,
+    ) {
+        shadow(ShadowColor.shadowColor(color, alpha))
+    }
 
     /**
      * Applies a complete Adventure style to the component being configured.
