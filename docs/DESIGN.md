@@ -162,7 +162,7 @@ val tidy = msg.compacted()                   // merge adjacent same-style runs, 
 msg.count()                                  // nodes in the whole tree (root + descendants)
 msg.forEach { node -> log(node) }            // depth-first, pre-order visit
 msg.asSequence()                             // lazy Sequence<Component> → full stdlib over the tree
-    .filterIsInstance<ObjectComponent>()     // e.g. every object component, object components preserved
+    .filterIsInstance<ObjectComponent>()     // object components are preserved, not dropped
 
 // ── Testing / preview ──────────────────────────────────────────
 component shouldHaveColor AQUA

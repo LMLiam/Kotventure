@@ -10,8 +10,8 @@ import net.kyori.adventure.text.Component
  * serialising, snapshotting, or comparing components so that structurally different but visually identical trees
  * normalise to the same shape.
  *
- * This is a thin, past-tense alias of [Component.compact] (mirroring [styled][io.github.lmliam.kotventure.core.style.styled])
- * for call-site consistency with the rest of the DSL; it is functionally identical, so call [Component.compact]
- * directly if you prefer Adventure's own naming.
+ * This is a thin, past-tense alias of [Component.compact] (mirroring the DSL's `styled` extension) for call-site
+ * consistency with the rest of the DSL; it is functionally identical, so call [Component.compact] directly if you
+ * prefer Adventure's own naming.
  */
 public fun Component.compacted(): Component = compact()

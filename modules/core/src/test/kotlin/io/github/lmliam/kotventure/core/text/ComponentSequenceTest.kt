@@ -82,6 +82,22 @@ class ComponentSequenceTest :
                 message.asSequence().filterIsInstance<ObjectComponent>().toList() shouldHaveSize 1
             }
 
+            "asSequence descends into an object component's own children" {
+                val message =
+                    component {
+                        display(sprite(key("minecraft", "block/stone"))) {
+                            text("child-of-object")
+                        }
+                    }
+
+                val nodes = message.asSequence().toList()
+
+                nodes shouldHaveSize 3
+                nodes[0] shouldBe message
+                nodes[1].shouldBeObjectComponent()
+                (nodes[2] as TextComponent).content() shouldBe "child-of-object"
+            }
+
             "asSequence composes with standard-library search operators" {
                 val stone = sprite(key("minecraft", "block/stone"))
                 val message =
