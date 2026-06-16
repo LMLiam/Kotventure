@@ -18,6 +18,7 @@ import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.TranslatableComponent
 import net.kyori.adventure.text.TranslationArgument
 import net.kyori.adventure.text.event.ClickEvent
+import net.kyori.adventure.text.format.ShadowColor
 import net.kyori.adventure.text.format.Style
 import net.kyori.adventure.text.format.TextColor
 import net.kyori.adventure.text.format.TextDecoration
@@ -54,6 +55,22 @@ public infix fun Component.shouldHaveColor(expected: TextColor): Component =
 public fun Component.shouldNotHaveColor(): Component =
     apply {
         this should haveNoColor()
+    }
+
+/**
+ * Asserts that this component has [expected] as its root shadow color.
+ */
+public infix fun Component.shouldHaveShadowColor(expected: ShadowColor): Component =
+    apply {
+        this should haveShadowColor(expected)
+    }
+
+/**
+ * Asserts that this component has no root shadow color.
+ */
+public fun Component.shouldNotHaveShadowColor(): Component =
+    apply {
+        this should haveNoShadowColor()
     }
 
 /**
@@ -452,6 +469,26 @@ private fun haveNoColor(): Matcher<Component> =
             actual == null,
             { "Expected component color to be absent, but was <$actual>." },
             { "Expected component color to be present." },
+        )
+    }
+
+private fun haveShadowColor(expected: ShadowColor): Matcher<Component> =
+    Matcher { value ->
+        val actual = value.style().shadowColor()
+        MatcherResult(
+            actual == expected,
+            { "Expected component shadow color <$expected>, but was <$actual>." },
+            { "Expected component shadow color not to be <$expected>." },
+        )
+    }
+
+private fun haveNoShadowColor(): Matcher<Component> =
+    Matcher { value ->
+        val actual = value.style().shadowColor()
+        MatcherResult(
+            actual == null,
+            { "Expected component shadow color to be absent, but was <$actual>." },
+            { "Expected component shadow color to be present." },
         )
     }
 
