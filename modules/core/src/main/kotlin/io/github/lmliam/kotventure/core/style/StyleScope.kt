@@ -4,6 +4,7 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import io.github.lmliam.kotventure.core.event.ClickScope
 import io.github.lmliam.kotventure.core.event.HoverScope
 import net.kyori.adventure.key.Key
+import net.kyori.adventure.text.format.ShadowColor
 import net.kyori.adventure.text.format.TextColor
 import net.kyori.adventure.text.format.TextDecoration
 import net.kyori.adventure.text.format.TextDecoration.State
@@ -19,6 +20,22 @@ public interface StyleScope :
      * Applies [color] to the style being configured, or clears the color when [color] is null.
      */
     public fun color(color: TextColor?)
+
+    /**
+     * Applies [color] as the shadow color of the style being configured, or clears it when [color] is null.
+     */
+    public fun shadow(color: ShadowColor?)
+
+    /**
+     * Applies [color] as a shadow color with [alpha] opacity, where [alpha] is in the `0..255` range and defaults to
+     * fully opaque.
+     */
+    public fun shadow(
+        color: TextColor,
+        alpha: Int = 0xFF,
+    ) {
+        shadow(ShadowColor.shadowColor(color, alpha))
+    }
 
     /**
      * Applies [font] to the style being configured, or clears the font when [font] is null.

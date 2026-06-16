@@ -115,6 +115,7 @@ val msg = component {
 // ── Reusable styles ────────────────────────────────────────────
 val headerStyle = style {
     color(GOLD)
+    shadow(BLACK)
     bold()
     italic(false)
     underlined(null)
