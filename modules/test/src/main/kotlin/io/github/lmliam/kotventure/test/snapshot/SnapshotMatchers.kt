@@ -5,8 +5,8 @@ import io.kotest.matchers.MatcherResult
 import io.kotest.matchers.should
 import net.kyori.adventure.text.Component
 
-private const val RECORD_HINT =
-    "Re-run with SNAPSHOT_UPDATE=true (or -Dkotventure.snapshot.update=true) to record it."
+private fun recordHint(verb: String): String =
+    "Re-run with SNAPSHOT_UPDATE=true (or -Dkotventure.snapshot.update=true) to $verb it."
 
 /**
  * Matches a component against the committed snapshot named [name].
@@ -28,7 +28,7 @@ private const val RECORD_HINT =
  */
 public fun matchSnapshot(name: String): Matcher<Component> =
     Matcher { value ->
-        val actual = value.toSnapshotJson()
+        val actual = value.toSnapshotJson().normalizeSnapshot()
         val expected = readSnapshot(name)?.normalizeSnapshot()
 
         when {
@@ -40,11 +40,11 @@ public fun matchSnapshot(name: String): Matcher<Component> =
             expected == null ->
                 MatcherResult(
                     false,
-                    { "No snapshot recorded for <$name>. $RECORD_HINT\n\nActual:\n$actual" },
+                    { "No snapshot recorded for <$name>. ${recordHint("record")}\n\nActual:\n$actual" },
                     { "Expected no snapshot to be recorded for <$name>." },
                 )
 
-            actual.normalizeSnapshot() == expected -> matched(name)
+            actual == expected -> matched(name)
 
             SnapshotConfig.updateMode -> {
                 writeSnapshot(name, actual)
@@ -55,9 +55,8 @@ public fun matchSnapshot(name: String): Matcher<Component> =
                 MatcherResult(
                     false,
                     {
-                        "Component does not match snapshot <$name>. " +
-                            "Re-run with SNAPSHOT_UPDATE=true (or -Dkotventure.snapshot.update=true) to update it." +
-                            "\n\nExpected:\n$expected\n\nActual:\n${actual.normalizeSnapshot()}"
+                        "Component does not match snapshot <$name>. ${recordHint("update")}" +
+                            "\n\nExpected:\n$expected\n\nActual:\n$actual"
                     },
                     { "Expected component not to match snapshot <$name>." },
                 )

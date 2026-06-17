@@ -113,7 +113,7 @@ which is opt-in via a system property (scopes to a single run) or an environment
 | Setting | System property | Environment variable | Effect |
 | --- | --- | --- | --- |
 | Record mode | `kotventure.snapshot.update` | `SNAPSHOT_UPDATE` | When `true`/`1`/`yes`, writes/updates the snapshot and passes instead of failing |
-| Snapshot directory | `kotventure.snapshot.dir` | `SNAPSHOT_DIR` | Reads and writes snapshots under this directory instead of the default test resources |
+| Snapshot directory | `kotventure.snapshot.dir` | `SNAPSHOT_DIR` | Reads and writes snapshots directly at `<dir>/<name>.snapshot.json` (no `snapshots/` subfolder), replacing the default test-resources location |
 
 ```bash
 # Review the diff first; then record intentional changes:

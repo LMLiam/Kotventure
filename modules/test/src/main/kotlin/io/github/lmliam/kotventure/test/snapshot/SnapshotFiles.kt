@@ -53,12 +53,15 @@ internal fun resolveSnapshotWritePath(name: String): Path {
 
     resolveSnapshotResource(name)
         ?.takeIf { it.protocol == "file" }
-        ?.let { url -> return Path.of(url.toURI().path.replace(BUILD_RESOURCES, SOURCE_RESOURCES)) }
+        ?.let { url -> return Path.of(rewriteBuildPathToSource(url.toURI().path)) }
 
     return Path
         .of(System.getProperty("user.dir"), "src", "test", "resources", "snapshots")
         .resolve("$name$RESOURCE_SUFFIX")
 }
+
+/** Rewrites a `build/resources/test` classpath path back onto its `src/test/resources` source location. */
+internal fun rewriteBuildPathToSource(path: String): String = path.replace(BUILD_RESOURCES, SOURCE_RESOURCES)
 
 private fun overridePath(
     dir: String,
