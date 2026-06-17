@@ -11,20 +11,16 @@ private fun recordHint(verb: String): String =
 /**
  * Matches a component against the committed snapshot named [name].
  *
- * The component is normalised and serialised to canonical, pretty-printed JSON (see [toSnapshotJson]) and compared to
- * `/snapshots/<name>.snapshot.json` on the test classpath:
+ * This is a **pure comparison** matcher with no side effects: the component is normalised and serialised to canonical,
+ * pretty-printed JSON (see [toSnapshotJson]) and compared to `/snapshots/<name>.snapshot.json` on the test classpath.
  *
- * - **Match** — the matcher passes.
- * - **Mismatch** — the matcher fails with a message showing the expected and actual JSON.
- * - **Missing** — the matcher fails, telling you to record it.
+ * - **Match** — passes.
+ * - **Mismatch** — fails, showing the expected and actual JSON.
+ * - **Missing** — fails, telling you to record it.
  *
- * In **record mode** (`SNAPSHOT_UPDATE=true` / `-Dkotventure.snapshot.update=true`) a missing or differing snapshot is
- * written to its source location instead of failing, so intentional changes are captured explicitly and never
- * overwritten by accident. Set `SNAPSHOT_DIR` / `-Dkotventure.snapshot.dir` to relocate snapshots for non-standard
- * layouts.
- *
- * This is an ordinary Kotest [Matcher], so it composes and negates with `and`, `or`, `should`, and `shouldNot`. Prefer
- * the [shouldMatchSnapshot] sugar for the common case.
+ * Because it never writes, it is safe to compose and negate with `and`, `or`, `should`, and `shouldNot`. **Recording is
+ * deliberately not done here** — a matcher may be evaluated by `shouldNot` or a combinator, where writing would corrupt
+ * the very fixture under test. Record mode lives in the positive [shouldMatchSnapshot] path instead; prefer that sugar.
  */
 public fun matchSnapshot(name: String): Matcher<Component> =
     Matcher { value ->
@@ -32,11 +28,6 @@ public fun matchSnapshot(name: String): Matcher<Component> =
         val expected = readSnapshot(name)?.normalizeSnapshot()
 
         when {
-            expected == null && SnapshotConfig.updateMode -> {
-                writeSnapshot(name, actual)
-                recorded(name)
-            }
-
             expected == null ->
                 MatcherResult(
                     false,
@@ -44,12 +35,12 @@ public fun matchSnapshot(name: String): Matcher<Component> =
                     { "Expected no snapshot to be recorded for <$name>." },
                 )
 
-            actual == expected -> matched(name)
-
-            SnapshotConfig.updateMode -> {
-                writeSnapshot(name, actual)
-                recorded(name)
-            }
+            actual == expected ->
+                MatcherResult(
+                    true,
+                    { "Expected component to match snapshot <$name>." },
+                    { "Expected component not to match snapshot <$name>, but it did." },
+                )
 
             else ->
                 MatcherResult(
@@ -70,8 +61,9 @@ public fun matchSnapshot(name: String): Matcher<Component> =
  * `/snapshots/<name>.snapshot.json` under the test resources. A mismatch or a missing snapshot fails the test with the
  * offending JSON.
  *
- * Record intentional changes explicitly — a missing or differing snapshot is only written (never silently) when record
- * mode is on:
+ * This is the **record-aware** entry point — and the only one that writes. Recording is explicit and never silent: a
+ * missing or differing snapshot is written (and the assertion passes) only when record mode is on, so it can never be
+ * triggered through a negated or composed matcher evaluation:
  *
  * - `SNAPSHOT_UPDATE=true` (or `-Dkotventure.snapshot.update=true`) records and updates snapshots.
  * - `SNAPSHOT_DIR=/path` (or `-Dkotventure.snapshot.dir=/path`) relocates where snapshots are read and written.
@@ -81,19 +73,12 @@ public fun matchSnapshot(name: String): Matcher<Component> =
  */
 public infix fun Component.shouldMatchSnapshot(name: String): Component =
     apply {
-        this should matchSnapshot(name)
+        if (SnapshotConfig.updateMode) {
+            val actual = toSnapshotJson().normalizeSnapshot()
+            if (readSnapshot(name)?.normalizeSnapshot() != actual) {
+                writeSnapshot(name, actual)
+            }
+        } else {
+            this should matchSnapshot(name)
+        }
     }
-
-private fun recorded(name: String): MatcherResult =
-    MatcherResult(
-        true,
-        { "Recorded snapshot <$name>." },
-        { "Expected component not to be recorded as snapshot <$name>." },
-    )
-
-private fun matched(name: String): MatcherResult =
-    MatcherResult(
-        true,
-        { "Expected component to match snapshot <$name>." },
-        { "Expected component not to match snapshot <$name>, but it did." },
-    )

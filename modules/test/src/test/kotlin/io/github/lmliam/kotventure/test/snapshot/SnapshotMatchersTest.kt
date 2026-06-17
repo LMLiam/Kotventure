@@ -35,74 +35,94 @@ class SnapshotMatchersTest :
             }
 
             afterTest {
-                System.clearProperty(SnapshotConfig.UPDATE_PROPERTY)
-                System.clearProperty(SnapshotConfig.DIR_PROPERTY)
                 tempDir.toFile().deleteRecursively()
             }
 
             "matches a plain text component against its committed snapshot" {
-                Component.text("Hello") shouldMatchSnapshot "simple-text"
+                withSnapshotProperties {
+                    Component.text("Hello") shouldMatchSnapshot "simple-text"
+                }
             }
 
             "matches a styled component with children against its committed snapshot" {
-                styledComponent() shouldMatchSnapshot "styled-component"
+                withSnapshotProperties {
+                    styledComponent() shouldMatchSnapshot "styled-component"
+                }
             }
 
             "returns the receiver so assertions chain" {
-                val component = Component.text("Hello")
+                withSnapshotProperties {
+                    val component = Component.text("Hello")
 
-                (component shouldMatchSnapshot "simple-text") shouldBe component
+                    (component shouldMatchSnapshot "simple-text") shouldBe component
+                }
             }
 
             "composes as an ordinary matcher under shouldNot" {
-                Component.text("different") shouldNot matchSnapshot("simple-text")
+                withSnapshotProperties {
+                    Component.text("different") shouldNot matchSnapshot("simple-text")
+                }
+            }
+
+            "does not record through a negated matcher assertion in record mode" {
+                val target = tempDir.resolve("guard.snapshot.json")
+                val original = "{\n  \"text\": \"keep\"\n}\n"
+                target.writeText(original)
+
+                withSnapshotProperties(update = true, dir = tempDir.toString()) {
+                    Component.text("different") shouldNot matchSnapshot("guard")
+                }
+
+                target.readText() shouldBe original // the pure matcher must not write through shouldNot
             }
 
             "reports a mismatch with both expected and actual content" {
-                val failure =
-                    shouldThrow<AssertionError> {
-                        Component.text("Goodbye") shouldMatchSnapshot "simple-text"
-                    }
+                withSnapshotProperties {
+                    val failure =
+                        shouldThrow<AssertionError> {
+                            Component.text("Goodbye") shouldMatchSnapshot "simple-text"
+                        }
 
-                failure.message shouldContain "does not match snapshot <simple-text>"
-                failure.message shouldContain "\"text\": \"Hello\"" // expected, from the committed fixture
-                failure.message shouldContain "\"text\": \"Goodbye\"" // actual, from the component under test
+                    failure.message shouldContain "does not match snapshot <simple-text>"
+                    failure.message shouldContain "\"text\": \"Hello\"" // expected, from the committed fixture
+                    failure.message shouldContain "\"text\": \"Goodbye\"" // actual, from the component under test
+                }
             }
 
             "fails with record instructions when the snapshot is missing and record mode is off" {
-                System.setProperty(SnapshotConfig.DIR_PROPERTY, tempDir.toString())
+                withSnapshotProperties(dir = tempDir.toString()) {
+                    val failure =
+                        shouldThrow<AssertionError> {
+                            Component.text("Hello") shouldMatchSnapshot "absent"
+                        }
 
-                val failure =
-                    shouldThrow<AssertionError> {
-                        Component.text("Hello") shouldMatchSnapshot "absent"
-                    }
-
-                failure.message shouldContain "No snapshot recorded for <absent>"
-                failure.message shouldContain "SNAPSHOT_UPDATE=true"
+                    failure.message shouldContain "No snapshot recorded for <absent>"
+                    failure.message shouldContain "SNAPSHOT_UPDATE=true"
+                }
             }
 
             "records a new snapshot in record mode and matches it afterwards" {
-                System.setProperty(SnapshotConfig.DIR_PROPERTY, tempDir.toString())
-                System.setProperty(SnapshotConfig.UPDATE_PROPERTY, "true")
-
-                Component.text("Hello") shouldMatchSnapshot "fresh"
+                withSnapshotProperties(update = true, dir = tempDir.toString()) {
+                    Component.text("Hello") shouldMatchSnapshot "fresh"
+                }
 
                 val written = tempDir.resolve("fresh.snapshot.json")
                 written.exists() shouldBe true
                 written.readText() shouldContain "\"text\": \"Hello\""
 
                 // The recorded snapshot now satisfies a plain comparison.
-                System.clearProperty(SnapshotConfig.UPDATE_PROPERTY)
-                Component.text("Hello") shouldMatchSnapshot "fresh"
+                withSnapshotProperties(dir = tempDir.toString()) {
+                    Component.text("Hello") shouldMatchSnapshot "fresh"
+                }
             }
 
             "overwrites an existing snapshot in record mode when the content differs" {
                 val target = tempDir.resolve("stale.snapshot.json")
                 target.writeText("{\n  \"text\": \"old\"\n}\n")
-                System.setProperty(SnapshotConfig.DIR_PROPERTY, tempDir.toString())
-                System.setProperty(SnapshotConfig.UPDATE_PROPERTY, "true")
 
-                Component.text("new") shouldMatchSnapshot "stale"
+                withSnapshotProperties(update = true, dir = tempDir.toString()) {
+                    Component.text("new") shouldMatchSnapshot "stale"
+                }
 
                 val updated = target.readText()
                 updated shouldContain "\"text\": \"new\""
@@ -110,12 +130,13 @@ class SnapshotMatchersTest :
             }
 
             "does not write a snapshot when record mode is off and the component matches" {
-                System.setProperty(SnapshotConfig.DIR_PROPERTY, tempDir.toString())
                 val target = tempDir.resolve("simple-text.snapshot.json")
                 target.writeText("{\n  \"text\": \"Hello\"\n}\n")
                 val before = target.readText()
 
-                Component.text("Hello") shouldMatchSnapshot "simple-text"
+                withSnapshotProperties(dir = tempDir.toString()) {
+                    Component.text("Hello") shouldMatchSnapshot "simple-text"
+                }
 
                 target.readText() shouldBe before
             }

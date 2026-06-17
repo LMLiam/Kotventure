@@ -84,8 +84,8 @@ otherwise), so the type-specific matchers that follow are statically checked.
 
 Structural matchers assert one attribute at a time; **snapshots** capture a whole message's serialized output and diff
 it against a committed golden file, so a regression anywhere in a large message fails CI. Reach for a snapshot when the
-*entire* rendered output is the thing you don't want to change by accident, and for a structural matcher when a single
-attribute is — they complement rather than replace each other.
+*entire* rendered output is the regression you care about, and for a structural matcher when a single attribute is —
+they complement rather than replace each other.
 
 ```kotlin
 import io.github.lmliam.kotventure.test.snapshot.shouldMatchSnapshot
@@ -112,7 +112,7 @@ which is opt-in via a system property (scopes to a single run) or an environment
 
 | Setting | System property | Environment variable | Effect |
 | --- | --- | --- | --- |
-| Record mode | `kotventure.snapshot.update` | `SNAPSHOT_UPDATE` | When `true`/`1`/`yes`, writes/updates the snapshot and passes instead of failing |
+| Record mode | `kotventure.snapshot.update` | `SNAPSHOT_UPDATE` | When `true`/`1`/`yes` (case-insensitive), writes/updates the snapshot and passes instead of failing |
 | Snapshot directory | `kotventure.snapshot.dir` | `SNAPSHOT_DIR` | Reads and writes snapshots directly at `<dir>/<name>.snapshot.json` (no `snapshots/` subfolder), replacing the default test-resources location |
 
 ```bash
