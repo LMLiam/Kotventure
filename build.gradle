@@ -3,7 +3,6 @@ plugins {
     alias(libs.plugins.kotest) apply false
     alias(libs.plugins.spotless) apply false
     alias(libs.plugins.gradle.ktlint) apply false
-    // Applied to the root so it can aggregate per-module coverage into one report.
     alias(libs.plugins.kover)
     id 'base'
     id 'idea'

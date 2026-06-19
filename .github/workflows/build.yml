@@ -39,8 +39,6 @@ jobs:
         uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6.2.0
 
       - name: Run build, tests, coverage, and formatting checks
-        # `build` runs `koverVerify` (wired into `check`); the report tasks publish the
-        # aggregated coverage output uploaded below.
         run: ./gradlew build koverXmlReport koverHtmlReport spotlessCheck ktlintCheck --no-daemon
 
       - name: Publish JUnit test report

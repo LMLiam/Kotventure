@@ -14,8 +14,6 @@
 // any threshold change in the PR description so reviewers are not surprised by a CI failure.
 def coverageLineThreshold = 85
 
-// Aggregate coverage from every library module — the same set the root build script applies
-// the library plugins to (everything except the BOM) — so a new module is gated automatically.
 dependencies {
     subprojects
             .findAll { subproject -> subproject.name != 'bom' }
@@ -32,8 +30,6 @@ kover {
     }
 }
 
-// Make coverage a gate: `koverVerify` runs with `check` (and therefore with `build`), so a
-// regression below the baseline fails the build locally and in CI.
 tasks.named('check') {
     dependsOn tasks.named('koverVerify')
 }
