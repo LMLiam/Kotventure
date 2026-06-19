@@ -14,11 +14,12 @@
 // any threshold change in the PR description so reviewers are not surprised by a CI failure.
 def coverageLineThreshold = 85
 
+// Aggregate coverage from every library module — the same set the root build script applies
+// the library plugins to (everything except the BOM) — so a new module is gated automatically.
 dependencies {
-    kover project(':core')
-    kover project(':minimessage')
-    kover project(':serializer')
-    kover project(':test')
+    subprojects
+            .findAll { subproject -> subproject.name != 'bom' }
+            .each { subproject -> kover subproject }
 }
 
 kover {
