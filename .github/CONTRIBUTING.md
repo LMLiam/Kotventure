@@ -24,15 +24,30 @@ in removal from the project's spaces.
 - Use the **Gradle wrapper** — no local Gradle install needed.
 
 ```bash
-./gradlew build          # compile + test + lint everything
-./gradlew test           # run the Kotest suites
-./gradlew spotlessApply  # auto-format
-./gradlew ktlintCheck    # lint check
+./gradlew build           # compile + test + lint + verify coverage
+./gradlew test            # run the Kotest suites
+./gradlew spotlessApply   # auto-format
+./gradlew ktlintCheck     # lint check
+./gradlew koverHtmlReport # generate the aggregated HTML coverage report
 ```
+
+After `koverHtmlReport`, open the aggregated report at `build/reports/kover/html/index.html` in a browser (e.g.
+`open build/reports/kover/html/index.html` on macOS) to inspect line coverage per module, package, and class.
 
 Dependency and plugin coordinates live in [`gradle/libs.versions.toml`](../gradle/libs.versions.toml). Add shared
 versions there first, then consume them through catalog aliases or the existing Gradle helper scripts that delegate to
 the catalog.
+
+### Coverage threshold policy
+
+We use [Kover](https://github.com/Kotlin/kotlinx-kover) for code coverage. `koverVerify` is wired into `check`, so
+`./gradlew build` fails when aggregated line coverage drops below the baseline.
+
+- **Current baseline:** 85% line coverage, defined in [`gradle/coverage.gradle`](../gradle/coverage.gradle).
+- **Rationale:** the project is pre-alpha, but every behavioural change ships with tests, so the gate sits a little below
+  current coverage — high enough to catch large untested slices, low enough that normal vertical slices don't trip CI.
+- **Tightening:** raise the threshold in 5–10% increments as coverage matures, and call the change out in the PR
+  description so reviewers aren't surprised by a CI failure.
 
 ## Project conventions
 

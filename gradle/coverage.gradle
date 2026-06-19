@@ -1,0 +1,35 @@
+// Code coverage (Kover), aggregated across every library module.
+//
+// Kover is applied to each library module (see the root `subprojects {}` block) and to the
+// root project here so the root can merge per-module coverage into a single report. The
+// aggregated HTML/XML output lands in `build/reports/kover/`; `./gradlew koverHtmlReport`
+// generates it locally.
+//
+// Coverage threshold policy
+// -------------------------
+// Baseline: 85% line coverage. The project is pre-alpha, but every behavioural change ships
+// with tests (see AGENTS.md §6), so the gate is set a little below current coverage to catch
+// large untested slices without flagging normal vertical slices as noise.
+// Tightening: raise `coverageLineThreshold` in 5–10% increments as coverage matures. Call out
+// any threshold change in the PR description so reviewers are not surprised by a CI failure.
+def coverageLineThreshold = 85
+
+dependencies {
+    subprojects
+            .findAll { subproject -> subproject.name != 'bom' }
+            .each { subproject -> kover subproject }
+}
+
+kover {
+    reports {
+        verify {
+            rule {
+                minBound(coverageLineThreshold)
+            }
+        }
+    }
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('koverVerify')
+}
