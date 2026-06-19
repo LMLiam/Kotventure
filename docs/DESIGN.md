@@ -167,7 +167,7 @@ msg.asSequence()                             // lazy Sequence<Component> → ful
 // ── Testing / preview ──────────────────────────────────────────
 component shouldHaveColor AQUA
 component shouldContainText "world"
-component.shouldMatchSnapshot()
+component shouldMatchSnapshot "welcome"
 println(component.toAnsi())
 println(component.toMini())
 println(component.toPlain())
