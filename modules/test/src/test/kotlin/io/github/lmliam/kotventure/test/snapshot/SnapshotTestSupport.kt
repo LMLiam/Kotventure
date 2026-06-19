@@ -1,18 +1,21 @@
 package io.github.lmliam.kotventure.test.snapshot
 
-private val snapshotPropertyLock = Any()
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
+
+private val snapshotPropertyLock = ReentrantLock()
 
 /**
  * Runs [block] with the snapshot system properties set to [update]/[dir] (or cleared when their value is the default),
- * restoring whatever values were present before. The save/mutate/restore is synchronised so the global-property change
- * stays isolated even if the suite is ever configured to run specs concurrently.
+ * restoring whatever values were present before. The save/mutate/restore is held under a [ReentrantLock] so the
+ * global-property change stays isolated even if the suite is ever configured to run specs concurrently.
  */
 internal fun <T> withSnapshotProperties(
     update: Boolean = false,
     dir: String? = null,
     block: () -> T,
 ): T =
-    synchronized(snapshotPropertyLock) {
+    snapshotPropertyLock.withLock {
         val previousUpdate = System.getProperty(SnapshotConfig.UPDATE_PROPERTY)
         val previousDir = System.getProperty(SnapshotConfig.DIR_PROPERTY)
         try {

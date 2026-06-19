@@ -6,7 +6,7 @@ import io.kotest.matchers.should
 import net.kyori.adventure.text.Component
 
 private fun recordHint(verb: String): String =
-    "Re-run with SNAPSHOT_UPDATE=true (or -Dkotventure.snapshot.update=true) to $verb it."
+    "Re-run with ${SnapshotConfig.UPDATE_ENV}=true (or -D${SnapshotConfig.UPDATE_PROPERTY}=true) to $verb it."
 
 /**
  * Matches a component against the committed snapshot named [name].

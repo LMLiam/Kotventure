@@ -6,7 +6,10 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
+import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.event.ClickEvent
+import net.kyori.adventure.text.event.HoverEvent
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextDecoration
 import java.nio.file.Files
@@ -24,6 +27,40 @@ private fun styledComponent(): Component =
         .decorate(TextDecoration.BOLD)
         .append(Component.text("world", NamedTextColor.BLUE))
         .build()
+
+/**
+ * The component recorded in `rich-message.snapshot.json`; keep in sync with that committed fixture.
+ *
+ * Deliberately broad: it exercises a styled root carrying both a click and a hover event, a translatable child with a
+ * fallback and an argument, and keybind, score, and selector children — so a regression in *any* of those serialised
+ * forms surfaces as a single snapshot diff, which is exactly what structural matchers are clumsy at covering.
+ */
+private fun richMessage(): Component =
+    Component
+        .text()
+        .content("Welcome, ")
+        .color(NamedTextColor.GOLD)
+        .decorate(TextDecoration.BOLD)
+        .font(Key.key("minecraft:uniform"))
+        .clickEvent(ClickEvent.openUrl("https://example.com/docs"))
+        .hoverEvent(HoverEvent.showText(Component.text("Open the documentation")))
+        .append(
+            Component
+                .translatable("multiplayer.player.joined")
+                .fallback("%s joined the game")
+                .arguments(Component.text("Steve", NamedTextColor.AQUA)),
+        ).append(Component.text(" — jump with "))
+        .append(Component.keybind("key.jump", NamedTextColor.YELLOW))
+        .append(Component.text(" — deaths "))
+        .append(Component.score("@p", "deaths"))
+        .append(Component.text(" — nearby "))
+        .append(Component.selector("@e[type=minecraft:armor_stand,limit=3]"))
+        .append(
+            Component
+                .text("!")
+                .color(NamedTextColor.GRAY)
+                .decoration(TextDecoration.ITALIC, false),
+        ).build()
 
 class SnapshotMatchersTest :
     StringSpec(
@@ -47,6 +84,12 @@ class SnapshotMatchersTest :
             "matches a styled component with children against its committed snapshot" {
                 withSnapshotProperties {
                     styledComponent() shouldMatchSnapshot "styled-component"
+                }
+            }
+
+            "matches a rich multi-type message against its committed snapshot" {
+                withSnapshotProperties {
+                    richMessage() shouldMatchSnapshot "rich-message"
                 }
             }
 
