@@ -6,6 +6,7 @@ kctfork = "0.13.0"
 kotest = "6.1.11"
 kotestPlugin = "6.2.0"
 kotlin = "2.4.0"
+kover = "0.9.8"
 spotless = "8.6.0"
 spotlessKtlint = "1.7.0"
 
@@ -26,4 +27,5 @@ kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref 
 gradle-ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "gradleKtlintPlugin" }
 kotest = { id = "io.kotest", version.ref = "kotestPlugin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
