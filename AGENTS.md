@@ -35,13 +35,18 @@ MiniMessage, a component-testing toolkit, ANSI preview, and codegen.
 JDK **25** (provisioned via the Gradle toolchain). Always use the wrapper.
 
 ```bash
-./gradlew build          # compile + test + lint
+./gradlew build          # compile + test + lint + verify coverage
 ./gradlew test           # Kotest suites
 ./gradlew ktlintFormat    # auto-fix Kotlin style   (or: ./gradlew spotlessApply)
 ./gradlew ktlintCheck spotlessCheck   # verify style
+./gradlew koverHtmlReport   # aggregated coverage report → build/reports/kover/html/index.html
 ```
 
 Run formatting and the relevant tests **before** committing. CI must be green.
+
+Coverage is gated: `koverVerify` runs as part of `check`/`build` and fails if aggregated line coverage drops below the
+baseline in [`gradle/coverage.gradle`](gradle/coverage.gradle) (currently 85%). Don't lower the threshold to pass — add
+tests; see the threshold policy in [`CONTRIBUTING.md`](.github/CONTRIBUTING.md).
 
 Shared dependency and plugin coordinates live in [`gradle/libs.versions.toml`](gradle/libs.versions.toml). Add shared
 versions there first, then consume them through catalog aliases or the existing Gradle helper scripts that delegate to

@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotest) apply false
     alias(libs.plugins.spotless) apply false
     alias(libs.plugins.gradle.ktlint) apply false
+    alias(libs.plugins.kover)
     id 'base'
     id 'idea'
 }
@@ -22,6 +23,7 @@ subprojects {
         apply plugin: 'io.kotest'
         apply plugin: 'com.diffplug.spotless'
         apply plugin: 'org.jlleitschuh.gradle.ktlint'
+        apply plugin: 'org.jetbrains.kotlinx.kover'
 
         kotlin {
             jvmToolchain(25)
@@ -54,4 +56,5 @@ subprojects {
     }
 }
 
+apply from: 'gradle/coverage.gradle'
 apply from: 'gradle/tasks.gradle'
