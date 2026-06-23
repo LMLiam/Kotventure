@@ -69,7 +69,7 @@ private fun playerHeadLiteral(contents: PlayerHeadObjectContents): String {
     require(skinSources.size == 1) {
         "miniToDsl cannot represent a player head without exactly one skin source (a name, UUID, or texture)."
     }
-    val hat = if (contents.hat() == PlayerHeadObjectContents.DEFAULT_HAT) null else "hat = ${contents.hat()}"
+    val hat = if (contents.hat()) null else "hat = ${contents.hat()}"
     return "head(${(skinSources + listOfNotNull(hat)).joinToString(", ")})"
 }
 
