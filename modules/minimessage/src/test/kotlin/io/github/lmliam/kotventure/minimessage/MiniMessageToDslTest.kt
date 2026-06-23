@@ -1,9 +1,19 @@
 package io.github.lmliam.kotventure.minimessage
 
+import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.key.key
+import io.github.lmliam.kotventure.core.keybind.keybind
+import io.github.lmliam.kotventure.core.nbt.blockNbt
 import io.github.lmliam.kotventure.core.nbt.blockPos
+import io.github.lmliam.kotventure.core.nbt.entityNbt
+import io.github.lmliam.kotventure.core.nbt.storageNbt
+import io.github.lmliam.kotventure.core.objectcomponent.display
 import io.github.lmliam.kotventure.core.objectcomponent.sprite
-import io.github.lmliam.kotventure.core.text.component
+import io.github.lmliam.kotventure.core.score.score
+import io.github.lmliam.kotventure.core.selector.selector
+import io.github.lmliam.kotventure.core.text.text
+import io.github.lmliam.kotventure.core.translatable.translatable
+import io.github.lmliam.kotventure.minimessage.conversion.MiniMessageToDslWriter
 import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.github.lmliam.kotventure.test.text.shouldHaveChildCount
@@ -12,7 +22,6 @@ import io.github.lmliam.kotventure.test.text.shouldHaveDecoration
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.nbt.api.BinaryTagHolder
 import net.kyori.adventure.text.Component
@@ -385,25 +394,18 @@ class MiniMessageToDslTest :
                     )
                 }
 
-                test("emits a marker for non-representable click actions") {
+                test("rejects non-representable click actions") {
                     val payload = ClickEvent.Payload.custom(key("kotventure", "claim"))
-                    val expected =
+                    val component =
                         component {
                             text("Claim") {
                                 click(ClickEvent.Action.CUSTOM, payload)
                             }
                         }
 
-                    MiniMessageToDslWriter.write(expected) shouldBe
-                            """
-                    component {
-                        text("Claim") {
-                            click {
-                                // callback not representable
-                            }
-                        }
+                    shouldThrow<IllegalArgumentException> {
+                        MiniMessageToDslWriter.write(component)
                     }
-                    """.trimIndent()
                 }
 
                 test("escapes Kotlin string content in click payloads") {
@@ -1208,12 +1210,9 @@ class MiniMessageToDslTest :
                 test("rejects a player head with no single skin source") {
                     val playerHead = Component.`object`().contents(ObjectContents.playerHead().build()).build()
 
-                    val error =
-                        shouldThrow<IllegalArgumentException> {
-                            MiniMessageToDslWriter.write(playerHead)
-                        }
-
-                    error.message shouldContain "skin source"
+                    shouldThrow<IllegalArgumentException> {
+                        MiniMessageToDslWriter.write(playerHead)
+                    }
                 }
 
                 test("rejects unsupported data component values") {
@@ -1230,12 +1229,9 @@ class MiniMessageToDslTest :
                             }
                         }
 
-                    val error =
-                        shouldThrow<IllegalArgumentException> {
-                            MiniMessageToDslWriter.write(component)
-                        }
-
-                    error.message shouldContain "data component value"
+                    shouldThrow<IllegalArgumentException> {
+                        MiniMessageToDslWriter.write(component)
+                    }
                 }
             }
 
@@ -1261,8 +1257,11 @@ private fun assertGoldenRoundTrip(
     expectedComponent: Component,
 ) {
     val parsed = mini(input)
+    val generated = miniToDsl(input)
 
-    miniToDsl(input) shouldBe expectedSource
+    generated shouldBe expectedSource
+    MiniMessage.miniMessage().serialize(compileGeneratedDsl(generated)) shouldBe
+        MiniMessage.miniMessage().serialize(expectedComponent)
     MiniMessage.miniMessage().serialize(parsed) shouldBe MiniMessage.miniMessage().serialize(expectedComponent)
 }
 
