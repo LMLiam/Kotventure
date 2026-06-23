@@ -1,7 +1,7 @@
 <!-- markdownlint-disable MD041 MD022 MD058 -->
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE.md)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.4-blue.svg?logo=kotlin)](https://kotlinlang.org)
-[![Status: Pre-Alpha](https://img.shields.io/badge/status-pre--alpha-orange.svg)](docs/ROADMAP.md)
+[![Status: Alpha](https://img.shields.io/badge/status-alpha-orange.svg)](docs/ROADMAP.md)
 <!-- markdownlint-enable MD041 MD022 MD058 -->
 
 # Kotventure
@@ -20,7 +20,7 @@ This project aims to:
 - Offer an extensible foundation so plugin developers can introduce their own themes, styles, and behaviors
 - Integrate cleanly into existing Adventure‑powered projects without boilerplate
 
-> **Status:** Pre‑Alpha (`0.0.x`) — DSL surface, syntax, and extension points are still evolving. See
+> **Status:** Alpha (`0.4.x`) — DSL surface and syntax may still change before `1.0.0`. See
 > the [Roadmap](docs/ROADMAP.md).
 > **Examples:** Land incrementally as features stabilise; see [`docs/DESIGN.md`](docs/DESIGN.md) for the target syntax.
 
@@ -105,7 +105,7 @@ as a reusable event factory or inside component and style scopes:
 
 ```kotlin
 val linkClick = click {
-    open("https://example.com")
+    openUrl("https://example.com")
 }
 
 val linkStyle = style {
@@ -131,11 +131,10 @@ val actions = component {
 }
 ```
 
-Inside `click { ... }`, `open(...)` creates an open-file event for usable `file:` URIs and an open-URL event otherwise;
-`openUrl(...)` and `openFile(...)` remain available when you want the action to be explicit. Use `click(event)` for a
-prebuilt Adventure click event and `click(null)` to clear one. Click events are available on reusable styles because
-Adventure models click events as part of `Style`; Kotventure keeps that shape instead of introducing a separate link
-wrapper.
+Inside `click { ... }`, choose the action explicitly with `openUrl(...)`, `openFile(...)`, `run(...)`, `suggest(...)`,
+`changePage(...)`, `copy(...)`, or `callback(...)`. Use `click(event)` for a prebuilt Adventure click event and
+`click(null)` to clear one. Click events are available on reusable styles because Adventure models click events as part
+of `Style`; Kotventure keeps that shape instead of introducing a separate link wrapper.
 
 Hover events use the same component/style scope model and wrap Adventure's typed `HoverEvent` payloads:
 
@@ -458,7 +457,7 @@ object Brand : Theme("brand") {
         bold()
     }
 
-    val callout: Style by style("call-out") {
+    val callout: Style by style {
         color(primary)
         underlined()
     }
@@ -478,30 +477,23 @@ val dynamic = theme("brand")?.style("header")      // dynamic interop lookup
 val fallback = defaultTheme()?.style("header")
 ```
 
-Declaring a theme never registers it; call `register()` during startup. Use `style("call-out") { ... }` when the
-dynamic key should differ from the property name, and declare palette properties before the styles that use them.
-
-Kotventure keeps typed extension registrations — MiniMessage tag providers, theme providers (including an optional
-default theme), animation drivers, and the active platform adapter — in an internal registry. Each feature package
-exposes its own small facade: a `register()` extension on the extension-point type plus a lookup such as
-`theme(name)`, `defaultTheme()`, `miniMessageTag(name)`, `animationDriver(name)`, or `platformAdapter()`.
-Registration is explicit at startup; there is no classpath scanning.
+Declaring a theme never registers it; call `register()` during startup. The delegated property name is the dynamic key;
+do not declare a second string key for the same style. Theme lookup is owned by `core.theme` through `theme(name)` and
+`defaultTheme()`. Registration is explicit at startup; there is no classpath scanning.
 
 Serializer helpers live in `kotventure-serializer` so `kotventure-core` can stay limited to `adventure-api` while
 callers opt into concrete Adventure serializers:
 
 ```kotlin
-val legacy = message.toLegacy()      // LegacyComponentSerializer.legacyAmpersand()
-val section = message.toSection()    // LegacyComponentSerializer.legacySection()
+val legacy = message.toLegacyAmpersand()
+val section = message.toLegacySection()
 val json = message.toJson()          // GsonComponentSerializer with JSONOptions.compatibility()
-val plain = message.toPlain()        // PlainTextComponentSerializer.plainText()
-val mini = message.toMini()          // MiniMessage.miniMessage()
+val plain = message.toPlainText()
+val mini = message.toMiniMessage()
 
-val fromLegacy = "&aHello".asLegacyComponent()
-val fromSection = "\u00a7bHello".asSectionComponent()
+val fromLegacy = "&aHello".asLegacyAmpersandComponent()
+val fromSection = "\u00a7bHello".asLegacySectionComponent()
 val fromJson = json.asJsonComponent()
-val fromPlain = "Hello".asPlainComponent()
-val fromMini = "<red>Hello".asMiniComponent()
 ```
 
 `kotventure-test` is a complete component-matcher library. Every attribute — content, colour, shadow colour, style,
