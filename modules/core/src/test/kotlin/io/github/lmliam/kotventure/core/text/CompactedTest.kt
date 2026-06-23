@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.core.text
 
+import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.objectcomponent.display
 import io.github.lmliam.kotventure.core.objectcomponent.sprite
@@ -25,9 +26,9 @@ class CompactedTest :
                         text("world")
                     }
 
-                val compacted = message.compacted()
+                val compacted = message.compact()
 
-                compacted.count() shouldBeLessThan message.count()
+                compacted.asSequence().count() shouldBeLessThan message.asSequence().count()
                 compacted shouldContainText "Hello, world"
             }
 
@@ -40,7 +41,7 @@ class CompactedTest :
                         }
                     }
 
-                val compacted = message.compacted()
+                val compacted = message.compact()
 
                 compacted shouldContainText "warn"
                 compacted shouldHaveColor NamedTextColor.RED
@@ -48,9 +49,9 @@ class CompactedTest :
             }
 
             "handles an empty component gracefully" {
-                val compacted = component {}.compacted()
+                val compacted = component {}.compact()
 
-                compacted.count() shouldBe 1
+                compacted.asSequence().count() shouldBe 1
                 (compacted as TextComponent).content() shouldBe ""
             }
 
@@ -63,7 +64,7 @@ class CompactedTest :
                         }
                     }
 
-                val compacted = message.compacted()
+                val compacted = message.compact()
 
                 compacted shouldContainText "Block: "
                 compacted.asSequence().filterIsInstance<ObjectComponent>().toList() shouldHaveSize 1

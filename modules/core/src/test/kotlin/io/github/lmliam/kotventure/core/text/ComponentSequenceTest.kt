@@ -1,8 +1,10 @@
 package io.github.lmliam.kotventure.core.text
 
+import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.objectcomponent.display
 import io.github.lmliam.kotventure.core.objectcomponent.sprite
+import io.github.lmliam.kotventure.core.translatable.translatable
 import io.github.lmliam.kotventure.test.text.shouldBeObjectComponent
 import io.github.lmliam.kotventure.test.text.shouldHaveObjectContents
 import io.kotest.core.spec.style.StringSpec
@@ -111,11 +113,11 @@ class ComponentSequenceTest :
                     .shouldBeObjectComponent() shouldHaveObjectContents stone
             }
 
-            "count returns one for a single leaf component" {
-                text("solo").count() shouldBe 1
+            "asSequence count returns one for a single leaf component" {
+                text("solo").asSequence().count() shouldBe 1
             }
 
-            "count includes the root and every nested child of a deep tree" {
+            "asSequence count includes the root and every nested child of a deep tree" {
                 val message =
                     component {
                         text("one") {
@@ -125,10 +127,10 @@ class ComponentSequenceTest :
                         }
                     }
 
-                message.count() shouldBe 4
+                message.asSequence().count() shouldBe 4
             }
 
-            "count includes the root and every child of a wide tree" {
+            "asSequence count includes the root and every child of a wide tree" {
                 val message =
                     component {
                         text("a")
@@ -136,10 +138,10 @@ class ComponentSequenceTest :
                         text("c")
                     }
 
-                message.count() shouldBe 4
+                message.asSequence().count() shouldBe 4
             }
 
-            "count tallies text, translatable, and object nodes alike" {
+            "asSequence count tallies text, translatable, and object nodes alike" {
                 val message =
                     component {
                         text("hi")
@@ -147,12 +149,12 @@ class ComponentSequenceTest :
                         display(sprite(key("minecraft", "block/stone")))
                     }
 
-                message.count() shouldBe 4
+                message.asSequence().count() shouldBe 4
                 message.asSequence().filterIsInstance<TranslatableComponent>().toList() shouldHaveSize 1
                 message.asSequence().filterIsInstance<ObjectComponent>().toList() shouldHaveSize 1
             }
 
-            "forEach visits every node in the same order as asSequence" {
+            "asSequence forEach visits every node in traversal order" {
                 val message =
                     component {
                         text("A") {
@@ -161,12 +163,12 @@ class ComponentSequenceTest :
                         display(sprite(key("minecraft", "block/stone")))
                     }
 
-                val visited = buildList { message.forEach { add(it) } }
+                val visited = buildList { message.asSequence().forEach { add(it) } }
 
                 visited shouldContainExactly message.asSequence().toList()
             }
 
-            "forEach visits object components" {
+            "asSequence forEach visits object components" {
                 val message =
                     component {
                         text("Block: ")
@@ -174,7 +176,7 @@ class ComponentSequenceTest :
                     }
 
                 var sawObject = false
-                message.forEach { if (it is ObjectComponent) sawObject = true }
+                message.asSequence().forEach { if (it is ObjectComponent) sawObject = true }
 
                 sawObject shouldBe true
             }

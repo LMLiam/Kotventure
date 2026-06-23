@@ -18,16 +18,8 @@ class KeyDslTest :
                 adventureKey.asString() shouldBe "kotventure:messages"
             }
 
-            "builds a key with infix namespace syntax" {
-                val adventureKey = "kotventure" namespace "messages"
-
-                adventureKey shouldBe key("kotventure", "messages")
-                adventureKey.namespace() shouldBe "kotventure"
-                adventureKey.value() shouldBe "messages"
-            }
-
             "parses a key from a namespaced string" {
-                val adventureKey = "kotventure:messages".asKey()
+                val adventureKey = Key.key("kotventure:messages")
 
                 adventureKey shouldBe Key.key("kotventure", "messages")
                 adventureKey.namespace() shouldBe "kotventure"
@@ -35,7 +27,7 @@ class KeyDslTest :
             }
 
             "uses the minecraft namespace when parsing a bare value" {
-                val adventureKey = "stone".asKey()
+                val adventureKey = Key.key("stone")
 
                 adventureKey shouldBe Key.key("minecraft", "stone")
                 adventureKey.namespace() shouldBe "minecraft"
@@ -48,15 +40,9 @@ class KeyDslTest :
                 }
             }
 
-            "throws when building a key with infix invalid value" {
-                shouldThrow<InvalidKeyException> {
-                    "kotventure" namespace "Not Valid"
-                }
-            }
-
             "throws when parsing an invalid key string" {
                 shouldThrow<InvalidKeyException> {
-                    "not valid:messages".asKey()
+                    Key.key("not valid:messages")
                 }
             }
         },
