@@ -13,10 +13,9 @@ import net.kyori.adventure.text.format.TextDecoration
 import net.kyori.adventure.text.format.TextDecoration.State
 import net.kyori.adventure.text.ComponentBuilder as AdventureComponentBuilder
 
-internal abstract class ComponentBuilder<C : Component, B : AdventureComponentBuilder<C, B>>(
+internal open class ComponentBuilder<C : Component, B : AdventureComponentBuilder<C, B>>(
     protected val builder: B,
-) : ComponentScope,
-    ComponentChildren {
+) : ComponentScope {
     override fun color(color: TextColor?) {
         builder.color(color)
     }
@@ -64,10 +63,6 @@ internal abstract class ComponentBuilder<C : Component, B : AdventureComponentBu
     }
 
     override fun append(component: Component) {
-        builder.append(component)
-    }
-
-    override fun addChild(component: Component) {
         builder.append(component)
     }
 
