@@ -2,29 +2,28 @@ package io.github.lmliam.kotventure.minimessage.template
 
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import io.github.lmliam.kotventure.minimessage.placeholder.MiniMessagePlaceholder
-import io.github.lmliam.kotventure.minimessage.placeholder.MiniMessageResolverScope
 
 /**
- * Receiver for the [MiniTemplate.invoke] lambda that binds values to declared placeholders.
+ * Receiver for a template render block, binding a value to each declared placeholder.
  *
- * Each call to [bind] records the typed value for one placeholder; the value type is enforced at
- * compile time by the generic constraint on [MiniMessagePlaceholder]. After the lambda completes,
- * [MiniTemplate.invoke] validates that every declared placeholder was bound before rendering.
+ * Inside the block, bind with the [bind] infix function: `player bind playerName`. The value type is
+ * checked at compile time against the placeholder's type parameter. Binding the same placeholder twice,
+ * binding a placeholder from another template, or leaving one unbound all fail when the block completes.
  */
 @KotventureDslMarker
 public interface MiniTemplateBindingScope {
-    /**
-     * Binds [value] to [placeholder].
-     *
-     * The value type is compile-checked against the placeholder's declared type parameter, inheriting
-     * the typing guarantee from [MiniMessageResolverScope.resolve]. A placeholder may be bound at
-     * most once per render.
-     *
-     * @param placeholder a descriptor declared on the owning template.
-     * @param value the value to substitute for this placeholder's tag in the markup.
-     */
+    /** Records [value] as the binding for [placeholder]; prefer the [bind] infix form at call sites. */
     public fun <T : Any> bind(
         placeholder: MiniMessagePlaceholder<T>,
         value: T,
     )
 }
+
+/**
+ * Binds [value] to this placeholder for the current render, e.g. `player bind playerName`.
+ *
+ * @throws IllegalArgumentException if this placeholder is not declared on the template being rendered,
+ *   or has already been bound in this render.
+ */
+context(scope: MiniTemplateBindingScope) public infix fun <T : Any> MiniMessagePlaceholder<T>.bind(value: T): Unit =
+    scope.bind(this, value)

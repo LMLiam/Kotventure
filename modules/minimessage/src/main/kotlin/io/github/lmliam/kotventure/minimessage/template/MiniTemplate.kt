@@ -1,7 +1,6 @@
 package io.github.lmliam.kotventure.minimessage.template
 
 import io.github.lmliam.kotventure.minimessage.placeholder.MiniMessagePlaceholder
-import io.github.lmliam.kotventure.minimessage.placeholder.MiniMessageResolverBuilder
 import io.github.lmliam.kotventure.minimessage.validation.ValidationResult
 import io.github.lmliam.kotventure.minimessage.validation.runValidation
 import net.kyori.adventure.text.Component
@@ -12,17 +11,18 @@ import io.github.lmliam.kotventure.minimessage.placeholder.placeholder as create
 /**
  * Typed, reusable MiniMessage template with declared placeholders.
  *
- * ```kotlin
- * import net.kyori.adventure.text.Component
+ * Subclass and declare each placeholder as a property; rendering invokes the template and binds every
+ * placeholder with the [bind][MiniTemplateBindingScope.bind] infix function:
  *
+ * ```kotlin
  * object WelcomeTemplate : MiniTemplate("<gold>Welcome <player>, <count> new messages</gold>") {
  *     val player = placeholder<Component>("player")
  *     val count = placeholder<Int>("count")
  * }
  *
  * val forAlex = WelcomeTemplate {
- *     bind(player, Component.text("Alex"))
- *     bind(count, 3)
+ *     player bind Component.text("Alex")
+ *     count bind 3
  * }
  * ```
  *
@@ -41,11 +41,7 @@ public abstract class MiniTemplate(
 
     private val miniMessage: MiniMessage = MiniMessage.miniMessage()
 
-    @Volatile
-    private var definitionSealed: Boolean = false
-
     private val validation: ValidationResult by lazy(LazyThreadSafetyMode.PUBLICATION) {
-        definitionSealed = true
         runValidation(markup, placeholders.values.toList())
     }
 
@@ -59,9 +55,6 @@ public abstract class MiniTemplate(
 
     @PublishedApi
     internal fun <T : Any> register(descriptor: MiniMessagePlaceholder<T>): MiniMessagePlaceholder<T> {
-        check(!definitionSealed) {
-            "Cannot declare placeholder '${descriptor.name}' after the template definition has been validated."
-        }
         require(placeholders.put(descriptor.name, descriptor) == null) {
             "Duplicate placeholder '${descriptor.name}' in template."
         }
@@ -73,54 +66,17 @@ public abstract class MiniTemplate(
     internal fun validateDefinition(): ValidationResult = validation
 }
 
-internal class TemplateBindings(
-    private val template: MiniTemplate,
-) : MiniTemplateBindingScope {
-    private val builder = MiniMessageResolverBuilder()
-    private val boundNames = mutableSetOf<String>()
-
-    override fun <T : Any> bind(
-        placeholder: MiniMessagePlaceholder<T>,
-        value: T,
-    ) {
-        require(template.placeholders[placeholder.name] === placeholder) {
-            "Placeholder '${placeholder.name}' is not declared on this template. " +
-                    "Declared placeholders: ${template.placeholders.keys}."
-        }
-        require(boundNames.add(placeholder.name)) {
-            "Placeholder '${placeholder.name}' is already bound in this template render."
-        }
-        builder.resolve(placeholder, value)
-    }
-
-    fun requireComplete() {
-        val missing = template.placeholders.keys - boundNames
-        require(missing.isEmpty()) {
-            "Template is missing required placeholder(s): $missing."
-        }
-    }
-
-    fun resolver(): TagResolver = builder.build()
-}
-
-/** Binds [value] to [placeholder] inside a [MiniTemplate] render lambda. */
-context(_: MiniTemplateBindingScope) public fun <T : Any> MiniTemplate.bind(
-    placeholder: MiniMessagePlaceholder<T>,
-    value: T,
-): Unit = contextOf<MiniTemplateBindingScope>().bind(placeholder, value)
-
 /**
  * Renders this template after [block] binds every declared placeholder.
  *
- * @throws IllegalArgumentException when the template is invalid, a placeholder is missing, a foreign
- *   placeholder is bound, or a placeholder is bound more than once.
+ * @throws IllegalArgumentException when the template definition is invalid, or a placeholder is missing,
+ *   foreign, or bound more than once.
  */
 public operator fun <T : MiniTemplate> T.invoke(block: context(MiniTemplateBindingScope) T.() -> Unit): Component {
     val validation = validateDefinition()
     require(validation is ValidationResult.Success) { "MiniMessage template is invalid: $validation." }
 
     val bindings = TemplateBindings(this)
-
     context(bindings) { block() }
     bindings.requireComplete()
 
