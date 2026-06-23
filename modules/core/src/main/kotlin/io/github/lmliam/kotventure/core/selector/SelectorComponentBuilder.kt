@@ -2,10 +2,10 @@ package io.github.lmliam.kotventure.core.selector
 
 import io.github.lmliam.kotventure.core.component.ComponentBuilder
 import io.github.lmliam.kotventure.core.text.TextScope
+import io.github.lmliam.kotventure.core.text.buildTextComponent
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.SelectorComponent
-import io.github.lmliam.kotventure.core.text.text as textComponent
 
 internal class SelectorComponentBuilder(
     pattern: String,
@@ -16,6 +16,6 @@ internal class SelectorComponentBuilder(
     }
 
     override fun separator(init: TextScope.() -> Unit) {
-        builder.separator(textComponent(init))
+        builder.separator(buildTextComponent(init))
     }
 }
