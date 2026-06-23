@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.minimessage
 
+import io.github.lmliam.kotventure.minimessage.conversion.MiniMessageToDslWriter
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
 
@@ -18,7 +19,7 @@ public fun mini(input: String): Component = parseMiniMessage(input)
  * the `<gradient>` markup itself is not reconstructed.
  *
  * @throws IllegalArgumentException when [input] resolves to a shape with no DSL surface, such as a player head with no
- * single skin source or with profile properties.
+ * single skin source, profile properties, or unsupported click or data-component payloads.
  */
 public fun miniToDsl(input: String): String = MiniMessageToDslWriter.write(mini(input))
 
