@@ -1,0 +1,68 @@
+{
+  "bold": true,
+  "color": "gold",
+  "click_event": {
+    "action": "open_url",
+    "url": "https://example.com/docs"
+  },
+  "clickEvent": {
+    "action": "open_url",
+    "value": "https://example.com/docs"
+  },
+  "hover_event": {
+    "action": "show_text",
+    "value": {
+      "text": "Open the documentation"
+    }
+  },
+  "hoverEvent": {
+    "action": "show_text",
+    "contents": {
+      "text": "Open the documentation"
+    },
+    "value": {
+      "text": "Open the documentation"
+    }
+  },
+  "font": "minecraft:uniform",
+  "extra": [
+    {
+      "translate": "multiplayer.player.joined",
+      "fallback": "%s joined the game",
+      "with": [
+        {
+          "color": "aqua",
+          "text": "Steve"
+        }
+      ]
+    },
+    {
+      "text": " — jump with "
+    },
+    {
+      "color": "yellow",
+      "keybind": "key.jump"
+    },
+    {
+      "text": " — deaths "
+    },
+    {
+      "score": {
+        "name": "@p",
+        "objective": "deaths"
+      }
+    },
+    {
+      "text": " — nearby "
+    },
+    {
+      "selector": "@e[type=minecraft:armor_stand,limit=3]"
+    },
+    {
+      "italic": false,
+      "color": "gray",
+      "text": "!"
+    }
+  ],
+  "text": "Welcome, "
+}

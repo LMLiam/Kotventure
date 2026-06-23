@@ -1,0 +1,9 @@
+description = 'Snapshot testing for Kotventure components.'
+
+dependencies {
+    api kotventureDependencies."adventure-api"
+    api kotventureDependencies."kotest-assertions-core"
+
+    implementation project(':serializer')
+    implementation kotventureDependencies."adventure-text-serializer-gson"
+}

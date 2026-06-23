@@ -1,0 +1,11 @@
+{
+  "bold": true,
+  "color": "red",
+  "extra": [
+    {
+      "color": "blue",
+      "text": "world"
+    }
+  ],
+  "text": "Hello "
+}
