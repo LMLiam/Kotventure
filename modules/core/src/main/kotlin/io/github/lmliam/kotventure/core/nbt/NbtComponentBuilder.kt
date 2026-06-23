@@ -7,7 +7,7 @@ import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.NBTComponent
 import net.kyori.adventure.text.NBTComponentBuilder
 
-internal abstract class NbtComponentBuilder<C : NBTComponent<C>, B : NBTComponentBuilder<C, B>>(
+internal class NbtComponentBuilder<C : NBTComponent<C>, B : NBTComponentBuilder<C, B>>(
     builder: B,
 ) : ComponentBuilder<C, B>(builder),
     NbtScope {
