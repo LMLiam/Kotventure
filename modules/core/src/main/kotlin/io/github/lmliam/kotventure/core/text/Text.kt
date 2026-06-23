@@ -1,7 +1,6 @@
 package io.github.lmliam.kotventure.core.text
 
 import io.github.lmliam.kotventure.core.component.ComponentScope
-import io.github.lmliam.kotventure.core.component.addChild
 import net.kyori.adventure.text.Component
 
 /**
@@ -35,12 +34,12 @@ public fun ComponentScope.text(
     value: String,
     init: TextScope.() -> Unit = {},
 ) {
-    addChild(buildTextComponent(value, init))
+    append(buildTextComponent(value, init))
 }
 
 /**
  * Appends a nested text child.
  */
 public fun ComponentScope.text(init: TextScope.() -> Unit) {
-    addChild(buildTextComponent(init))
+    append(buildTextComponent(init))
 }
