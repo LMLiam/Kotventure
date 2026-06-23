@@ -1,7 +1,6 @@
 package io.github.lmliam.kotventure.core.selector
 
 import io.github.lmliam.kotventure.core.component.ComponentScope
-import io.github.lmliam.kotventure.core.component.addChild
 import net.kyori.adventure.text.Component
 
 /**
@@ -24,5 +23,5 @@ public fun ComponentScope.selector(
     pattern: String,
     init: SelectorScope.() -> Unit = {},
 ) {
-    addChild(buildSelectorComponent(pattern, init))
+    append(buildSelectorComponent(pattern, init))
 }
