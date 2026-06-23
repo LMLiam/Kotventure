@@ -9,5 +9,4 @@ internal class ScoreComponentBuilder(
     objective: String,
 ) : ComponentBuilder<ScoreComponent, ScoreComponent.Builder>(
     Component.score().name(name).objective(objective),
-),
-    ScoreScope
+)
