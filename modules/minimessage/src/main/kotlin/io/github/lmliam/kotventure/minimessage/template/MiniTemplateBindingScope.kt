@@ -25,5 +25,8 @@ public interface MiniTemplateBindingScope {
  * @throws IllegalArgumentException if this placeholder is not declared on the template being rendered,
  *   or has already been bound in this render.
  */
-context(scope: MiniTemplateBindingScope) public infix fun <T : Any> MiniMessagePlaceholder<T>.bind(value: T): Unit =
-    scope.bind(this, value)
+// ktlint 1.7.0 keeps the context list inline (its context-receiver-list-wrapping rule predates the
+// `context(name: Type)` parameter syntax), so suppress its formatting to keep `context(...)` on its own line.
+@Suppress("ktlint")
+context(scope: MiniTemplateBindingScope)
+public infix fun <T : Any> MiniMessagePlaceholder<T>.bind(value: T): Unit = scope.bind(this, value)
