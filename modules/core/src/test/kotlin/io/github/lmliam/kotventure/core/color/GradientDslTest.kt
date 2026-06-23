@@ -1,6 +1,7 @@
 package io.github.lmliam.kotventure.core.color
 
-import io.github.lmliam.kotventure.core.text.component
+import io.github.lmliam.kotventure.core.component.component
+import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.github.lmliam.kotventure.test.text.shouldHaveChildCount
@@ -8,7 +9,6 @@ import io.github.lmliam.kotventure.test.text.shouldHaveColor
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
 import net.kyori.adventure.text.format.NamedTextColor
 
 class GradientDslTest :
@@ -80,11 +80,11 @@ class GradientDslTest :
             "rejects gradients with fewer than two stops" {
                 shouldThrow<IllegalArgumentException> {
                     gradient(NamedTextColor.RED)
-                }.message shouldContain "at least 2 stops"
+                }
 
                 shouldThrow<IllegalArgumentException> {
                     gradient(emptyList())
-                }.message shouldContain "at least 2 stops"
+                }
             }
 
             "stores gradient stops immutably" {

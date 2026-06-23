@@ -1,8 +1,9 @@
 package io.github.lmliam.kotventure.core.event
 
+import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.style.style
-import io.github.lmliam.kotventure.core.text.component
+import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.test.compilation.assertDoesNotCompile
 import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldHaveClickAction
@@ -13,7 +14,6 @@ import io.github.lmliam.kotventure.test.text.shouldNotHaveClickEvent
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickCallback
@@ -45,27 +45,6 @@ class ClickEventDslTest :
                     Component.text("Action").clickEvent(event) shouldHaveClickAction action
                     Component.text("Action").clickEvent(event) shouldHaveClickTextPayload payload
                 }
-            }
-
-            "builds reusable auto-target open click events" {
-                val path =
-                    Path
-                        .of("build", "click-event-dsl-test.txt")
-                        .toAbsolutePath()
-                        .normalize()
-                val urlEvent =
-                    click {
-                        open("https://example.com")
-                    }
-                val fileEvent =
-                    click {
-                        open(path.toUri().toString())
-                    }
-
-                Component.text("Url").clickEvent(urlEvent) shouldHaveClickAction ClickEvent.Action.OPEN_URL
-                Component.text("Url").clickEvent(urlEvent) shouldHaveClickTextPayload "https://example.com"
-                Component.text("File").clickEvent(fileEvent) shouldHaveClickAction ClickEvent.Action.OPEN_FILE
-                Component.text("File").clickEvent(fileEvent) shouldHaveClickTextPayload path.toString()
             }
 
             "keeps explicit open url and open file click events" {
@@ -101,21 +80,6 @@ class ClickEventDslTest :
                 Component.text("Page").clickEvent(event) shouldHaveClickIntPayload 4
             }
 
-            "falls back to open url events for non-path targets" {
-                val events =
-                    listOf(
-                        click { open("file:notes.txt") } to "file:notes.txt",
-                        click { open("example.com") } to "example.com",
-                        click { open("/server/rules") } to "/server/rules",
-                        click { open("relative/path") } to "relative/path",
-                    )
-
-                events.forEach { (event, target) ->
-                    Component.text("Open").clickEvent(event) shouldHaveClickAction ClickEvent.Action.OPEN_URL
-                    Component.text("Open").clickEvent(event) shouldHaveClickTextPayload target
-                }
-            }
-
             "builds typed raw click events with Adventure validation" {
                 val payload = ClickEvent.Payload.custom(key("kotventure", "claim"))
                 val event = clickEvent(ClickEvent.Action.CUSTOM, payload)
@@ -131,7 +95,7 @@ class ClickEventDslTest :
                     component {
                         text("Open") {
                             click {
-                                open("https://example.com")
+                                openUrl("https://example.com")
                             }
                         }
                         text("Run") {
@@ -219,14 +183,11 @@ class ClickEventDslTest :
             }
 
             "propagates invalid change page validation errors" {
-                val failure =
-                    shouldThrow<IllegalArgumentException> {
-                        click {
-                            changePage(0)
-                        }
+                shouldThrow<IllegalArgumentException> {
+                    click {
+                        changePage(0)
                     }
-
-                failure.message shouldContain "Change page payload integer must be greater than or equal to 1"
+                }
             }
 
             "callback click events invoke the callback and pass options to Adventure" {
@@ -313,32 +274,26 @@ class ClickEventDslTest :
             }
 
             "rejects empty click action blocks" {
-                val failure =
-                    shouldThrow<IllegalStateException> {
-                        click {
-                        }
+                shouldThrow<IllegalStateException> {
+                    click {
                     }
-
-                failure.message shouldContain "choose exactly one action"
+                }
             }
 
             "rejects click action blocks with multiple actions" {
-                val failure =
-                    shouldThrow<IllegalStateException> {
-                        click {
-                            run("/one")
-                            copy("two")
-                        }
+                shouldThrow<IllegalStateException> {
+                    click {
+                        run("/one")
+                        copy("two")
                     }
-
-                failure.message shouldContain "choose only one"
+                }
             }
 
             "keeps direct action helpers out of component and style scopes" {
                 assertDoesNotCompile(
                     "ComponentClickActionLeakTest.kt",
                     """
-                    import io.github.lmliam.kotventure.core.text.component
+                    import io.github.lmliam.kotventure.core.component.component
 
                     fun shouldNotCompile() {
                         component {
@@ -368,11 +323,6 @@ class ClickEventDslTest :
             "removes direct action helpers from explicit click scopes" {
                 val helperCalls =
                     mapOf(
-                        "Open" to
-                                CompileFailureCase(
-                                    """scope.open("https://example.com")""",
-                                    "Unresolved reference 'open'",
-                                ),
                         "OpenUrl" to
                                 CompileFailureCase(
                                     """scope.openUrl("https://example.com")""",

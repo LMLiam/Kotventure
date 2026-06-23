@@ -1,6 +1,5 @@
 package io.github.lmliam.kotventure.core.theme
 
-import io.github.lmliam.kotventure.core.registry.AdventureDsl
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
@@ -10,11 +9,11 @@ class ThemeLookupTest :
     StringSpec(
         {
             beforeTest {
-                AdventureDsl.reset()
+                ThemeRegistry.reset()
             }
 
             afterTest {
-                AdventureDsl.reset()
+                ThemeRegistry.reset()
             }
 
             "resolves registered themes by name" {
@@ -41,6 +40,14 @@ class ThemeLookupTest :
                 TestThemeProvider("brand").register()
 
                 defaultTheme().shouldBeNull()
+            }
+
+            "rejects duplicate theme registrations" {
+                TestThemeProvider("brand").register()
+
+                io.kotest.assertions.throwables.shouldThrow<IllegalArgumentException> {
+                    TestThemeProvider("brand").register()
+                }
             }
         },
     )

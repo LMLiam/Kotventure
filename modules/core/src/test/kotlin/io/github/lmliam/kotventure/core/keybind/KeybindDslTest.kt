@@ -1,5 +1,7 @@
 package io.github.lmliam.kotventure.core.keybind
 
+import io.github.lmliam.kotventure.core.score.score
+import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldBeKeybindComponent
 import io.github.lmliam.kotventure.test.text.shouldBeScoreComponent
