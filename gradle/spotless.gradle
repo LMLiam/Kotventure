@@ -70,10 +70,6 @@ def spotlessKtlintRuleOverrides =
             [(ruleName): editorConfigValues[ruleName]]
         }
 
-ktlint {
-    version.set(ktlintVersion)
-}
-
 spotless {
     ratchetFrom 'origin/master'
 
@@ -92,8 +88,4 @@ spotless {
         ktlintStep.editorConfigOverride(spotlessKtlintRuleOverrides)
         ktlintStep.setEditorConfigPath(editorConfigFile.path)
     }
-}
-
-tasks.named("compileKotlin") {
-    dependsOn(tasks.named("spotlessApply"))
 }
