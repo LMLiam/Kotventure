@@ -25,7 +25,8 @@ import io.github.lmliam.kotventure.core.style.style as buildStyle
  * }
  * ```
  *
- * Declaring a theme does not register it; call [register] explicitly during startup.
+ * Declaring a theme does not register it; add it to a [ThemeRegistry] explicitly during
+ * startup when runtime lookup is needed.
  */
 public abstract class Theme(
     public override val name: String,
@@ -53,14 +54,8 @@ public abstract class Theme(
      * @throws IllegalArgumentException when the key is already declared by this theme.
      */
     protected fun style(init: StyleScope.() -> Unit): PropertyDelegateProvider<Theme, ReadOnlyProperty<Theme, Style>> =
-        styleDelegate(key = null, init = init)
-
-    private fun styleDelegate(
-        key: String?,
-        init: StyleScope.() -> Unit,
-    ): PropertyDelegateProvider<Theme, ReadOnlyProperty<Theme, Style>> =
         PropertyDelegateProvider { theme, property ->
-            val styleKey = key ?: property.name
+            val styleKey = property.name
             require(styleKey.isNotBlank()) { "Theme style name must not be blank." }
             val built = buildStyle(init)
             require(theme.styles.put(styleKey, built) == null) {
