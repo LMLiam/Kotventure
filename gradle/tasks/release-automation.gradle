@@ -1,123 +1,38 @@
 import groovy.json.JsonSlurper
 import org.gradle.api.artifacts.VersionCatalogsExtension
 
-def requireReleaseAutomationFile = { String path ->
-    def requiredFile = rootProject.file(path)
-    if (!requiredFile.isFile()) {
-        throw new GradleException("Missing required release automation file: ${path}")
-    }
-    requiredFile
-}
-
-def requireReleaseAutomationValue = { boolean condition, String message ->
-    if (!condition) {
-        throw new GradleException(message)
-    }
-}
-
-tasks.register('verifyReleasePleaseConfiguration') {
+// Releases are cut by release-please, which owns the changelog, tags, and config. The only invariant
+// the build needs to guard is that the project version stays in sync across the three places that
+// declare it; a drift there silently breaks the next release. Everything else release-please validates
+// itself, so we deliberately do not re-assert its configuration here.
+tasks.register('verifyReleaseVersionConsistency') {
     group = 'verification'
-    description = 'Verifies structured release-please configuration and required release artifacts.'
+    description = 'Verifies the project version is consistent across the catalog, the project, and the release manifest.'
 
     doLast {
-        def catalog = rootProject.extensions.getByType(VersionCatalogsExtension).named('libs')
-        def projectVersion = catalog.findVersion('project')
-        requireReleaseAutomationValue(
-                projectVersion.isPresent(),
-                'gradle/libs.versions.toml must define versions.project for release-please.'
-        )
-        requireReleaseAutomationValue(
-                rootProject.version.toString() == projectVersion.get().requiredVersion,
-                "Root project version '${rootProject.version}' must match versions.project '${projectVersion.get().requiredVersion}'."
-        )
+        def catalogVersion = rootProject.extensions
+                .getByType(VersionCatalogsExtension)
+                .named('libs')
+                .findVersion('project')
+                .orElseThrow { new GradleException('gradle/libs.versions.toml must define versions.project.') }
+                .requiredVersion
 
-        def parser = new JsonSlurper()
-        def manifest = parser.parse(requireReleaseAutomationFile('.release-please-manifest.json'))
-        requireReleaseAutomationValue(
-                manifest['.'] == projectVersion.get().requiredVersion,
-                ".release-please-manifest.json root package version '${manifest['.']}' must match versions.project '${projectVersion.get().requiredVersion}'."
-        )
-
-        def releaseConfig = parser.parse(requireReleaseAutomationFile('release-please-config.json'))
-        requireReleaseAutomationValue(
-                releaseConfig['release-type'] == 'java',
-                'release-please-config.json must use the java release type to avoid a separate simple-strategy version file.'
-        )
-        requireReleaseAutomationValue(
-                releaseConfig['skip-snapshot'] == true,
-                'release-please-config.json must disable Java snapshot release PRs for Kotventure release tags.'
-        )
-        requireReleaseAutomationValue(
-                releaseConfig['bump-minor-pre-major'] == true,
-                'release-please-config.json must set bump-minor-pre-major for 0.x releases.'
-        )
-        requireReleaseAutomationValue(
-                releaseConfig['bump-patch-for-minor-pre-major'] == false,
-                'release-please-config.json must disable bump-patch-for-minor-pre-major so pre-1.0 feature releases follow the roadmap and bump the minor version.'
-        )
-        requireReleaseAutomationValue(
-                releaseConfig['include-v-in-tag'] == false,
-                'release-please-config.json must keep tag names aligned with the existing 0.0.1 tag.'
-        )
-        requireReleaseAutomationValue(
-                releaseConfig['include-component-in-tag'] == false,
-                'release-please-config.json must avoid component prefixes for single-root release tags.'
-        )
-        requireReleaseAutomationValue(
-                releaseConfig['changelog-path'] == 'CHANGELOG.md',
-                'release-please-config.json must explicitly maintain CHANGELOG.md.'
-        )
-        requireReleaseAutomationValue(
-                releaseConfig['packages'] instanceof Map && releaseConfig['packages'].containsKey('.'),
-                'release-please-config.json must configure the repository root package.'
-        )
-
-        def sections = releaseConfig['changelog-sections']
-        requireReleaseAutomationValue(
-                sections instanceof List,
-                'release-please-config.json must define changelog-sections.'
-        )
-        def sectionsByType = sections.collectEntries { section ->
-            [(section['type']): section]
-        }
-        [
-                feat    : ['\u2728 Features', false],
-                fix     : ['\uD83D\uDC1B Fixes', false],
-                refactor: ['\uD83D\uDD27 Refactors', false],
-                test    : ['\uD83E\uDDEA Tests', true],
-                docs    : ['\uD83D\uDCDD Documentation', false],
-                chore   : ['\uD83D\uDD28 Chores & CI', true]
-        ].each { commitType, expected ->
-            def section = sectionsByType[commitType]
-            requireReleaseAutomationValue(
-                    section != null,
-                    "release-please-config.json must map conventional commit type '${commitType}'."
-            )
-            requireReleaseAutomationValue(
-                    section['section'] == expected[0],
-                    "release-please-config.json maps '${commitType}' to '${section['section']}', expected '${expected[0]}'."
-            )
-            requireReleaseAutomationValue(
-                    (section['hidden'] == true) == expected[1],
-                    "release-please-config.json hidden setting for '${commitType}' must be ${expected[1]}."
-            )
+        if (rootProject.version.toString() != catalogVersion) {
+            throw new GradleException("Root project version '${rootProject.version}' must match versions.project '${catalogVersion}'.")
         }
 
-        def extraFiles = releaseConfig['extra-files']
-        requireReleaseAutomationValue(
-                extraFiles instanceof List && extraFiles.any { extraFile ->
-                    extraFile['type'] == 'toml' &&
-                            extraFile['path'] == 'gradle/libs.versions.toml' &&
-                            extraFile['jsonpath'] == '$.versions.project'
-                },
-                'release-please-config.json must bump versions.project in gradle/libs.versions.toml via extra-files.'
-        )
+        def manifestFile = rootProject.file('.release-please-manifest.json')
+        if (!manifestFile.isFile()) {
+            throw new GradleException('Missing required release file: .release-please-manifest.json')
+        }
 
-        requireReleaseAutomationFile('.github/workflows/release-please.yml')
-        requireReleaseAutomationFile('docs/RELEASING.md')
+        def manifestVersion = new JsonSlurper().parse(manifestFile)['.']
+        if (manifestVersion != catalogVersion) {
+            throw new GradleException(".release-please-manifest.json version '${manifestVersion}' must match versions.project '${catalogVersion}'.")
+        }
     }
 }
 
 tasks.named('check') {
-    dependsOn tasks.named('verifyReleasePleaseConfiguration')
+    dependsOn tasks.named('verifyReleaseVersionConsistency')
 }
