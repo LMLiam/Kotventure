@@ -33,6 +33,7 @@
 
 - `kotventure-core-0.0.x-PRE-ALPHA.jar`
 - `kotventure-test-0.0.x-PRE-ALPHA.jar`
+- `kotventure-test-snapshot-0.0.x-PRE-ALPHA.jar`
 - `kotventure-0.0.x-PRE-ALPHA.jar`
 - Minimal `README.md` with example:
   ```kotlin

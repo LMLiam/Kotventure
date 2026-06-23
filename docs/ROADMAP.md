@@ -14,28 +14,11 @@
 - Harden MiniMessage templates, validation, serializers, and component-testing tools.
 - Keep build, docs, and release metadata aligned with the currently shipped modules.
 
-**Plan:** See [Pre‑Alpha Plan](./PRE-ALPHA-PLAN.md) for detail
+**Plan:** See the [phased roadmap in `docs/DESIGN.md`](./DESIGN.md#11-phased-roadmap) for the current alpha-phase breakdown.
 
 ---
 
-## 🔜 Next Stage — Alpha (`0.1.x` → `0.8.x`)
-
-**Focus:**
-
-- Expand component coverage: `translate`, `keybind`, `score`, etc.
-- API surface “mostly there” but open to iteration.
-- Public pre‑release artifacts with “alpha” tag.
-- Introduce null‑safety and compile‑time validations across the DSL.
-- Begin collecting structured feedback via GitHub Issues
-
-**Milestone Criteria:**
-
-- Core API stable enough for hobbyist / experimental use.
-- README and module docs updated with examples and onboarding instructions.
-
----
-
-## 📦 Beta (`0.9.x`)
+## 🔜 Next Stage — Beta (`0.9.x`)
 
 **Focus:**
 

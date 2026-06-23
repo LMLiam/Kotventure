@@ -60,7 +60,8 @@ behaviour, and **KSP** for compile‑time codegen. The previous `ServiceLoader`/
 | `serializer`          | `adventure-api`, concrete serializers  | Optional `Component` serializer extensions such as MiniMessage and plain text                                  |
 | `minimessage`         | `core`, `adventure-text-minimessage`   | Typed tag/placeholder DSL, typed templates, validation, MiniMessage ⇄ DSL converter                            |
 | `i18n`                | `core`, `minimessage`                  | Translation registry + per‑player locale DSL                                                                   |
-| `test`                | `core` (test‑scoped for consumers)     | Kotest/JUnit matchers + snapshot testing                                                                       |
+| `test`                | `core` (test‑scoped for consumers)     | Kotest/JUnit structural component matchers                                                                     |
+| `test-snapshot`       | `adventure-api`, `serializer`          | Snapshot testing over canonical component JSON                                                                 |
 | `ansi`                | `core`                                 | Render a `Component` to coloured terminal output                                                               |
 | `coroutines`          | `core`, `kotlinx-coroutines`           | suspend click‑callbacks, async sending, animation scheduling                                                   |
 | `annotations` + `ksp` | —                                      | Typed message‑catalog codegen + compile‑time style validation                                                  |
@@ -73,19 +74,17 @@ behaviour, and **KSP** for compile‑time codegen. The previous `ServiceLoader`/
 
 Modules are introduced **lazily, per phase** — not all scaffolded up front — to keep each change small.
 
-### 4.1 The registry (extension points)
+### 4.1 Registries & extension points
 
-A single explicit internal registry (plain Kotlin, no classpath scanning) holds the pluggable pieces. Application code
-never touches the registry directly: each feature package exposes a small public facade — a `register()` extension on
-the extension-point type plus a lookup function — and the registry stays an implementation detail behind them:
+Kotventure does not use a hidden process-global registry or classpath scanning. When runtime lookup is genuinely
+needed, the owning feature exposes an explicit registry value as part of its public API.
 
-- **Custom MiniMessage tags** (`TagResolver`s) registered by name.
-- **Theme providers** — named design systems resolvable across the app.
-- **Animation drivers** — how frames are scheduled (no‑op/test, coroutine, Paper scheduler, …).
-- **Platform adapters** — `Scheduler` + `AudienceProvider` supplied by `paper`/`velocity`/`fabric` bundles, registered
-  on init or passed explicitly.
+- **Theme providers** use a `ThemeRegistry` instance for dynamic lookup and interop, while direct Kotlin callers prefer
+  compile-checked properties such as `Brand.header`.
+- **Custom MiniMessage tags**, **animation drivers**, and **platform adapters** should follow the same pattern when
+  their slices land: feature-owned explicit registration, not ambient global state.
 
-This keeps the common path magic‑free while making the genuinely variable parts swappable.
+This keeps the common path magic-free while making the genuinely variable parts swappable.
 
 **Animation layering** (arrives in Phase 3) spans three of these layers, so the split is deliberate: `core` defines the
 animation *abstractions* (frame model, ticker, and the driver interface); concrete **animation drivers** plug in via the
@@ -135,9 +134,10 @@ object Brand : Theme("brand") {
     val header: Style by style { color(primary); bold() }
     val error: Style by style { color(RED) }
 }
-Brand.register()                             // explicit startup wiring
+val themes = ThemeRegistry()
+themes.register(Brand)                       // explicit startup wiring
 text("Title") styled Brand.header            // compile-checked property
-theme("brand")?.style("header")              // dynamic interop lookup
+themes.theme("brand")?.style("header")       // dynamic interop lookup
 
 // ── Sending (Audience extensions) ──────────────────────────────
 player.message { text("hi") }
@@ -188,7 +188,8 @@ A **MiniMessage ⇄ DSL converter** round‑trips between markup strings and DSL
 
 - **Kotest** throughout (already the project's framework).
 - The `test` module exposes **matchers** (`shouldHaveColor`, `shouldContainText`, structural/child matchers, style
-  assertions) and **snapshot testing** (serialize → diff against committed snapshots) so message regressions fail CI.
+  assertions); `test-snapshot` adds whole-message golden-file assertions (serialize → diff against committed
+  snapshots).
 - Every other module **exercises** these matchers on its own output.
 - `e2e` covers cross‑module integration.
 
