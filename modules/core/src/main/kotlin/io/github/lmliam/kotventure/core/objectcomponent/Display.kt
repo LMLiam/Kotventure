@@ -1,7 +1,6 @@
 package io.github.lmliam.kotventure.core.objectcomponent
 
 import io.github.lmliam.kotventure.core.component.ComponentScope
-import io.github.lmliam.kotventure.core.component.addChild
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.`object`.ObjectContents
 
@@ -25,5 +24,5 @@ public fun ComponentScope.display(
     contents: ObjectContents,
     init: ObjectScope.() -> Unit = {},
 ) {
-    addChild(buildObjectComponent(contents, init))
+    append(buildObjectComponent(contents, init))
 }
