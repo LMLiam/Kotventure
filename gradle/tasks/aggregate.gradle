@@ -1,0 +1,45 @@
+def jarSubprojects = subprojects.findAll { subproject ->
+    subproject.tasks.findByName('jar') != null &&
+            subproject.extensions.findByName('sourceSets') != null
+}
+
+tasks.register('allJar', Jar) {
+    group = 'build'
+    description = 'Assembles a JAR with all modules included.'
+
+    archiveBaseName.set("${rootProject.name}")
+    archiveVersion.set(version)
+    destinationDirectory.set(layout.buildDirectory.dir("libs"))
+
+    dependsOn(jarSubprojects.collect { it.tasks.named('jar') })
+
+    from {
+        jarSubprojects.collect { it.sourceSets.main.output }
+    }
+}
+
+def registerSubprojectAggregateTask = { String taskName, String taskGroup, String taskDescription ->
+    tasks.register(taskName) {
+        group = taskGroup
+        description = taskDescription
+        dependsOn(subprojects.collect { subproject ->
+            subproject.tasks.matching { it.name == taskName }
+        })
+    }
+}
+
+registerSubprojectAggregateTask('test', 'verification', 'Runs tests in all modules.')
+registerSubprojectAggregateTask('spotlessCheck', 'verification', 'Runs Spotless checks in all modules.')
+registerSubprojectAggregateTask('spotlessApply', 'formatting', 'Formats sources in all modules with Spotless.')
+
+tasks.register('ktlintCheck') {
+    group = 'verification'
+    description = 'Compatibility alias for spotlessCheck.'
+    dependsOn tasks.named('spotlessCheck')
+}
+
+tasks.register('ktlintFormat') {
+    group = 'formatting'
+    description = 'Compatibility alias for spotlessApply.'
+    dependsOn tasks.named('spotlessApply')
+}
