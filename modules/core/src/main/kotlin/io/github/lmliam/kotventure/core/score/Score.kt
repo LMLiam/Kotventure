@@ -1,8 +1,9 @@
 package io.github.lmliam.kotventure.core.score
 
+import io.github.lmliam.kotventure.core.component.ComponentBuilder
 import io.github.lmliam.kotventure.core.component.ComponentScope
-import io.github.lmliam.kotventure.core.component.addChild
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.ScoreComponent
 
 /**
  * Builds an Adventure score [Component] from a Kotventure DSL block.
@@ -17,7 +18,10 @@ internal fun buildScoreComponent(
     name: String,
     objective: String,
     init: ComponentScope.() -> Unit = {},
-): Component = ScoreComponentBuilder(name, objective).apply(init).build()
+): Component =
+    ComponentBuilder<ScoreComponent, ScoreComponent.Builder>(
+        Component.score().name(name).objective(objective),
+    ).apply(init).build()
 
 /**
  * Appends a nested score child with [name] and [objective].
@@ -27,5 +31,5 @@ public fun ComponentScope.score(
     objective: String,
     init: ComponentScope.() -> Unit = {},
 ) {
-    addChild(buildScoreComponent(name, objective, init))
+    append(buildScoreComponent(name, objective, init))
 }
