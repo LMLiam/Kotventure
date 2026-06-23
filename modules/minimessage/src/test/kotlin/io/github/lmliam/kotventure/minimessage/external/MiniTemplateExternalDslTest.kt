@@ -7,7 +7,7 @@ import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.kotest.core.spec.style.StringSpec
 import net.kyori.adventure.text.Component
 
-private object ExternalWelcomeTemplate : MiniTemplate("<gold>Welcome <player>, <count> new messages") {
+private object ExternalWelcomeTemplate : MiniTemplate("<gold>Welcome <player>, <count> new messages</gold>") {
     val player = placeholder<Component>("player")
     val count = placeholder<Int>("count")
 }
