@@ -4,6 +4,7 @@ adventureApi = "5.1.1"
 kctfork = "0.13.0"
 kotest = "6.2.1"
 kotestPlugin = "6.2.1"
+mockk = "1.14.2"
 kotlin = "2.4.0"
 kover = "0.9.8"
 spotless = "8.7.0"
@@ -21,6 +22,7 @@ junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher
 kctfork-core = { module = "dev.zacsweers.kctfork:core", version.ref = "kctfork" }
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 
 [plugins]
 kotest = { id = "io.kotest", version.ref = "kotestPlugin" }

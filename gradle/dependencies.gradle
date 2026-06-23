@@ -14,7 +14,8 @@ ext.kotventureDependencies = [
         "adventure-text-serializer-plain"         : catalog.findLibrary('adventure-text-serializer-plain').get(),
         "kctfork-core"                            : catalog.findLibrary('kctfork-core').get(),
         "kotest-assertions-core"                  : catalog.findLibrary('kotest-assertions-core').get(),
-        "kotest-runner-junit5"                    : catalog.findLibrary('kotest-runner-junit5').get()
+        "kotest-runner-junit5"                    : catalog.findLibrary('kotest-runner-junit5').get(),
+        "mockk"                                   : catalog.findLibrary('mockk').get()
 ]
 
 dependencies {
@@ -22,5 +23,6 @@ dependencies {
 
     testImplementation kotventureDependencies."kotest-assertions-core"
     testImplementation kotventureDependencies."kotest-runner-junit5"
+    testImplementation kotventureDependencies."mockk"
     testRuntimeOnly catalog.findLibrary('junit-platform-launcher').get()
 }
