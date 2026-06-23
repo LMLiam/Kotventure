@@ -2,6 +2,7 @@ package io.github.lmliam.kotventure.minimessage
 
 import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.text.text
+import io.github.lmliam.kotventure.minimessage.placeholder.placeholder
 import io.github.lmliam.kotventure.test.compilation.assertDoesNotCompile
 import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldContainComponent
@@ -220,7 +221,7 @@ class MiniMessageDslTest :
                     source =
                         """
                         import io.github.lmliam.kotventure.minimessage.mini
-                        import io.github.lmliam.kotventure.minimessage.placeholder
+                        import io.github.lmliam.kotventure.minimessage.placeholder.placeholder
 
                         fun shouldNotCompile() {
                             val count = placeholder<Int>("count")
@@ -240,7 +241,7 @@ class MiniMessageDslTest :
                     source =
                         """
                         import io.github.lmliam.kotventure.minimessage.mini
-                        import io.github.lmliam.kotventure.minimessage.placeholder
+                        import io.github.lmliam.kotventure.minimessage.placeholder.placeholder
                         import net.kyori.adventure.text.Component
 
                         fun shouldNotCompile() {

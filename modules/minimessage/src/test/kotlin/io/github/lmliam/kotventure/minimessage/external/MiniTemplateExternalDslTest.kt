@@ -1,8 +1,9 @@
 package io.github.lmliam.kotventure.minimessage.external
 
-import io.github.lmliam.kotventure.minimessage.MiniTemplate
-import io.github.lmliam.kotventure.minimessage.bind
-import io.github.lmliam.kotventure.minimessage.invoke
+import io.github.lmliam.kotventure.minimessage.placeholder.placeholder
+import io.github.lmliam.kotventure.minimessage.template.MiniTemplate
+import io.github.lmliam.kotventure.minimessage.template.bind
+import io.github.lmliam.kotventure.minimessage.template.invoke
 import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.kotest.core.spec.style.StringSpec
 import net.kyori.adventure.text.Component

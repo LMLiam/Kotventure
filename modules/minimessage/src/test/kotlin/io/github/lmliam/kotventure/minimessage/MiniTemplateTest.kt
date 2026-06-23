@@ -1,5 +1,10 @@
 package io.github.lmliam.kotventure.minimessage
 
+import io.github.lmliam.kotventure.minimessage.placeholder.MiniMessagePlaceholder
+import io.github.lmliam.kotventure.minimessage.placeholder.placeholder
+import io.github.lmliam.kotventure.minimessage.template.MiniTemplate
+import io.github.lmliam.kotventure.minimessage.template.bind
+import io.github.lmliam.kotventure.minimessage.template.invoke
 import io.github.lmliam.kotventure.test.compilation.assertDoesNotCompile
 import io.github.lmliam.kotventure.test.text.shouldContainComponent
 import io.github.lmliam.kotventure.test.text.shouldContainText
@@ -154,8 +159,8 @@ class MiniTemplateTest :
                     fileName = "TemplateIntStringMismatch.kt",
                     source =
                         """
-                        import io.github.lmliam.kotventure.minimessage.MiniTemplateBindingScope
-                        import io.github.lmliam.kotventure.minimessage.placeholder
+                        import io.github.lmliam.kotventure.minimessage.placeholder.placeholder
+                        import io.github.lmliam.kotventure.minimessage.template.MiniTemplateBindingScope
 
                         fun test(scope: MiniTemplateBindingScope) {
                             val count = placeholder<Int>("count")
@@ -173,8 +178,8 @@ class MiniTemplateTest :
                     fileName = "TemplateComponentIntMismatch.kt",
                     source =
                         """
-                        import io.github.lmliam.kotventure.minimessage.MiniTemplateBindingScope
-                        import io.github.lmliam.kotventure.minimessage.placeholder
+                        import io.github.lmliam.kotventure.minimessage.placeholder.placeholder
+                        import io.github.lmliam.kotventure.minimessage.template.MiniTemplateBindingScope
                         import net.kyori.adventure.text.Component
 
                         fun test(scope: MiniTemplateBindingScope) {
@@ -200,8 +205,8 @@ class MiniTemplateTest :
                     fileName = "TemplatePlaceholderAtRenderSite.kt",
                     source =
                         """
-                        import io.github.lmliam.kotventure.minimessage.MiniTemplate
-                        import io.github.lmliam.kotventure.minimessage.invoke
+                        import io.github.lmliam.kotventure.minimessage.template.MiniTemplate
+                        import io.github.lmliam.kotventure.minimessage.template.invoke
 
                         private object ScopeTestTemplate : MiniTemplate("<gold><name>") { }
 

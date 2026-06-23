@@ -1,7 +1,11 @@
 package io.github.lmliam.kotventure.minimessage
 
+import io.github.lmliam.kotventure.minimessage.placeholder.MiniMessagePlaceholder
+import io.github.lmliam.kotventure.minimessage.placeholder.placeholder
+import io.github.lmliam.kotventure.minimessage.template.MiniTemplate
 import io.github.lmliam.kotventure.minimessage.validation.MiniMessageDiagnostic
 import io.github.lmliam.kotventure.minimessage.validation.ValidationResult
+import io.github.lmliam.kotventure.minimessage.validation.runValidation
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldHaveSize
@@ -405,6 +409,36 @@ class MiniMessageValidationTest :
             // ---------------------------------------------------------------
             // F1 regression: validate() must never throw, even on malformed input
             // ---------------------------------------------------------------
+
+            "lenient validation engine failures return ValidationEngineFailure instead of partial placeholder " +
+                    "diagnostics" {
+                val player = placeholder<Component>("player")
+
+                val result =
+                    runValidation(
+                        input = "<player> <extra>",
+                        placeholders = listOf(player),
+                        lenientDeserialize = { _, resolver ->
+                            net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(
+                                "<extra>",
+                                resolver,
+                            )
+                            throw IllegalStateException("lenient parser exploded")
+                        },
+                    )
+
+                val failure = result.shouldBeInstanceOf<ValidationResult.Failure>()
+                val engineFailures =
+                    failure.diagnostics
+                    .filterIsInstance<MiniMessageDiagnostic.ValidationEngineFailure>()
+                val missing = failure.diagnostics.filterIsInstance<MiniMessageDiagnostic.MissingPlaceholder>()
+                val extra = failure.diagnostics.filterIsInstance<MiniMessageDiagnostic.ExtraPlaceholder>()
+
+                engineFailures shouldHaveSize 1
+                engineFailures[0].message shouldBe "lenient parser exploded"
+                missing shouldHaveSize 0
+                extra shouldHaveSize 0
+            }
 
             // validate() must return a result rather than throw for any input. The lenient parser is
             // not contractually guaranteed exception-free, so both passes guard against RuntimeException.
