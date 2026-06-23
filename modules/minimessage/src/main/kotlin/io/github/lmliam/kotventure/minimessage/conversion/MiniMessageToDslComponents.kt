@@ -174,8 +174,8 @@ private fun KotlinSourceBuilder.appendArgument(argument: TranslationArgument) {
         is Number -> line("arg($value)")
         else ->
             conversionError(
-            "miniToDsl cannot represent the ${value::class.qualifiedName} translatable argument.",
-        )
+                "miniToDsl cannot represent the ${value::class.qualifiedName} translatable argument.",
+            )
     }
 }
 

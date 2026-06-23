@@ -14,7 +14,7 @@ internal fun assertGoldenRoundTrip(
 
     generated shouldBe expectedSource
     MiniMessage.miniMessage().serialize(compileGeneratedDsl(generated)) shouldBe
-        MiniMessage.miniMessage().serialize(expectedComponent)
+            MiniMessage.miniMessage().serialize(expectedComponent)
     MiniMessage.miniMessage().serialize(parsed) shouldBe MiniMessage.miniMessage().serialize(expectedComponent)
 }
 

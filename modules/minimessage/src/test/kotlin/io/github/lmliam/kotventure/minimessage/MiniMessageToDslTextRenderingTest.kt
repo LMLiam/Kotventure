@@ -66,7 +66,7 @@ class MiniMessageToDslTextRenderingTest :
                     val input = "say \\ \"hi\"\n\t${dollar}5\rcr"
 
                     miniToDsl(input) shouldBe
-                        """
+                            """
                     component {
                         text("say \\ \"hi\"\n\t${escapedDollar}5\rcr")
                     }
@@ -77,7 +77,7 @@ class MiniMessageToDslTextRenderingTest :
                     val input = "<bold><italic><underlined><strikethrough><obfuscated>styled"
 
                     miniToDsl(input) shouldBe
-                        """
+                            """
                     component {
                         text("styled") {
                             bold()
@@ -101,7 +101,7 @@ class MiniMessageToDslTextRenderingTest :
                     val input = "<bold>hot <!bold>cold"
 
                     miniToDsl(input) shouldBe
-                        """
+                            """
                     component {
                         text("hot ") {
                             bold()
@@ -128,7 +128,7 @@ class MiniMessageToDslTextRenderingTest :
                         }
 
                     MiniMessageToDslWriter.write(styled) shouldBe
-                        """
+                            """
                     component {
                         text("title") {
                             style {
@@ -148,7 +148,7 @@ class MiniMessageToDslTextRenderingTest :
                         }
 
                     MiniMessageToDslWriter.write(styled) shouldBe
-                        """
+                            """
                     component {
                         text("Alex") {
                             style {
@@ -173,7 +173,7 @@ class MiniMessageToDslTextRenderingTest :
                         }
 
                     MiniMessageToDslWriter.write(styled) shouldBe
-                        """
+                            """
                     component {
                         text("badge") {
                             bold()
@@ -279,7 +279,7 @@ class MiniMessageToDslTextRenderingTest :
             context("shadow emission") {
                 test("emits a shadow colour from the <shadow> tag instead of dropping it") {
                     miniToDsl("<shadow:#112233>shadow</shadow>") shouldBe
-                        """
+                            """
                         component {
                             text("shadow") {
                                 shadow(ShadowColor.shadowColor(0x3F112233.toInt()))
@@ -295,7 +295,7 @@ class MiniMessageToDslTextRenderingTest :
                             .append(Component.text("bad").shadowColor(ShadowColor.shadowColor(0xFF112233.toInt())))
 
                     MiniMessageToDslWriter.write(nested) shouldBe
-                        """
+                            """
                         component {
                             text("ok") {
                                 text("bad") {
@@ -315,7 +315,7 @@ class MiniMessageToDslTextRenderingTest :
                             .build()
 
                     MiniMessageToDslWriter.write(translatable) shouldBe
-                        """
+                            """
                         component {
                             translatable("chat.type.text") {
                                 arg {
@@ -333,7 +333,7 @@ class MiniMessageToDslTextRenderingTest :
                     val selector = Component.selector("@e").separator(separator)
 
                     MiniMessageToDslWriter.write(selector) shouldBe
-                        """
+                            """
                         component {
                             selector("@e") {
                                 separator {
@@ -351,7 +351,7 @@ class MiniMessageToDslTextRenderingTest :
                     val component = Component.text("hover me").hoverEvent(HoverEvent.showText(payload))
 
                     MiniMessageToDslWriter.write(component) shouldBe
-                        """
+                            """
                         component {
                             text("hover me") {
                                 hover {
@@ -372,7 +372,7 @@ class MiniMessageToDslTextRenderingTest :
                     val generated = miniToDsl("\\<red>literal")
 
                     generated shouldBe
-                        """
+                            """
                     component {
                         text("<red>literal")
                     }

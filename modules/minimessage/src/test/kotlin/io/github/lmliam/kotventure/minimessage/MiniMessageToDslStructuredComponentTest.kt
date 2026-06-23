@@ -208,7 +208,7 @@ class MiniMessageToDslStructuredComponentTest :
                             .build()
 
                     MiniMessageToDslWriter.write(translatable) shouldBe
-                        """
+                            """
                     component {
                         translatable("stat.generic") {
                             arg(true)
@@ -259,7 +259,7 @@ class MiniMessageToDslStructuredComponentTest :
                         }
 
                     MiniMessageToDslWriter.write(translatable) shouldBe
-                        """
+                            """
                     component {
                         translatable("menu.singleplayer") {
                             fallback("Singleplayer")
@@ -279,7 +279,7 @@ class MiniMessageToDslStructuredComponentTest :
                         }
 
                     MiniMessageToDslWriter.write(translatable) shouldBe
-                        """
+                            """
                     component {
                         translatable("commands.give.success.single") {
                             arg {
@@ -298,7 +298,7 @@ class MiniMessageToDslStructuredComponentTest :
                     val nbt = component { blockNbt(blockPos("1 64 -3"), "Items") }
 
                     MiniMessageToDslWriter.write(nbt) shouldBe
-                        """
+                            """
                     component {
                         blockNbt(blockPos("1 64 -3"), "Items")
                     }
@@ -316,7 +316,7 @@ class MiniMessageToDslStructuredComponentTest :
                         }
 
                     MiniMessageToDslWriter.write(nbt) shouldBe
-                        """
+                            """
                     component {
                         blockNbt(blockPos("1 64 -3"), "Items") {
                             interpret(true)
@@ -333,7 +333,7 @@ class MiniMessageToDslStructuredComponentTest :
                     val nbt = component { entityNbt("@e[type=armor_stand]", "Pos") }
 
                     MiniMessageToDslWriter.write(nbt) shouldBe
-                        """
+                            """
                     component {
                         entityNbt("@e[type=armor_stand]", "Pos")
                     }
@@ -349,7 +349,7 @@ class MiniMessageToDslStructuredComponentTest :
                         }
 
                     MiniMessageToDslWriter.write(nbt) shouldBe
-                        """
+                            """
                     component {
                         storageNbt(key("minecraft", "data"), "Contents") {
                             interpret(true)
@@ -377,7 +377,7 @@ class MiniMessageToDslStructuredComponentTest :
                     val display = component { display(sprite(key("minecraft", "icon/star"))) }
 
                     MiniMessageToDslWriter.write(display) shouldBe
-                        """
+                            """
                     component {
                         display(sprite(key("minecraft", "icon/star")))
                     }
@@ -391,7 +391,7 @@ class MiniMessageToDslStructuredComponentTest :
                         }
 
                     MiniMessageToDslWriter.write(display) shouldBe
-                        """
+                            """
                     component {
                         display(sprite(key("minecraft", "gui"), key("minecraft", "icon/heart")))
                     }
@@ -408,7 +408,7 @@ class MiniMessageToDslStructuredComponentTest :
                         }
 
                     MiniMessageToDslWriter.write(display) shouldBe
-                        """
+                            """
                     component {
                         display(sprite(key("minecraft", "icon/heart"))) {
                             fallback {
@@ -437,7 +437,7 @@ class MiniMessageToDslStructuredComponentTest :
             context("player-head emission") {
                 test("emits a named player head from the <head> tag instead of dropping it") {
                     miniToDsl("<head:Steve>") shouldBe
-                        """
+                            """
                     component {
                         display(head("Steve"))
                     }
@@ -453,7 +453,7 @@ class MiniMessageToDslStructuredComponentTest :
                             ).build()
 
                     MiniMessageToDslWriter.write(playerHead) shouldBe
-                        """
+                            """
                         component {
                             display(head(UUID.fromString("0d1630e2-fc7c-48ef-b7a0-8dfb9e57ec25")))
                         }
@@ -470,7 +470,7 @@ class MiniMessageToDslStructuredComponentTest :
                     val playerHead = Component.`object`().contents(contents).build()
 
                     MiniMessageToDslWriter.write(playerHead) shouldBe
-                        """
+                            """
                         component {
                             display(head(key("minecraft", "entity/player/wide/steve"), hat = false))
                         }

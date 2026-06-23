@@ -273,7 +273,7 @@ class MiniMessageToDslEventRenderingTest :
                                             dataComponents =
                                                 mapOf<Key, DataComponentValue>(
                                                     key("minecraft", "custom_data") to
-                                                        BinaryTagHolder.binaryTagHolder("{kotventure:1b}"),
+                                                            BinaryTagHolder.binaryTagHolder("{kotventure:1b}"),
                                                 ),
                                         )
                                     }
@@ -292,9 +292,9 @@ class MiniMessageToDslEventRenderingTest :
                                         dataComponents =
                                             mapOf<Key, DataComponentValue>(
                                                 key("minecraft", "damage") to
-                                                    BinaryTagHolder.binaryTagHolder("{value:5b}"),
+                                                        BinaryTagHolder.binaryTagHolder("{value:5b}"),
                                                 key("minecraft", "custom_data") to
-                                                    BinaryTagHolder.binaryTagHolder("{kotventure:1b}"),
+                                                        BinaryTagHolder.binaryTagHolder("{kotventure:1b}"),
                                             ),
                                     )
                                 }
@@ -302,7 +302,7 @@ class MiniMessageToDslEventRenderingTest :
                         }
 
                     MiniMessageToDslWriter.write(loot) shouldBe
-                        """
+                            """
                     component {
                         text("Loot data") {
                             hover {
