@@ -6,7 +6,6 @@ description = 'Kotest matchers and testing utilities for Kotventure components.'
 dependencies {
     api project(':core')
     api kotventureDependencies."kotest-assertions-core"
-    implementation kotventureDependencies."kctfork-core"
 
     // Snapshot matchers serialise components to canonical JSON (serializer) and re-layout it for
     // reviewable committed diffs (gson). Neither leaks into this module's public API, so both stay
