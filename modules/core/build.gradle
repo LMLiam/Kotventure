@@ -6,5 +6,6 @@ description = 'Core DSL primitives and explicit extension registry.'
 dependencies {
     api kotventureDependencies."adventure-api"
 
+    testImplementation kotventureDependencies."kctfork-core"
     testImplementation project(':test')
 }
