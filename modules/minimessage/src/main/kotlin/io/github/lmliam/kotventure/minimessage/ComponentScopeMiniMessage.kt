@@ -1,6 +1,8 @@
 package io.github.lmliam.kotventure.minimessage
 
 import io.github.lmliam.kotventure.core.component.ComponentScope
+import io.github.lmliam.kotventure.minimessage.parser.parseMiniMessage
+import io.github.lmliam.kotventure.minimessage.placeholder.MiniMessageResolverScope
 
 /**
  * Parses [input] as MiniMessage and appends the resulting component to this scope.

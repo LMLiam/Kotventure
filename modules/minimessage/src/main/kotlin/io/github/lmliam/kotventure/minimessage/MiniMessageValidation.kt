@@ -1,5 +1,7 @@
 package io.github.lmliam.kotventure.minimessage
 
+import io.github.lmliam.kotventure.minimessage.placeholder.MiniMessagePlaceholder
+import io.github.lmliam.kotventure.minimessage.template.MiniTemplate
 import io.github.lmliam.kotventure.minimessage.validation.ValidationResult
 import io.github.lmliam.kotventure.minimessage.validation.runValidation
 
