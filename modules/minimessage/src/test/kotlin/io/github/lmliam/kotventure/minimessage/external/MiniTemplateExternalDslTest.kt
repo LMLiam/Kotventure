@@ -19,8 +19,8 @@ class MiniTemplateExternalDslTest :
             "renders with unqualified placeholders from another package" {
                 val rendered =
                     ExternalWelcomeTemplate {
-                        bind(player, Component.text("Alex"))
-                        bind(count, 3)
+                        player bind Component.text("Alex")
+                        count bind 3
                     }
 
                 rendered shouldContainText "Alex"
