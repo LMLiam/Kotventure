@@ -1,5 +1,8 @@
 package io.github.lmliam.kotventure.core.theme
 
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
+
 /**
  * Explicit registry for dynamic theme lookup.
  *
@@ -8,7 +11,7 @@ package io.github.lmliam.kotventure.core.theme
  * at runtime.
  */
 public class ThemeRegistry {
-    private val lock = Any()
+    private val lock = ReentrantLock()
     private var providers: Map<String, ThemeProvider> = emptyMap()
     private var defaultProvider: ThemeProvider? = null
 
@@ -23,7 +26,7 @@ public class ThemeRegistry {
         default: Boolean = false,
     ): T {
         require(provider.name.isNotBlank()) { "Theme provider name must not be blank." }
-        synchronized(lock) {
+        lock.withLock {
             require(provider.name !in providers) {
                 "Theme provider '${provider.name}' is already registered."
             }
@@ -42,7 +45,7 @@ public class ThemeRegistry {
      * Returns the theme provider registered as [name], or null when none exists.
      */
     public fun theme(name: String): ThemeProvider? =
-        synchronized(lock) {
+        lock.withLock {
             providers[name]
         }
 
@@ -51,7 +54,7 @@ public class ThemeRegistry {
      * exists.
      */
     public fun defaultTheme(): ThemeProvider? =
-        synchronized(lock) {
+        lock.withLock {
             defaultProvider
         }
 }
