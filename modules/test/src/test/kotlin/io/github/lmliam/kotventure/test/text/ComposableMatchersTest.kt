@@ -80,7 +80,10 @@ class ComposableMatchersTest :
                         .decoration(TextDecoration.ITALIC, true)
 
                 component should
-                        (containText("Greet") and haveColor(NamedTextColor.AQUA) and haveDecoration(TextDecoration.ITALIC))
+                        (
+                            containText("Greet") and haveColor(NamedTextColor.AQUA) and
+                            haveDecoration(TextDecoration.ITALIC)
+                        )
             }
 
             "inverts a matcher to assert the opposite" {
