@@ -19,9 +19,11 @@ include 'core'
 include 'minimessage'
 include 'serializer'
 include 'test'
+include 'test-snapshot'
 include 'bom'
 project(':core').projectDir = file('modules/core')
 project(':minimessage').projectDir = file('modules/minimessage')
 project(':serializer').projectDir = file('modules/serializer')
 project(':test').projectDir = file('modules/test')
+project(':test-snapshot').projectDir = file('modules/test-snapshot')
 project(':bom').projectDir = file('modules/bom')

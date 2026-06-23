@@ -42,7 +42,8 @@ This project aims to:
 | `serializer`                    | Optional Adventure serializer extension functions                       |
 | `minimessage`                   | Typed MiniMessage templates, validation, MiniMessage ⇄ DSL converter    |
 | `i18n`                          | Translation registry + per-player locale DSL                            |
-| `test`                          | Kotest/JUnit component matchers + snapshot testing                      |
+| `test`                          | Kotest/JUnit component matchers                                         |
+| `test-snapshot`                 | Snapshot testing over canonical component JSON                          |
 | `ansi`                          | Render a `Component` to coloured terminal output                        |
 | `coroutines`                    | suspend click-callbacks, async sending, animation scheduling            |
 | `paper` / `velocity` / `fabric` | Platform adapters & extras                                              |
@@ -65,6 +66,8 @@ The current build enables the first lazy modules:
 - `kotventure-serializer` — `Component` and `String` helpers for Adventure legacy, JSON, plain text, and MiniMessage
   serializers
 - `kotventure-test` — Kotest component matchers consumed test-scoped by library modules
+- `kotventure-test-snapshot` — opt-in snapshot assertions over canonical component JSON, published separately so
+  matcher-only consumers do not pull serializer and Gson dependencies
 - `kotventure-bom` — a Gradle/Maven BOM aligning enabled Kotventure artifacts and Adventure 5.1.1 dependencies
 
 The `core` module exposes a composable component tree builder:
@@ -463,7 +466,8 @@ object Brand : Theme("brand") {
     }
 }
 
-Brand.register()                                   // explicit startup wiring; register(default = true) marks the default
+val themes = ThemeRegistry()
+themes.register(Brand, default = true)            // explicit startup wiring
 
 val title = text("Welcome") styled Brand.header    // compile-checked semantic styles
 
@@ -473,13 +477,13 @@ val message = component {
     }
 }
 
-val dynamic = theme("brand")?.style("header")      // dynamic interop lookup
-val fallback = defaultTheme()?.style("header")
+val dynamic = themes.theme("brand")?.style("header")      // dynamic interop lookup
+val fallback = themes.defaultTheme()?.style("header")
 ```
 
-Declaring a theme never registers it; call `register()` during startup. The delegated property name is the dynamic key;
-do not declare a second string key for the same style. Theme lookup is owned by `core.theme` through `theme(name)` and
-`defaultTheme()`. Registration is explicit at startup; there is no classpath scanning.
+Declaring a theme never registers it; register it in a `ThemeRegistry` during startup. The delegated property name is
+the dynamic key; do not declare a second string key for the same style. Dynamic lookup is explicit through the
+registry instance. There is no classpath scanning.
 
 Serializer helpers live in `kotventure-serializer` so `kotventure-core` can stay limited to `adventure-api` while
 callers opt into concrete Adventure serializers:
@@ -504,6 +508,11 @@ a `shouldHave…` / `shouldBe…` assertion for the common case, and a composabl
 assertions such as `shouldBeBold()` and `shouldHaveContent` keep message tests expressive. See the
 [`kotventure-test` README](modules/test/README.md) for the full catalogue.
 
+Whole-message golden tests live in the separate `kotventure-test-snapshot` artifact. It adds `matchSnapshot`,
+`shouldMatchSnapshot`, and explicit compacted variants without making the base matcher module depend on serializer/Gson
+runtime pieces. See the [`kotventure-test-snapshot` README](modules/test-snapshot/README.md) for usage and record-mode
+controls.
+
 ---
 
 ## 🚀 Getting It (early access)
@@ -526,6 +535,7 @@ dependencies {
     implementation("com.github.LMLiam.Kotventure:kotventure-serializer")
 
     testImplementation("com.github.LMLiam.Kotventure:kotventure-test")
+    testImplementation("com.github.LMLiam.Kotventure:kotventure-test-snapshot") // optional snapshot support
 }
 ```
 
@@ -544,11 +554,12 @@ dependencies {
     implementation 'com.github.LMLiam.Kotventure:kotventure-serializer'
 
     testImplementation 'com.github.LMLiam.Kotventure:kotventure-test'
+    testImplementation 'com.github.LMLiam.Kotventure:kotventure-test-snapshot' // optional snapshot support
 }
 ```
 
-Replace `<tag>` with a released tag such as `0.0.1`. The `kotventure-test` artifact is intended for test scope only.
-The BOM also aligns Kotventure's Adventure baseline at 5.1.1.
+Replace `<tag>` with a released tag such as `0.0.1`. The `kotventure-test` and `kotventure-test-snapshot` artifacts
+are intended for test scope only. The BOM also aligns Kotventure's Adventure baseline at 5.1.1.
 
 ## 🧰 Build & Compatibility
 
