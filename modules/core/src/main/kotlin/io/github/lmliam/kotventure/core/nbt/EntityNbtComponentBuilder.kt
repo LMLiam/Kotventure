@@ -8,5 +8,4 @@ internal class EntityNbtComponentBuilder(
     nbtPath: String,
 ) : NbtComponentBuilder<EntityNBTComponent, EntityNBTComponent.Builder>(
     Component.entityNBT().selector(selector).nbtPath(nbtPath),
-),
-    EntityNbtScope
+)

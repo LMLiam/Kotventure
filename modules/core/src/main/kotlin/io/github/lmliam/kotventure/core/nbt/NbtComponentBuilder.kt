@@ -2,10 +2,10 @@ package io.github.lmliam.kotventure.core.nbt
 
 import io.github.lmliam.kotventure.core.component.ComponentBuilder
 import io.github.lmliam.kotventure.core.text.TextScope
+import io.github.lmliam.kotventure.core.text.buildTextComponent
 import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.NBTComponent
 import net.kyori.adventure.text.NBTComponentBuilder
-import io.github.lmliam.kotventure.core.text.text as textComponent
 
 internal abstract class NbtComponentBuilder<C : NBTComponent<C>, B : NBTComponentBuilder<C, B>>(
     builder: B,
@@ -20,6 +20,6 @@ internal abstract class NbtComponentBuilder<C : NBTComponent<C>, B : NBTComponen
     }
 
     override fun separator(init: TextScope.() -> Unit) {
-        builder.separator(textComponent(init))
+        builder.separator(buildTextComponent(init))
     }
 }
