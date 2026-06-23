@@ -106,11 +106,11 @@ class NbtMatchersTest :
             "reports an unexpected interpret flag" {
                 val component =
                     Component
-                    .blockNBT()
-                    .nbtPath("Items")
-                    .pos(pos)
-                    .interpret(false)
-                    .build()
+                        .blockNBT()
+                        .nbtPath("Items")
+                        .pos(pos)
+                        .interpret(false)
+                        .build()
 
                 val failure =
                     shouldThrow<AssertionError> {
@@ -125,11 +125,11 @@ class NbtMatchersTest :
                 val separator = Component.text(", ")
                 val component =
                     Component
-                    .blockNBT()
-                    .nbtPath("Items")
-                    .pos(pos)
-                    .separator(separator)
-                    .build()
+                        .blockNBT()
+                        .nbtPath("Items")
+                        .pos(pos)
+                        .separator(separator)
+                        .build()
 
                 component shouldHaveNbtSeparator separator
             }
@@ -142,11 +142,11 @@ class NbtMatchersTest :
                 val separator = Component.text(", ")
                 val component =
                     Component
-                    .blockNBT()
-                    .nbtPath("Items")
-                    .pos(pos)
-                    .separator(separator)
-                    .build()
+                        .blockNBT()
+                        .nbtPath("Items")
+                        .pos(pos)
+                        .separator(separator)
+                        .build()
 
                 val failure =
                     shouldThrow<AssertionError> {

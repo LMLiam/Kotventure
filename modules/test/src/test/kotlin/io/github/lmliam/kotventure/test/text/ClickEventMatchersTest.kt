@@ -55,11 +55,11 @@ class ClickEventMatchersTest :
                         Component
                             .text("Run")
                             .clickEvent(ClickEvent.runCommand("/spawn")) shouldHaveClickAction
-                            ClickEvent.Action.SUGGEST_COMMAND
+                                ClickEvent.Action.SUGGEST_COMMAND
                     }
                 val expectedMessage =
                     "Expected click action <${ClickEvent.Action.SUGGEST_COMMAND}>, " +
-                        "but was <${ClickEvent.Action.RUN_COMMAND}>."
+                            "but was <${ClickEvent.Action.RUN_COMMAND}>."
 
                 failure.message shouldContain expectedMessage
             }

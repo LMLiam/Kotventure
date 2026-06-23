@@ -94,7 +94,8 @@ internal class TemplateBindings(
 }
 
 /** Binds [value] to [placeholder] inside a [MiniTemplate] render lambda. */
-context(_: MiniTemplateBindingScope) public fun <T : Any> MiniTemplate.bind(
+context(_: MiniTemplateBindingScope)
+public fun <T : Any> MiniTemplate.bind(
     placeholder: MiniMessagePlaceholder<T>,
     value: T,
 ): Unit = contextOf<MiniTemplateBindingScope>().bind(placeholder, value)

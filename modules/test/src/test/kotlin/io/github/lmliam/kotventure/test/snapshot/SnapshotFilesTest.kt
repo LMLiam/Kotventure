@@ -32,9 +32,9 @@ class SnapshotFilesTest :
 
                     path.isAbsolute shouldBe true
                     path.toString() shouldEndWith
-                        Path
-                            .of("src", "test", "resources", "snapshots", "never-recorded-fixture.snapshot.json")
-                            .toString()
+                            Path
+                                .of("src", "test", "resources", "snapshots", "never-recorded-fixture.snapshot.json")
+                                .toString()
                 }
             }
 

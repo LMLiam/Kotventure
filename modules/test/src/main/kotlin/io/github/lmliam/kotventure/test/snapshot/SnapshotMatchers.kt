@@ -57,7 +57,7 @@ private fun matchSnapshot(
                     false,
                     {
                         "Component does not match snapshot <$name>. ${recordHint("update")}" +
-                            "\n\nExpected:\n$expected\n\nActual:\n$actual"
+                                "\n\nExpected:\n$expected\n\nActual:\n$actual"
                     },
                     { "Expected component not to match snapshot <$name>." },
                 )

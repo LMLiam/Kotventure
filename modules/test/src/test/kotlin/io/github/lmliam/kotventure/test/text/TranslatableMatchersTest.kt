@@ -17,11 +17,11 @@ class TranslatableMatchersTest :
                 val failure =
                     shouldThrow<AssertionError> {
                         Component.translatable("item.minecraft.diamond") shouldHaveTranslationKey
-                            "item.minecraft.emerald"
+                                "item.minecraft.emerald"
                     }
                 val expectedMessage =
                     "Expected translation key <item.minecraft.emerald>, " +
-                        "but was <item.minecraft.diamond>."
+                            "but was <item.minecraft.diamond>."
 
                 failure.message shouldContain expectedMessage
             }
@@ -37,7 +37,7 @@ class TranslatableMatchersTest :
                     }
                 val expectedMessage =
                     "Expected translatable fallback <Other fallback>, " +
-                        "but was <Missing key>."
+                            "but was <Missing key>."
 
                 failure.message shouldContain expectedMessage
             }
@@ -114,7 +114,7 @@ class TranslatableMatchersTest :
                     }
                 val expectedMessage =
                     "Expected translation arguments <${listOf(item, expectedAmount)}>, " +
-                        "but found <${listOf(item, actualAmount)}>."
+                            "but found <${listOf(item, actualAmount)}>."
 
                 failure.message shouldContain expectedMessage
             }

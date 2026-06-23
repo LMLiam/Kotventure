@@ -23,7 +23,7 @@ class ColorMatchersTest :
                     }
                 val expectedMessage =
                     "Expected component color <${NamedTextColor.BLUE}>, " +
-                        "but was <${NamedTextColor.RED}>."
+                            "but was <${NamedTextColor.RED}>."
 
                 failure.message shouldContain expectedMessage
             }
