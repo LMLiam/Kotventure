@@ -1,5 +1,7 @@
 package io.github.lmliam.kotventure.core.text
 
+import io.github.lmliam.kotventure.core.component.ComponentScope
+import io.github.lmliam.kotventure.core.component.addChild
 import net.kyori.adventure.text.Component
 
 /**
@@ -8,8 +10,13 @@ import net.kyori.adventure.text.Component
 public fun text(
     value: String,
     init: TextScope.() -> Unit = {},
+): Component = buildTextComponent(value, init)
+
+internal fun buildTextComponent(
+    value: String,
+    init: TextScope.() -> Unit = {},
 ): Component =
-    text {
+    buildTextComponent {
         content(value)
         init()
     }
@@ -17,4 +24,23 @@ public fun text(
 /**
  * Builds an Adventure text [Component] from a Kotventure text DSL block.
  */
-public fun text(init: TextScope.() -> Unit): Component = TextBuilder().apply(init).build()
+public fun text(init: TextScope.() -> Unit): Component = buildTextComponent(init)
+
+internal fun buildTextComponent(init: TextScope.() -> Unit): Component = TextBuilder().apply(init).build()
+
+/**
+ * Appends a nested text child with [value] as its initial content.
+ */
+public fun ComponentScope.text(
+    value: String,
+    init: TextScope.() -> Unit = {},
+) {
+    addChild(buildTextComponent(value, init))
+}
+
+/**
+ * Appends a nested text child.
+ */
+public fun ComponentScope.text(init: TextScope.() -> Unit) {
+    addChild(buildTextComponent(init))
+}
