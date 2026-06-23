@@ -1,8 +1,8 @@
 package io.github.lmliam.kotventure.core.event
 
 import io.github.lmliam.kotventure.core.component.ComponentScope
+import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.text.TextScope
-import io.github.lmliam.kotventure.core.text.component
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.event.DataComponentValue
