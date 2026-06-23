@@ -52,7 +52,7 @@ internal open class ComponentBuilder<C : Component, B : AdventureComponentBuilde
         decoration: TextDecoration,
         flag: Boolean?,
     ) {
-        decoration(decoration, flag.toDecorationState())
+        decoration(decoration, State.byBoolean(flag))
     }
 
     override fun decoration(
@@ -72,10 +72,3 @@ internal open class ComponentBuilder<C : Component, B : AdventureComponentBuilde
 
     internal open fun build(): Component = builder.build()
 }
-
-private fun Boolean?.toDecorationState(): State =
-    when (this) {
-        true -> State.TRUE
-        false -> State.FALSE
-        null -> State.NOT_SET
-    }
