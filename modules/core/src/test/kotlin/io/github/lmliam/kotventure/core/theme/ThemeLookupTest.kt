@@ -8,45 +8,53 @@ import net.kyori.adventure.text.format.Style
 class ThemeLookupTest :
     StringSpec(
         {
-            beforeTest {
-                ThemeRegistry.reset()
-            }
-
-            afterTest {
-                ThemeRegistry.reset()
-            }
-
             "resolves registered themes by name" {
+                val registry = ThemeRegistry()
                 val provider = TestThemeProvider("brand")
 
-                provider.register()
+                registry.register(provider)
 
-                theme("brand") shouldBe provider
+                registry.theme("brand") shouldBe provider
             }
 
             "returns null for unknown theme names" {
-                theme("missing").shouldBeNull()
+                ThemeRegistry().theme("missing").shouldBeNull()
             }
 
             "resolves the registered default theme" {
+                val registry = ThemeRegistry()
                 val provider = TestThemeProvider("server")
 
-                provider.register(default = true)
+                registry.register(provider, default = true)
 
-                defaultTheme() shouldBe provider
+                registry.defaultTheme() shouldBe provider
             }
 
             "returns null when no default theme is registered" {
-                TestThemeProvider("brand").register()
+                val registry = ThemeRegistry()
 
-                defaultTheme().shouldBeNull()
+                registry.register(TestThemeProvider("brand"))
+
+                registry.defaultTheme().shouldBeNull()
             }
 
             "rejects duplicate theme registrations" {
-                TestThemeProvider("brand").register()
+                val registry = ThemeRegistry()
+
+                registry.register(TestThemeProvider("brand"))
 
                 io.kotest.assertions.throwables.shouldThrow<IllegalArgumentException> {
-                    TestThemeProvider("brand").register()
+                    registry.register(TestThemeProvider("brand"))
+                }
+            }
+
+            "rejects registering a second default theme" {
+                val registry = ThemeRegistry()
+
+                registry.register(TestThemeProvider("brand"), default = true)
+
+                io.kotest.assertions.throwables.shouldThrow<IllegalArgumentException> {
+                    registry.register(TestThemeProvider("server"), default = true)
                 }
             }
         },

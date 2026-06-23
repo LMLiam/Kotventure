@@ -108,19 +108,16 @@ class ThemeDslTest :
             }
 
             "can be defined, registered, and applied end to end" {
-                ThemeRegistry.reset()
-                try {
-                    BrandTheme.register()
+                val registry = ThemeRegistry()
 
-                    val registered = theme("brand")
-                    registered shouldBe BrandTheme
-                    val header = registered?.style("header")
-                    header shouldBe BrandTheme.header
-                    val title = text("Welcome") styled checkNotNull(header)
-                    title shouldHaveColor BrandTheme.primary
-                } finally {
-                    ThemeRegistry.reset()
-                }
+                registry.register(BrandTheme)
+
+                val registered = registry.theme("brand")
+                registered shouldBe BrandTheme
+                val header = registered?.style("header")
+                header shouldBe BrandTheme.header
+                val title = text("Welcome") styled checkNotNull(header)
+                title shouldHaveColor BrandTheme.primary
             }
 
             "rejects blank theme names" {
