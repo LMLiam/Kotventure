@@ -1,6 +1,6 @@
 # Kotventure — Design
 
-> **Status:** Living design document · **Stage:** Pre‑Alpha (`0.0.x`) · **Last updated:** 2026‑06‑08
+> **Status:** Living design document · **Stage:** Alpha (`0.4.x`) · **Last updated:** 2026‑06‑23
 >
 > This document captures the agreed architecture, scope, and roadmap. It is the source of truth that the GitHub Epic and
 > its sub‑issues are derived from. Syntax shown is **illustrative** and will be refined during implementation.
@@ -158,10 +158,9 @@ player.message(Welcome { player = name; count = 3 })
 Messages.welcome(player = name, count = 3)   // generated, validated placeholders
 
 // ── Normalising & traversing ───────────────────────────────────
-val tidy = msg.compacted()                   // merge adjacent same-style runs, drop empty wrappers
-msg.count()                                  // nodes in the whole tree (root + descendants)
-msg.forEach { node -> log(node) }            // depth-first, pre-order visit
+val tidy = msg.compact()                     // Adventure normalisation
 msg.asSequence()                             // lazy Sequence<Component> → full stdlib over the tree
+    .onEach { node -> log(node) }            // depth-first, pre-order visit
     .filterIsInstance<ObjectComponent>()     // object components are preserved, not dropped
 
 // ── Testing / preview ──────────────────────────────────────────
@@ -169,8 +168,8 @@ component shouldHaveColor AQUA
 component shouldContainText "world"
 component shouldMatchSnapshot "welcome"
 println(component.toAnsi())
-println(component.toMini())
-println(component.toPlain())
+println(component.toMiniMessage())
+println(component.toPlainText())
 ```
 
 ## 6. MiniMessage strategy
