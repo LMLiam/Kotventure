@@ -8,5 +8,4 @@ internal class BlockNbtComponentBuilder(
     nbtPath: String,
 ) : NbtComponentBuilder<BlockNBTComponent, BlockNBTComponent.Builder>(
     Component.blockNBT().pos(pos).nbtPath(nbtPath),
-),
-    BlockNbtScope
+)
