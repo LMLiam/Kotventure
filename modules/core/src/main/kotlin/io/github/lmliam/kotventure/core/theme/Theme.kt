@@ -55,17 +55,6 @@ public abstract class Theme(
     protected fun style(init: StyleScope.() -> Unit): PropertyDelegateProvider<Theme, ReadOnlyProperty<Theme, Style>> =
         styleDelegate(key = null, init = init)
 
-    /**
-     * Declares a semantic style property resolvable dynamically as [name] instead of the
-     * property name.
-     *
-     * @throws IllegalArgumentException when [name] is blank or already declared by this theme.
-     */
-    protected fun style(
-        name: String,
-        init: StyleScope.() -> Unit,
-    ): PropertyDelegateProvider<Theme, ReadOnlyProperty<Theme, Style>> = styleDelegate(key = name, init = init)
-
     private fun styleDelegate(
         key: String?,
         init: StyleScope.() -> Unit,
