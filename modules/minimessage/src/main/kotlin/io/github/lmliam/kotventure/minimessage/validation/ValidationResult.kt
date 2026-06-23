@@ -1,7 +1,7 @@
 package io.github.lmliam.kotventure.minimessage.validation
 
 /**
- * The result of a [validate] call.
+ * The result of a `validate` call.
  *
  * Either [Success] (input is well-formed and every declared placeholder is present) or
  * [Failure] (one or more [MiniMessageDiagnostic] were found).
