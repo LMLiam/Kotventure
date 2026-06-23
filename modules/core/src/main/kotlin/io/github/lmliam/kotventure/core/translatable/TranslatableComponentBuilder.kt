@@ -1,8 +1,8 @@
 package io.github.lmliam.kotventure.core.translatable
 
 import io.github.lmliam.kotventure.core.component.ComponentBuilder
-import io.github.lmliam.kotventure.core.text.TextBuilder
 import io.github.lmliam.kotventure.core.text.TextScope
+import io.github.lmliam.kotventure.core.text.buildTextComponent
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.TranslatableComponent
@@ -25,7 +25,7 @@ internal class TranslatableComponentBuilder(
     }
 
     override fun arg(init: TextScope.() -> Unit) {
-        arguments += TranslationArgument.component(TextBuilder().apply(init).build())
+        arguments += TranslationArgument.component(buildTextComponent(init))
     }
 
     override fun arg(value: Boolean) {
