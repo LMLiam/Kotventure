@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.test.snapshot
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldEndWith
@@ -42,6 +43,18 @@ class SnapshotFilesTest :
 
                 withSnapshotProperties(dir = dir.toString()) {
                     resolveSnapshotWritePath("x") shouldBe dir.resolve("x.snapshot.json")
+                }
+            }
+
+            "rejects snapshot names that escape the snapshot directory" {
+                shouldThrow<IllegalArgumentException> {
+                    resolveSnapshotWritePath("../outside")
+                }
+                shouldThrow<IllegalArgumentException> {
+                    resolveSnapshotWritePath("nested/../../outside")
+                }
+                shouldThrow<IllegalArgumentException> {
+                    resolveSnapshotWritePath("/absolute")
                 }
             }
         },
