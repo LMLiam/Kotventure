@@ -19,6 +19,7 @@ private val SOURCE_RESOURCE_SEGMENTS = listOf("src", "test", "resources", "snaps
 
 /** Reads the committed snapshot named [name], or `null` when none has been recorded yet. */
 internal fun readSnapshot(name: String): String? {
+    requireValidSnapshotName(name)
     SnapshotConfig.outputDir?.let { dir ->
         val path = overridePath(dir, name)
         return if (path.exists()) path.readText() else null
@@ -31,6 +32,7 @@ internal fun writeSnapshot(
     name: String,
     content: String,
 ) {
+    requireValidSnapshotName(name)
     val path = resolveSnapshotWritePath(name)
     path.parent?.createDirectories()
     path.writeText(content.normalizeSnapshot() + "\n")
@@ -38,7 +40,7 @@ internal fun writeSnapshot(
 
 /** Locates the snapshot named [name] on the classpath, or `null` when it is absent. */
 internal fun resolveSnapshotResource(name: String): URL? =
-    SnapshotConfig::class.java.getResource("$RESOURCE_PREFIX$name$RESOURCE_SUFFIX")
+    SnapshotConfig::class.java.getResource("$RESOURCE_PREFIX${requireValidSnapshotName(name)}$RESOURCE_SUFFIX")
 
 /**
  * Resolves where the snapshot named [name] should be written in record mode.
@@ -49,6 +51,7 @@ internal fun resolveSnapshotResource(name: String): URL? =
  * with the module directory as the working directory).
  */
 internal fun resolveSnapshotWritePath(name: String): Path {
+    requireValidSnapshotName(name)
     SnapshotConfig.outputDir?.let { dir -> return overridePath(dir, name) }
 
     resolveSnapshotResource(name)
@@ -86,4 +89,16 @@ private fun defaultSourceSnapshotDir(): Path =
 private fun overridePath(
     dir: String,
     name: String,
-): Path = Path.of(dir, "$name$RESOURCE_SUFFIX")
+): Path = Path.of(dir).resolve("$name$RESOURCE_SUFFIX").normalize()
+
+internal fun requireValidSnapshotName(name: String): String {
+    require(name.isNotBlank()) { "Snapshot name must not be blank." }
+    require('\\' !in name) { "Snapshot name must use '/' as a separator." }
+    val path = Path.of(name)
+    require(!path.isAbsolute) { "Snapshot name must be relative: $name." }
+    require(path.normalize() == path && path.none { it.toString() == ".." }) {
+        "Snapshot name must not escape the snapshot directory: $name."
+    }
+    require(path.all { it.toString().isNotBlank() }) { "Snapshot name must not contain empty path segments: $name." }
+    return name
+}
