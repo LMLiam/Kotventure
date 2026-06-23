@@ -2,73 +2,6 @@ import org.gradle.api.artifacts.VersionCatalogsExtension
 
 def catalog = rootProject.extensions.getByType(VersionCatalogsExtension).named('libs')
 def ktlintVersion = catalog.findVersion('spotlessKtlint').get().requiredVersion
-def editorConfigFile = rootProject.file('.editorconfig')
-def kotlinEditorConfigSection = '[{*.kt,*.kts}]'
-def spotlessKtlintRuleOverrideNames = [
-        'ktlint_standard_indent',
-        'ktlint_standard_string-template-indent'
-]
-if (!editorConfigFile.exists()) {
-    throw new GradleException(".editorconfig not found at ${editorConfigFile.path}")
-}
-
-def normalizeEditorConfigValue = { String rawValue ->
-    def value = rawValue.trim()
-
-    ['#', ';'].each { marker ->
-        def markerIndex = value.indexOf(marker)
-
-        if (markerIndex >= 0) {
-            value = value.substring(0, markerIndex).trim()
-        }
-    }
-
-    if (
-            value.length() >= 2 &&
-                    ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'")))
-    ) {
-        value = value.substring(1, value.length() - 1)
-    }
-
-    value
-}
-
-def editorConfigValues = [:]
-def inKotlinEditorConfigSection = false
-try {
-    editorConfigFile.eachLine { line ->
-        def trimmed = line.trim()
-
-        if (trimmed && !trimmed.startsWith('#') && !trimmed.startsWith(';')) {
-            if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-                inKotlinEditorConfigSection = trimmed == kotlinEditorConfigSection
-            } else if (inKotlinEditorConfigSection) {
-                def separator = trimmed.indexOf('=')
-
-                if (separator >= 0) {
-                    editorConfigValues[trimmed.substring(0, separator).trim()] =
-                            normalizeEditorConfigValue(trimmed.substring(separator + 1))
-                }
-            }
-        }
-    }
-} catch (IOException exception) {
-    throw new GradleException("Unable to read .editorconfig at ${editorConfigFile.path}", exception)
-}
-
-def missingSpotlessKtlintRuleOverrides =
-        spotlessKtlintRuleOverrideNames.findAll { ruleName -> !editorConfigValues.containsKey(ruleName) }
-if (!missingSpotlessKtlintRuleOverrides.isEmpty()) {
-    throw new GradleException(
-            "Missing ktlint rule settings in .editorconfig section ${kotlinEditorConfigSection}: " +
-                    missingSpotlessKtlintRuleOverrides.join(', '),
-    )
-}
-
-def spotlessKtlintRuleOverrides =
-        spotlessKtlintRuleOverrideNames.collectEntries { ruleName ->
-            [(ruleName): editorConfigValues[ruleName]]
-        }
 
 spotless {
     ratchetFrom 'origin/master'
@@ -83,9 +16,7 @@ spotless {
     }
 
     kotlin {
-        def ktlintStep = ktlint(ktlintVersion)
-        // Feed Spotless the selected ktlint rule settings declared in .editorconfig.
-        ktlintStep.editorConfigOverride(spotlessKtlintRuleOverrides)
-        ktlintStep.setEditorConfigPath(editorConfigFile.path)
+        // Spotless' ktlint step reads the root .editorconfig by default.
+        ktlint(ktlintVersion)
     }
 }

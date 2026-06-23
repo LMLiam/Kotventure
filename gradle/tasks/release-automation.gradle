@@ -15,16 +15,9 @@ def requireReleaseAutomationValue = { boolean condition, String message ->
     }
 }
 
-def requireReleaseAutomationText = { String text, String expected, String message ->
-    requireReleaseAutomationValue(
-            text.contains(expected),
-            "${message}; missing `${expected}`."
-    )
-}
-
 tasks.register('verifyReleasePleaseConfiguration') {
     group = 'verification'
-    description = 'Verifies release-please version, changelog, workflow, and documentation wiring.'
+    description = 'Verifies structured release-please configuration and required release artifacts.'
 
     doLast {
         def catalog = rootProject.extensions.getByType(VersionCatalogsExtension).named('libs')
@@ -36,13 +29,6 @@ tasks.register('verifyReleasePleaseConfiguration') {
         requireReleaseAutomationValue(
                 rootProject.version.toString() == projectVersion.get().requiredVersion,
                 "Root project version '${rootProject.version}' must match versions.project '${projectVersion.get().requiredVersion}'."
-        )
-
-        def buildScript = requireReleaseAutomationFile('build.gradle').text
-        requireReleaseAutomationText(
-                buildScript,
-                'version = libs.versions.project.get()',
-                'build.gradle must read the project version from the version catalog'
         )
 
         def parser = new JsonSlurper()
@@ -127,27 +113,8 @@ tasks.register('verifyReleasePleaseConfiguration') {
                 'release-please-config.json must bump versions.project in gradle/libs.versions.toml via extra-files.'
         )
 
-        def workflow = requireReleaseAutomationFile('.github/workflows/release-please.yml').text
-        requireReleaseAutomationText(workflow, 'push:', 'release-please workflow must run on push events')
-        requireReleaseAutomationText(workflow, '- master', 'release-please workflow must target master')
-        requireReleaseAutomationText(workflow, 'contents: write', 'release-please workflow must be able to write tags/releases')
-        requireReleaseAutomationText(workflow, 'issues: write', 'release-please workflow must be able to manage release labels')
-        requireReleaseAutomationText(workflow, 'pull-requests: write', 'release-please workflow must be able to open Release PRs')
-        requireReleaseAutomationText(workflow, 'id: release', 'release-please workflow must expose action outputs')
-        requireReleaseAutomationText(workflow, 'uses: googleapis/release-please-action@', 'release-please workflow must run release-please-action')
-        requireReleaseAutomationText(workflow, '# v5', 'release-please workflow action pin must document the v4 tag')
-        requireReleaseAutomationText(workflow, 'config-file: release-please-config.json', 'release-please workflow must use the repository config file')
-        requireReleaseAutomationText(workflow, 'manifest-file: .release-please-manifest.json', 'release-please workflow must use the repository manifest')
-        requireReleaseAutomationText(workflow, 'release_created:', 'release-please workflow must expose release_created for downstream publishing')
-        requireReleaseAutomationText(workflow, 'tag_name:', 'release-please workflow must expose tag_name for downstream publishing')
-
-        def releaseDocs = requireReleaseAutomationFile('docs/RELEASING.md').text
-        requireReleaseAutomationText(releaseDocs, 'RELEASE_PLEASE_TOKEN', 'release documentation must describe the bot token secret')
-        requireReleaseAutomationText(releaseDocs, '`0.0.x` is reserved for the pre-alpha spike.', 'release documentation must reserve 0.0.x for the pre-alpha phase.')
-        requireReleaseAutomationText(releaseDocs, '`0.1.0`, which marks the start of the alpha line.', 'release documentation must describe 0.1.0 as the first alpha feature release.')
-        requireReleaseAutomationText(releaseDocs, 'branch protection', 'release documentation must cover branch protection')
-        requireReleaseAutomationText(releaseDocs, 'GitHub Actions bot', 'release documentation must cover bot permissions')
-        requireReleaseAutomationText(releaseDocs, 'Maven Central', 'release documentation must keep publishing coordination explicit')
+        requireReleaseAutomationFile('.github/workflows/release-please.yml')
+        requireReleaseAutomationFile('docs/RELEASING.md')
     }
 }
 

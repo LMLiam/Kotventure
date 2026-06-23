@@ -1,16 +1,20 @@
-repositories {
-    mavenLocal()
-    mavenCentral()
-}
-
 def bomConsumerModules = [
         'core',
         'minimessage',
         'serializer',
-        'test'
+        'test',
+        'test-snapshot'
 ]
 def bomConsumerArtifacts = bomConsumerModules.collect { moduleName ->
     "kotventure-${moduleName}".toString()
+}
+def bomConsumerRepositoryDir = rootProject.layout.buildDirectory.dir('bom-consumer-m2')
+
+repositories {
+    maven {
+        url = bomConsumerRepositoryDir
+    }
+    mavenCentral()
 }
 def jitpackBuild = providers.environmentVariable('JITPACK').orNull == 'true'
 def jitpackEnvironmentValue = { String name ->
@@ -26,6 +30,19 @@ def bomConsumerGroup = jitpackBuild
 def bomConsumerVersion = jitpackBuild
         ? jitpackEnvironmentValue('VERSION')
         : project.version.toString()
+
+subprojects { subproject ->
+    plugins.withId('maven-publish') {
+        subproject.publishing {
+            repositories {
+                maven {
+                    name = 'bomConsumerLocal'
+                    url = bomConsumerRepositoryDir
+                }
+            }
+        }
+    }
+}
 
 configurations {
     bomConsumerVerification {
@@ -47,9 +64,9 @@ tasks.register('verifyBomConsumerVersionlessDependencies') {
     description = 'Verifies that a consumer importing kotventure-bom can omit per-artifact versions.'
 
     bomConsumerModules.each { moduleName ->
-        dependsOn ":${moduleName}:publishToMavenLocal"
+        dependsOn ":${moduleName}:publishMavenPublicationToBomConsumerLocalRepository"
     }
-    dependsOn ':bom:publishToMavenLocal'
+    dependsOn ':bom:publishMavenPublicationToBomConsumerLocalRepository'
 
     doLast {
         def expectedGroup = bomConsumerGroup
