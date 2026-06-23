@@ -40,15 +40,16 @@ internal fun keyLiteral(key: Key): String =
  * when the sprite uses Adventure's default atlas, and the matching `head` form for player-head contents.
  */
 internal fun objectContentsLiteral(contents: ObjectContents): String =
-    when (contents) {
-        is SpriteObjectContents ->
+    when {
+        contents is SpriteObjectContents ->
             if (contents.atlas() == SpriteObjectContents.DEFAULT_ATLAS) {
                 "sprite(${keyLiteral(contents.sprite())})"
             } else {
                 "sprite(${keyLiteral(contents.atlas())}, ${keyLiteral(contents.sprite())})"
             }
 
-        is PlayerHeadObjectContents -> playerHeadLiteral(contents)
+        contents is PlayerHeadObjectContents -> playerHeadLiteral(contents)
+        else -> conversionError("miniToDsl cannot represent object contents ${contents::class.qualifiedName}.")
     }
 
 /**
@@ -57,8 +58,8 @@ internal fun objectContentsLiteral(contents: ObjectContents): String =
  * by the tag and have no DSL surface, so they are rejected rather than silently dropped.
  */
 private fun playerHeadLiteral(contents: PlayerHeadObjectContents): String {
-    require(contents.profileProperties().isEmpty()) {
-        "miniToDsl cannot represent player-head profile properties: the <head> tag does not set them."
+    if (contents.profileProperties().isNotEmpty()) {
+        conversionError("miniToDsl cannot represent player-head profile properties: the <head> tag does not set them.")
     }
     val skinSources =
         listOfNotNull(
@@ -66,8 +67,10 @@ private fun playerHeadLiteral(contents: PlayerHeadObjectContents): String {
             contents.id()?.let { "UUID.fromString(\"$it\")" },
             contents.texture()?.let { keyLiteral(it) },
         )
-    require(skinSources.size == 1) {
-        "miniToDsl cannot represent a player head without exactly one skin source (a name, UUID, or texture)."
+    if (skinSources.size != 1) {
+        conversionError(
+            "miniToDsl cannot represent a player head without exactly one skin source (a name, UUID, or texture).",
+        )
     }
     val hat = if (contents.hat()) null else "hat = ${contents.hat()}"
     return "head(${(skinSources + listOfNotNull(hat)).joinToString(", ")})"
@@ -81,9 +84,7 @@ internal fun dataComponentValueLiteral(value: DataComponentValue): String =
             "BinaryTagHolder.binaryTagHolder(\"${escapeKotlinString(value.asBinaryTag().string())}\")"
 
         is DataComponentValue.Removed -> "DataComponentValue.removed()"
-        else -> throw IllegalArgumentException(
-            "miniToDsl cannot represent data component value ${value::class.qualifiedName}.",
-        )
+        else -> conversionError("miniToDsl cannot represent data component value ${value::class.qualifiedName}.")
     }
 
 /** Escapes [value] for embedding inside a double-quoted Kotlin string literal. */
