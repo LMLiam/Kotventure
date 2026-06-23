@@ -1,9 +1,9 @@
 package io.github.lmliam.kotventure.minimessage.validation
 
 /**
- * The result of a `validate` call.
+ * The outcome of validating MiniMessage markup against its declared placeholders.
  *
- * Either [Success] (input is well-formed and every declared placeholder is present) or
+ * Either [Success] (the markup is well-formed and every declared placeholder is present) or
  * [Failure] (one or more [MiniMessageDiagnostic] were found).
  */
 public sealed interface ValidationResult {

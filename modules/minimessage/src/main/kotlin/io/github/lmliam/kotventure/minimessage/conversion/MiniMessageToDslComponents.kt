@@ -31,16 +31,16 @@ internal fun KotlinSourceBuilder.appendRoot(component: Component) {
  * reads the same whether it appends a child inside a scope or stands alone as a translatable argument or separator.
  */
 internal fun KotlinSourceBuilder.appendComponent(component: Component) {
-    when {
-        component is TextComponent -> appendText(component)
-        component is TranslatableComponent -> appendTranslatable(component)
-        component is KeybindComponent -> appendKeybind(component)
-        component is ScoreComponent -> appendScore(component)
-        component is SelectorComponent -> appendSelector(component)
-        component is BlockNBTComponent -> appendBlockNbt(component)
-        component is EntityNBTComponent -> appendEntityNbt(component)
-        component is StorageNBTComponent -> appendStorageNbt(component)
-        component is ObjectComponent -> appendObject(component)
+    when (component) {
+        is TextComponent -> appendText(component)
+        is TranslatableComponent -> appendTranslatable(component)
+        is KeybindComponent -> appendKeybind(component)
+        is ScoreComponent -> appendScore(component)
+        is SelectorComponent -> appendSelector(component)
+        is BlockNBTComponent -> appendBlockNbt(component)
+        is EntityNBTComponent -> appendEntityNbt(component)
+        is StorageNBTComponent -> appendStorageNbt(component)
+        is ObjectComponent -> appendObject(component)
         else -> conversionError("miniToDsl cannot represent component type ${component::class.qualifiedName}.")
     }
 }
