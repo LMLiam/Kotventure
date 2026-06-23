@@ -4,7 +4,24 @@ All notable changes to this project are documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
-once it reaches `1.0.0`. During pre-alpha (`0.0.x`), breaking changes may land in any release.
+once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any release.
+
+## Unreleased
+
+### Changed
+
+- Moved nested component DSL factories out of the central `ComponentScope` contract into feature-owned extension
+  functions.
+- Replaced the central extension registry with a theme-owned registry and removed future-phase animation, platform, and
+  core MiniMessage tag-provider scaffolding.
+- Renamed serializer helpers to explicit format names and removed MiniMessage/plain-text parse aliases.
+- Template rendering now validates template definitions before binding values.
+- Gradle formatting is Spotless-only; compile tasks no longer apply formatting.
+
+### Removed
+
+- Removed low-value aliases: `Component.compacted()`, `Component.count()`, `Component.forEach(...)`,
+  `String.asKey()`, `String.namespace(...)`, and ambiguous `click { open(...) }`.
 
 ## [0.4.0](https://github.com/LMLiam/Kotventure/compare/0.3.0...0.4.0) (2026-06-16)
 
