@@ -1,9 +1,7 @@
 # Kotventure — Design
 
-> **Status:** Living design document · **Stage:** Alpha (`0.4.x`) · **Last updated:** 2026‑06‑23
->
-> This document captures the agreed architecture, scope, and roadmap. It is the source of truth that the GitHub Epic and
-> its sub‑issues are derived from. Syntax shown is **illustrative** and will be refined during implementation.
+> This document captures the agreed architecture and scope that the GitHub Epic and its sub‑issues are derived from.
+> Syntax shown is **illustrative** and will be refined during implementation.
 
 ---
 
@@ -76,8 +74,8 @@ Modules are introduced **lazily, per phase** — not all scaffolded up front —
 
 ### 4.1 Registries & extension points
 
-Kotventure does not use a hidden process-global registry or classpath scanning. When runtime lookup is genuinely
-needed, the owning feature exposes an explicit registry value as part of its public API.
+When runtime lookup is genuinely needed, the owning feature exposes an explicit registry value as part of its public
+API — never a hidden process-global registry or classpath scanning.
 
 - **Theme providers** use a `ThemeRegistry` instance for dynamic lookup and interop, while direct Kotlin callers prefer
   compile-checked properties such as `Brand.header`.

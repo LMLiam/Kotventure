@@ -1,11 +1,13 @@
 # Kotventure — Project Roadmap
 
-> **Lifecycle Stages:** Pre‑Alpha → Alpha → Beta → Release  
-> **Status:** Currently in **Alpha** (`0.4.x`)
+> **Lifecycle Stages:** Pre‑Alpha → Alpha → Beta → Release
+>
+> This roadmap describes what each stage is *for*. It deliberately does not track which version is current —
+> that lives in the published version and the changelog, not in prose that would rot.
 
 ---
 
-## 📍 Current Stage — Alpha (`0.4.x`)
+## Alpha (`0.1.x`–`0.8.x`)
 
 **Focus:**
 
@@ -14,11 +16,11 @@
 - Harden MiniMessage templates, validation, serializers, and component-testing tools.
 - Keep build, docs, and release metadata aligned with the currently shipped modules.
 
-**Plan:** See the [phased roadmap in `docs/DESIGN.md`](./DESIGN.md#11-phased-roadmap) for the current alpha-phase breakdown.
+**Plan:** See the [phased roadmap in `docs/DESIGN.md`](./DESIGN.md#11-phased-roadmap) for the alpha-phase breakdown.
 
 ---
 
-## 🔜 Next Stage — Beta (`0.9.x`)
+## Beta (`0.9.x`)
 
 **Focus:**
 
@@ -35,7 +37,7 @@
 
 ---
 
-## 🚀 Release (`1.0.0`)
+## Release (`1.0.0`)
 
 **Focus:**
 
@@ -59,6 +61,6 @@
 | Stage     | Target Range | Key Deliverable                      |
 |-----------|--------------|--------------------------------------|
 | Pre‑Alpha | 0.0.x        | Core DSL spike + snapshot publish    |
-| Alpha     | 0.1.x–0.8.x (Now) | Public API expansion + feedback loop |
+| Alpha     | 0.1.x–0.8.x  | Public API expansion + feedback loop |
 | Beta      | 0.9.x        | API freeze, stability, doc polish    |
 | Release   | 1.0.0        | Production‑ready stable release      |
