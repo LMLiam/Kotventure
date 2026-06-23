@@ -4,12 +4,6 @@ import org.gradle.api.artifacts.VersionCatalogsExtension
 
 def catalog = rootProject.extensions.getByType(VersionCatalogsExtension).named('libs')
 
-configurations {
-    shade
-    implementation.extendsFrom(shade)
-    testImplementation.extendsFrom annotationProcessor
-}
-
 ext.kotventureDependencies = [
         "adventure-api"                  : catalog.findLibrary('adventure-api').get(),
         "adventure-bom"                  : catalog.findLibrary('adventure-bom').get(),
