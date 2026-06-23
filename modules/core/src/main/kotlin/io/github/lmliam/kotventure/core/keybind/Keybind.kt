@@ -1,8 +1,9 @@
 package io.github.lmliam.kotventure.core.keybind
 
+import io.github.lmliam.kotventure.core.component.ComponentBuilder
 import io.github.lmliam.kotventure.core.component.ComponentScope
-import io.github.lmliam.kotventure.core.component.addChild
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.KeybindComponent
 
 /**
  * Builds an Adventure keybind [Component] from a Kotventure DSL block.
@@ -15,7 +16,10 @@ public fun keybind(
 internal fun buildKeybindComponent(
     keybind: String,
     init: ComponentScope.() -> Unit = {},
-): Component = KeybindComponentBuilder(keybind).apply(init).build()
+): Component =
+    ComponentBuilder<KeybindComponent, KeybindComponent.Builder>(
+        Component.keybind().keybind(keybind),
+    ).apply(init).build()
 
 /**
  * Appends a nested keybind child with [keybind] as its keybind identifier.
@@ -24,5 +28,5 @@ public fun ComponentScope.keybind(
     keybind: String,
     init: ComponentScope.() -> Unit = {},
 ) {
-    addChild(buildKeybindComponent(keybind, init))
+    append(buildKeybindComponent(keybind, init))
 }
