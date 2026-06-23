@@ -1,18 +1,20 @@
 package io.github.lmliam.kotventure.minimessage
 
 import io.github.lmliam.kotventure.core.component.ComponentScope
-import io.github.lmliam.kotventure.core.text.component
+import io.github.lmliam.kotventure.core.component.component
 import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 
 internal class MiniMessageResolverBuilder : MiniMessageResolverScope {
     private val resolvers: MutableList<TagResolver> = mutableListOf()
+    private val names: MutableSet<String> = mutableSetOf()
 
     override fun parsed(
         name: String,
         value: String,
     ) {
+        requireUniqueName(name)
         resolvers += Placeholder.parsed(name, value)
     }
 
@@ -20,6 +22,7 @@ internal class MiniMessageResolverBuilder : MiniMessageResolverScope {
         name: String,
         value: String,
     ) {
+        requireUniqueName(name)
         resolvers += Placeholder.unparsed(name, value)
     }
 
@@ -27,6 +30,7 @@ internal class MiniMessageResolverBuilder : MiniMessageResolverScope {
         name: String,
         value: ComponentLike,
     ) {
+        requireUniqueName(name)
         resolvers += Placeholder.component(name, value)
     }
 
@@ -57,4 +61,9 @@ internal class MiniMessageResolverBuilder : MiniMessageResolverScope {
     }
 
     internal fun build(): TagResolver = TagResolver.resolver(resolvers)
+
+    private fun requireUniqueName(name: String) {
+        requireValidMiniMessageTagName(name)
+        require(names.add(name)) { "MiniMessage resolver '$name' is already defined." }
+    }
 }

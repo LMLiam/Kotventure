@@ -3,8 +3,13 @@ package io.github.lmliam.kotventure.minimessage
 import net.kyori.adventure.text.ComponentLike
 import kotlin.jvm.javaObjectType
 
-// Reject invalid or blank names at declaration instead of first render.
-private val TAG_NAME_REGEX = Regex("[!?#]?[a-z0-9_-]+")
+internal val MINI_MESSAGE_TAG_NAME_REGEX: Regex = Regex("[!?#]?[a-z0-9_-]+")
+
+internal fun requireValidMiniMessageTagName(name: String) {
+    require(MINI_MESSAGE_TAG_NAME_REGEX.matches(name)) {
+        "MiniMessage placeholder names must match ${MINI_MESSAGE_TAG_NAME_REGEX.pattern}; received '$name'."
+    }
+}
 
 /**
  * A typed MiniMessage placeholder descriptor.
@@ -20,9 +25,7 @@ internal constructor(
     internal val strategy: MiniMessagePlaceholderStrategy,
 ) {
     init {
-        require(TAG_NAME_REGEX.matches(name)) {
-            "MiniMessage placeholder names must match ${TAG_NAME_REGEX.pattern}; received '$name'."
-        }
+        requireValidMiniMessageTagName(name)
     }
 
     override fun equals(other: Any?): Boolean =
