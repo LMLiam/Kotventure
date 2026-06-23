@@ -1,20 +1,18 @@
 # Kotventure — Project Roadmap
 
 > **Lifecycle Stages:** Pre‑Alpha → Alpha → Beta → Release  
-> **Status:** Currently in **Pre‑Alpha** (`0.0.x`)
+> **Status:** Currently in **Alpha** (`0.4.x`)
 
 ---
 
-## 📍 Current Stage — Pre‑Alpha (`0.0.x`)
+## 📍 Current Stage — Alpha (`0.4.x`)
 
 **Focus:**
 
-- Prove core DSL concept for Kotlin → Adventure component creation.
-- Ship *minimum viable* feature slice:
-    - `text` component builder with `color` + `decoration`
-    - Basic nesting
-- Verify build + CI flow (per‑module JARs and aggregate JAR).
-- Publish snapshots for internal and early‑access testers.
+- Expand the core DSL without centralizing every feature in `ComponentScope`.
+- Keep public API surface small while compatibility is still flexible.
+- Harden MiniMessage templates, validation, serializers, and component-testing tools.
+- Keep build, docs, and release metadata aligned with the currently shipped modules.
 
 **Plan:** See [Pre‑Alpha Plan](./PRE-ALPHA-PLAN.md) for detail
 
@@ -77,8 +75,7 @@
 
 | Stage     | Target Range | Key Deliverable                      |
 |-----------|--------------|--------------------------------------|
-| Pre‑Alpha | 0.0.x (Now)  | Core DSL spike + snapshot publish    |
-| Alpha     | 0.1.x–0.8.x  | Public API expansion + feedback loop |
+| Pre‑Alpha | 0.0.x        | Core DSL spike + snapshot publish    |
+| Alpha     | 0.1.x–0.8.x (Now) | Public API expansion + feedback loop |
 | Beta      | 0.9.x        | API freeze, stability, doc polish    |
 | Release   | 1.0.0        | Production‑ready stable release      |
-
