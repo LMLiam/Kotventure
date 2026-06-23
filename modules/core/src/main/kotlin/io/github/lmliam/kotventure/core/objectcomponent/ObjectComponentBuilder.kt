@@ -2,7 +2,7 @@ package io.github.lmliam.kotventure.core.objectcomponent
 
 import io.github.lmliam.kotventure.core.component.ComponentBuilder
 import io.github.lmliam.kotventure.core.component.ComponentScope
-import io.github.lmliam.kotventure.core.text.component
+import io.github.lmliam.kotventure.core.component.component
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.ObjectComponent
