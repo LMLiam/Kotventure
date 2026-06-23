@@ -6,5 +6,4 @@ import net.kyori.adventure.text.KeybindComponent
 
 internal class KeybindComponentBuilder(
     keybind: String,
-) : ComponentBuilder<KeybindComponent, KeybindComponent.Builder>(Component.keybind().keybind(keybind)),
-    KeybindScope
+) : ComponentBuilder<KeybindComponent, KeybindComponent.Builder>(Component.keybind().keybind(keybind))
