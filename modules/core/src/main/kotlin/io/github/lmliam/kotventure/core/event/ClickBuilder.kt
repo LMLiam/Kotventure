@@ -9,10 +9,6 @@ import kotlin.time.Duration as KotlinDuration
 internal class ClickBuilder : ClickActionScope {
     private var event: ClickEvent<*>? = null
 
-    override fun open(target: String) {
-        set(openTarget(target))
-    }
-
     override fun openUrl(url: String) {
         set(ClickEvent.openUrl(url))
     }
@@ -64,13 +60,13 @@ internal class ClickBuilder : ClickActionScope {
     internal fun build(): ClickEvent<*> =
         event
             ?: error(
-                "click { ... } must choose exactly one action with open(...), openUrl(...), openFile(...), " +
+                "click { ... } must choose exactly one action with openUrl(...), openFile(...), " +
                         "run(...), suggest(...), changePage(...), copy(...), or callback(...).",
             )
 
     private fun set(event: ClickEvent<*>) {
         check(this.event == null) {
-            "click { ... } must choose only one action: open(...), openUrl(...), openFile(...), run(...), " +
+            "click { ... } must choose only one action: openUrl(...), openFile(...), run(...), " +
                     "suggest(...), changePage(...), copy(...), or callback(...)."
         }
         this.event = event

@@ -11,13 +11,6 @@ import kotlin.time.Duration as KotlinDuration
 @KotventureDslMarker
 public interface ClickActionScope {
     /**
-     * Selects a click action that opens [target].
-     *
-     * File URI targets are converted to open-file events; all other targets are treated as URLs.
-     */
-    public fun open(target: String)
-
-    /**
      * Selects a click action that opens [url].
      */
     public fun openUrl(url: String)
