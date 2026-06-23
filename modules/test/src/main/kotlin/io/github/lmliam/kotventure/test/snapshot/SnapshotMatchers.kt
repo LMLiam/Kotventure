@@ -22,9 +22,19 @@ private fun recordHint(verb: String): String =
  * deliberately not done here** — a matcher may be evaluated by `shouldNot` or a combinator, where writing would corrupt
  * the very fixture under test. Record mode lives in the positive [shouldMatchSnapshot] path instead; prefer that sugar.
  */
-public fun matchSnapshot(name: String): Matcher<Component> =
+public fun matchSnapshot(name: String): Matcher<Component> = matchSnapshot(name, compact = false)
+
+/**
+ * Matches a compacted component against the committed snapshot named [name].
+ */
+public fun matchCompactedSnapshot(name: String): Matcher<Component> = matchSnapshot(name, compact = true)
+
+private fun matchSnapshot(
+    name: String,
+    compact: Boolean,
+): Matcher<Component> =
     Matcher { value ->
-        val actual = value.toSnapshotJson().normalizeSnapshot()
+        val actual = value.toSnapshotJson(compact).normalizeSnapshot()
         val expected = readSnapshot(name)?.normalizeSnapshot()
 
         when {
@@ -71,14 +81,24 @@ public fun matchSnapshot(name: String): Matcher<Component> =
  * Snapshots complement the structural matchers rather than replacing them: reach for a snapshot when a whole message's
  * serialized output is the regression you care about, and for a structural matcher when a single attribute is.
  */
-public infix fun Component.shouldMatchSnapshot(name: String): Component =
+public infix fun Component.shouldMatchSnapshot(name: String): Component = assertSnapshot(name, compact = false)
+
+/**
+ * Asserts that this component's compacted form matches the committed snapshot named [name].
+ */
+public infix fun Component.shouldMatchCompactedSnapshot(name: String): Component = assertSnapshot(name, compact = true)
+
+private fun Component.assertSnapshot(
+    name: String,
+    compact: Boolean,
+): Component =
     apply {
         if (SnapshotConfig.updateMode) {
-            val actual = toSnapshotJson().normalizeSnapshot()
+            val actual = toSnapshotJson(compact).normalizeSnapshot()
             if (readSnapshot(name)?.normalizeSnapshot() != actual) {
                 writeSnapshot(name, actual)
             }
         } else {
-            this should matchSnapshot(name)
+            this should matchSnapshot(name, compact)
         }
     }
