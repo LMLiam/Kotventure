@@ -41,7 +41,11 @@ public abstract class MiniTemplate(
 
     private val miniMessage: MiniMessage = MiniMessage.miniMessage()
 
+    @Volatile
+    private var definitionSealed: Boolean = false
+
     private val validation: ValidationResult by lazy(LazyThreadSafetyMode.PUBLICATION) {
+        definitionSealed = true
         runValidation(markup, placeholders.values.toList())
     }
 
@@ -55,6 +59,9 @@ public abstract class MiniTemplate(
 
     @PublishedApi
     internal fun <T : Any> register(descriptor: MiniMessagePlaceholder<T>): MiniMessagePlaceholder<T> {
+        check(!definitionSealed) {
+            "Cannot declare placeholder '${descriptor.name}' after the template definition has been validated."
+        }
         require(placeholders.put(descriptor.name, descriptor) == null) {
             "Duplicate placeholder '${descriptor.name}' in template."
         }

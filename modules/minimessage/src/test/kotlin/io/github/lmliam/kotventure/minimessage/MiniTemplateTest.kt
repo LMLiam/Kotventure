@@ -25,7 +25,7 @@ private object WelcomeTemplate : MiniTemplate("<gold>Welcome <player>, <count> n
     val count = placeholder<Int>("count")
 }
 
-// Template with a declared placeholder absent from the markup (AC: lenient unused).
+// Template whose declared "unused" placeholder is absent from the markup: an invalid definition.
 private object SparseTemplate : MiniTemplate("<gold>Hello <name></gold>") {
     val name = placeholder<String>("name")
     val unused = placeholder<Int>("unused")
