@@ -52,4 +52,11 @@ public sealed interface MiniMessageDiagnostic {
     public data class ExtraPlaceholder(
         public val name: String,
     ) : MiniMessageDiagnostic
+
+    /**
+     * The validation engine failed outside Adventure's documented parsing exception path.
+     */
+    public data class ValidationEngineFailure(
+        public val message: String,
+    ) : MiniMessageDiagnostic
 }

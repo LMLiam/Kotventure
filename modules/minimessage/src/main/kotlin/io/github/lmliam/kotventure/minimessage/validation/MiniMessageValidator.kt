@@ -7,6 +7,9 @@ import net.kyori.adventure.text.minimessage.ParsingException
 import net.kyori.adventure.text.minimessage.tag.Tag
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 
+private val STRICT_MINI_MESSAGE: MiniMessage = MiniMessage.builder().strict(true).build()
+private val LENIENT_MINI_MESSAGE: MiniMessage = MiniMessage.miniMessage()
+
 /**
  * Runs the two-pass validation algorithm and returns the merged [ValidationResult].
  *
@@ -51,12 +54,11 @@ internal fun runValidation(
 private fun detectMalformedTags(
     input: String,
     placeholders: List<MiniMessagePlaceholder<*>>,
-): List<MiniMessageDiagnostic.MalformedTag> {
-    val strictParser = MiniMessage.builder().strict(true).build()
+): List<MiniMessageDiagnostic> {
     val placeholderResolver = buildPlaceholderNameResolver(placeholders)
     val combined = TagResolver.resolver(TagResolver.standard(), placeholderResolver)
     return try {
-        strictParser.deserialize(input, combined)
+        STRICT_MINI_MESSAGE.deserialize(input, combined)
         emptyList()
     } catch (e: ParsingException) {
         listOf(
@@ -67,15 +69,7 @@ private fun detectMalformedTags(
             ),
         )
     } catch (e: RuntimeException) {
-        // The parser rejected the input outside the documented ParsingException path (no position
-        // info available). Report it as malformed so it is never silently treated as valid.
-        listOf(
-            MiniMessageDiagnostic.MalformedTag(
-                message = e.message ?: "Input rejected by the MiniMessage parser.",
-                startIndex = MiniMessageDiagnostic.MalformedTag.LOCATION_UNKNOWN,
-                endIndex = MiniMessageDiagnostic.MalformedTag.LOCATION_UNKNOWN,
-            ),
-        )
+        listOf(MiniMessageDiagnostic.ValidationEngineFailure(e.message ?: "MiniMessage validation failed."))
     }
 }
 
@@ -105,7 +99,7 @@ private fun detectPlaceholderMismatches(
     // validate() never propagates an exception; any input that crashes the parser is already
     // reported as malformed by the strict pass, and the recorder's side-effects so far remain usable.
     try {
-        MiniMessage.miniMessage().deserialize(input, combined)
+        LENIENT_MINI_MESSAGE.deserialize(input, combined)
     } catch (_: RuntimeException) {
         // Proceed with whatever the recorder captured before the throw.
     }
