@@ -57,5 +57,17 @@ class SnapshotFilesTest :
                     resolveSnapshotWritePath("/absolute")
                 }
             }
+
+            "rejects blank, backslash-separated, and whitespace-segment snapshot names" {
+                shouldThrow<IllegalArgumentException> {
+                    resolveSnapshotWritePath("   ")
+                }
+                shouldThrow<IllegalArgumentException> {
+                    resolveSnapshotWritePath("nested\\name")
+                }
+                shouldThrow<IllegalArgumentException> {
+                    resolveSnapshotWritePath("nested/ /name")
+                }
+            }
         },
     )
