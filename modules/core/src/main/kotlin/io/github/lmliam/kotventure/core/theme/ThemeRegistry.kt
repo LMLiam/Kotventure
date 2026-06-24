@@ -25,15 +25,16 @@ public class ThemeRegistry {
         provider: T,
         default: Boolean = false,
     ): T {
-        require(provider.name.isNotBlank()) { "Theme provider name must not be blank." }
+        val providerName = provider.name
+        require(providerName.isNotBlank()) { "Theme provider name must not be blank." }
         lock.withLock {
-            require(provider.name !in providers) {
-                "Theme provider '${provider.name}' is already registered."
+            require(providerName !in providers) {
+                "Theme provider '$providerName' is already registered."
             }
             require(!default || defaultProvider == null) {
                 "Default theme provider '${checkNotNull(defaultProvider).name}' is already registered."
             }
-            providers = providers + (provider.name to provider)
+            providers = providers + (providerName to provider)
             if (default) {
                 defaultProvider = provider
             }

@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.core.theme
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
@@ -38,12 +39,18 @@ class ThemeLookupTest :
                 registry.defaultTheme().shouldBeNull()
             }
 
+            "rejects blank provider names" {
+                shouldThrow<IllegalArgumentException> {
+                    ThemeRegistry().register(TestThemeProvider(" "))
+                }
+            }
+
             "rejects duplicate theme registrations" {
                 val registry = ThemeRegistry()
 
                 registry.register(TestThemeProvider("brand"))
 
-                io.kotest.assertions.throwables.shouldThrow<IllegalArgumentException> {
+                shouldThrow<IllegalArgumentException> {
                     registry.register(TestThemeProvider("brand"))
                 }
             }
@@ -53,7 +60,7 @@ class ThemeLookupTest :
 
                 registry.register(TestThemeProvider("brand"), default = true)
 
-                io.kotest.assertions.throwables.shouldThrow<IllegalArgumentException> {
+                shouldThrow<IllegalArgumentException> {
                     registry.register(TestThemeProvider("server"), default = true)
                 }
             }
