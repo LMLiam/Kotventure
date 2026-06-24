@@ -6,7 +6,13 @@ import io.github.lmliam.kotventure.minimessage.placeholder.MiniMessageResolverSc
 import net.kyori.adventure.text.Component
 
 /**
- * Parses [input] with Adventure's default MiniMessage parser.
+ * Parses MiniMessage markup into a component with Adventure's default parser.
+ *
+ * ```kotlin
+ * val greeting = mini("<gold>Welcome <bold>back</bold>!")
+ * ```
+ *
+ * @param input the MiniMessage string to parse.
  */
 public fun mini(input: String): Component = parseMiniMessage(input)
 
@@ -25,7 +31,17 @@ public fun mini(input: String): Component = parseMiniMessage(input)
 public fun miniToDsl(input: String): String = MiniMessageToDslWriter.write(mini(input))
 
 /**
- * Parses [input] with Adventure's default MiniMessage parser after configuring placeholder resolvers with [init].
+ * Parses MiniMessage markup into a component, resolving custom placeholder tags configured in [init].
+ *
+ * ```kotlin
+ * val line = mini("<greeting> <player>!") {
+ *     parsed("greeting", "<gold>Welcome")
+ *     unparsed("player", playerName)
+ * }
+ * ```
+ *
+ * @param input the MiniMessage string to parse.
+ * @param init registers the placeholder resolvers the markup may reference.
  */
 public fun mini(
     input: String,
