@@ -21,7 +21,7 @@ val message = component {
         color(NamedTextColor.AQUA)
         bold()
     }
-    append(Component.text("[new]", NamedTextColor.GREEN))
+    text("[new]") { color(NamedTextColor.GREEN) }
     text(" Website") {
         click { openUrl("https://example.com") }
     }
