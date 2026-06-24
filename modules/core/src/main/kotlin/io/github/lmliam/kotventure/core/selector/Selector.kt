@@ -4,7 +4,14 @@ import io.github.lmliam.kotventure.core.component.ComponentScope
 import net.kyori.adventure.text.Component
 
 /**
- * Builds an Adventure selector [Component] from a Kotventure DSL block.
+ * Builds a selector [Component] — text the client expands to the names matched by an entity selector.
+ *
+ * ```kotlin
+ * val nearby = selector("@e[distance=..10]") { separator(Component.text(", ")) }
+ * ```
+ *
+ * @param pattern the entity-selector pattern, such as `"@a"` or `"@e[type=zombie]"`.
+ * @param init configures the selector (e.g. its separator) and appends any children.
  */
 public fun selector(
     pattern: String,
@@ -17,7 +24,10 @@ internal fun buildSelectorComponent(
 ): Component = SelectorComponentBuilder(pattern).apply(init).build()
 
 /**
- * Appends a nested selector child with [pattern] as its selector pattern.
+ * Appends a selector child to this scope, for use inside a `component { }` or other component block.
+ *
+ * @param pattern the entity-selector pattern, such as `"@a"` or `"@e[type=zombie]"`.
+ * @param init configures the selector (e.g. its separator) and appends any children.
  */
 public fun ComponentScope.selector(
     pattern: String,

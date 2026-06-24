@@ -3,7 +3,12 @@ package io.github.lmliam.kotventure.core.event
 import net.kyori.adventure.text.event.ClickEvent
 
 /**
- * Builds a reusable Adventure click event from a Kotventure click-action DSL block.
+ * Builds a reusable click event. Choose exactly one action inside [init] — `openUrl`, `openFile`, `run`,
+ * `suggest`, `changePage`, `copy`, or `callback`.
+ *
+ * ```kotlin
+ * val link = click { openUrl("https://example.com") }
+ * ```
  *
  * @throws IllegalStateException when [init] does not choose exactly one click action.
  * @throws IllegalArgumentException when Adventure rejects the selected action payload.

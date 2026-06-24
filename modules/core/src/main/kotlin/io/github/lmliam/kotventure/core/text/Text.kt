@@ -4,7 +4,17 @@ import io.github.lmliam.kotventure.core.component.ComponentScope
 import net.kyori.adventure.text.Component
 
 /**
- * Builds an Adventure text [Component] with [value] as its initial content, configured by [init].
+ * Builds a text [Component] with [value] as its literal content.
+ *
+ * ```kotlin
+ * val greeting = text("Hello") {
+ *     color(NamedTextColor.GOLD)
+ *     bold()
+ * }
+ * ```
+ *
+ * @param value the literal text content.
+ * @param init styles the component and appends any children.
  */
 public fun text(
     value: String,
@@ -21,14 +31,18 @@ internal fun buildTextComponent(
     }
 
 /**
- * Builds an Adventure text [Component] from a Kotventure text DSL block.
+ * Builds a text [Component] whose content is set inside [init] via `content(...)`, for when content and
+ * styling are configured together.
  */
 public fun text(init: TextScope.() -> Unit): Component = buildTextComponent(init)
 
 internal fun buildTextComponent(init: TextScope.() -> Unit): Component = TextBuilder().apply(init).build()
 
 /**
- * Appends a nested text child with [value] as its initial content.
+ * Appends a text child with [value] as its content, for use inside a `component { }` or other component block.
+ *
+ * @param value the literal text content.
+ * @param init styles the child and appends any of its own children.
  */
 public fun ComponentScope.text(
     value: String,
@@ -38,7 +52,7 @@ public fun ComponentScope.text(
 }
 
 /**
- * Appends a nested text child.
+ * Appends a text child whose content is set inside [init] via `content(...)`.
  */
 public fun ComponentScope.text(init: TextScope.() -> Unit) {
     append(buildTextComponent(init))

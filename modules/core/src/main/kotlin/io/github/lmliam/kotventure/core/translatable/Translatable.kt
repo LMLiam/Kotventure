@@ -4,7 +4,17 @@ import io.github.lmliam.kotventure.core.component.ComponentScope
 import net.kyori.adventure.text.Component
 
 /**
- * Builds an Adventure translatable [Component] from a Kotventure DSL block.
+ * Builds a translatable [Component] — text the client renders from a translation key in the player's locale.
+ *
+ * ```kotlin
+ * val died = translatable("death.attack.player") {
+ *     arg(Component.text("Alex"))
+ *     fallback("Alex was slain")
+ * }
+ * ```
+ *
+ * @param key the translation key, such as `"item.minecraft.diamond"`.
+ * @param init supplies translation arguments and an optional fallback, and appends any children.
  */
 public fun translatable(
     key: String,
@@ -17,7 +27,10 @@ internal fun buildTranslatableComponent(
 ): Component = TranslatableComponentBuilder(key).apply(init).build()
 
 /**
- * Appends a nested translatable child with [key] as its translation key.
+ * Appends a translatable child to this scope, for use inside a `component { }` or other component block.
+ *
+ * @param key the translation key, such as `"item.minecraft.diamond"`.
+ * @param init supplies translation arguments and an optional fallback, and appends any children.
  */
 public fun ComponentScope.translatable(
     key: String,

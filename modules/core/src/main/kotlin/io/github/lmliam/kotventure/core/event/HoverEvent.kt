@@ -3,7 +3,11 @@ package io.github.lmliam.kotventure.core.event
 import net.kyori.adventure.text.event.HoverEvent
 
 /**
- * Builds a reusable Adventure hover event from a Kotventure hover-content DSL block.
+ * Builds a reusable hover event. Choose exactly one payload inside [init] — `text`, `item`, or `entity`.
+ *
+ * ```kotlin
+ * val tooltip = hover { text("Click to teleport") }
+ * ```
  *
  * @throws IllegalStateException when [init] does not choose exactly one hover payload.
  * @throws IllegalArgumentException when a payload value is rejected before reaching Adventure.

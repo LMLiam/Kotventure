@@ -6,7 +6,15 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ScoreComponent
 
 /**
- * Builds an Adventure score [Component] from a Kotventure DSL block.
+ * Builds a score [Component] — text the client resolves to a scoreboard value at display time.
+ *
+ * ```kotlin
+ * val kills = score(name = "@s", objective = "kills")
+ * ```
+ *
+ * @param name the scoreholder, e.g. a player name or selector like `"@s"`.
+ * @param objective the scoreboard objective to read.
+ * @param init styles the component and appends any children.
  */
 public fun score(
     name: String,
@@ -24,7 +32,11 @@ internal fun buildScoreComponent(
     ).apply(init).build()
 
 /**
- * Appends a nested score child with [name] and [objective].
+ * Appends a score child to this scope, for use inside a `component { }` or other component block.
+ *
+ * @param name the scoreholder, e.g. a player name or selector like `"@s"`.
+ * @param objective the scoreboard objective to read.
+ * @param init styles the child and appends any of its own children.
  */
 public fun ComponentScope.score(
     name: String,
