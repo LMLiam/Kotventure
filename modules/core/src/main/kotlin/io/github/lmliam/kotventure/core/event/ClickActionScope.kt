@@ -6,7 +6,13 @@ import net.kyori.adventure.text.event.ClickCallback
 import kotlin.time.Duration as KotlinDuration
 
 /**
- * Scope for selecting the single action produced by a click event.
+ * Selects the single action a click event performs. Exactly one action must be chosen per `click { }` block;
+ * choosing none or more than one fails when the event is built.
+ *
+ * ```kotlin
+ * click { openUrl("https://example.com") }
+ * click { run("/spawn") }
+ * ```
  */
 @KotventureDslMarker
 public interface ClickActionScope {

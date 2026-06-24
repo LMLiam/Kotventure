@@ -5,7 +5,15 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.EntityNBTComponent
 
 /**
- * Builds an Adventure entity NBT [Component] from a Kotventure DSL block.
+ * Builds an entity-NBT [Component] — text the client resolves from the NBT of entities matched by a selector.
+ *
+ * ```kotlin
+ * val health = entityNbt("@s", "Health")
+ * ```
+ *
+ * @param selector the entity selector whose NBT is read, such as `"@s"` or `"@e[type=zombie,limit=1]"`.
+ * @param nbtPath the NBT path within each entity, such as `"Health"`.
+ * @param init sets `interpret`/`separator` and appends any children.
  */
 public fun entityNbt(
     selector: String,
@@ -23,7 +31,11 @@ internal fun buildEntityNbtComponent(
     ).apply(init).build()
 
 /**
- * Appends a nested entity NBT child with [selector] and [nbtPath].
+ * Appends an entity-NBT child to this scope, for use inside a `component { }` or other component block.
+ *
+ * @param selector the entity selector whose NBT is read, such as `"@s"`.
+ * @param nbtPath the NBT path within each entity, such as `"Health"`.
+ * @param init sets `interpret`/`separator` and appends any children.
  */
 public fun ComponentScope.entityNbt(
     selector: String,

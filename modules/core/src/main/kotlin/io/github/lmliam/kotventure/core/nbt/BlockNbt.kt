@@ -5,7 +5,15 @@ import net.kyori.adventure.text.BlockNBTComponent
 import net.kyori.adventure.text.Component
 
 /**
- * Builds an Adventure block NBT [Component] from a Kotventure DSL block.
+ * Builds a block-NBT [Component] — text the client resolves from a block entity's NBT data at a position.
+ *
+ * ```kotlin
+ * val sign = blockNbt(blockPos(0, 64, 0), "front_text.messages[0]")
+ * ```
+ *
+ * @param pos the block position to read, e.g. from [blockPos].
+ * @param nbtPath the NBT path within the block entity, such as `"Items[0].id"`.
+ * @param init sets `interpret`/`separator` and appends any children.
  */
 public fun blockNbt(
     pos: BlockNBTComponent.Pos,
@@ -23,7 +31,11 @@ internal fun buildBlockNbtComponent(
     ).apply(init).build()
 
 /**
- * Appends a nested block NBT child with [pos] and [nbtPath].
+ * Appends a block-NBT child to this scope, for use inside a `component { }` or other component block.
+ *
+ * @param pos the block position to read, e.g. from [blockPos].
+ * @param nbtPath the NBT path within the block entity, such as `"Items[0].id"`.
+ * @param init sets `interpret`/`separator` and appends any children.
  */
 public fun ComponentScope.blockNbt(
     pos: BlockNBTComponent.Pos,

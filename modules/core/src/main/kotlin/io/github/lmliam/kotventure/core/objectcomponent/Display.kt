@@ -5,7 +5,14 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.`object`.ObjectContents
 
 /**
- * Builds an Adventure object [Component] from [contents] and a Kotventure DSL block.
+ * Builds an object [Component] — an inline rendered object such as a player head or atlas sprite.
+ *
+ * ```kotlin
+ * val head = display(head(uuid)) { fallback(Component.text("?")) }
+ * ```
+ *
+ * @param contents what to render, built with the object-contents helpers (`sprite(...)`, `head(...)`).
+ * @param init sets a fallback, styles the component, and appends any children.
  */
 public fun display(
     contents: ObjectContents,
@@ -18,7 +25,10 @@ internal fun buildObjectComponent(
 ): Component = ObjectComponentBuilder(contents).apply(init).build()
 
 /**
- * Appends a nested object child with [contents].
+ * Appends an object child to this scope, for use inside a `component { }` or other component block.
+ *
+ * @param contents what to render, built with the object-contents helpers (`sprite(...)`, `head(...)`).
+ * @param init sets a fallback, styles the child, and appends any of its own children.
  */
 public fun ComponentScope.display(
     contents: ObjectContents,

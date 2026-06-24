@@ -10,7 +10,20 @@ import net.kyori.adventure.text.format.TextDecoration
 import net.kyori.adventure.text.format.TextDecoration.State
 
 /**
- * Scope for configuring Adventure style attributes.
+ * Configures a component's or reusable style's visual attributes: color, shadow, font, insertion,
+ * decorations, and (via [ClickScope]/[HoverScope]) click and hover behaviour.
+ *
+ * Each decoration offers three forms — a no-arg enable (`bold()`), a nullable-flag setter that can also clear
+ * it (`bold(false)`, `bold(null)`), and an explicit [State] setter — so styles can both set and unset
+ * attributes when composed.
+ *
+ * ```kotlin
+ * style {
+ *     color(NamedTextColor.GOLD)
+ *     bold()
+ *     italic(false)
+ * }
+ * ```
  */
 @KotventureDslMarker
 public interface StyleScope :

@@ -6,7 +6,18 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.Style
 
 /**
- * Scope for configuring behavior shared by every Adventure component builder.
+ * The receiver inside a component-building block (such as `component { }` or `text { }`).
+ *
+ * It adds children — via [append], [newline], and the feature extensions like `text`, `keybind`, and
+ * `translatable` — on top of the styling it inherits from [StyleScope], so a component's own style and its
+ * children are configured in one place.
+ *
+ * ```kotlin
+ * component {
+ *     text("Hello ") { color(NamedTextColor.AQUA) }
+ *     keybind("key.jump")
+ * }
+ * ```
  */
 @KotventureDslMarker
 public interface ComponentScope : StyleScope {

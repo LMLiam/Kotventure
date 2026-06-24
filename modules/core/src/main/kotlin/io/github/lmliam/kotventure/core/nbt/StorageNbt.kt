@@ -6,7 +6,15 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.StorageNBTComponent
 
 /**
- * Builds an Adventure storage NBT [Component] from a Kotventure DSL block.
+ * Builds a storage-NBT [Component] — text the client resolves from command-storage NBT under a key.
+ *
+ * ```kotlin
+ * val score = storageNbt(key("myplugin", "scores"), "top.player")
+ * ```
+ *
+ * @param storage the command-storage key to read, e.g. from `key(...)`.
+ * @param nbtPath the NBT path within that storage, such as `"top.player"`.
+ * @param init sets `interpret`/`separator` and appends any children.
  */
 public fun storageNbt(
     storage: Key,
@@ -24,7 +32,11 @@ internal fun buildStorageNbtComponent(
     ).apply(init).build()
 
 /**
- * Appends a nested storage NBT child with [storage] and [nbtPath].
+ * Appends a storage-NBT child to this scope, for use inside a `component { }` or other component block.
+ *
+ * @param storage the command-storage key to read, e.g. from `key(...)`.
+ * @param nbtPath the NBT path within that storage, such as `"top.player"`.
+ * @param init sets `interpret`/`separator` and appends any children.
  */
 public fun ComponentScope.storageNbt(
     storage: Key,
