@@ -171,13 +171,28 @@ private fun KotlinSourceBuilder.appendArgument(argument: TranslationArgument) {
     when (val value = argument.value()) {
         is Component -> appendComponentArgument("arg", value)
         is Boolean -> line("arg($value)")
-        is Number -> line("arg($value)")
+        is Number -> line("arg(${value.toKotlinSource()})")
         else ->
             conversionError(
                 "miniToDsl cannot represent the ${value::class.qualifiedName} translatable argument.",
             )
     }
 }
+
+/**
+ * Renders a numeric argument as valid Kotlin source. NaN and the infinities have no bare literal form, so they are
+ * emitted as their qualified constants; every other value round-trips through [toString].
+ */
+private fun Number.toKotlinSource(): String =
+    when {
+        this is Double && isNaN() -> "Double.NaN"
+        this is Double && this == Double.POSITIVE_INFINITY -> "Double.POSITIVE_INFINITY"
+        this is Double && this == Double.NEGATIVE_INFINITY -> "Double.NEGATIVE_INFINITY"
+        this is Float && isNaN() -> "Float.NaN"
+        this is Float && this == Float.POSITIVE_INFINITY -> "Float.POSITIVE_INFINITY"
+        this is Float && this == Float.NEGATIVE_INFINITY -> "Float.NEGATIVE_INFINITY"
+        else -> toString()
+    }
 
 /**
  * Emits `$label { ... }`, recursing through [appendRoot] for the wrapped component.

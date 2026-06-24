@@ -25,7 +25,8 @@ public sealed interface ValidationResult {
      * @property diagnostics Non-empty list of diagnostics. Ordering guarantee: malformed-tag
      *   diagnostics appear first, then missing-placeholder diagnostics in placeholder declaration
      *   order, then extra-placeholder diagnostics in the order the tags were encountered in the
-     *   input.
+     *   input. A [MiniMessageDiagnostic.ValidationEngineFailure] may appear in place of the
+     *   corresponding pass's diagnostics when the parser itself fails unexpectedly.
      */
     @ConsistentCopyVisibility
     public data class Failure private constructor(

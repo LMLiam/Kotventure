@@ -13,6 +13,9 @@ internal fun assertGoldenRoundTrip(
     val generated = miniToDsl(input)
 
     generated shouldBe expectedSource
+    // Compared by serialized MiniMessage rather than structural Component equality: the parser emits
+    // render-equivalent trees (empty wrappers, NOT_SET decorations) that never `equals` a hand-built fixture,
+    // so structural assertions here would be brittle without testing anything the serialization does not.
     MiniMessage.miniMessage().serialize(compileGeneratedDsl(generated)) shouldBe
             MiniMessage.miniMessage().serialize(expectedComponent)
     MiniMessage.miniMessage().serialize(parsed) shouldBe MiniMessage.miniMessage().serialize(expectedComponent)

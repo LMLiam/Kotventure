@@ -440,6 +440,28 @@ class MiniMessageValidationTest :
                         extra shouldHaveSize 0
                     }
 
+            "strict validation engine failures return ValidationEngineFailure instead of a malformed-tag diagnostic" {
+                val player = placeholder<Component>("player")
+
+                val result =
+                    runValidation(
+                        input = "<player>",
+                        placeholders = listOf(player),
+                        strictDeserialize = { _, _ ->
+                            throw IllegalStateException("strict parser exploded")
+                        },
+                    )
+
+                val failure = result.shouldBeInstanceOf<ValidationResult.Failure>()
+                val engineFailures =
+                    failure.diagnostics.filterIsInstance<MiniMessageDiagnostic.ValidationEngineFailure>()
+                val malformed = failure.diagnostics.filterIsInstance<MiniMessageDiagnostic.MalformedTag>()
+
+                engineFailures shouldHaveSize 1
+                engineFailures[0].message shouldBe "strict parser exploded"
+                malformed shouldHaveSize 0
+            }
+
             // validate() must return a result rather than throw for any input. The lenient parser is
             // not contractually guaranteed exception-free, so both passes guard against RuntimeException.
             // Crafting an input that actually trips that guard is version-dependent, so the contract is
