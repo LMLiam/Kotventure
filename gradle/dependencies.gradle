@@ -4,12 +4,6 @@ import org.gradle.api.artifacts.VersionCatalogsExtension
 
 def catalog = rootProject.extensions.getByType(VersionCatalogsExtension).named('libs')
 
-configurations {
-    shade
-    implementation.extendsFrom(shade)
-    testImplementation.extendsFrom annotationProcessor
-}
-
 ext.kotventureDependencies = [
         "adventure-api"                  : catalog.findLibrary('adventure-api').get(),
         "adventure-bom"                  : catalog.findLibrary('adventure-bom').get(),
@@ -18,15 +12,19 @@ ext.kotventureDependencies = [
         "adventure-text-serializer-json-legacy-impl": catalog.findLibrary('adventure-text-serializer-json-legacy-impl').get(),
         "adventure-text-serializer-legacy"        : catalog.findLibrary('adventure-text-serializer-legacy').get(),
         "adventure-text-serializer-plain"         : catalog.findLibrary('adventure-text-serializer-plain').get(),
+        "jetbrains-annotations"                   : catalog.findLibrary('jetbrains-annotations').get(),
         "kctfork-core"                            : catalog.findLibrary('kctfork-core').get(),
         "kotest-assertions-core"                  : catalog.findLibrary('kotest-assertions-core').get(),
-        "kotest-runner-junit5"                    : catalog.findLibrary('kotest-runner-junit5').get()
+        "kotest-runner-junit5"                    : catalog.findLibrary('kotest-runner-junit5').get(),
+        "mockk"                                   : catalog.findLibrary('mockk').get()
 ]
 
 dependencies {
     api platform(kotventureDependencies."adventure-bom")
+    compileOnly kotventureDependencies."jetbrains-annotations"
 
     testImplementation kotventureDependencies."kotest-assertions-core"
     testImplementation kotventureDependencies."kotest-runner-junit5"
+    testImplementation kotventureDependencies."mockk"
     testRuntimeOnly catalog.findLibrary('junit-platform-launcher').get()
 }

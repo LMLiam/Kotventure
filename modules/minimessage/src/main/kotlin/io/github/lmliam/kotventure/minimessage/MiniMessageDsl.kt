@@ -1,10 +1,18 @@
 package io.github.lmliam.kotventure.minimessage
 
+import io.github.lmliam.kotventure.minimessage.conversion.MiniMessageToDslWriter
+import io.github.lmliam.kotventure.minimessage.parser.parseMiniMessage
+import io.github.lmliam.kotventure.minimessage.placeholder.MiniMessageResolverScope
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.minimessage.MiniMessage
 
 /**
- * Parses [input] with Adventure's default MiniMessage parser.
+ * Parses MiniMessage markup into a component with Adventure's default parser.
+ *
+ * ```kotlin
+ * val greeting = mini("<gold>Welcome <bold>back</bold>!")
+ * ```
+ *
+ * @param input the MiniMessage string to parse.
  */
 public fun mini(input: String): Component = parseMiniMessage(input)
 
@@ -18,21 +26,24 @@ public fun mini(input: String): Component = parseMiniMessage(input)
  * the `<gradient>` markup itself is not reconstructed.
  *
  * @throws IllegalArgumentException when [input] resolves to a shape with no DSL surface, such as a player head with no
- * single skin source or with profile properties.
+ * single skin source, profile properties, or unsupported click or data-component payloads.
  */
 public fun miniToDsl(input: String): String = MiniMessageToDslWriter.write(mini(input))
 
 /**
- * Parses [input] with Adventure's default MiniMessage parser after configuring placeholder resolvers with [init].
+ * Parses MiniMessage markup into a component, resolving custom placeholder tags configured in [init].
+ *
+ * ```kotlin
+ * val line = mini("<greeting> <player>!") {
+ *     parsed("greeting", "<gold>Welcome")
+ *     unparsed("player", playerName)
+ * }
+ * ```
+ *
+ * @param input the MiniMessage string to parse.
+ * @param init registers the placeholder resolvers the markup may reference.
  */
 public fun mini(
     input: String,
     init: MiniMessageResolverScope.() -> Unit,
 ): Component = parseMiniMessage(input, init)
-
-internal fun parseMiniMessage(input: String): Component = MiniMessage.miniMessage().deserialize(input)
-
-internal fun parseMiniMessage(
-    input: String,
-    init: MiniMessageResolverScope.() -> Unit,
-): Component = MiniMessage.miniMessage().deserialize(input, MiniMessageResolverBuilder().apply(init).build())

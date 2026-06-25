@@ -1,7 +1,11 @@
 package io.github.lmliam.kotventure.minimessage
 
+import io.github.lmliam.kotventure.minimessage.placeholder.MiniMessagePlaceholder
+import io.github.lmliam.kotventure.minimessage.placeholder.placeholder
+import io.github.lmliam.kotventure.minimessage.template.MiniTemplate
 import io.github.lmliam.kotventure.minimessage.validation.MiniMessageDiagnostic
 import io.github.lmliam.kotventure.minimessage.validation.ValidationResult
+import io.github.lmliam.kotventure.minimessage.validation.runValidation
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldHaveSize
@@ -406,10 +410,6 @@ class MiniMessageValidationTest :
             // F1 regression: validate() must never throw, even on malformed input
             // ---------------------------------------------------------------
 
-            // validate() must return a result rather than throw for any input. The lenient parser is
-            // not contractually guaranteed exception-free, so both passes guard against RuntimeException.
-            // Crafting an input that actually trips that guard is version-dependent, so the contract is
-            // verified here by running a range of inputs through the lenient-parse path with no throw.
             "validate returns a result rather than throwing for markup that is well-formed in lenient mode" {
                 // This exercises the lenient-parse path (Pass 2) for a variety of inputs; none
                 // should propagate an exception.

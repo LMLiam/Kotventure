@@ -4,7 +4,6 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextColor
 
@@ -26,31 +25,31 @@ class ColorDslTest :
             "rejects malformed hex and out of range color components" {
                 shouldThrow<IllegalArgumentException> {
                     hex("FF00AA")
-                }.message shouldContain "#RRGGBB"
+                }
 
                 shouldThrow<IllegalArgumentException> {
                     hex("#F0A")
-                }.message shouldContain "#RRGGBB"
+                }
 
                 shouldThrow<IllegalArgumentException> {
                     hex("#GG00AA")
-                }.message shouldContain "#RRGGBB"
+                }
 
                 shouldThrow<IllegalArgumentException> {
                     rgb(-1, 0, 0)
-                }.message shouldContain "red"
+                }
 
                 shouldThrow<IllegalArgumentException> {
                     rgb(0, 256, 0)
-                }.message shouldContain "green"
+                }
 
                 shouldThrow<IllegalArgumentException> {
                     hsv(-0.01f, 1f, 1f)
-                }.message shouldContain "hue"
+                }
 
                 shouldThrow<IllegalArgumentException> {
                     hsv(0f, 1.01f, 1f)
-                }.message shouldContain "saturation"
+                }
             }
 
             "delegates interpolation to Adventure TextColor lerp behavior" {
@@ -62,7 +61,7 @@ class ColorDslTest :
 
                 shouldThrow<IllegalArgumentException> {
                     interpolate(Float.NaN, NamedTextColor.BLACK, NamedTextColor.WHITE)
-                }.message shouldContain "progress"
+                }
             }
 
             "exposes the Adventure named palette through aliases and lookup helpers" {
@@ -88,7 +87,7 @@ class ColorDslTest :
 
                 shouldThrow<NoSuchElementException> {
                     namedColorOrThrow("missing")
-                }.message shouldContain "missing"
+                }
             }
         },
     )

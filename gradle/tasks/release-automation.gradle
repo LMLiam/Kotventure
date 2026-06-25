@@ -1,0 +1,36 @@
+import groovy.json.JsonSlurper
+import org.gradle.api.artifacts.VersionCatalogsExtension
+
+// release-please owns the changelog, tags, and config; the build only guards that the project version
+// stays in sync across the three places that declare it, since a drift there breaks the next release.
+tasks.register('verifyReleaseVersionConsistency') {
+    group = 'verification'
+    description = 'Verifies the project version is consistent across the catalog, the project, and the release manifest.'
+
+    doLast {
+        def catalogVersion = rootProject.extensions
+                .getByType(VersionCatalogsExtension)
+                .named('libs')
+                .findVersion('project')
+                .orElseThrow { new GradleException('gradle/libs.versions.toml must define versions.project.') }
+                .requiredVersion
+
+        if (rootProject.version.toString() != catalogVersion) {
+            throw new GradleException("Root project version '${rootProject.version}' must match versions.project '${catalogVersion}'.")
+        }
+
+        def manifestFile = rootProject.file('.release-please-manifest.json')
+        if (!manifestFile.isFile()) {
+            throw new GradleException('Missing required release file: .release-please-manifest.json')
+        }
+
+        def manifestVersion = new JsonSlurper().parse(manifestFile)['.']
+        if (manifestVersion != catalogVersion) {
+            throw new GradleException(".release-please-manifest.json version '${manifestVersion}' must match versions.project '${catalogVersion}'.")
+        }
+    }
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('verifyReleaseVersionConsistency')
+}

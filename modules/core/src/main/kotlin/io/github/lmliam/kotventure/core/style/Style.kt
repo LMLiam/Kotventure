@@ -3,7 +3,15 @@ package io.github.lmliam.kotventure.core.style
 import net.kyori.adventure.text.format.Style
 
 /**
- * Builds a reusable Adventure [Style] from a Kotventure style DSL block.
+ * Builds a reusable [Style] that can be applied to many components.
+ *
+ * ```kotlin
+ * val heading = style {
+ *     color(gold)
+ *     bold()
+ * }
+ * val title = text("Welcome") { style(heading) }
+ * ```
  */
 public fun style(init: StyleScope.() -> Unit): Style =
     Style

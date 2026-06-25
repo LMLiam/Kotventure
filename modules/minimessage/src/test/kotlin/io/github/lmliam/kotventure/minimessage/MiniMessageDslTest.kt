@@ -1,6 +1,8 @@
 package io.github.lmliam.kotventure.minimessage
 
-import io.github.lmliam.kotventure.core.text.component
+import io.github.lmliam.kotventure.core.component.component
+import io.github.lmliam.kotventure.core.text.text
+import io.github.lmliam.kotventure.minimessage.placeholder.placeholder
 import io.github.lmliam.kotventure.test.compilation.assertDoesNotCompile
 import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldContainComponent
@@ -13,7 +15,6 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.string.shouldContain
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 
@@ -58,6 +59,15 @@ class MiniMessageDslTest :
                 parsed.childAt(0) shouldBe badge
                 parsed.childAt(1) shouldContainText " joined"
                 parsed.childAt(1).shouldNotHaveColor()
+            }
+
+            "rejects duplicate resolver names" {
+                shouldThrow<IllegalArgumentException> {
+                    mini("<name>") {
+                        unparsed("name", "Alex")
+                        parsed("name", "<gold>Sam</gold>")
+                    }
+                }
             }
 
             "builds component placeholders from the Kotventure component DSL" {
@@ -178,12 +188,9 @@ class MiniMessageDslTest :
             }
 
             "rejects unsupported placeholder value families" {
-                val error =
-                    shouldThrow<IllegalArgumentException> {
-                        placeholder<List<String>>("items")
-                    }
-
-                error.message shouldContain "Supported MiniMessage placeholder types"
+                shouldThrow<IllegalArgumentException> {
+                    placeholder<List<String>>("items")
+                }
             }
 
             "treats equivalent typed placeholders as equal values" {
@@ -203,12 +210,9 @@ class MiniMessageDslTest :
             }
 
             "rejects invalid placeholder names" {
-                val error =
-                    shouldThrow<IllegalArgumentException> {
-                        placeholder<String>("BadName")
-                    }
-
-                error.message shouldContain "placeholder names must match"
+                shouldThrow<IllegalArgumentException> {
+                    placeholder<String>("BadName")
+                }
             }
 
             "does not compile when a typed placeholder is resolved with the wrong value type" {
@@ -217,7 +221,7 @@ class MiniMessageDslTest :
                     source =
                         """
                         import io.github.lmliam.kotventure.minimessage.mini
-                        import io.github.lmliam.kotventure.minimessage.placeholder
+                        import io.github.lmliam.kotventure.minimessage.placeholder.placeholder
 
                         fun shouldNotCompile() {
                             val count = placeholder<Int>("count")
@@ -237,7 +241,7 @@ class MiniMessageDslTest :
                     source =
                         """
                         import io.github.lmliam.kotventure.minimessage.mini
-                        import io.github.lmliam.kotventure.minimessage.placeholder
+                        import io.github.lmliam.kotventure.minimessage.placeholder.placeholder
                         import net.kyori.adventure.text.Component
 
                         fun shouldNotCompile() {

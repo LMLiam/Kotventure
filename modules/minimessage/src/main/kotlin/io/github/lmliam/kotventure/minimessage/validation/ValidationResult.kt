@@ -1,9 +1,9 @@
 package io.github.lmliam.kotventure.minimessage.validation
 
 /**
- * The result of a [validate] call.
+ * The outcome of validating MiniMessage markup against its declared placeholders.
  *
- * Either [Success] (input is well-formed and every declared placeholder is present) or
+ * Either [Success] (the markup is well-formed and every declared placeholder is present) or
  * [Failure] (one or more [MiniMessageDiagnostic] were found).
  */
 public sealed interface ValidationResult {
@@ -25,7 +25,8 @@ public sealed interface ValidationResult {
      * @property diagnostics Non-empty list of diagnostics. Ordering guarantee: malformed-tag
      *   diagnostics appear first, then missing-placeholder diagnostics in placeholder declaration
      *   order, then extra-placeholder diagnostics in the order the tags were encountered in the
-     *   input.
+     *   input. A [MiniMessageDiagnostic.ValidationEngineFailure] may appear in place of the
+     *   corresponding pass's diagnostics when the parser itself fails unexpectedly.
      */
     @ConsistentCopyVisibility
     public data class Failure private constructor(

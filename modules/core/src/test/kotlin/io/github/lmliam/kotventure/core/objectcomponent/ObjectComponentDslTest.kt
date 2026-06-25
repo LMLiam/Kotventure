@@ -1,7 +1,9 @@
 package io.github.lmliam.kotventure.core.objectcomponent
 
+import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.key.key
-import io.github.lmliam.kotventure.core.text.component
+import io.github.lmliam.kotventure.core.keybind.keybind
+import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldBeKeybindComponent
 import io.github.lmliam.kotventure.test.text.shouldBeObjectComponent

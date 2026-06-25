@@ -1,43 +1,26 @@
 # Kotventure — Project Roadmap
 
-> **Lifecycle Stages:** Pre‑Alpha → Alpha → Beta → Release  
-> **Status:** Currently in **Pre‑Alpha** (`0.0.x`)
+> **Lifecycle Stages:** Pre‑Alpha → Alpha → Beta → Release
+>
+> This roadmap describes what each stage is *for*. It deliberately does not track which version is current —
+> that lives in the published version and the changelog, not in prose that would rot.
 
 ---
 
-## 📍 Current Stage — Pre‑Alpha (`0.0.x`)
+## Alpha (`0.1.x`–`0.8.x`)
 
 **Focus:**
 
-- Prove core DSL concept for Kotlin → Adventure component creation.
-- Ship *minimum viable* feature slice:
-    - `text` component builder with `color` + `decoration`
-    - Basic nesting
-- Verify build + CI flow (per‑module JARs and aggregate JAR).
-- Publish snapshots for internal and early‑access testers.
+- Expand the core DSL without centralizing every feature in `ComponentScope`.
+- Keep public API surface small while compatibility is still flexible.
+- Harden MiniMessage templates, validation, serializers, and component-testing tools.
+- Keep build, docs, and release metadata aligned with the currently shipped modules.
 
-**Plan:** See [Pre‑Alpha Plan](./PRE-ALPHA-PLAN.md) for detail
+**Plan:** See the [phased roadmap in `docs/DESIGN.md`](./DESIGN.md#11-phased-roadmap) for the alpha-phase breakdown.
 
 ---
 
-## 🔜 Next Stage — Alpha (`0.1.x` → `0.8.x`)
-
-**Focus:**
-
-- Expand component coverage: `translate`, `keybind`, `score`, etc.
-- API surface “mostly there” but open to iteration.
-- Public pre‑release artifacts with “alpha” tag.
-- Introduce null‑safety and compile‑time validations across the DSL.
-- Begin collecting structured feedback via GitHub Issues
-
-**Milestone Criteria:**
-
-- Core API stable enough for hobbyist / experimental use.
-- README and module docs updated with examples and onboarding instructions.
-
----
-
-## 📦 Beta (`0.9.x`)
+## Beta (`0.9.x`)
 
 **Focus:**
 
@@ -54,7 +37,7 @@
 
 ---
 
-## 🚀 Release (`1.0.0`)
+## Release (`1.0.0`)
 
 **Focus:**
 
@@ -77,8 +60,7 @@
 
 | Stage     | Target Range | Key Deliverable                      |
 |-----------|--------------|--------------------------------------|
-| Pre‑Alpha | 0.0.x (Now)  | Core DSL spike + snapshot publish    |
+| Pre‑Alpha | 0.0.x        | Core DSL spike + snapshot publish    |
 | Alpha     | 0.1.x–0.8.x  | Public API expansion + feedback loop |
 | Beta      | 0.9.x        | API freeze, stability, doc polish    |
 | Release   | 1.0.0        | Production‑ready stable release      |
-

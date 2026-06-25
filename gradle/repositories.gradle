@@ -1,4 +1,6 @@
 repositories {
-    mavenLocal()
+    if (providers.gradleProperty('kotventure.mavenLocal').isPresent()) {
+        mavenLocal()
+    }
     mavenCentral()
 }

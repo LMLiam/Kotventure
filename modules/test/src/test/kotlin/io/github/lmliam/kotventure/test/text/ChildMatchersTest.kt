@@ -73,10 +73,10 @@ class ChildMatchersTest :
                 val second = Component.text("two")
                 val component =
                     Component
-                    .text()
-                    .append(first)
-                    .append(second)
-                    .build()
+                        .text()
+                        .append(first)
+                        .append(second)
+                        .build()
 
                 component.shouldHaveChildren(first, second)
             }
@@ -86,10 +86,10 @@ class ChildMatchersTest :
                 val second = Component.text("two")
                 val component =
                     Component
-                    .text()
-                    .append(first)
-                    .append(second)
-                    .build()
+                        .text()
+                        .append(first)
+                        .append(second)
+                        .build()
 
                 val failure =
                     shouldThrow<AssertionError> {
@@ -120,10 +120,10 @@ class ChildMatchersTest :
                 val needle = Component.text("world")
                 val component =
                     Component
-                    .text()
-                    .content("Hello ")
-                    .append(needle)
-                    .build()
+                        .text()
+                        .content("Hello ")
+                        .append(needle)
+                        .build()
 
                 component shouldContainComponent needle
             }
@@ -132,10 +132,10 @@ class ChildMatchersTest :
                 val needle = Component.text("absent")
                 val component =
                     Component
-                    .text()
-                    .content("Hello ")
-                    .append(Component.text("world"))
-                    .build()
+                        .text()
+                        .content("Hello ")
+                        .append(Component.text("world"))
+                        .build()
 
                 val failure =
                     shouldThrow<AssertionError> {
@@ -150,10 +150,10 @@ class ChildMatchersTest :
                 val needle = Component.text("absent")
                 val component =
                     Component
-                    .text()
-                    .content("Hello ")
-                    .append(Component.text("world"))
-                    .build()
+                        .text()
+                        .content("Hello ")
+                        .append(Component.text("world"))
+                        .build()
 
                 component shouldNotContainComponent needle
             }
@@ -162,10 +162,10 @@ class ChildMatchersTest :
                 val needle = Component.text("world")
                 val component =
                     Component
-                    .text()
-                    .content("Hello ")
-                    .append(needle)
-                    .build()
+                        .text()
+                        .content("Hello ")
+                        .append(needle)
+                        .build()
 
                 val failure =
                     shouldThrow<AssertionError> {

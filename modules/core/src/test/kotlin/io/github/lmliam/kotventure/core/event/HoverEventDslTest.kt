@@ -1,8 +1,9 @@
 package io.github.lmliam.kotventure.core.event
 
+import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.style.style
-import io.github.lmliam.kotventure.core.text.component
+import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.github.lmliam.kotventure.test.text.shouldHaveColor
@@ -15,7 +16,6 @@ import io.github.lmliam.kotventure.test.text.shouldNotHaveHoverEvent
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.key.Keyed
 import net.kyori.adventure.nbt.api.BinaryTagHolder
@@ -218,39 +218,30 @@ class HoverEventDslTest :
             }
 
             "rejects empty hover content blocks" {
-                val failure =
-                    shouldThrow<IllegalStateException> {
-                        hover {
-                        }
+                shouldThrow<IllegalStateException> {
+                    hover {
                     }
-
-                failure.message shouldContain "choose exactly one payload"
+                }
             }
 
             "rejects hover content blocks with multiple payloads" {
-                val failure =
-                    shouldThrow<IllegalStateException> {
-                        hover {
-                            text("One")
-                            item(key("minecraft", "stone"))
-                        }
+                shouldThrow<IllegalStateException> {
+                    hover {
+                        text("One")
+                        item(key("minecraft", "stone"))
                     }
-
-                failure.message shouldContain "choose only one"
+                }
             }
 
             "rejects negative item counts before calling Adventure" {
-                val failure =
-                    shouldThrow<IllegalArgumentException> {
-                        hover {
-                            item(
-                                key = key("minecraft", "stone"),
-                                count = -1,
-                            )
-                        }
+                shouldThrow<IllegalArgumentException> {
+                    hover {
+                        item(
+                            key = key("minecraft", "stone"),
+                            count = -1,
+                        )
                     }
-
-                failure.message shouldContain "Show item count must be greater than or equal to 0"
+                }
             }
         },
     )

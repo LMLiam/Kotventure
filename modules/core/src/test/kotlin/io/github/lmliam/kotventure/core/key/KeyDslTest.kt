@@ -9,7 +9,7 @@ import net.kyori.adventure.key.Key
 class KeyDslTest :
     StringSpec(
         {
-            "builds a key from a namespace and value" {
+            "builds a key from namespace and value" {
                 val adventureKey = key("kotventure", "messages")
 
                 adventureKey shouldBe Key.key("kotventure", "messages")
@@ -18,45 +18,15 @@ class KeyDslTest :
                 adventureKey.asString() shouldBe "kotventure:messages"
             }
 
-            "builds a key with infix namespace syntax" {
-                val adventureKey = "kotventure" namespace "messages"
-
-                adventureKey shouldBe key("kotventure", "messages")
-                adventureKey.namespace() shouldBe "kotventure"
-                adventureKey.value() shouldBe "messages"
-            }
-
-            "parses a key from a namespaced string" {
-                val adventureKey = "kotventure:messages".asKey()
-
-                adventureKey shouldBe Key.key("kotventure", "messages")
-                adventureKey.namespace() shouldBe "kotventure"
-                adventureKey.value() shouldBe "messages"
-            }
-
-            "uses the minecraft namespace when parsing a bare value" {
-                val adventureKey = "stone".asKey()
-
-                adventureKey shouldBe Key.key("minecraft", "stone")
-                adventureKey.namespace() shouldBe "minecraft"
-                adventureKey.value() shouldBe "stone"
-            }
-
-            "throws when building a key with an invalid namespace" {
+            "throws when building key with an invalid namespace" {
                 shouldThrow<InvalidKeyException> {
                     key("not valid", "messages")
                 }
             }
 
-            "throws when building a key with infix invalid value" {
+            "throws when building key with an invalid value" {
                 shouldThrow<InvalidKeyException> {
-                    "kotventure" namespace "Not Valid"
-                }
-            }
-
-            "throws when parsing an invalid key string" {
-                shouldThrow<InvalidKeyException> {
-                    "not valid:messages".asKey()
+                    key("minecraft", "not valid")
                 }
             }
         },

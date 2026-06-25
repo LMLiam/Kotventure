@@ -6,14 +6,14 @@ import kotlin.math.floor
 import kotlin.math.min
 
 /**
- * Immutable Adventure color gradient made from at least two [TextColor] stops.
+ * Immutable color gradient that interpolates across an ordered list of at least two [TextColor] stops.
+ *
+ * @throws IllegalArgumentException if fewer than two stops are supplied.
  */
 public class ColorGradient public constructor(
     stops: Iterable<TextColor>,
 ) {
-    /**
-     * Ordered color stops used for interpolation.
-     */
+    /** The gradient's color stops, in order, as a defensive immutable copy. */
     public val stops: List<TextColor> =
         stops.toList().also { copiedStops ->
             require(copiedStops.size >= 2) {
@@ -22,7 +22,11 @@ public class ColorGradient public constructor(
         }
 
     /**
-     * Returns the interpolated color at [progress], where `0f` is the first stop and `1f` is the final stop.
+     * Returns the color at [progress] along the gradient.
+     *
+     * @param progress the position, where `0f` is the first stop and `1f` the last; values outside `0f..1f`
+     *   are clamped.
+     * @throws IllegalArgumentException if [progress] is not finite.
      */
     public fun colorAt(progress: Float): TextColor {
         require(progress.isFinite()) {
@@ -37,17 +41,32 @@ public class ColorGradient public constructor(
 }
 
 /**
- * Creates an immutable [ColorGradient] from [stops].
+ * Creates a [ColorGradient] from two or more color stops.
+ *
+ * ```kotlin
+ * val fire = gradient(hex("#FF0000"), hex("#FFAA00"), hex("#FFFF00"))
+ * ```
+ *
+ * @throws IllegalArgumentException if fewer than two stops are supplied.
  */
 public fun gradient(vararg stops: TextColor): ColorGradient = ColorGradient(stops.asList())
 
 /**
- * Creates an immutable [ColorGradient] from [stops].
+ * Creates a [ColorGradient] from an iterable of two or more color stops.
+ *
+ * @throws IllegalArgumentException if fewer than two stops are supplied.
  */
 public fun gradient(stops: Iterable<TextColor>): ColorGradient = ColorGradient(stops)
 
 /**
- * Builds an Adventure component whose direct children are one colored text component per code point in [value].
+ * Builds a component that spreads [stops] across [value], coloring one child per code point.
+ *
+ * ```kotlin
+ * val title = gradientText("Kotventure", hex("#FF0000"), hex("#0000FF"))
+ * ```
+ *
+ * @param value the text to color; its code points (not chars) are colored so surrogate pairs stay intact.
+ * @throws IllegalArgumentException if fewer than two stops are supplied.
  */
 public fun gradientText(
     value: String,
@@ -55,7 +74,9 @@ public fun gradientText(
 ): Component = gradientText(value, gradient(*stops))
 
 /**
- * Builds an Adventure component whose direct children are one colored text component per code point in [value].
+ * Builds a component that spreads [gradient] across [value], coloring one child per code point.
+ *
+ * @param value the text to color; its code points (not chars) are colored so surrogate pairs stay intact.
  */
 public fun gradientText(
     value: String,

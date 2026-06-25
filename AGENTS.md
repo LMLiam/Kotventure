@@ -59,9 +59,10 @@ See `docs/DESIGN.md` §4 for the full map. Non-negotiables:
 - **Modules are added lazily, per phase** (issue #7 owns the restructure). Each lives under `modules/<name>` and is
   re-enabled in `settings.gradle` when it lands.
 - **`core` depends only on `adventure-api`.** Do not pull MiniMessage, coroutines, or platform code into `core`.
-- **Hybrid extensibility:** a small **explicit registry** (`AdventureDsl`) holds pluggable pieces (MiniMessage tags,
-  theme providers, animation drivers, platform adapters). **Do NOT reintroduce `ServiceLoader`/SPI/reflection** — it was
-  removed deliberately (#6).
+- **Hybrid extensibility:** when runtime lookup is genuinely needed, the **owning feature** exposes a small **explicit
+  registry** as part of its public API (e.g. `ThemeRegistry`) — never a hidden process-global registry or classpath
+  scanning. **Do NOT reintroduce `ServiceLoader`/SPI/reflection** (removed in #6), and **do NOT** centralise these into a
+  single ambient registry (the old `AdventureDsl` god-object was removed deliberately).
 - **Public API is explicit:** `explicitApi()` is on for library modules. Every public/`protected` declaration needs an
   explicit visibility modifier, an explicit return type, and **KDoc**.
 
@@ -93,8 +94,8 @@ Before sketching any public surface (and **before posting an implementation plan
   name is a compile error you failed to design for.
 - **One way per use case.** Never ship a typed API and string overloads of it in parallel. Pick one; expose a single
   explicit string bridge only where interop (config, MiniMessage, cross-plugin) demands it.
-- **No side effects on construction.** Defining a value never registers it; registration in `AdventureDsl` is a
-  separate explicit call.
+- **No side effects on construction.** Defining a value never registers it; registration in the owning feature's
+  registry (e.g. `ThemeRegistry.register(...)`) is a separate explicit call.
 - **Smallest surface that passes the acceptance criteria.** Count your public declarations and make each pay rent.
   Lookup sugar and convenience overloads can be added later; they can't be removed.
 - **Snippets in issues / `docs/DESIGN.md` are illustrative, not contracts.** If a sketch can't type-check as written,

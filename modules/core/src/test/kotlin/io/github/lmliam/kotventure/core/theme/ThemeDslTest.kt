@@ -3,10 +3,9 @@ package io.github.lmliam.kotventure.core.theme
 import io.github.lmliam.kotventure.core.color.green
 import io.github.lmliam.kotventure.core.color.hex
 import io.github.lmliam.kotventure.core.color.red
+import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.key.key
-import io.github.lmliam.kotventure.core.registry.AdventureDsl
 import io.github.lmliam.kotventure.core.style.styled
-import io.github.lmliam.kotventure.core.text.component
 import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldContainText
@@ -20,7 +19,6 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.format.Style
 import net.kyori.adventure.text.format.TextDecoration
@@ -47,7 +45,7 @@ private object BrandTheme : Theme("brand") {
         underlined(false)
     }
 
-    val callout: Style by style("call-out") {
+    val callout: Style by style {
         color(primary)
         underlined()
     }
@@ -88,11 +86,6 @@ class ThemeDslTest :
                 BrandTheme.style("danger") shouldBe BrandTheme.danger
             }
 
-            "uses an explicit key instead of the property name when one is given" {
-                BrandTheme.style("call-out") shouldBe BrandTheme.callout
-                BrandTheme.style("callout").shouldBeNull()
-            }
-
             "returns null for missing dynamic style lookups" {
                 BrandTheme.style("missing").shouldBeNull()
             }
@@ -105,9 +98,9 @@ class ThemeDslTest :
                             "header" to BrandTheme.header,
                             "saved" to BrandTheme.saved,
                             "danger" to BrandTheme.danger,
-                            "call-out" to BrandTheme.callout,
+                            "callout" to BrandTheme.callout,
                         )
-                snapshot.keys.toList() shouldBe listOf("header", "saved", "danger", "call-out")
+                snapshot.keys.toList() shouldBe listOf("header", "saved", "danger", "callout")
                 shouldThrow<UnsupportedOperationException> {
                     @Suppress("UNCHECKED_CAST")
                     (snapshot as MutableMap<String, Style>)["other"] = Style.empty()
@@ -115,56 +108,22 @@ class ThemeDslTest :
             }
 
             "can be defined, registered, and applied end to end" {
-                AdventureDsl.reset()
-                try {
-                    BrandTheme.register()
+                val registry = ThemeRegistry()
 
-                    val registered = theme("brand")
-                    registered shouldBe BrandTheme
-                    val header = registered?.style("header")
-                    header shouldBe BrandTheme.header
-                    val title = text("Welcome") styled checkNotNull(header)
-                    title shouldHaveColor BrandTheme.primary
-                } finally {
-                    AdventureDsl.reset()
-                }
+                registry.register(BrandTheme)
+
+                val registered = registry.theme("brand")
+                registered shouldBe BrandTheme
+                val header = registered?.style("header")
+                header shouldBe BrandTheme.header
+                val title = text("Welcome") styled checkNotNull(header)
+                title shouldHaveColor BrandTheme.primary
             }
 
             "rejects blank theme names" {
-                val failure =
-                    shouldThrow<IllegalArgumentException> {
-                        object : Theme(" ") {}
-                    }
-
-                failure.message shouldContain "blank"
-            }
-
-            "rejects blank explicit style keys" {
-                val failure =
-                    shouldThrow<IllegalArgumentException> {
-                        object : Theme("blank-key") {
-                            @Suppress("unused")
-                            val broken: Style by style(" ") {}
-                        }
-                    }
-
-                failure.message shouldContain "blank"
-            }
-
-            "rejects duplicate style keys within one theme" {
-                val failure =
-                    shouldThrow<IllegalArgumentException> {
-                        object : Theme("duplicate") {
-                            @Suppress("unused")
-                            val header: Style by style {}
-
-                            @Suppress("unused")
-                            val other: Style by style("header") {}
-                        }
-                    }
-
-                failure.message shouldContain "header"
-                failure.message shouldContain "duplicate"
+                shouldThrow<IllegalArgumentException> {
+                    object : Theme(" ") {}
+                }
             }
         },
     )

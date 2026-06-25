@@ -1,6 +1,15 @@
 package io.github.lmliam.kotventure.core.text
 
+import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
+import io.github.lmliam.kotventure.core.keybind.keybind
+import io.github.lmliam.kotventure.core.nbt.blockNbt
+import io.github.lmliam.kotventure.core.nbt.entityNbt
+import io.github.lmliam.kotventure.core.nbt.storageNbt
+import io.github.lmliam.kotventure.core.objectcomponent.display
+import io.github.lmliam.kotventure.core.score.score
+import io.github.lmliam.kotventure.core.selector.selector
+import io.github.lmliam.kotventure.core.translatable.translatable
 import io.github.lmliam.kotventure.test.compilation.assertDoesNotCompile
 import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldBeBlockNbtComponent
@@ -316,7 +325,7 @@ class ComponentDslTest :
                     source =
                         """
                         import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
-                        import io.github.lmliam.kotventure.core.text.component
+                        import io.github.lmliam.kotventure.core.component.component
 
                         @KotventureDslMarker
                         class OuterScope {
@@ -345,7 +354,7 @@ class ComponentDslTest :
                     fileName = "ComponentRootScopeTest.kt",
                     source =
                         """
-                        import io.github.lmliam.kotventure.core.text.component
+                        import io.github.lmliam.kotventure.core.component.component
 
                         fun shouldNotCompile() {
                             component {
@@ -362,7 +371,8 @@ class ComponentDslTest :
                     fileName = "StyleScopeLeakTest.kt",
                     source =
                         """
-                        import io.github.lmliam.kotventure.core.text.component
+                        import io.github.lmliam.kotventure.core.component.component
+                        import io.github.lmliam.kotventure.core.text.text
                         import net.kyori.adventure.text.format.NamedTextColor
 
                         fun shouldNotCompile() {
