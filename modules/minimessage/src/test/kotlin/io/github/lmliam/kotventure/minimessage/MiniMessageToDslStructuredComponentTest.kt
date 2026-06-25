@@ -241,6 +241,24 @@ class MiniMessageToDslStructuredComponentTest :
                     """.trimIndent()
                 }
 
+                test("emits Long.MIN_VALUE as a constant rather than an uncompilable literal") {
+                    val translatable =
+                        Component
+                            .translatable()
+                            .key("stat.generic")
+                            .arguments(TranslationArgument.numeric(Long.MIN_VALUE))
+                            .build()
+
+                    MiniMessageToDslWriter.write(translatable) shouldBe
+                            """
+                    component {
+                        translatable("stat.generic") {
+                            arg(Long.MIN_VALUE)
+                        }
+                    }
+                    """.trimIndent()
+                }
+
                 test("emits non-finite numeric translatable arguments as qualified constants") {
                     val translatable =
                         Component

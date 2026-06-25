@@ -190,7 +190,7 @@ private fun Number.toKotlinSource(): String =
     when (this) {
         is Double -> nonFiniteSource() ?: toString()
         is Float -> nonFiniteSource() ?: "${this}f"
-        is Long -> "${this}L"
+        is Long -> if (this == Long.MIN_VALUE) "Long.MIN_VALUE" else "${this}L"
         is Byte -> "($this).toByte()"
         is Short -> "($this).toShort()"
         else -> toString()
