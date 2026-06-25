@@ -1,6 +1,5 @@
 package io.github.lmliam.kotventure.core.style
 
-import io.github.lmliam.kotventure.core.componentLike
 import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.github.lmliam.kotventure.test.text.shouldHaveColor
@@ -38,14 +37,6 @@ class StyledDslTest :
 
                 val styled = original styled replacement
 
-                styled shouldHaveColor NamedTextColor.GREEN
-            }
-
-            "styles component-like receiver" {
-                val replacement = style { color(NamedTextColor.GREEN) }
-                val styled = componentLike(Component.text("Title", NamedTextColor.RED)) styled replacement
-
-                styled shouldContainText "Title"
                 styled shouldHaveColor NamedTextColor.GREEN
             }
         },

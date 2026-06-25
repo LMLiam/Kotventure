@@ -19,7 +19,7 @@ public interface JoinScope {
     /**
      * Sets the separator between adjacent joined components.
      */
-    public fun separator(component: ComponentLike)
+    public fun <T : ComponentLike> separator(component: T)
 
     /**
      * Sets the component inserted before the final joined component instead of the separator, as a text
@@ -33,7 +33,7 @@ public interface JoinScope {
     /**
      * Sets the component inserted before the final joined component instead of the separator.
      */
-    public fun lastSeparator(component: ComponentLike)
+    public fun <T : ComponentLike> lastSeparator(component: T)
 
     /**
      * Sets the component prepended to the joined result to a text component with [value], configured by [init].
@@ -46,7 +46,7 @@ public interface JoinScope {
     /**
      * Sets the component prepended to the joined result.
      */
-    public fun prefix(component: ComponentLike)
+    public fun <T : ComponentLike> prefix(component: T)
 
     /**
      * Sets the component appended to the joined result to a text component with [value], configured by [init].
@@ -59,5 +59,5 @@ public interface JoinScope {
     /**
      * Sets the component appended to the joined result.
      */
-    public fun suffix(component: ComponentLike)
+    public fun <T : ComponentLike> suffix(component: T)
 }

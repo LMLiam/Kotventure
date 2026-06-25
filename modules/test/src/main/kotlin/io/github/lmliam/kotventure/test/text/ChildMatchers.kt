@@ -24,7 +24,7 @@ public fun haveChildCount(expected: Int): Matcher<Component> =
 /**
  * Matches a component whose direct children equal [expected] in the same order (structural equality).
  */
-public fun haveChildren(vararg expected: ComponentLike): Matcher<Component> =
+public fun <T : ComponentLike> haveChildren(vararg expected: T): Matcher<Component> =
     Matcher { value ->
         val actual = value.children()
         val expectedChildren = expected.map(ComponentLike::asComponent)
@@ -38,7 +38,7 @@ public fun haveChildren(vararg expected: ComponentLike): Matcher<Component> =
 /**
  * Matches a component whose tree contains [expected] anywhere (by structural equality).
  */
-public fun containComponent(expected: ComponentLike): Matcher<Component> =
+public fun <T : ComponentLike> containComponent(expected: T): Matcher<Component> =
     Matcher { value ->
         val expectedComponent = expected.asComponent()
         MatcherResult(
@@ -67,7 +67,7 @@ public fun Component.shouldHaveNoChildren(): Component =
 /**
  * Asserts that this component's direct children are exactly [expected] in order.
  */
-public fun Component.shouldHaveChildren(vararg expected: ComponentLike): Component =
+public fun <T : ComponentLike> Component.shouldHaveChildren(vararg expected: T): Component =
     apply {
         this should haveChildren(*expected)
     }
@@ -75,7 +75,7 @@ public fun Component.shouldHaveChildren(vararg expected: ComponentLike): Compone
 /**
  * Asserts that this component's tree contains [expected] (by structural equality).
  */
-public infix fun Component.shouldContainComponent(expected: ComponentLike): Component =
+public infix fun <T : ComponentLike> Component.shouldContainComponent(expected: T): Component =
     apply {
         this should containComponent(expected)
     }
@@ -83,7 +83,7 @@ public infix fun Component.shouldContainComponent(expected: ComponentLike): Comp
 /**
  * Asserts that this component's tree does NOT contain [expected] (by structural equality).
  */
-public infix fun Component.shouldNotContainComponent(expected: ComponentLike): Component =
+public infix fun <T : ComponentLike> Component.shouldNotContainComponent(expected: T): Component =
     apply {
         this shouldNot containComponent(expected)
     }

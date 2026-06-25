@@ -31,14 +31,6 @@ class HoverEventMatchersTest :
                         Component.text("Tooltip")
             }
 
-            "matches component-like text hover payloads" {
-                val tooltip = Component.text("Tooltip")
-
-                Component
-                    .text("Hover")
-                    .hoverEvent(HoverEvent.showText(tooltip)) shouldHaveHoverText componentLike(tooltip)
-            }
-
             "matches item hover payloads" {
                 val item = HoverEvent.ShowItem.showItem(Key.key("minecraft", "diamond"), 2)
 

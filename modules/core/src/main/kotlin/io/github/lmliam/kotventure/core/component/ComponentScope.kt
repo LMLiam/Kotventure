@@ -34,7 +34,7 @@ public interface ComponentScope : StyleScope {
     /**
      * Appends an existing Adventure [ComponentLike] as a child of the component being configured.
      */
-    public fun append(component: ComponentLike)
+    public fun <T : ComponentLike> append(component: T)
 
     /**
      * Appends an Adventure newline component as a child of the component being configured.

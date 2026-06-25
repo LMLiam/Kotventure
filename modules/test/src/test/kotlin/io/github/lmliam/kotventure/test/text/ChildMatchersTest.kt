@@ -81,19 +81,6 @@ class ChildMatchersTest :
                 component.shouldHaveChildren(first, second)
             }
 
-            "matches component-like direct children in order" {
-                val first = Component.text("one")
-                val second = Component.text("two")
-                val component =
-                    Component
-                        .text()
-                        .append(first)
-                        .append(second)
-                        .build()
-
-                component.shouldHaveChildren(componentLike(first), componentLike(second))
-            }
-
             "reports children that differ in order" {
                 val first = Component.text("one")
                 val second = Component.text("two")

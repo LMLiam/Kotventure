@@ -23,7 +23,7 @@ public fun haveSelectorPattern(expected: String): Matcher<SelectorComponent> =
 /**
  * Matches a selector component whose separator is [expected].
  */
-public fun haveSelectorSeparator(expected: ComponentLike): Matcher<SelectorComponent> =
+public fun <T : ComponentLike> haveSelectorSeparator(expected: T): Matcher<SelectorComponent> =
     Matcher { value ->
         val actual = value.separator()
         val expectedComponent = expected.asComponent()
@@ -63,7 +63,7 @@ public infix fun SelectorComponent.shouldHaveSelectorPattern(expected: String): 
 /**
  * Asserts that this selector component has [expected] as its separator.
  */
-public infix fun SelectorComponent.shouldHaveSelectorSeparator(expected: ComponentLike): SelectorComponent =
+public infix fun <T : ComponentLike> SelectorComponent.shouldHaveSelectorSeparator(expected: T): SelectorComponent =
     apply {
         this should haveSelectorSeparator(expected)
     }

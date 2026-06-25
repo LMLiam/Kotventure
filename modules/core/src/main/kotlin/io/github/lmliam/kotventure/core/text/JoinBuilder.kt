@@ -11,7 +11,7 @@ internal class JoinBuilder : JoinScope {
         init: TextScope.() -> Unit,
     ) = separator(text(value, init))
 
-    override fun separator(component: ComponentLike) {
+    override fun <T : ComponentLike> separator(component: T) {
         builder.separator(component.asComponent())
     }
 
@@ -20,7 +20,7 @@ internal class JoinBuilder : JoinScope {
         init: TextScope.() -> Unit,
     ) = lastSeparator(text(value, init))
 
-    override fun lastSeparator(component: ComponentLike) {
+    override fun <T : ComponentLike> lastSeparator(component: T) {
         builder.lastSeparator(component.asComponent())
     }
 
@@ -29,7 +29,7 @@ internal class JoinBuilder : JoinScope {
         init: TextScope.() -> Unit,
     ) = prefix(text(value, init))
 
-    override fun prefix(component: ComponentLike) {
+    override fun <T : ComponentLike> prefix(component: T) {
         builder.prefix(component.asComponent())
     }
 
@@ -38,7 +38,7 @@ internal class JoinBuilder : JoinScope {
         init: TextScope.() -> Unit,
     ) = suffix(text(value, init))
 
-    override fun suffix(component: ComponentLike) {
+    override fun <T : ComponentLike> suffix(component: T) {
         builder.suffix(component.asComponent())
     }
 

@@ -40,7 +40,7 @@ public fun haveInterpretState(expected: Boolean): Matcher<NBTComponent<*>> =
 /**
  * Matches an NBT component whose separator is [expected].
  */
-public fun haveNbtSeparator(expected: ComponentLike): Matcher<NBTComponent<*>> =
+public fun <T : ComponentLike> haveNbtSeparator(expected: T): Matcher<NBTComponent<*>> =
     Matcher { value ->
         val actual = value.separator()
         val expectedComponent = expected.asComponent()
@@ -145,7 +145,7 @@ public fun NBTComponent<*>.shouldNotInterpret(): NBTComponent<*> =
 /**
  * Asserts that this NBT component has [expected] as its separator.
  */
-public infix fun NBTComponent<*>.shouldHaveNbtSeparator(expected: ComponentLike): NBTComponent<*> =
+public infix fun <T : ComponentLike> NBTComponent<*>.shouldHaveNbtSeparator(expected: T): NBTComponent<*> =
     apply {
         this should haveNbtSeparator(expected)
     }

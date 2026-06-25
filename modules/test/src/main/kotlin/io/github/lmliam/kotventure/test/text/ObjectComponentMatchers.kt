@@ -24,7 +24,7 @@ public fun haveObjectContents(expected: ObjectContents): Matcher<ObjectComponent
 /**
  * Matches an object component whose fallback component is [expected].
  */
-public fun haveObjectFallback(expected: ComponentLike): Matcher<ObjectComponent> =
+public fun <T : ComponentLike> haveObjectFallback(expected: T): Matcher<ObjectComponent> =
     Matcher { value ->
         val actual = value.fallback()
         val expectedComponent = expected.asComponent()
@@ -64,7 +64,7 @@ public infix fun ObjectComponent.shouldHaveObjectContents(expected: ObjectConten
 /**
  * Asserts that this object component has [expected] as its fallback component.
  */
-public infix fun ObjectComponent.shouldHaveObjectFallback(expected: ComponentLike): ObjectComponent =
+public infix fun <T : ComponentLike> ObjectComponent.shouldHaveObjectFallback(expected: T): ObjectComponent =
     apply {
         this should haveObjectFallback(expected)
     }

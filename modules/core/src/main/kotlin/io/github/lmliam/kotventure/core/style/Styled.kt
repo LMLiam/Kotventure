@@ -11,4 +11,4 @@ import net.kyori.adventure.text.format.Style
  * val highlighted = component { text("important") } styled heading
  * ```
  */
-public infix fun ComponentLike.styled(style: Style): Component = asComponent().style(style)
+public infix fun <T : ComponentLike> T.styled(style: Style): Component = asComponent().style(style)

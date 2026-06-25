@@ -63,7 +63,7 @@ internal open class ComponentBuilder<C : Component, B : AdventureComponentBuilde
         builder.decoration(decoration, state)
     }
 
-    override fun append(component: ComponentLike) {
+    override fun <T : ComponentLike> append(component: T) {
         builder.append(component.asComponent())
     }
 

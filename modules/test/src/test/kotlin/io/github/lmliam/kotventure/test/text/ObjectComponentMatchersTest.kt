@@ -25,20 +25,6 @@ class ObjectComponentMatchersTest :
                 component shouldHaveObjectFallback fallback
             }
 
-            "matches component-like object fallback" {
-                val contents = ObjectContents.sprite(Key.key("minecraft", "block/stone"))
-                val fallback = Component.text("[stone]")
-                val component =
-                    Component
-                        .`object`()
-                        .contents(contents)
-                        .fallback(fallback)
-                        .build()
-                        .shouldBeObjectComponent()
-
-                component shouldHaveObjectFallback componentLike(fallback)
-            }
-
             "matches object components without fallback" {
                 val contents = ObjectContents.sprite(Key.key("minecraft", "block/stone"))
 

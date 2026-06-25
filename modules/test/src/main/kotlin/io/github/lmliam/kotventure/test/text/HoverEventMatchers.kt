@@ -36,18 +36,15 @@ public fun haveHoverAction(expected: HoverEvent.Action<*>): Matcher<Component> =
 /**
  * Matches a component whose root hover event shows the text payload [expected].
  */
-public fun haveHoverText(expected: ComponentLike): Matcher<Component> =
+public fun <T : ComponentLike> haveHoverText(expected: T): Matcher<Component> =
     Matcher { value ->
         val payload = value.hoverEvent()?.value()
         val actual = payload as? Component
         val expectedComponent = expected.asComponent()
+        val actualDescription = actual?.toString() ?: hoverPayloadDescription(payload)
         MatcherResult(
             actual == expectedComponent,
-            {
-                "Expected hover text payload <$expectedComponent>, but was <${actual ?: hoverPayloadDescription(
-                payload,
-            )}>."
-            },
+            { "Expected hover text payload <$expectedComponent>, but was <$actualDescription>." },
             { "Expected hover text payload not to be <$expectedComponent>." },
         )
     }
@@ -112,7 +109,7 @@ public infix fun Component.shouldHaveHoverAction(expected: HoverEvent.Action<*>)
 /**
  * Asserts that this component has [expected] as its root text hover payload.
  */
-public infix fun Component.shouldHaveHoverText(expected: ComponentLike): Component =
+public infix fun <T : ComponentLike> Component.shouldHaveHoverText(expected: T): Component =
     apply {
         this should haveHoverText(expected)
     }
