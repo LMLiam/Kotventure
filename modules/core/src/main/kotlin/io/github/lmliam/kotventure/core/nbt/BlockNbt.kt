@@ -26,7 +26,7 @@ internal fun buildBlockNbtComponent(
     nbtPath: String,
     init: NbtScope.() -> Unit = {},
 ): Component =
-    NbtComponentBuilder<BlockNBTComponent, BlockNBTComponent.Builder>(
+    NbtComponentBuilder(
         Component.blockNBT().pos(pos).nbtPath(nbtPath),
     ).apply(init).build()
 

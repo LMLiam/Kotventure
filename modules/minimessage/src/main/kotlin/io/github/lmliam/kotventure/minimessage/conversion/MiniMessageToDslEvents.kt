@@ -38,7 +38,7 @@ internal fun KotlinSourceBuilder.appendHoverEvent(event: HoverEvent<*>) {
 private fun KotlinSourceBuilder.appendShowItem(item: HoverEvent.ShowItem) {
     val itemKey = keyLiteral(item.item())
     val arguments =
-        buildList<() -> Unit> {
+        buildList {
             add { line("key = $itemKey") }
             if (item.count() != 1) add { line("count = ${item.count()}") }
             if (item.dataComponents().isNotEmpty()) add { appendDataComponents(item.dataComponents()) }

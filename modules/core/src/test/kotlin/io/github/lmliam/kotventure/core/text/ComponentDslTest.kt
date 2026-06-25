@@ -6,34 +6,11 @@ import io.github.lmliam.kotventure.core.keybind.keybind
 import io.github.lmliam.kotventure.core.nbt.blockNbt
 import io.github.lmliam.kotventure.core.nbt.entityNbt
 import io.github.lmliam.kotventure.core.nbt.storageNbt
-import io.github.lmliam.kotventure.core.objectcomponent.display
 import io.github.lmliam.kotventure.core.score.score
 import io.github.lmliam.kotventure.core.selector.selector
 import io.github.lmliam.kotventure.core.translatable.translatable
 import io.github.lmliam.kotventure.test.compilation.assertDoesNotCompile
-import io.github.lmliam.kotventure.test.text.childAt
-import io.github.lmliam.kotventure.test.text.shouldBeBlockNbtComponent
-import io.github.lmliam.kotventure.test.text.shouldBeEntityNbtComponent
-import io.github.lmliam.kotventure.test.text.shouldBeKeybindComponent
-import io.github.lmliam.kotventure.test.text.shouldBeScoreComponent
-import io.github.lmliam.kotventure.test.text.shouldBeSelectorComponent
-import io.github.lmliam.kotventure.test.text.shouldBeStorageNbtComponent
-import io.github.lmliam.kotventure.test.text.shouldContainText
-import io.github.lmliam.kotventure.test.text.shouldHaveBlockPos
-import io.github.lmliam.kotventure.test.text.shouldHaveChildCount
-import io.github.lmliam.kotventure.test.text.shouldHaveColor
-import io.github.lmliam.kotventure.test.text.shouldHaveDecoration
-import io.github.lmliam.kotventure.test.text.shouldHaveEntitySelector
-import io.github.lmliam.kotventure.test.text.shouldHaveKeybind
-import io.github.lmliam.kotventure.test.text.shouldHaveNbtPath
-import io.github.lmliam.kotventure.test.text.shouldHaveScoreName
-import io.github.lmliam.kotventure.test.text.shouldHaveScoreObjective
-import io.github.lmliam.kotventure.test.text.shouldHaveSelectorPattern
-import io.github.lmliam.kotventure.test.text.shouldHaveSelectorSeparator
-import io.github.lmliam.kotventure.test.text.shouldHaveStorageKey
-import io.github.lmliam.kotventure.test.text.shouldHaveStyle
-import io.github.lmliam.kotventure.test.text.shouldHaveTranslationKey
-import io.github.lmliam.kotventure.test.text.shouldNotHaveDecoration
+import io.github.lmliam.kotventure.test.text.*
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import net.kyori.adventure.key.Key
@@ -404,7 +381,7 @@ class ComponentDslTest :
                     OuterScope().init()
                 }
 
-                lateinit var component: net.kyori.adventure.text.Component
+                lateinit var component: Component
 
                 outer outer@{
                     component =

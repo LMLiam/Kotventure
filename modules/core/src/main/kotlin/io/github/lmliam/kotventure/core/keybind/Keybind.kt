@@ -24,7 +24,7 @@ internal fun buildKeybindComponent(
     keybind: String,
     init: ComponentScope.() -> Unit = {},
 ): Component =
-    ComponentBuilder<KeybindComponent, KeybindComponent.Builder>(
+    ComponentBuilder(
         Component.keybind().keybind(keybind),
     ).apply(init).build()
 

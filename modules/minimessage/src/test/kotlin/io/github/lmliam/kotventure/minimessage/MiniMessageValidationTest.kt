@@ -1,11 +1,9 @@
 package io.github.lmliam.kotventure.minimessage
 
-import io.github.lmliam.kotventure.minimessage.placeholder.MiniMessagePlaceholder
 import io.github.lmliam.kotventure.minimessage.placeholder.placeholder
 import io.github.lmliam.kotventure.minimessage.template.MiniTemplate
 import io.github.lmliam.kotventure.minimessage.validation.MiniMessageDiagnostic
 import io.github.lmliam.kotventure.minimessage.validation.ValidationResult
-import io.github.lmliam.kotventure.minimessage.validation.runValidation
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldHaveSize
@@ -284,7 +282,7 @@ class MiniMessageValidationTest :
             "ValidationResult.isSuccess is true for Success and false for Failure" {
                 val player = placeholder<Component>("player")
                 val success = validate("<player>", listOf(player))
-                val failure = validate("<extra>", emptyList<MiniMessagePlaceholder<*>>())
+                val failure = validate("<extra>", emptyList())
 
                 success.isSuccess shouldBe true
                 success.isFailure shouldBe false
@@ -293,7 +291,7 @@ class MiniMessageValidationTest :
             }
 
             "ValidationResult.isFailure is true for Failure and false for Success" {
-                val failure = validate("<extra>", emptyList<MiniMessagePlaceholder<*>>())
+                val failure = validate("<extra>", emptyList())
                 val success = ValidationResult.Success
 
                 failure.isFailure shouldBe true
@@ -424,7 +422,7 @@ class MiniMessageValidationTest :
 
                 for (input in inputs) {
                     // shouldNotThrow is enforced by the test harness — any exception fails the test.
-                    validate(input, emptyList<MiniMessagePlaceholder<*>>())
+                    validate(input, emptyList())
                 }
             }
         },

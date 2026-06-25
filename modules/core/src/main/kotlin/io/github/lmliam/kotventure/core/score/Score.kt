@@ -27,7 +27,7 @@ internal fun buildScoreComponent(
     objective: String,
     init: ComponentScope.() -> Unit = {},
 ): Component =
-    ComponentBuilder<ScoreComponent, ScoreComponent.Builder>(
+    ComponentBuilder(
         Component.score().name(name).objective(objective),
     ).apply(init).build()
 

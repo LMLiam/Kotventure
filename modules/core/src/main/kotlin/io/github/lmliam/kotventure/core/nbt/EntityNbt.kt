@@ -26,7 +26,7 @@ internal fun buildEntityNbtComponent(
     nbtPath: String,
     init: NbtScope.() -> Unit = {},
 ): Component =
-    NbtComponentBuilder<EntityNBTComponent, EntityNBTComponent.Builder>(
+    NbtComponentBuilder(
         Component.entityNBT().selector(selector).nbtPath(nbtPath),
     ).apply(init).build()
 

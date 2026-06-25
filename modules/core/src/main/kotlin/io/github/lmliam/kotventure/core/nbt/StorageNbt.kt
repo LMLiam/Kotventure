@@ -27,7 +27,7 @@ internal fun buildStorageNbtComponent(
     nbtPath: String,
     init: NbtScope.() -> Unit = {},
 ): Component =
-    NbtComponentBuilder<StorageNBTComponent, StorageNBTComponent.Builder>(
+    NbtComponentBuilder(
         Component.storageNBT().storage(storage).nbtPath(nbtPath),
     ).apply(init).build()
 
