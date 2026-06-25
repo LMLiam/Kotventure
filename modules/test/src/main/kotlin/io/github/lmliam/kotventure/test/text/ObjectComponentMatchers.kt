@@ -4,6 +4,7 @@ import io.kotest.matchers.Matcher
 import io.kotest.matchers.MatcherResult
 import io.kotest.matchers.should
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.ObjectComponent
 import net.kyori.adventure.text.`object`.ObjectContents
 
@@ -23,13 +24,14 @@ public fun haveObjectContents(expected: ObjectContents): Matcher<ObjectComponent
 /**
  * Matches an object component whose fallback component is [expected].
  */
-public fun haveObjectFallback(expected: Component): Matcher<ObjectComponent> =
+public fun <T : ComponentLike> haveObjectFallback(expected: T): Matcher<ObjectComponent> =
     Matcher { value ->
         val actual = value.fallback()
+        val expectedComponent = expected.asComponent()
         MatcherResult(
-            actual == expected,
-            { "Expected object fallback <$expected>, but was <${actual ?: "null"}>." },
-            { "Expected object fallback not to be <$expected>." },
+            actual == expectedComponent,
+            { "Expected object fallback <$expectedComponent>, but was <${actual ?: "null"}>." },
+            { "Expected object fallback not to be <$expectedComponent>." },
         )
     }
 
@@ -62,7 +64,7 @@ public infix fun ObjectComponent.shouldHaveObjectContents(expected: ObjectConten
 /**
  * Asserts that this object component has [expected] as its fallback component.
  */
-public infix fun ObjectComponent.shouldHaveObjectFallback(expected: Component): ObjectComponent =
+public infix fun <T : ComponentLike> ObjectComponent.shouldHaveObjectFallback(expected: T): ObjectComponent =
     apply {
         this should haveObjectFallback(expected)
     }

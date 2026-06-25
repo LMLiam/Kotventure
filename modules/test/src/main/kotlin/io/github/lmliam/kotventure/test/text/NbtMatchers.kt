@@ -6,6 +6,7 @@ import io.kotest.matchers.should
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.BlockNBTComponent
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.EntityNBTComponent
 import net.kyori.adventure.text.NBTComponent
 import net.kyori.adventure.text.StorageNBTComponent
@@ -39,13 +40,14 @@ public fun haveInterpretState(expected: Boolean): Matcher<NBTComponent<*>> =
 /**
  * Matches an NBT component whose separator is [expected].
  */
-public fun haveNbtSeparator(expected: Component): Matcher<NBTComponent<*>> =
+public fun <T : ComponentLike> haveNbtSeparator(expected: T): Matcher<NBTComponent<*>> =
     Matcher { value ->
         val actual = value.separator()
+        val expectedComponent = expected.asComponent()
         MatcherResult(
-            actual == expected,
-            { "Expected NBT separator <$expected>, but was <${actual ?: "null"}>." },
-            { "Expected NBT separator not to be <$expected>." },
+            actual == expectedComponent,
+            { "Expected NBT separator <$expectedComponent>, but was <${actual ?: "null"}>." },
+            { "Expected NBT separator not to be <$expectedComponent>." },
         )
     }
 
@@ -143,7 +145,7 @@ public fun NBTComponent<*>.shouldNotInterpret(): NBTComponent<*> =
 /**
  * Asserts that this NBT component has [expected] as its separator.
  */
-public infix fun NBTComponent<*>.shouldHaveNbtSeparator(expected: Component): NBTComponent<*> =
+public infix fun <T : ComponentLike> NBTComponent<*>.shouldHaveNbtSeparator(expected: T): NBTComponent<*> =
     apply {
         this should haveNbtSeparator(expected)
     }

@@ -5,6 +5,7 @@ import io.kotest.matchers.MatcherResult
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldNot
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.ComponentLike
 
 /**
  * Matches a component with exactly [expected] direct child components. Combine with `and`/`or` or negate with
@@ -23,10 +24,10 @@ public fun haveChildCount(expected: Int): Matcher<Component> =
 /**
  * Matches a component whose direct children equal [expected] in the same order (structural equality).
  */
-public fun haveChildren(vararg expected: Component): Matcher<Component> =
+public fun <T : ComponentLike> haveChildren(vararg expected: T): Matcher<Component> =
     Matcher { value ->
         val actual = value.children()
-        val expectedChildren = expected.asList()
+        val expectedChildren = expected.map(ComponentLike::asComponent)
         MatcherResult(
             actual == expectedChildren,
             { "Expected children <$expectedChildren>, but was <$actual>." },
@@ -37,12 +38,13 @@ public fun haveChildren(vararg expected: Component): Matcher<Component> =
 /**
  * Matches a component whose tree contains [expected] anywhere (by structural equality).
  */
-public fun containComponent(expected: Component): Matcher<Component> =
+public fun <T : ComponentLike> containComponent(expected: T): Matcher<Component> =
     Matcher { value ->
+        val expectedComponent = expected.asComponent()
         MatcherResult(
-            value.containsComponent(expected),
-            { "Expected component tree to contain $expected" },
-            { "Expected component tree not to contain $expected" },
+            value.containsComponent(expectedComponent),
+            { "Expected component tree to contain $expectedComponent" },
+            { "Expected component tree not to contain $expectedComponent" },
         )
     }
 
@@ -65,7 +67,7 @@ public fun Component.shouldHaveNoChildren(): Component =
 /**
  * Asserts that this component's direct children are exactly [expected] in order.
  */
-public fun Component.shouldHaveChildren(vararg expected: Component): Component =
+public fun <T : ComponentLike> Component.shouldHaveChildren(vararg expected: T): Component =
     apply {
         this should haveChildren(*expected)
     }
@@ -73,7 +75,7 @@ public fun Component.shouldHaveChildren(vararg expected: Component): Component =
 /**
  * Asserts that this component's tree contains [expected] (by structural equality).
  */
-public infix fun Component.shouldContainComponent(expected: Component): Component =
+public infix fun <T : ComponentLike> Component.shouldContainComponent(expected: T): Component =
     apply {
         this should containComponent(expected)
     }
@@ -81,7 +83,7 @@ public infix fun Component.shouldContainComponent(expected: Component): Componen
 /**
  * Asserts that this component's tree does NOT contain [expected] (by structural equality).
  */
-public infix fun Component.shouldNotContainComponent(expected: Component): Component =
+public infix fun <T : ComponentLike> Component.shouldNotContainComponent(expected: T): Component =
     apply {
         this shouldNot containComponent(expected)
     }
