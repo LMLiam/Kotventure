@@ -17,17 +17,30 @@ import java.util.Locale
  */
 internal fun colorLiteral(color: TextColor): String =
     if (color is NamedTextColor) {
-        snakeToCamelCase(color.name())
+        namedColorLiterals.getValue(color)
     } else {
         "hex(\"${color.asHexString().uppercase(Locale.ROOT)}\")"
     }
 
-/** Converts an Adventure snake_case name (`dark_blue`) to its camelCase colour-DSL property (`darkBlue`). */
-private fun snakeToCamelCase(name: String): String =
-    name
-        .split('_')
-        .mapIndexed { index, part -> if (index == 0) part else part.replaceFirstChar(Char::uppercaseChar) }
-        .joinToString(separator = "")
+private val namedColorLiterals: Map<NamedTextColor, String> =
+    mapOf(
+        NamedTextColor.BLACK to "black",
+        NamedTextColor.DARK_BLUE to "darkBlue",
+        NamedTextColor.DARK_GREEN to "darkGreen",
+        NamedTextColor.DARK_AQUA to "darkAqua",
+        NamedTextColor.DARK_RED to "darkRed",
+        NamedTextColor.DARK_PURPLE to "darkPurple",
+        NamedTextColor.GOLD to "gold",
+        NamedTextColor.GRAY to "gray",
+        NamedTextColor.DARK_GRAY to "darkGray",
+        NamedTextColor.BLUE to "blue",
+        NamedTextColor.GREEN to "green",
+        NamedTextColor.AQUA to "aqua",
+        NamedTextColor.RED to "red",
+        NamedTextColor.LIGHT_PURPLE to "lightPurple",
+        NamedTextColor.YELLOW to "yellow",
+        NamedTextColor.WHITE to "white",
+    )
 
 /** Renders [color] as the `ShadowColor.shadowColor(...)` call that reconstructs its packed ARGB value. */
 internal fun shadowColorLiteral(color: ShadowColor): String {
