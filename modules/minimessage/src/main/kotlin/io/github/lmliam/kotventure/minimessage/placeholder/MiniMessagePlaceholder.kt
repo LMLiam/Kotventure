@@ -30,7 +30,7 @@ internal constructor(
 
     override fun equals(other: Any?): Boolean =
         this === other ||
-            (other is MiniMessagePlaceholder<*> && name == other.name && type == other.type)
+                (other is MiniMessagePlaceholder<*> && name == other.name && type == other.type)
 
     override fun hashCode(): Int = 31 * name.hashCode() + type.hashCode()
 }

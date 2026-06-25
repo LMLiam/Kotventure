@@ -19,7 +19,7 @@ internal class TemplateBindings(
     ) {
         require(template.placeholders[placeholder.name] === placeholder) {
             "Placeholder '${placeholder.name}' is not declared on this template. " +
-                "Declared placeholders: ${template.placeholders.keys}."
+                    "Declared placeholders: ${template.placeholders.keys}."
         }
         require(boundNames.add(placeholder.name)) {
             "Placeholder '${placeholder.name}' is already bound in this template render."

@@ -38,127 +38,128 @@ private object SameTypeAltTemplate : MiniTemplate("<red>Alt <player>") {
 }
 
 class MiniTemplateTest :
-    DescribeSpec({
-        describe("required-placeholder enforcement") {
-            it("rejects a render that omits one binding") {
-                shouldThrow<IllegalArgumentException> {
-                    WelcomeTemplate { player bind Component.text("Alex") }
+    DescribeSpec(
+        {
+            describe("required-placeholder enforcement") {
+                it("rejects a render that omits one binding") {
+                    shouldThrow<IllegalArgumentException> {
+                        WelcomeTemplate { player bind Component.text("Alex") }
+                    }
                 }
-            }
 
-            it("rejects a render that omits all bindings") {
-                shouldThrow<IllegalArgumentException> {
-                    WelcomeTemplate { }
+                it("rejects a render that omits all bindings") {
+                    shouldThrow<IllegalArgumentException> {
+                        WelcomeTemplate { }
+                    }
                 }
-            }
 
-            it("rejects a render that binds only the second-declared placeholder") {
-                shouldThrow<IllegalArgumentException> {
-                    WelcomeTemplate { count bind 99 }
-                }
-            }
-        }
-
-        describe("placeholder identity") {
-            it("rejects a placeholder not declared on this template") {
-                val outsider = placeholder<String>("outsider")
-
-                shouldThrow<IllegalArgumentException> {
-                    WelcomeTemplate {
-                        player bind Component.text("Alex")
-                        count bind 1
-                        @Suppress("UNCHECKED_CAST")
-                        (outsider as MiniMessagePlaceholder<Component>) bind Component.text("x")
+                it("rejects a render that binds only the second-declared placeholder") {
+                    shouldThrow<IllegalArgumentException> {
+                        WelcomeTemplate { count bind 99 }
                     }
                 }
             }
 
-            it("rejects another template's same-named but differently-typed descriptor") {
-                shouldThrow<IllegalArgumentException> {
-                    WelcomeTemplate {
-                        @Suppress("UNCHECKED_CAST")
-                        (AltTemplate.player as MiniMessagePlaceholder<Component>) bind Component.text("Alex")
-                        count bind 1
+            describe("placeholder identity") {
+                it("rejects a placeholder not declared on this template") {
+                    val outsider = placeholder<String>("outsider")
+
+                    shouldThrow<IllegalArgumentException> {
+                        WelcomeTemplate {
+                            player bind Component.text("Alex")
+                            count bind 1
+                            @Suppress("UNCHECKED_CAST")
+                            (outsider as MiniMessagePlaceholder<Component>) bind Component.text("x")
+                        }
+                    }
+                }
+
+                it("rejects another template's same-named but differently-typed descriptor") {
+                    shouldThrow<IllegalArgumentException> {
+                        WelcomeTemplate {
+                            @Suppress("UNCHECKED_CAST")
+                            (AltTemplate.player as MiniMessagePlaceholder<Component>) bind Component.text("Alex")
+                            count bind 1
+                        }
+                    }
+                }
+
+                it("rejects another template's structurally equal descriptor") {
+                    shouldThrow<IllegalArgumentException> {
+                        WelcomeTemplate {
+                            SameTypeAltTemplate.player bind Component.text("Alex")
+                            count bind 1
+                        }
+                    }
+                }
+
+                it("rejects binding the same placeholder twice in one render") {
+                    shouldThrow<IllegalArgumentException> {
+                        WelcomeTemplate {
+                            player bind Component.text("First", NamedTextColor.GREEN)
+                            count bind 1
+                            player bind Component.text("Second", NamedTextColor.RED)
+                        }
                     }
                 }
             }
 
-            it("rejects another template's structurally equal descriptor") {
-                shouldThrow<IllegalArgumentException> {
-                    WelcomeTemplate {
-                        SameTypeAltTemplate.player bind Component.text("Alex")
-                        count bind 1
-                    }
+            describe("rendering") {
+                it("renders independent components for repeated invocations") {
+                    val forAlex =
+                        WelcomeTemplate {
+                            player bind Component.text("Alex", NamedTextColor.GREEN)
+                            count bind 3
+                        }
+                    val forSam =
+                        WelcomeTemplate {
+                            player bind Component.text("Sam", NamedTextColor.RED)
+                            count bind 0
+                        }
+
+                    forAlex shouldHaveColor NamedTextColor.GOLD
+                    forAlex shouldContainText "Alex"
+                    forAlex shouldContainText "3"
+
+                    forSam shouldHaveColor NamedTextColor.GOLD
+                    forSam shouldContainText "Sam"
+                    forSam shouldContainText "0"
+                }
+
+                it("inlines the bound component placeholder into the tree") {
+                    val alex = Component.text("Alex", NamedTextColor.AQUA)
+
+                    val rendered =
+                        WelcomeTemplate {
+                            player bind alex
+                            count bind 5
+                        }
+
+                    rendered shouldHaveColor NamedTextColor.GOLD
+                    rendered shouldContainText "Alex"
+                    rendered shouldContainComponent alex
+                }
+
+                it("renders every literal and bound segment") {
+                    val rendered =
+                        WelcomeTemplate {
+                            player bind Component.text("Alex")
+                            count bind 7
+                        }
+
+                    rendered shouldHaveColor NamedTextColor.GOLD
+                    rendered shouldContainText "Welcome"
+                    rendered shouldContainText "Alex"
+                    rendered shouldContainText "7"
                 }
             }
 
-            it("rejects binding the same placeholder twice in one render") {
-                shouldThrow<IllegalArgumentException> {
-                    WelcomeTemplate {
-                        player bind Component.text("First", NamedTextColor.GREEN)
-                        count bind 1
-                        player bind Component.text("Second", NamedTextColor.RED)
-                    }
-                }
-            }
-        }
-
-        describe("rendering") {
-            it("renders independent components for repeated invocations") {
-                val forAlex =
-                    WelcomeTemplate {
-                        player bind Component.text("Alex", NamedTextColor.GREEN)
-                        count bind 3
-                    }
-                val forSam =
-                    WelcomeTemplate {
-                        player bind Component.text("Sam", NamedTextColor.RED)
-                        count bind 0
-                    }
-
-                forAlex shouldHaveColor NamedTextColor.GOLD
-                forAlex shouldContainText "Alex"
-                forAlex shouldContainText "3"
-
-                forSam shouldHaveColor NamedTextColor.GOLD
-                forSam shouldContainText "Sam"
-                forSam shouldContainText "0"
-            }
-
-            it("inlines the bound component placeholder into the tree") {
-                val alex = Component.text("Alex", NamedTextColor.AQUA)
-
-                val rendered =
-                    WelcomeTemplate {
-                        player bind alex
-                        count bind 5
-                    }
-
-                rendered shouldHaveColor NamedTextColor.GOLD
-                rendered shouldContainText "Alex"
-                rendered shouldContainComponent alex
-            }
-
-            it("renders every literal and bound segment") {
-                val rendered =
-                    WelcomeTemplate {
-                        player bind Component.text("Alex")
-                        count bind 7
-                    }
-
-                rendered shouldHaveColor NamedTextColor.GOLD
-                rendered shouldContainText "Welcome"
-                rendered shouldContainText "Alex"
-                rendered shouldContainText "7"
-            }
-        }
-
-        describe("compile-time type safety") {
-            it("rejects an Int placeholder bound with a String value") {
-                assertDoesNotCompile(
-                    fileName = "TemplateIntStringMismatch.kt",
-                    source =
-                        """
+            describe("compile-time type safety") {
+                it("rejects an Int placeholder bound with a String value") {
+                    assertDoesNotCompile(
+                        fileName = "TemplateIntStringMismatch.kt",
+                        source =
+                            """
                         import io.github.lmliam.kotventure.minimessage.placeholder.placeholder
                         import io.github.lmliam.kotventure.minimessage.template.MiniTemplateBindingScope
 
@@ -167,17 +168,17 @@ class MiniTemplateTest :
                             scope.bind(count, "three")
                         }
                         """.trimIndent(),
-                    "Argument type mismatch",
-                    "String",
-                    "Int",
-                )
-            }
+                        "Argument type mismatch",
+                        "String",
+                        "Int",
+                    )
+                }
 
-            it("rejects a Component placeholder bound with an Int value") {
-                assertDoesNotCompile(
-                    fileName = "TemplateComponentIntMismatch.kt",
-                    source =
-                        """
+                it("rejects a Component placeholder bound with an Int value") {
+                    assertDoesNotCompile(
+                        fileName = "TemplateComponentIntMismatch.kt",
+                        source =
+                            """
                         import io.github.lmliam.kotventure.minimessage.placeholder.placeholder
                         import io.github.lmliam.kotventure.minimessage.template.MiniTemplateBindingScope
                         import net.kyori.adventure.text.Component
@@ -187,19 +188,19 @@ class MiniTemplateTest :
                             scope.bind(player, 42)
                         }
                         """.trimIndent(),
-                    "Argument type mismatch",
-                    "Int",
-                    "Component",
-                )
-            }
+                        "Argument type mismatch",
+                        "Int",
+                        "Component",
+                    )
+                }
 
-            it("rejects calling placeholder() inside the render lambda") {
-                // placeholder() is protected, so user code at the render site cannot declare new placeholders
-                // even though the template type is a context receiver.
-                assertDoesNotCompile(
-                    fileName = "TemplatePlaceholderAtRenderSite.kt",
-                    source =
-                        """
+                it("rejects calling placeholder() inside the render lambda") {
+                    // placeholder() is protected, so user code at the render site cannot declare new placeholders
+                    // even though the template type is a context receiver.
+                    assertDoesNotCompile(
+                        fileName = "TemplatePlaceholderAtRenderSite.kt",
+                        source =
+                            """
                         import io.github.lmliam.kotventure.minimessage.template.MiniTemplate
                         import io.github.lmliam.kotventure.minimessage.template.invoke
 
@@ -211,49 +212,50 @@ class MiniTemplateTest :
                             }
                         }
                         """.trimIndent(),
-                    "Cannot access",
-                )
+                        "Cannot access",
+                    )
+                }
             }
-        }
 
-        describe("definition validation") {
-            it("rejects duplicate placeholder names at construction") {
-                shouldThrow<IllegalArgumentException> {
-                    object : MiniTemplate("<a>") {
-                        @Suppress("unused")
-                        val first = placeholder<String>("a")
+            describe("definition validation") {
+                it("rejects duplicate placeholder names at construction") {
+                    shouldThrow<IllegalArgumentException> {
+                        object : MiniTemplate("<a>") {
+                            @Suppress("unused")
+                            val first = placeholder<String>("a")
 
-                        @Suppress("unused")
-                        val second = placeholder<Int>("a")
+                            @Suppress("unused")
+                            val second = placeholder<Int>("a")
+                        }
+                    }
+                }
+
+                it("rejects empty markup at construction") {
+                    shouldThrow<IllegalArgumentException> {
+                        object : MiniTemplate("") {}
+                    }
+                }
+
+                it("rejects blank markup at construction") {
+                    shouldThrow<IllegalArgumentException> {
+                        object : MiniTemplate("   ") {}
+                    }
+                }
+
+                it("rejects a blank placeholder name") {
+                    shouldThrow<IllegalArgumentException> {
+                        placeholder<String>("")
+                    }
+                }
+
+                it("rejects a declared placeholder that is absent from the markup") {
+                    shouldThrow<IllegalArgumentException> {
+                        SparseTemplate {
+                            name bind "Alex"
+                            unused bind 99
+                        }
                     }
                 }
             }
-
-            it("rejects empty markup at construction") {
-                shouldThrow<IllegalArgumentException> {
-                    object : MiniTemplate("") {}
-                }
-            }
-
-            it("rejects blank markup at construction") {
-                shouldThrow<IllegalArgumentException> {
-                    object : MiniTemplate("   ") {}
-                }
-            }
-
-            it("rejects a blank placeholder name") {
-                shouldThrow<IllegalArgumentException> {
-                    placeholder<String>("")
-                }
-            }
-
-            it("rejects a declared placeholder that is absent from the markup") {
-                shouldThrow<IllegalArgumentException> {
-                    SparseTemplate {
-                        name bind "Alex"
-                        unused bind 99
-                    }
-                }
-            }
-        }
-    })
+        },
+    )
