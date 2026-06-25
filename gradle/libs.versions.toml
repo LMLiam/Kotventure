@@ -5,6 +5,7 @@ kctfork = "0.13.0"
 kotest = "6.2.1"
 kotestPlugin = "6.2.1"
 mockk = "1.14.2"
+jetbrainsAnnotations = "26.0.2"
 kotlin = "2.4.0"
 kover = "0.9.8"
 spotless = "8.7.0"
@@ -18,6 +19,7 @@ adventure-text-serializer-gson = { module = "net.kyori:adventure-text-serializer
 adventure-text-serializer-json-legacy-impl = { module = "net.kyori:adventure-text-serializer-json-legacy-impl", version.ref = "adventureApi" }
 adventure-text-serializer-legacy = { module = "net.kyori:adventure-text-serializer-legacy", version.ref = "adventureApi" }
 adventure-text-serializer-plain = { module = "net.kyori:adventure-text-serializer-plain", version.ref = "adventureApi" }
+jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrainsAnnotations" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 kctfork-core = { module = "dev.zacsweers.kctfork:core", version.ref = "kctfork" }
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }

@@ -2,6 +2,7 @@ package io.github.lmliam.kotventure.core.color
 
 import net.kyori.adventure.text.format.TextColor
 import net.kyori.adventure.util.HSVLike
+import org.jetbrains.annotations.Range
 
 private val hexColorPattern: Regex = Regex("#[0-9A-Fa-f]{6}")
 
@@ -33,9 +34,9 @@ public fun hex(value: String): TextColor {
  * @throws IllegalArgumentException if any channel is outside `0..255`.
  */
 public fun rgb(
-    red: Int,
-    green: Int,
-    blue: Int,
+    red: @Range(from = 0, to = 255) Int,
+    green: @Range(from = 0, to = 255) Int,
+    blue: @Range(from = 0, to = 255) Int,
 ): TextColor {
     requireColorChannel("red", red)
     requireColorChannel("green", green)

@@ -12,6 +12,7 @@ ext.kotventureDependencies = [
         "adventure-text-serializer-json-legacy-impl": catalog.findLibrary('adventure-text-serializer-json-legacy-impl').get(),
         "adventure-text-serializer-legacy"        : catalog.findLibrary('adventure-text-serializer-legacy').get(),
         "adventure-text-serializer-plain"         : catalog.findLibrary('adventure-text-serializer-plain').get(),
+        "jetbrains-annotations"                   : catalog.findLibrary('jetbrains-annotations').get(),
         "kctfork-core"                            : catalog.findLibrary('kctfork-core').get(),
         "kotest-assertions-core"                  : catalog.findLibrary('kotest-assertions-core').get(),
         "kotest-runner-junit5"                    : catalog.findLibrary('kotest-runner-junit5').get(),
@@ -20,6 +21,7 @@ ext.kotventureDependencies = [
 
 dependencies {
     api platform(kotventureDependencies."adventure-bom")
+    compileOnly kotventureDependencies."jetbrains-annotations"
 
     testImplementation kotventureDependencies."kotest-assertions-core"
     testImplementation kotventureDependencies."kotest-runner-junit5"
