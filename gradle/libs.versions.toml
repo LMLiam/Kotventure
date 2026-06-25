@@ -8,7 +8,7 @@ mockk = "1.14.2"
 kotlin = "2.4.0"
 kover = "0.9.8"
 spotless = "8.7.0"
-spotlessKtlint = "1.7.0"
+spotlessKtlint = "1.8.0"
 
 [libraries]
 adventure-api = { module = "net.kyori:adventure-api", version.ref = "adventureApi" }

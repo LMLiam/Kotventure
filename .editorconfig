@@ -46,6 +46,10 @@ ktlint_standard_no-wildcard-imports = enabled
 ktlint_standard_filename = enabled
 ktlint_standard_string-template-indent = disabled
 ktlint_standard_context-receiver-list-wrapping = enabled
+# ktlint 1.8.0 enabled these two; both force verbose multi-line `when` entries (braces + blank lines
+# between branches). Keep the codebase's concise single-line `when (x) { is A -> ... }` style.
+ktlint_standard_when-entry-bracing = disabled
+ktlint_standard_blank-line-between-when-conditions = disabled
 ij_kotlin_align_in_columns_case_branch = false
 ij_kotlin_align_multiline_binary_operation = false
 ij_kotlin_align_multiline_extends_list = false
