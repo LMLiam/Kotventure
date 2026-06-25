@@ -12,7 +12,7 @@ import kotlin.concurrent.withLock
  */
 public class ThemeRegistry {
     private val lock = ReentrantLock()
-    private var providers: Map<String, ThemeProvider> = emptyMap()
+    private val providers: MutableMap<String, ThemeProvider> = mutableMapOf()
     private var defaultProvider: ThemeProvider? = null
 
     /**
@@ -34,7 +34,7 @@ public class ThemeRegistry {
             require(!default || defaultProvider == null) {
                 "Default theme provider '${checkNotNull(defaultProvider).name}' is already registered."
             }
-            providers = providers + (providerName to provider)
+            providers[providerName] = provider
             if (default) {
                 defaultProvider = provider
             }
