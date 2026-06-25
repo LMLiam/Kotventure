@@ -1,5 +1,8 @@
 package io.github.lmliam.kotventure.minimessage
 
+import io.github.lmliam.kotventure.core.color.aqua
+import io.github.lmliam.kotventure.core.color.green
+import io.github.lmliam.kotventure.core.color.red
 import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.keybind.keybind
@@ -50,14 +53,14 @@ class MiniMessageToDslStructuredComponentTest :
                             """
                         component {
                             keybind("key.sneak") {
-                                color(NamedTextColor.GREEN)
+                                color(green)
                             }
                         }
                         """.trimIndent(),
                         expectedComponent =
                             component {
                                 keybind("key.sneak") {
-                                    color(NamedTextColor.GREEN)
+                                    color(green)
                                 }
                             },
                     )
@@ -176,7 +179,7 @@ class MiniMessageToDslStructuredComponentTest :
                             translatable("k") {
                                 arg {
                                     text("x") {
-                                        color(NamedTextColor.RED)
+                                        color(red)
                                         text("y") {
                                             bold()
                                         }
@@ -190,7 +193,7 @@ class MiniMessageToDslStructuredComponentTest :
                                 translatable("k") {
                                     arg {
                                         text("x") {
-                                            color(NamedTextColor.RED)
+                                            color(red)
                                             text("y") { bold() }
                                         }
                                     }
@@ -335,7 +338,7 @@ class MiniMessageToDslStructuredComponentTest :
                         component {
                             translatable("commands.give.success.single") {
                                 arg { text("Alex") }
-                                color(NamedTextColor.GREEN)
+                                color(green)
                                 text("!")
                             }
                         }
@@ -347,7 +350,7 @@ class MiniMessageToDslStructuredComponentTest :
                             arg {
                                 text("Alex")
                             }
-                            color(NamedTextColor.GREEN)
+                            color(green)
                             text("!")
                         }
                     }
@@ -373,7 +376,7 @@ class MiniMessageToDslStructuredComponentTest :
                             blockNbt(blockPos("1 64 -3"), "Items") {
                                 interpret(true)
                                 separator { text(", ") }
-                                color(NamedTextColor.AQUA)
+                                color(aqua)
                             }
                         }
 
@@ -385,7 +388,7 @@ class MiniMessageToDslStructuredComponentTest :
                             separator {
                                 text(", ")
                             }
-                            color(NamedTextColor.AQUA)
+                            color(aqua)
                         }
                     }
                     """.trimIndent()
@@ -465,7 +468,7 @@ class MiniMessageToDslStructuredComponentTest :
                         component {
                             display(sprite(key("minecraft", "icon/heart"))) {
                                 fallback { text("<3") }
-                                color(NamedTextColor.RED)
+                                color(red)
                             }
                         }
 
@@ -476,7 +479,7 @@ class MiniMessageToDslStructuredComponentTest :
                             fallback {
                                 text("<3")
                             }
-                            color(NamedTextColor.RED)
+                            color(red)
                         }
                     }
                     """.trimIndent()

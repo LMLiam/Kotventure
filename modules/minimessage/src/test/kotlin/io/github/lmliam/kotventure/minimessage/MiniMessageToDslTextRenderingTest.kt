@@ -1,5 +1,10 @@
 package io.github.lmliam.kotventure.minimessage
 
+import io.github.lmliam.kotventure.core.color.aqua
+import io.github.lmliam.kotventure.core.color.gold
+import io.github.lmliam.kotventure.core.color.gray
+import io.github.lmliam.kotventure.core.color.hex
+import io.github.lmliam.kotventure.core.color.red
 import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.text.text
@@ -27,15 +32,15 @@ class MiniMessageToDslTextRenderingTest :
                     val expected =
                         component {
                             text("[") {
-                                color(NamedTextColor.GOLD)
+                                color(gold)
                                 text("Server") {
-                                    color(NamedTextColor.GRAY)
+                                    color(gray)
                                 }
                                 text("]")
                             }
                             text(" ")
                             text("Alex") {
-                                color(NamedTextColor.AQUA)
+                                color(aqua)
                             }
                             text(" joined the game")
                         }
@@ -43,15 +48,15 @@ class MiniMessageToDslTextRenderingTest :
                         """
                     component {
                         text("[") {
-                            color(NamedTextColor.GOLD)
+                            color(gold)
                             text("Server") {
-                                color(NamedTextColor.GRAY)
+                                color(gray)
                             }
                             text("]")
                         }
                         text(" ")
                         text("Alex") {
-                            color(NamedTextColor.AQUA)
+                            color(aqua)
                         }
                         text(" joined the game")
                     }
@@ -192,7 +197,7 @@ class MiniMessageToDslTextRenderingTest :
                     val expected =
                         component {
                             text("Hello") {
-                                color(NamedTextColor.RED)
+                                color(red)
                                 bold()
                             }
                         }
@@ -200,7 +205,7 @@ class MiniMessageToDslTextRenderingTest :
                         """
                     component {
                         text("Hello") {
-                            color(NamedTextColor.RED)
+                            color(red)
                             bold()
                         }
                     }
@@ -217,9 +222,9 @@ class MiniMessageToDslTextRenderingTest :
                     val expected =
                         component {
                             text("Hello ") {
-                                color(NamedTextColor.GRAY)
+                                color(gray)
                                 text("world") {
-                                    color(TextColor.color(0x12AB34))
+                                    color(hex("#12AB34"))
                                 }
                             }
                         }
@@ -227,9 +232,9 @@ class MiniMessageToDslTextRenderingTest :
                         """
                     component {
                         text("Hello ") {
-                            color(NamedTextColor.GRAY)
+                            color(gray)
                             text("world") {
-                                color(TextColor.color(0x12AB34))
+                                color(hex("#12AB34"))
                             }
                         }
                     }
@@ -256,10 +261,10 @@ class MiniMessageToDslTextRenderingTest :
                     component {
                         text {
                             text("H") {
-                                color(TextColor.color(0xFF0000))
+                                color(hex("#FF0000"))
                             }
                             text("i") {
-                                color(TextColor.color(0x0000FF))
+                                color(hex("#0000FF"))
                             }
                         }
                     }

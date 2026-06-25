@@ -1,5 +1,7 @@
 package io.github.lmliam.kotventure.minimessage
 
+import io.github.lmliam.kotventure.core.color.aqua
+import io.github.lmliam.kotventure.core.color.gold
 import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.text.text
@@ -196,7 +198,7 @@ class MiniMessageToDslEventRenderingTest :
                                 hover {
                                     text {
                                         text("Warp now") {
-                                            color(NamedTextColor.GOLD)
+                                            color(gold)
                                         }
                                     }
                                 }
@@ -209,7 +211,7 @@ class MiniMessageToDslEventRenderingTest :
                                     hover {
                                         text {
                                             text("Warp now") {
-                                                color(NamedTextColor.GOLD)
+                                                color(gold)
                                             }
                                         }
                                     }
@@ -360,7 +362,7 @@ class MiniMessageToDslEventRenderingTest :
                                         id = UUID.fromString("3f5f1f4e-29cb-4c98-93f0-3c7f4b52ddee")
                                     ) {
                                         text("Alex \"\$5\"") {
-                                            color(NamedTextColor.AQUA)
+                                            color(aqua)
                                         }
                                     }
                                 }
@@ -376,7 +378,7 @@ class MiniMessageToDslEventRenderingTest :
                                             id = UUID.fromString("3f5f1f4e-29cb-4c98-93f0-3c7f4b52ddee"),
                                         ) {
                                             text("Alex \"$5\"") {
-                                                color(NamedTextColor.AQUA)
+                                                color(aqua)
                                             }
                                         }
                                     }

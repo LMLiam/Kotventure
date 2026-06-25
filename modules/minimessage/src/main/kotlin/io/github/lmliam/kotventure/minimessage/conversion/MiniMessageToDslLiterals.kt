@@ -11,13 +11,23 @@ import net.kyori.adventure.text.`object`.PlayerHeadObjectContents
 import net.kyori.adventure.text.`object`.SpriteObjectContents
 import java.util.Locale
 
-/** Renders [color] as the Kotventure colour-DSL expression that reconstructs it. */
+/**
+ * Renders [color] as the Kotventure colour-DSL expression that reconstructs it: a named-colour property
+ * (`gold`, `darkBlue`, …) for the sixteen named colours, otherwise a `hex("#RRGGBB")` call.
+ */
 internal fun colorLiteral(color: TextColor): String =
     if (color is NamedTextColor) {
-        "NamedTextColor.${color.name().uppercase(Locale.ROOT)}"
+        snakeToCamelCase(color.name())
     } else {
-        "TextColor.color(0x${color.asHexString().removePrefix("#").uppercase(Locale.ROOT)})"
+        "hex(\"${color.asHexString().uppercase(Locale.ROOT)}\")"
     }
+
+/** Converts an Adventure snake_case name (`dark_blue`) to its camelCase colour-DSL property (`darkBlue`). */
+private fun snakeToCamelCase(name: String): String =
+    name
+        .split('_')
+        .mapIndexed { index, part -> if (index == 0) part else part.replaceFirstChar(Char::uppercaseChar) }
+        .joinToString(separator = "")
 
 /** Renders [color] as the `ShadowColor.shadowColor(...)` call that reconstructs its packed ARGB value. */
 internal fun shadowColorLiteral(color: ShadowColor): String {

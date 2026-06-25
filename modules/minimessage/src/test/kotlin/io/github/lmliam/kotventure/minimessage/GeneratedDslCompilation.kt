@@ -12,6 +12,7 @@ internal fun compileGeneratedDsl(source: String): Component {
         """
         package io.github.lmliam.kotventure.minimessage.generated
 
+        import io.github.lmliam.kotventure.core.color.*
         import io.github.lmliam.kotventure.core.component.component
         import io.github.lmliam.kotventure.core.event.click
         import io.github.lmliam.kotventure.core.event.hover
