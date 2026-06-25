@@ -19,6 +19,16 @@ class SelectorMatchersTest :
                 component shouldHaveSelectorSeparator separator
             }
 
+            "matches component-like selector separators" {
+                val separator = Component.text(", ")
+                val component =
+                    Component
+                        .selector("@a", separator)
+                        .shouldBeSelectorComponent()
+
+                component shouldHaveSelectorSeparator componentLike(separator)
+            }
+
             "matches selectors without separators" {
                 Component.selector("@p").shouldBeSelectorComponent().shouldNotHaveSelectorSeparator()
             }

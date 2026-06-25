@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.core.text
 
+import io.github.lmliam.kotventure.core.componentLike
 import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.github.lmliam.kotventure.test.text.shouldHaveChildCount
@@ -148,6 +149,23 @@ class JoinDslTest :
                 result shouldHaveChildCount 2
                 result.childAt(0) shouldContainText "Online: "
                 result.childAt(1) shouldContainText "."
+            }
+
+            "component knob form accepts component-like values" {
+                val separator = Component.text(" / ", NamedTextColor.DARK_GRAY)
+                val prefix = Component.text("Online: ")
+                val suffix = Component.text(".")
+                val result =
+                    listOf(alex, steve).join {
+                        separator(componentLike(separator))
+                        prefix(componentLike(prefix))
+                        suffix(componentLike(suffix))
+                    }
+
+                result shouldHaveChildCount 5
+                result.childAt(0) shouldBe prefix
+                result.childAt(2) shouldBe separator
+                result.childAt(4) shouldBe suffix
             }
 
             "singleton list preserves the element with no separators" {

@@ -4,6 +4,7 @@ import io.github.lmliam.kotventure.core.style.StyleBuilder
 import io.github.lmliam.kotventure.core.style.StyleScope
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.HoverEventSource
 import net.kyori.adventure.text.format.ShadowColor
@@ -62,8 +63,8 @@ internal open class ComponentBuilder<C : Component, B : AdventureComponentBuilde
         builder.decoration(decoration, state)
     }
 
-    override fun append(component: Component) {
-        builder.append(component)
+    override fun append(component: ComponentLike) {
+        builder.append(component.asComponent())
     }
 
     override fun newline() {

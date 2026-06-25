@@ -1,6 +1,6 @@
 package io.github.lmliam.kotventure.core.text
 
-import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.JoinConfiguration
 
 internal class JoinBuilder : JoinScope {
@@ -11,8 +11,8 @@ internal class JoinBuilder : JoinScope {
         init: TextScope.() -> Unit,
     ) = separator(text(value, init))
 
-    override fun separator(component: Component) {
-        builder.separator(component)
+    override fun separator(component: ComponentLike) {
+        builder.separator(component.asComponent())
     }
 
     override fun lastSeparator(
@@ -20,8 +20,8 @@ internal class JoinBuilder : JoinScope {
         init: TextScope.() -> Unit,
     ) = lastSeparator(text(value, init))
 
-    override fun lastSeparator(component: Component) {
-        builder.lastSeparator(component)
+    override fun lastSeparator(component: ComponentLike) {
+        builder.lastSeparator(component.asComponent())
     }
 
     override fun prefix(
@@ -29,8 +29,8 @@ internal class JoinBuilder : JoinScope {
         init: TextScope.() -> Unit,
     ) = prefix(text(value, init))
 
-    override fun prefix(component: Component) {
-        builder.prefix(component)
+    override fun prefix(component: ComponentLike) {
+        builder.prefix(component.asComponent())
     }
 
     override fun suffix(
@@ -38,8 +38,8 @@ internal class JoinBuilder : JoinScope {
         init: TextScope.() -> Unit,
     ) = suffix(text(value, init))
 
-    override fun suffix(component: Component) {
-        builder.suffix(component)
+    override fun suffix(component: ComponentLike) {
+        builder.suffix(component.asComponent())
     }
 
     internal fun build(): JoinConfiguration = builder.build()

@@ -1,6 +1,7 @@
 package io.github.lmliam.kotventure.core.style
 
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.format.Style
 
 /**
@@ -10,4 +11,4 @@ import net.kyori.adventure.text.format.Style
  * val highlighted = component { text("important") } styled heading
  * ```
  */
-public infix fun Component.styled(style: Style): Component = style(style)
+public infix fun ComponentLike.styled(style: Style): Component = asComponent().style(style)

@@ -1,6 +1,7 @@
 package io.github.lmliam.kotventure.core.text
 
 import io.github.lmliam.kotventure.core.component.component
+import io.github.lmliam.kotventure.core.componentLike
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import io.github.lmliam.kotventure.core.keybind.keybind
 import io.github.lmliam.kotventure.core.nbt.blockNbt
@@ -117,7 +118,18 @@ class ComponentDslTest :
                 component.childAt(2) shouldHaveDecoration TextDecoration.ITALIC
             }
 
-            "appends a newline component" {
+    "appends existing Adventure component-like values" {
+        val badge = Component.text("[OK]", NamedTextColor.GREEN)
+        val component =
+            component {
+                append(componentLike(badge))
+            }
+
+        component shouldHaveChildCount 1
+        component.childAt(0) shouldBe badge
+    }
+
+    "appends a newline component" {
                 val component =
                     component {
                         text("first")

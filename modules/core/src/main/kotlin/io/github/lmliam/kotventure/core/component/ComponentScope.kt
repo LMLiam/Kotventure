@@ -2,7 +2,7 @@ package io.github.lmliam.kotventure.core.component
 
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import io.github.lmliam.kotventure.core.style.StyleScope
-import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.format.Style
 
 /**
@@ -32,9 +32,9 @@ public interface ComponentScope : StyleScope {
     public fun style(init: StyleScope.() -> Unit)
 
     /**
-     * Appends an existing Adventure [Component] as a child of the component being configured.
+     * Appends an existing Adventure [ComponentLike] as a child of the component being configured.
      */
-    public fun append(component: Component)
+    public fun append(component: ComponentLike)
 
     /**
      * Appends an Adventure newline component as a child of the component being configured.

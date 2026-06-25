@@ -4,6 +4,7 @@ import io.kotest.matchers.Matcher
 import io.kotest.matchers.MatcherResult
 import io.kotest.matchers.should
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.SelectorComponent
 
 /**
@@ -22,13 +23,14 @@ public fun haveSelectorPattern(expected: String): Matcher<SelectorComponent> =
 /**
  * Matches a selector component whose separator is [expected].
  */
-public fun haveSelectorSeparator(expected: Component): Matcher<SelectorComponent> =
+public fun haveSelectorSeparator(expected: ComponentLike): Matcher<SelectorComponent> =
     Matcher { value ->
         val actual = value.separator()
+        val expectedComponent = expected.asComponent()
         MatcherResult(
-            actual == expected,
-            { "Expected selector separator <$expected>, but was <${actual ?: "null"}>." },
-            { "Expected selector separator not to be <$expected>." },
+            actual == expectedComponent,
+            { "Expected selector separator <$expectedComponent>, but was <${actual ?: "null"}>." },
+            { "Expected selector separator not to be <$expectedComponent>." },
         )
     }
 
@@ -61,7 +63,7 @@ public infix fun SelectorComponent.shouldHaveSelectorPattern(expected: String): 
 /**
  * Asserts that this selector component has [expected] as its separator.
  */
-public infix fun SelectorComponent.shouldHaveSelectorSeparator(expected: Component): SelectorComponent =
+public infix fun SelectorComponent.shouldHaveSelectorSeparator(expected: ComponentLike): SelectorComponent =
     apply {
         this should haveSelectorSeparator(expected)
     }

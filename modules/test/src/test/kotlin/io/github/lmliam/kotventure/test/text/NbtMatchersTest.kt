@@ -134,6 +134,19 @@ class NbtMatchersTest :
                 component shouldHaveNbtSeparator separator
             }
 
+            "matches component-like nbt separators" {
+                val separator = Component.text(", ")
+                val component =
+                    Component
+                        .blockNBT()
+                        .nbtPath("Items")
+                        .pos(pos)
+                        .separator(separator)
+                        .build()
+
+                component shouldHaveNbtSeparator componentLike(separator)
+            }
+
             "matches the absence of an nbt separator" {
                 Component.blockNBT("Items", pos).shouldNotHaveNbtSeparator()
             }
