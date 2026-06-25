@@ -9,8 +9,8 @@ import net.kyori.adventure.text.format.Style
  * The receiver inside a component-building block (such as `component { }` or `text { }`).
  *
  * It adds children — via [append], [newline], and the feature extensions like
- * [io.github.lmliam.kotventure.core.text.text], [io.github.lmliam.kotventure.core.keybind.keybind], and
- * [io.github.lmliam.kotventure.core.translatable.translatable] — on top of the styling it inherits from
+ * [text][io.github.lmliam.kotventure.core.text.text], [keybind][io.github.lmliam.kotventure.core.keybind.keybind], and
+ * [translatable][io.github.lmliam.kotventure.core.translatable.translatable] — on top of the styling it inherits from
  * [StyleScope], so a component's own style and its
  * children are configured in one place.
  *
