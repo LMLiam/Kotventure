@@ -8,7 +8,7 @@ import net.kyori.adventure.text.Component
  *
  * ```kotlin
  * val died = translatable("death.attack.player") {
- *     arg(Component.text("Alex"))
+ *     arg { content("Alex") }
  *     fallback("Alex was slain")
  * }
  * ```
