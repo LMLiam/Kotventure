@@ -1,10 +1,8 @@
 import groovy.json.JsonSlurper
 import org.gradle.api.artifacts.VersionCatalogsExtension
 
-// Releases are cut by release-please, which owns the changelog, tags, and config. The only invariant
-// the build needs to guard is that the project version stays in sync across the three places that
-// declare it; a drift there silently breaks the next release. Everything else release-please validates
-// itself, so we deliberately do not re-assert its configuration here.
+// release-please owns the changelog, tags, and config; the build only guards that the project version
+// stays in sync across the three places that declare it, since a drift there breaks the next release.
 tasks.register('verifyReleaseVersionConsistency') {
     group = 'verification'
     description = 'Verifies the project version is consistent across the catalog, the project, and the release manifest.'

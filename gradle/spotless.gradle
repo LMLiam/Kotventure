@@ -16,7 +16,6 @@ spotless {
     }
 
     kotlin {
-        // Spotless' ktlint step reads the root .editorconfig by default.
         ktlint(ktlintVersion)
     }
 }
