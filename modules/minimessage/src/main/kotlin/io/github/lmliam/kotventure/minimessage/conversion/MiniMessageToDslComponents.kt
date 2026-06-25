@@ -180,18 +180,38 @@ private fun KotlinSourceBuilder.appendArgument(argument: TranslationArgument) {
 }
 
 /**
- * Renders a numeric argument as valid Kotlin source. NaN and the infinities have no bare literal form, so they are
- * emitted as their qualified constants; every other value round-trips through [toString].
+ * Renders a numeric argument as a Kotlin literal that reconstructs the same [Number] type through the
+ * `arg(Number)` overload. `Float`/`Long` carry their `f`/`L` suffix and `Byte`/`Short` are rebuilt with an
+ * explicit conversion, so the reconstructed argument keeps the original's runtime type rather than widening
+ * to `Double`/`Int`. NaN and the infinities have no bare literal form and use their qualified constants;
+ * any other `Number` falls back to [toString], which `arg(Number)` still accepts.
  */
 private fun Number.toKotlinSource(): String =
-    when {
-        this is Double && isNaN() -> "Double.NaN"
-        this is Double && this == Double.POSITIVE_INFINITY -> "Double.POSITIVE_INFINITY"
-        this is Double && this == Double.NEGATIVE_INFINITY -> "Double.NEGATIVE_INFINITY"
-        this is Float && isNaN() -> "Float.NaN"
-        this is Float && this == Float.POSITIVE_INFINITY -> "Float.POSITIVE_INFINITY"
-        this is Float && this == Float.NEGATIVE_INFINITY -> "Float.NEGATIVE_INFINITY"
+    when (this) {
+        is Double -> nonFiniteSource() ?: toString()
+        is Float -> nonFiniteSource() ?: "${this}f"
+        is Long -> "${this}L"
+        is Byte -> "($this).toByte()"
+        is Short -> "($this).toShort()"
         else -> toString()
+    }
+
+/** The qualified constant for a non-finite [Double] (`Double.NaN`, `Double.POSITIVE_INFINITY`, …), or null when finite. */
+private fun Double.nonFiniteSource(): String? =
+    when {
+        isNaN() -> "Double.NaN"
+        this == Double.POSITIVE_INFINITY -> "Double.POSITIVE_INFINITY"
+        this == Double.NEGATIVE_INFINITY -> "Double.NEGATIVE_INFINITY"
+        else -> null
+    }
+
+/** The qualified constant for a non-finite [Float] (`Float.NaN`, `Float.POSITIVE_INFINITY`, …), or null when finite. */
+private fun Float.nonFiniteSource(): String? =
+    when {
+        isNaN() -> "Float.NaN"
+        this == Float.POSITIVE_INFINITY -> "Float.POSITIVE_INFINITY"
+        this == Float.NEGATIVE_INFINITY -> "Float.NEGATIVE_INFINITY"
+        else -> null
     }
 
 /**

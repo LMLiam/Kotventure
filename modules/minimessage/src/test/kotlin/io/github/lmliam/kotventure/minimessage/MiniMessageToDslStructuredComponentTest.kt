@@ -218,6 +218,50 @@ class MiniMessageToDslStructuredComponentTest :
                     """.trimIndent()
                 }
 
+                test("preserves the numeric type of translatable arguments in generated source") {
+                    val translatable =
+                        Component
+                            .translatable()
+                            .key("stat.generic")
+                            .arguments(
+                                TranslationArgument.numeric(42L),
+                                TranslationArgument.numeric(1.5f),
+                                TranslationArgument.numeric(2.5),
+                            ).build()
+
+                    MiniMessageToDslWriter.write(translatable) shouldBe
+                            """
+                    component {
+                        translatable("stat.generic") {
+                            arg(42L)
+                            arg(1.5f)
+                            arg(2.5)
+                        }
+                    }
+                    """.trimIndent()
+                }
+
+                test("emits non-finite numeric translatable arguments as qualified constants") {
+                    val translatable =
+                        Component
+                            .translatable()
+                            .key("stat.generic")
+                            .arguments(
+                                TranslationArgument.numeric(Double.NaN),
+                                TranslationArgument.numeric(Float.POSITIVE_INFINITY),
+                            ).build()
+
+                    MiniMessageToDslWriter.write(translatable) shouldBe
+                            """
+                    component {
+                        translatable("stat.generic") {
+                            arg(Double.NaN)
+                            arg(Float.POSITIVE_INFINITY)
+                        }
+                    }
+                    """.trimIndent()
+                }
+
                 test("round-trips translatable components nesting other structured components") {
                     assertGoldenRoundTrip(
                         input = "<lang:k:a>:<lang:k:b>",
