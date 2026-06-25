@@ -9,7 +9,7 @@ import net.kyori.adventure.text.format.TextDecoration
 import net.kyori.adventure.text.format.TextDecoration.State
 
 /**
- * Matches a component whose root style enables [decoration] (state `TRUE`).
+ * Matches a component whose root style enables [decoration] (state [State.TRUE]).
  *
  * For an explicit on/off/inherited check use [haveDecorationState]. Combine with `and`/`or` or negate with `shouldNot`.
  */
@@ -51,7 +51,7 @@ public fun Component.shouldHaveDecoration(
     }
 
 /**
- * Asserts that this component leaves [expected] unset (state `NOT_SET`) on its root style.
+ * Asserts that this component leaves [expected] unset (state [State.NOT_SET]) on its root style.
  */
 public infix fun Component.shouldNotHaveDecoration(expected: TextDecoration): Component =
     apply {
@@ -59,7 +59,7 @@ public infix fun Component.shouldNotHaveDecoration(expected: TextDecoration): Co
     }
 
 /**
- * Asserts that this component is bold (decoration `BOLD` enabled).
+ * Asserts that this component is bold ([TextDecoration.BOLD] enabled).
  */
 public fun Component.shouldBeBold(): Component =
     apply {
@@ -67,7 +67,7 @@ public fun Component.shouldBeBold(): Component =
     }
 
 /**
- * Asserts that this component is not bold (decoration `BOLD` not enabled).
+ * Asserts that this component is not bold ([TextDecoration.BOLD] not enabled).
  */
 public fun Component.shouldNotBeBold(): Component =
     apply {
@@ -75,7 +75,7 @@ public fun Component.shouldNotBeBold(): Component =
     }
 
 /**
- * Asserts that this component is italic (decoration `ITALIC` enabled).
+ * Asserts that this component is italic ([TextDecoration.ITALIC] enabled).
  */
 public fun Component.shouldBeItalic(): Component =
     apply {
@@ -83,7 +83,7 @@ public fun Component.shouldBeItalic(): Component =
     }
 
 /**
- * Asserts that this component is not italic (decoration `ITALIC` not enabled).
+ * Asserts that this component is not italic ([TextDecoration.ITALIC] not enabled).
  */
 public fun Component.shouldNotBeItalic(): Component =
     apply {
@@ -91,7 +91,7 @@ public fun Component.shouldNotBeItalic(): Component =
     }
 
 /**
- * Asserts that this component is underlined (decoration `UNDERLINED` enabled).
+ * Asserts that this component is underlined ([TextDecoration.UNDERLINED] enabled).
  */
 public fun Component.shouldBeUnderlined(): Component =
     apply {
@@ -99,7 +99,7 @@ public fun Component.shouldBeUnderlined(): Component =
     }
 
 /**
- * Asserts that this component is not underlined (decoration `UNDERLINED` not enabled).
+ * Asserts that this component is not underlined ([TextDecoration.UNDERLINED] not enabled).
  */
 public fun Component.shouldNotBeUnderlined(): Component =
     apply {
@@ -107,7 +107,7 @@ public fun Component.shouldNotBeUnderlined(): Component =
     }
 
 /**
- * Asserts that this component is struck through (decoration `STRIKETHROUGH` enabled).
+ * Asserts that this component is struck through ([TextDecoration.STRIKETHROUGH] enabled).
  */
 public fun Component.shouldBeStrikethrough(): Component =
     apply {
@@ -115,7 +115,7 @@ public fun Component.shouldBeStrikethrough(): Component =
     }
 
 /**
- * Asserts that this component is not struck through (decoration `STRIKETHROUGH` not enabled).
+ * Asserts that this component is not struck through ([TextDecoration.STRIKETHROUGH] not enabled).
  */
 public fun Component.shouldNotBeStrikethrough(): Component =
     apply {
@@ -123,7 +123,7 @@ public fun Component.shouldNotBeStrikethrough(): Component =
     }
 
 /**
- * Asserts that this component is obfuscated (decoration `OBFUSCATED` enabled).
+ * Asserts that this component is obfuscated ([TextDecoration.OBFUSCATED] enabled).
  */
 public fun Component.shouldBeObfuscated(): Component =
     apply {
@@ -131,7 +131,7 @@ public fun Component.shouldBeObfuscated(): Component =
     }
 
 /**
- * Asserts that this component is not obfuscated (decoration `OBFUSCATED` not enabled).
+ * Asserts that this component is not obfuscated ([TextDecoration.OBFUSCATED] not enabled).
  */
 public fun Component.shouldNotBeObfuscated(): Component =
     apply {

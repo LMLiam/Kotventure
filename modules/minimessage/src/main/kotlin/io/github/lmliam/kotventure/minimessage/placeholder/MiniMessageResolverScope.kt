@@ -15,7 +15,7 @@ public interface MiniMessageResolverScope {
     public fun parsed(
         name: String,
         value: String,
-    ): Unit
+    )
 
     /**
      * Inserts [value] as literal text for the placeholder named [name].
@@ -23,7 +23,7 @@ public interface MiniMessageResolverScope {
     public fun unparsed(
         name: String,
         value: String,
-    ): Unit
+    )
 
     /**
      * Inserts [value] as a self-closing component placeholder for the placeholder named [name].
@@ -31,7 +31,7 @@ public interface MiniMessageResolverScope {
     public fun component(
         name: String,
         value: ComponentLike,
-    ): Unit
+    )
 
     /**
      * Builds a component placeholder named [name] from a Kotventure component DSL block.
@@ -39,7 +39,7 @@ public interface MiniMessageResolverScope {
     public fun component(
         name: String,
         init: ComponentScope.() -> Unit,
-    ): Unit
+    )
 
     /**
      * Resolves [placeholder] to [value] using the placeholder's typed binding strategy.
@@ -50,5 +50,5 @@ public interface MiniMessageResolverScope {
     public fun <T : Any> resolve(
         placeholder: MiniMessagePlaceholder<T>,
         value: T,
-    ): Unit
+    )
 }

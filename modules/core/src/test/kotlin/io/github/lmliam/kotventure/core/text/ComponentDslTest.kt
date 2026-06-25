@@ -6,7 +6,6 @@ import io.github.lmliam.kotventure.core.keybind.keybind
 import io.github.lmliam.kotventure.core.nbt.blockNbt
 import io.github.lmliam.kotventure.core.nbt.entityNbt
 import io.github.lmliam.kotventure.core.nbt.storageNbt
-import io.github.lmliam.kotventure.core.objectcomponent.display
 import io.github.lmliam.kotventure.core.score.score
 import io.github.lmliam.kotventure.core.selector.selector
 import io.github.lmliam.kotventure.core.translatable.translatable
@@ -404,7 +403,7 @@ class ComponentDslTest :
                     OuterScope().init()
                 }
 
-                lateinit var component: net.kyori.adventure.text.Component
+                lateinit var component: Component
 
                 outer outer@{
                     component =

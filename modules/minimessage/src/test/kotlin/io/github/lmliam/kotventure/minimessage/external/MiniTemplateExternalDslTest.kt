@@ -1,6 +1,5 @@
 package io.github.lmliam.kotventure.minimessage.external
 
-import io.github.lmliam.kotventure.minimessage.placeholder.placeholder
 import io.github.lmliam.kotventure.minimessage.template.MiniTemplate
 import io.github.lmliam.kotventure.minimessage.template.bind
 import io.github.lmliam.kotventure.minimessage.template.invoke

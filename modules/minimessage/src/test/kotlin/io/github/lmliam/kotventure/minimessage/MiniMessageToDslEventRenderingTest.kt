@@ -12,10 +12,8 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.nbt.api.BinaryTagHolder
-import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.DataComponentValue
-import net.kyori.adventure.text.format.NamedTextColor
 import java.util.UUID
 
 class MiniMessageToDslEventRenderingTest :
