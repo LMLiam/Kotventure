@@ -1,6 +1,7 @@
 package io.github.lmliam.kotventure.core.text
 
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.ComponentIteratorFlag
 import net.kyori.adventure.text.ComponentIteratorType
 
 /**
@@ -16,6 +17,6 @@ import net.kyori.adventure.text.ComponentIteratorType
  *
  * Traversal follows Adventure's own [Component.iterable], visiting every node in the tree (including object
  * components). Translatable arguments and hover contents are not children and are not visited; pass the relevant
- * `ComponentIteratorFlag`s to [Component.iterable] directly if you need them.
+ * [ComponentIteratorFlag]s to [Component.iterable] directly if you need them.
  */
 public fun Component.asSequence(): Sequence<Component> = iterable(ComponentIteratorType.DEPTH_FIRST).asSequence()

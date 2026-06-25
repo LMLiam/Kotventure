@@ -3,7 +3,7 @@ package io.github.lmliam.kotventure.core.event
 import net.kyori.adventure.text.event.HoverEvent
 
 /**
- * Builds a reusable hover event. Choose exactly one payload inside [init] — `text`, `item`, or `entity`.
+ * Builds a reusable hover event. Choose exactly one payload inside [init] — [HoverContentScope.text], [HoverContentScope.item], or [HoverContentScope.entity].
  *
  * ```kotlin
  * val tooltip = hover { text("Click to teleport") }

@@ -3,8 +3,8 @@ package io.github.lmliam.kotventure.core.event
 import net.kyori.adventure.text.event.ClickEvent
 
 /**
- * Builds a reusable click event. Choose exactly one action inside [init] — `openUrl`, `openFile`, `run`,
- * `suggest`, `changePage`, `copy`, or `callback`.
+ * Builds a reusable click event. Choose exactly one action inside [init] — [ClickActionScope.openUrl], [ClickActionScope.openFile], [ClickActionScope.run],
+ * [ClickActionScope.suggest], [ClickActionScope.changePage], [ClickActionScope.copy], or [ClickActionScope.callback].
  *
  * ```kotlin
  * val link = click { openUrl("https://example.com") }

@@ -13,7 +13,7 @@ import net.kyori.adventure.text.Component
  *
  * @param pos the block position to read, e.g. from [blockPos].
  * @param nbtPath the NBT path within the block entity, such as `"Items[0].id"`.
- * @param init sets `interpret`/`separator` and appends any children.
+ * @param init sets [NbtScope.interpret]/[NbtScope.separator] and appends any children.
  */
 public fun blockNbt(
     pos: BlockNBTComponent.Pos,
@@ -35,7 +35,7 @@ internal fun buildBlockNbtComponent(
  *
  * @param pos the block position to read, e.g. from [blockPos].
  * @param nbtPath the NBT path within the block entity, such as `"Items[0].id"`.
- * @param init sets `interpret`/`separator` and appends any children.
+ * @param init sets [NbtScope.interpret]/[NbtScope.separator] and appends any children.
  */
 public fun ComponentScope.blockNbt(
     pos: BlockNBTComponent.Pos,

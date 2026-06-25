@@ -14,7 +14,7 @@ import net.kyori.adventure.text.StorageNBTComponent
  *
  * @param storage the command-storage key to read, e.g. from `key(...)`.
  * @param nbtPath the NBT path within that storage, such as `"top.player"`.
- * @param init sets `interpret`/`separator` and appends any children.
+ * @param init sets [NbtScope.interpret]/[NbtScope.separator] and appends any children.
  */
 public fun storageNbt(
     storage: Key,
@@ -36,7 +36,7 @@ internal fun buildStorageNbtComponent(
  *
  * @param storage the command-storage key to read, e.g. from `key(...)`.
  * @param nbtPath the NBT path within that storage, such as `"top.player"`.
- * @param init sets `interpret`/`separator` and appends any children.
+ * @param init sets [NbtScope.interpret]/[NbtScope.separator] and appends any children.
  */
 public fun ComponentScope.storageNbt(
     storage: Key,

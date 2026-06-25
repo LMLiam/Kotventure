@@ -13,7 +13,7 @@ import net.kyori.adventure.text.EntityNBTComponent
  *
  * @param selector the entity selector whose NBT is read, such as `"@s"` or `"@e[type=zombie,limit=1]"`.
  * @param nbtPath the NBT path within each entity, such as `"Health"`.
- * @param init sets `interpret`/`separator` and appends any children.
+ * @param init sets [NbtScope.interpret]/[NbtScope.separator] and appends any children.
  */
 public fun entityNbt(
     selector: String,
@@ -35,7 +35,7 @@ internal fun buildEntityNbtComponent(
  *
  * @param selector the entity selector whose NBT is read, such as `"@s"`.
  * @param nbtPath the NBT path within each entity, such as `"Health"`.
- * @param init sets `interpret`/`separator` and appends any children.
+ * @param init sets [NbtScope.interpret]/[NbtScope.separator] and appends any children.
  */
 public fun ComponentScope.entityNbt(
     selector: String,
