@@ -14,7 +14,7 @@ import net.kyori.adventure.text.format.Style
  *
  * ```kotlin
  * component {
- *     text("Hello ") { color(NamedTextColor.AQUA) }
+ *     text("Hello ") { color(aqua) }
  *     keybind("key.jump")
  * }
  * ```

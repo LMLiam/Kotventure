@@ -17,4 +17,4 @@ public fun validate(
 ): ValidationResult = runValidation(input, placeholders.toList())
 
 /** Validates this template's markup against its declared placeholders. */
-public fun MiniTemplate.validate(): ValidationResult = validateDefinition()
+public fun MiniTemplate.validate(): ValidationResult = validation

@@ -7,7 +7,7 @@ import net.kyori.adventure.text.format.Style
  *
  * ```kotlin
  * val heading = style {
- *     color(NamedTextColor.GOLD)
+ *     color(gold)
  *     bold()
  * }
  * val title = text("Welcome") { style(heading) }

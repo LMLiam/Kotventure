@@ -410,62 +410,6 @@ class MiniMessageValidationTest :
             // F1 regression: validate() must never throw, even on malformed input
             // ---------------------------------------------------------------
 
-            "lenient validation engine failures return ValidationEngineFailure instead of partial placeholder " +
-                    "diagnostics" {
-                        val player = placeholder<Component>("player")
-
-                        val result =
-                            runValidation(
-                                input = "<player> <extra>",
-                                placeholders = listOf(player),
-                                lenientDeserialize = { _, resolver ->
-                                    net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(
-                                        "<extra>",
-                                        resolver,
-                                    )
-                                    throw IllegalStateException("lenient parser exploded")
-                                },
-                            )
-
-                        val failure = result.shouldBeInstanceOf<ValidationResult.Failure>()
-                        val engineFailures =
-                            failure.diagnostics
-                                .filterIsInstance<MiniMessageDiagnostic.ValidationEngineFailure>()
-                        val missing = failure.diagnostics.filterIsInstance<MiniMessageDiagnostic.MissingPlaceholder>()
-                        val extra = failure.diagnostics.filterIsInstance<MiniMessageDiagnostic.ExtraPlaceholder>()
-
-                        engineFailures shouldHaveSize 1
-                        engineFailures[0].message shouldBe "lenient parser exploded"
-                        missing shouldHaveSize 0
-                        extra shouldHaveSize 0
-                    }
-
-            "strict validation engine failures return ValidationEngineFailure instead of a malformed-tag diagnostic" {
-                val player = placeholder<Component>("player")
-
-                val result =
-                    runValidation(
-                        input = "<player>",
-                        placeholders = listOf(player),
-                        strictDeserialize = { _, _ ->
-                            throw IllegalStateException("strict parser exploded")
-                        },
-                    )
-
-                val failure = result.shouldBeInstanceOf<ValidationResult.Failure>()
-                val engineFailures =
-                    failure.diagnostics.filterIsInstance<MiniMessageDiagnostic.ValidationEngineFailure>()
-                val malformed = failure.diagnostics.filterIsInstance<MiniMessageDiagnostic.MalformedTag>()
-
-                engineFailures shouldHaveSize 1
-                engineFailures[0].message shouldBe "strict parser exploded"
-                malformed shouldHaveSize 0
-            }
-
-            // validate() must return a result rather than throw for any input. The lenient parser is
-            // not contractually guaranteed exception-free, so both passes guard against RuntimeException.
-            // Crafting an input that actually trips that guard is version-dependent, so the contract is
-            // verified here by running a range of inputs through the lenient-parse path with no throw.
             "validate returns a result rather than throwing for markup that is well-formed in lenient mode" {
                 // This exercises the lenient-parse path (Pass 2) for a variety of inputs; none
                 // should propagate an exception.

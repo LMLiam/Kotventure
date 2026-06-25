@@ -16,8 +16,6 @@ class ComponentScopeExtensionsTest :
     StringSpec(
         {
             "nested component extensions emit through ComponentScope.append" {
-                // A relaxed mock stands in for any ComponentScope, proving the extensions depend only on the
-                // public append() contract rather than on the production ComponentBuilder.
                 val scope = mockk<ComponentScope>(relaxed = true)
                 val appended = mutableListOf<Component>()
 

@@ -50,16 +50,15 @@ internal fun keyLiteral(key: Key): String =
  * when the sprite uses Adventure's default atlas, and the matching `head` form for player-head contents.
  */
 internal fun objectContentsLiteral(contents: ObjectContents): String =
-    when {
-        contents is SpriteObjectContents ->
+    when (contents) {
+        is SpriteObjectContents ->
             if (contents.atlas() == SpriteObjectContents.DEFAULT_ATLAS) {
                 "sprite(${keyLiteral(contents.sprite())})"
             } else {
                 "sprite(${keyLiteral(contents.atlas())}, ${keyLiteral(contents.sprite())})"
             }
 
-        contents is PlayerHeadObjectContents -> playerHeadLiteral(contents)
-        else -> conversionError("miniToDsl cannot represent object contents ${contents::class.qualifiedName}.")
+        is PlayerHeadObjectContents -> playerHeadLiteral(contents)
     }
 
 /**

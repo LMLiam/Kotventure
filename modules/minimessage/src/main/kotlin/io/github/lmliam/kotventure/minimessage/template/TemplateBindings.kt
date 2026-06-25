@@ -6,9 +6,6 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 
 /**
  * Collects the placeholder bindings for a single [MiniTemplate] render and turns them into a resolver.
- *
- * Each binding is checked against [template]'s declared placeholders and rejected if it is foreign or
- * duplicate; [requireComplete] then verifies that nothing was left unbound.
  */
 internal class TemplateBindings(
     private val template: MiniTemplate,

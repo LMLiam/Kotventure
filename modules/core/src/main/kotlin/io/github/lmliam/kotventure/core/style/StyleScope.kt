@@ -19,7 +19,7 @@ import net.kyori.adventure.text.format.TextDecoration.State
  *
  * ```kotlin
  * style {
- *     color(NamedTextColor.GOLD)
+ *     color(gold)
  *     bold()
  *     italic(false)
  * }

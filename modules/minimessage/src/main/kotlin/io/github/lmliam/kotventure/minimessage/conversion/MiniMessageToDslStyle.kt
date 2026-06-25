@@ -9,15 +9,10 @@ import net.kyori.adventure.text.format.TextDecoration.STRIKETHROUGH
 import net.kyori.adventure.text.format.TextDecoration.State
 import net.kyori.adventure.text.format.TextDecoration.UNDERLINED
 
-/** Decorations in the order they are emitted; each maps onto the DSL function of the same lowercase name. */
 private val DECORATIONS: List<TextDecoration> = listOf(BOLD, ITALIC, UNDERLINED, STRIKETHROUGH, OBFUSCATED)
 
-/** The decoration's DSL function name (`bold`, `italic`, …), which is just its lower-cased enum name. */
 private fun TextDecoration.dslFunction(): String = name.lowercase()
 
-/**
- * Whether [style] carries anything that opens a component block.
- */
 internal fun hasDslOutput(style: Style): Boolean =
     style.color() != null ||
             style.font() != null ||

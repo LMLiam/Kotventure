@@ -20,11 +20,9 @@ private val LENIENT_MINI_MESSAGE: MiniMessage = MiniMessage.miniMessage()
 internal fun runValidation(
     input: String,
     placeholders: List<MiniMessagePlaceholder<*>>,
-    strictDeserialize: (String, TagResolver) -> Unit = STRICT_MINI_MESSAGE::deserialize,
-    lenientDeserialize: (String, TagResolver) -> Unit = LENIENT_MINI_MESSAGE::deserialize,
 ): ValidationResult {
-    val malformed = detectMalformedTags(input, placeholders, strictDeserialize)
-    val mismatches = detectPlaceholderMismatches(input, placeholders, lenientDeserialize)
+    val malformed = detectMalformedTags(input, placeholders)
+    val mismatches = detectPlaceholderMismatches(input, placeholders)
     val diagnostics = malformed + mismatches
     return if (diagnostics.isEmpty()) ValidationResult.Success else ValidationResult.Failure(diagnostics)
 }
@@ -33,12 +31,11 @@ internal fun runValidation(
 private fun detectMalformedTags(
     input: String,
     placeholders: List<MiniMessagePlaceholder<*>>,
-    deserialize: (String, TagResolver) -> Unit,
 ): List<MiniMessageDiagnostic> {
     val placeholderResolver = buildPlaceholderNameResolver(placeholders)
     val combined = TagResolver.resolver(TagResolver.standard(), placeholderResolver)
     return try {
-        deserialize(input, combined)
+        STRICT_MINI_MESSAGE.deserialize(input, combined)
         emptyList()
     } catch (e: ParsingException) {
         listOf(
@@ -62,13 +59,12 @@ private fun detectMalformedTags(
 private fun detectPlaceholderMismatches(
     input: String,
     placeholders: List<MiniMessagePlaceholder<*>>,
-    deserialize: (String, TagResolver) -> Unit,
 ): List<MiniMessageDiagnostic> {
     val specNames = placeholders.map { it.name }.toSet()
     val recorder = RecordingTagResolver(specNames)
     val combined = TagResolver.resolver(TagResolver.standard(), recorder)
     return try {
-        deserialize(input, combined)
+        LENIENT_MINI_MESSAGE.deserialize(input, combined)
         buildPlaceholderMismatchDiagnostics(placeholders, specNames, recorder.encounteredNames)
     } catch (e: RuntimeException) {
         listOf(MiniMessageDiagnostic.ValidationEngineFailure(e.message ?: "MiniMessage validation failed."))

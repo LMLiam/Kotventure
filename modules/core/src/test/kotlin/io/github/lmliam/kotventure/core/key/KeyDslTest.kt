@@ -9,7 +9,7 @@ import net.kyori.adventure.key.Key
 class KeyDslTest :
     StringSpec(
         {
-            "builds a key from a namespace and value" {
+            "builds a key from namespace and value" {
                 val adventureKey = key("kotventure", "messages")
 
                 adventureKey shouldBe Key.key("kotventure", "messages")
@@ -18,31 +18,15 @@ class KeyDslTest :
                 adventureKey.asString() shouldBe "kotventure:messages"
             }
 
-            "parses a key from a namespaced string" {
-                val adventureKey = Key.key("kotventure:messages")
-
-                adventureKey shouldBe Key.key("kotventure", "messages")
-                adventureKey.namespace() shouldBe "kotventure"
-                adventureKey.value() shouldBe "messages"
-            }
-
-            "uses the minecraft namespace when parsing a bare value" {
-                val adventureKey = Key.key("stone")
-
-                adventureKey shouldBe Key.key("minecraft", "stone")
-                adventureKey.namespace() shouldBe "minecraft"
-                adventureKey.value() shouldBe "stone"
-            }
-
-            "throws when building a key with an invalid namespace" {
+            "throws when building key with an invalid namespace" {
                 shouldThrow<InvalidKeyException> {
                     key("not valid", "messages")
                 }
             }
 
-            "throws when parsing an invalid key string" {
+            "throws when building key with an invalid value" {
                 shouldThrow<InvalidKeyException> {
-                    Key.key("not valid:messages")
+                    key("minecraft", "not valid")
                 }
             }
         },

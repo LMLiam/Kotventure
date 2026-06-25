@@ -41,7 +41,6 @@ internal fun KotlinSourceBuilder.appendComponent(component: Component) {
         is EntityNBTComponent -> appendEntityNbt(component)
         is StorageNBTComponent -> appendStorageNbt(component)
         is ObjectComponent -> appendObject(component)
-        else -> conversionError("miniToDsl cannot represent component type ${component::class.qualifiedName}.")
     }
 }
 
@@ -190,11 +189,17 @@ private fun Number.toKotlinSource(): String =
     when (this) {
         is Double -> nonFiniteSource() ?: toString()
         is Float -> nonFiniteSource() ?: "${this}f"
-        is Long -> if (this == Long.MIN_VALUE) "Long.MIN_VALUE" else "${this}L"
-        is Byte -> "($this).toByte()"
-        is Short -> "($this).toShort()"
+        is Long -> toKotlinSource()
+        is Byte -> toKotlinSource()
+        is Short -> toKotlinSource()
         else -> toString()
     }
+
+private fun Long.toKotlinSource(): String = if (this == Long.MIN_VALUE) "Long.MIN_VALUE" else "${this}L"
+
+private fun Byte.toKotlinSource(): String = "($this).toByte()"
+
+private fun Short.toKotlinSource(): String = "($this).toShort()"
 
 /** The qualified constant for a non-finite [Double] (`Double.NaN`, `Double.POSITIVE_INFINITY`, …), or null when finite. */
 private fun Double.nonFiniteSource(): String? =

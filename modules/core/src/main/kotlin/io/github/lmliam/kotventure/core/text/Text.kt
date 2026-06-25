@@ -8,7 +8,7 @@ import net.kyori.adventure.text.Component
  *
  * ```kotlin
  * val greeting = text("Hello") {
- *     color(NamedTextColor.GOLD)
+ *     color(gold)
  *     bold()
  * }
  * ```

@@ -7,7 +7,7 @@ import net.kyori.adventure.text.Component
  * Builds a selector [Component] — text the client expands to the names matched by an entity selector.
  *
  * ```kotlin
- * val nearby = selector("@e[distance=..10]") { separator(Component.text(", ")) }
+ * val nearby = selector("@e[distance=..10]") { separator { content(", ") } }
  * ```
  *
  * @param pattern the entity-selector pattern, such as `"@a"` or `"@e[type=zombie]"`.

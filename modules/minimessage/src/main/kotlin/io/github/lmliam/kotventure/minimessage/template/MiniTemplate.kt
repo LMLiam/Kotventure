@@ -21,7 +21,7 @@ import io.github.lmliam.kotventure.minimessage.placeholder.placeholder as create
  * }
  *
  * val forAlex = WelcomeTemplate {
- *     player bind Component.text("Alex")
+ *     player bind component { text("Alex") }
  *     count bind 3
  * }
  * ```
@@ -41,7 +41,7 @@ public abstract class MiniTemplate(
 
     private val miniMessage: MiniMessage = MiniMessage.miniMessage()
 
-    private val validation: ValidationResult by lazy(LazyThreadSafetyMode.PUBLICATION) {
+    internal val validation: ValidationResult by lazy(LazyThreadSafetyMode.PUBLICATION) {
         runValidation(markup, placeholders.values.toList())
     }
 
@@ -62,8 +62,6 @@ public abstract class MiniTemplate(
     }
 
     internal fun deserialize(resolver: TagResolver): Component = miniMessage.deserialize(markup, resolver)
-
-    internal fun validateDefinition(): ValidationResult = validation
 }
 
 /**
@@ -73,7 +71,6 @@ public abstract class MiniTemplate(
  *   foreign, or bound more than once.
  */
 public operator fun <T : MiniTemplate> T.invoke(block: context(MiniTemplateBindingScope) T.() -> Unit): Component {
-    val validation = validateDefinition()
     require(validation is ValidationResult.Success) { "MiniMessage template is invalid: $validation." }
 
     val bindings = TemplateBindings(this)

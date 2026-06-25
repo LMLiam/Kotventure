@@ -9,7 +9,7 @@ import net.kyori.adventure.text.KeybindComponent
  * Builds a keybind [Component] — text the client renders as the player's current binding for a game action.
  *
  * ```kotlin
- * val jump = keybind("key.jump") { color(NamedTextColor.AQUA) }
+ * val jump = keybind("key.jump") { color(aqua) }
  * ```
  *
  * @param keybind the Minecraft keybind identifier, such as `"key.jump"`.
