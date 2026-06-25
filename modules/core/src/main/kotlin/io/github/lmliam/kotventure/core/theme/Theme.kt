@@ -25,8 +25,8 @@ import io.github.lmliam.kotventure.core.style.style as buildStyle
  * }
  * ```
  *
- * Declaring a theme does not register it; add it to a [ThemeRegistry] explicitly during
- * startup when runtime lookup is needed.
+ * Runtime lookups require explicit registration: add the theme to a [ThemeRegistry] during
+ * startup. Declaring a theme does not register it.
  */
 public abstract class Theme(
     public override val name: String,
