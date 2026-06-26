@@ -27,6 +27,11 @@ public fun haveNbtPath(expected: String): Matcher<NBTComponent<*>> =
     }
 
 /**
+ * Matches an NBT component whose path is [expected]. Combine with `and`/`or` or negate with `shouldNot`.
+ */
+public fun haveNbtPath(expected: NbtPath): Matcher<NBTComponent<*>> = haveNbtPath(expected.asString())
+
+/**
  * Matches an NBT component whose interpret flag is [expected].
  */
 public fun haveInterpretState(expected: Boolean): Matcher<NBTComponent<*>> =
@@ -133,7 +138,7 @@ public infix fun NBTComponent<*>.shouldHaveNbtPath(expected: String): NBTCompone
  */
 public infix fun NBTComponent<*>.shouldHaveNbtPath(expected: NbtPath): NBTComponent<*> =
     apply {
-        this should haveNbtPath(expected.asString())
+        this should haveNbtPath(expected)
     }
 
 /**

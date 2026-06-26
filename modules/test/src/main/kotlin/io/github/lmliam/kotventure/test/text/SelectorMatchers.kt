@@ -22,6 +22,12 @@ public fun haveSelectorPattern(expected: String): Matcher<SelectorComponent> =
     }
 
 /**
+ * Matches a selector component whose pattern is [expected]. Combine with `and`/`or` or negate with `shouldNot`.
+ */
+public fun haveSelectorPattern(expected: EntitySelector): Matcher<SelectorComponent> =
+    haveSelectorPattern(expected.asString())
+
+/**
  * Matches a selector component whose separator is [expected].
  */
 public fun <T : ComponentLike> haveSelectorSeparator(expected: T): Matcher<SelectorComponent> =
@@ -66,7 +72,7 @@ public infix fun SelectorComponent.shouldHaveSelectorPattern(expected: String): 
  */
 public infix fun SelectorComponent.shouldHaveSelectorPattern(expected: EntitySelector): SelectorComponent =
     apply {
-        this should haveSelectorPattern(expected.asString())
+        this should haveSelectorPattern(expected)
     }
 
 /**
