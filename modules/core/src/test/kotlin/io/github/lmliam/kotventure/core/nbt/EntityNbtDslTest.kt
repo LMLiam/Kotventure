@@ -1,5 +1,11 @@
 package io.github.lmliam.kotventure.core.nbt
 
+import io.github.lmliam.kotventure.core.selector.allPlayers
+import io.github.lmliam.kotventure.core.selector.entities
+import io.github.lmliam.kotventure.core.selector.entitySelector
+import io.github.lmliam.kotventure.core.selector.nearestPlayer
+import io.github.lmliam.kotventure.core.selector.randomPlayer
+import io.github.lmliam.kotventure.core.selector.self
 import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldBeEntityNbtComponent
 import io.github.lmliam.kotventure.test.text.shouldContainText
@@ -22,7 +28,9 @@ class EntityNbtDslTest :
     StringSpec(
         {
             "builds an entity nbt component with a selector and path" {
-                val component = entityNbt("@p", "Inventory[0].tag.display.Name").shouldBeEntityNbtComponent()
+                val path = nbtPath("Inventory")[0]["tag"]["display"]["Name"]
+
+                val component = entityNbt(nearestPlayer(), path).shouldBeEntityNbtComponent()
 
                 component shouldHaveEntitySelector "@p"
                 component shouldHaveNbtPath "Inventory[0].tag.display.Name"
@@ -30,9 +38,20 @@ class EntityNbtDslTest :
                 component.shouldNotHaveNbtSeparator()
             }
 
+            "accepts selector and path from escape hatches" {
+                val component =
+                    entityNbt(
+                    entitySelector("@e[type=zombie,limit=1]"),
+                    nbtPath("CustomName"),
+                ).shouldBeEntityNbtComponent()
+
+                component shouldHaveEntitySelector "@e[type=zombie,limit=1]"
+                component shouldHaveNbtPath "CustomName"
+            }
+
             "applies style to the entity nbt root" {
                 val component =
-                    entityNbt("@r", "CustomName") {
+                    entityNbt(randomPlayer(), nbtPath("CustomName")) {
                         color(NamedTextColor.AQUA)
                         bold()
                         style {
@@ -49,7 +68,7 @@ class EntityNbtDslTest :
                 val suffix = Component.text(" entity")
 
                 val component =
-                    entityNbt("@p", "CustomName") {
+                    entityNbt(nearestPlayer(), nbtPath("CustomName")) {
                         append(suffix)
                     }
 
@@ -59,7 +78,7 @@ class EntityNbtDslTest :
 
             "sets interpret true" {
                 val component =
-                    entityNbt("@p", "CustomName") {
+                    entityNbt(nearestPlayer(), nbtPath("CustomName")) {
                         interpret(true)
                     }
 
@@ -68,9 +87,10 @@ class EntityNbtDslTest :
 
             "sets a component separator" {
                 val separator = Component.text(", ")
+                val path = nbtPath("Inventory")[all]["id"]
 
                 val component =
-                    entityNbt("@a", "Inventory[].id") {
+                    entityNbt(allPlayers(), path) {
                         separator(separator)
                     }
 
@@ -79,7 +99,7 @@ class EntityNbtDslTest :
 
             "sets an inline text separator" {
                 val component =
-                    entityNbt("@a", "Inventory[].id") {
+                    entityNbt(allPlayers(), nbtPath("Inventory[].id")) {
                         separator {
                             content(" | ")
                             color(NamedTextColor.GRAY)
@@ -90,6 +110,24 @@ class EntityNbtDslTest :
 
                 separator shouldHaveColor NamedTextColor.GRAY
                 separator shouldContainText " | "
+            }
+
+            "uses self selector" {
+                val component = entityNbt(self(), nbtPath("Health")).shouldBeEntityNbtComponent()
+
+                component shouldHaveEntitySelector "@s"
+            }
+
+            "uses entities with arguments" {
+                val selector =
+                    entities {
+                    type("armor_stand")
+                    limit(1)
+                }
+
+                val component = entityNbt(selector, nbtPath("CustomName")).shouldBeEntityNbtComponent()
+
+                component shouldHaveEntitySelector "@e[type=minecraft:armor_stand,limit=1]"
             }
         },
     )

@@ -18,18 +18,24 @@ import net.kyori.adventure.text.format.TextDecoration
 class SelectorDslTest :
     StringSpec(
         {
-            "builds a selector component with a pattern" {
-                val component = selector("@p").shouldBeSelectorComponent()
+            "builds a selector component with a typed selector" {
+                val component = selector(nearestPlayer()).shouldBeSelectorComponent()
 
                 component shouldHaveSelectorPattern "@p"
                 component.shouldNotHaveSelectorSeparator()
+            }
+
+            "builds a selector component with the escape hatch" {
+                val component = selector(entitySelector("@e[distance=..10]")).shouldBeSelectorComponent()
+
+                component shouldHaveSelectorPattern "@e[distance=..10]"
             }
 
             "sets a component separator" {
                 val separator = Component.text(", ")
 
                 val component =
-                    selector("@a") {
+                    selector(allPlayers()) {
                         separator(separator)
                     }
 
@@ -38,7 +44,7 @@ class SelectorDslTest :
 
             "sets an inline text separator" {
                 val component =
-                    selector("@a") {
+                    selector(allPlayers()) {
                         separator {
                             content(" | ")
                             color(NamedTextColor.GRAY)
@@ -53,7 +59,7 @@ class SelectorDslTest :
 
             "applies style to the selector root" {
                 val component =
-                    selector("@r") {
+                    selector(randomPlayer()) {
                         color(NamedTextColor.AQUA)
                         obfuscated()
                         style {
@@ -70,12 +76,24 @@ class SelectorDslTest :
                 val suffix = Component.text(" joined")
 
                 val component =
-                    selector("@p") {
+                    selector(nearestPlayer()) {
                         append(suffix)
                     }
 
                 component shouldHaveChildCount 1
                 component.childAt(0) shouldBe suffix
+            }
+
+            "uses entities with arguments" {
+                val component =
+                    selector(
+                        entities {
+                            type("zombie")
+                            limit(5)
+                        },
+                    ).shouldBeSelectorComponent()
+
+                component shouldHaveSelectorPattern "@e[type=minecraft:zombie,limit=5]"
             }
         },
     )
