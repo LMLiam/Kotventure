@@ -17,7 +17,8 @@ internal class EntitySelectorBuilder(
     }
 
     override fun type(entityType: String) {
-        arguments += "type=minecraft:$entityType"
+        val prefixed = if (":" in entityType) entityType else "minecraft:$entityType"
+        arguments += "type=$prefixed"
     }
 
     override fun limit(n: Int) {
@@ -41,8 +42,21 @@ internal class EntitySelectorBuilder(
     }
 
     override fun name(name: String) {
-        arguments += "name=$name"
+        val value =
+            if (needsQuoting(name)) {
+            "\"${escapeQuotes(name)}\""
+        } else {
+            name
+        }
+        arguments += "name=$value"
     }
+
+    private fun needsQuoting(str: String): Boolean = str.any { it in ",[]{}\" " }
+
+    private fun escapeQuotes(str: String): String =
+        str
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
 
     override fun level(range: SelectorRange) {
         arguments += "level=${range.rendered}"

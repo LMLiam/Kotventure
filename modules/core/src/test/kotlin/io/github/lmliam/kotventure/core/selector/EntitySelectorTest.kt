@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.core.selector
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import net.kyori.adventure.key.Key
@@ -116,6 +117,108 @@ class EntitySelectorTest :
 
             "toString returns the selector string" {
                 self().toString() shouldBe "@s"
+            }
+
+            "type with already prefixed namespace does not double-prefix" {
+                val selector = entities { type("minecraft:zombie") }
+
+                selector.asString() shouldBe "@e[type=minecraft:zombie]"
+            }
+
+            "type with custom namespace is preserved" {
+                val selector = entities { type("mymod:custom_entity") }
+
+                selector.asString() shouldBe "@e[type=mymod:custom_entity]"
+            }
+
+            "name with special characters is quoted" {
+                val selector = nearestPlayer { name("Player, [Admin]") }
+
+                selector.asString() shouldBe "@p[name=\"Player, [Admin]\"]"
+            }
+
+            "name with quotes is escaped" {
+                val selector = nearestPlayer { name("Bob's \"Special\" Name") }
+
+                selector.asString() shouldBe "@p[name=\"Bob's \\\"Special\\\" Name\"]"
+            }
+
+            "name without special characters is not quoted" {
+                val selector = nearestPlayer { name("SimplePlayer") }
+
+                selector.asString() shouldBe "@p[name=SimplePlayer]"
+            }
+
+            "atMost rejects NaN" {
+                shouldThrow<IllegalArgumentException> {
+                    atMost(Double.NaN)
+                }
+            }
+
+            "atMost rejects positive infinity" {
+                shouldThrow<IllegalArgumentException> {
+                    atMost(Double.POSITIVE_INFINITY)
+                }
+            }
+
+            "atMost rejects negative infinity" {
+                shouldThrow<IllegalArgumentException> {
+                    atMost(Double.NEGATIVE_INFINITY)
+                }
+            }
+
+            "atLeast rejects NaN" {
+                shouldThrow<IllegalArgumentException> {
+                    atLeast(Double.NaN)
+                }
+            }
+
+            "atLeast rejects infinity" {
+                shouldThrow<IllegalArgumentException> {
+                    atLeast(Double.POSITIVE_INFINITY)
+                }
+            }
+
+            "between rejects NaN in min" {
+                shouldThrow<IllegalArgumentException> {
+                    between(Double.NaN, 10.0)
+                }
+            }
+
+            "between rejects NaN in max" {
+                shouldThrow<IllegalArgumentException> {
+                    between(1.0, Double.NaN)
+                }
+            }
+
+            "between rejects infinity in min" {
+                shouldThrow<IllegalArgumentException> {
+                    between(Double.POSITIVE_INFINITY, 10.0)
+                }
+            }
+
+            "between rejects infinity in max" {
+                shouldThrow<IllegalArgumentException> {
+                    between(1.0, Double.POSITIVE_INFINITY)
+                }
+            }
+
+            "between rejects inverted range" {
+                shouldThrow<IllegalArgumentException> {
+                    between(10.0, 5.0)
+                }
+            }
+
+            "exactly rejects NaN" {
+                shouldThrow<IllegalArgumentException> {
+                    exactly(Double.NaN)
+                }
+            }
+
+            "exactly rejects infinity" {
+                shouldThrow<IllegalArgumentException> {
+                    exactly(Double.POSITIVE_INFINITY)
+                }
             }
         },
     )

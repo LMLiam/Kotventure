@@ -90,5 +90,11 @@ class NbtPathTest :
                     nbtPath("Items[0].id")["tag"]
                 }
             }
+
+            "predicate value with quote characters is escaped" {
+                val path = nbtPath("Items")[matching { key("Name") eq "Bob's \"Special\" Item" }]
+
+                path.asString() shouldBe "Items[{Name:\"Bob's \\\"Special\\\" Item\"}]"
+            }
         },
     )

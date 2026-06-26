@@ -13,26 +13,48 @@ public class SelectorRange internal constructor(
 
 /**
  * A range matching values up to and including [max] (renders as `..max`).
+ *
+ * @throws IllegalArgumentException if [max] is NaN or infinite
  */
-public fun atMost(max: Double): SelectorRange = SelectorRange("..${formatNumber(max)}")
+public fun atMost(max: Double): SelectorRange {
+    require(max.isFinite()) { "Range value must be finite, got: $max" }
+    return SelectorRange("..${formatNumber(max)}")
+}
 
 /**
  * A range matching values at least [min] (renders as `min..`).
+ *
+ * @throws IllegalArgumentException if [min] is NaN or infinite
  */
-public fun atLeast(min: Double): SelectorRange = SelectorRange("${formatNumber(min)}..")
+public fun atLeast(min: Double): SelectorRange {
+    require(min.isFinite()) { "Range value must be finite, got: $min" }
+    return SelectorRange("${formatNumber(min)}..")
+}
 
 /**
  * A range matching values between [min] and [max] inclusive (renders as `min..max`).
+ *
+ * @throws IllegalArgumentException if [min] or [max] is NaN or infinite, or if [min] > [max]
  */
 public fun between(
     min: Double,
     max: Double,
-): SelectorRange = SelectorRange("${formatNumber(min)}..${formatNumber(max)}")
+): SelectorRange {
+    require(min.isFinite()) { "Range min must be finite, got: $min" }
+    require(max.isFinite()) { "Range max must be finite, got: $max" }
+    require(min <= max) { "Range min ($min) must not exceed max ($max)" }
+    return SelectorRange("${formatNumber(min)}..${formatNumber(max)}")
+}
 
 /**
  * A range matching exactly [value] (renders as `value`).
+ *
+ * @throws IllegalArgumentException if [value] is NaN or infinite
  */
-public fun exactly(value: Double): SelectorRange = SelectorRange(formatNumber(value))
+public fun exactly(value: Double): SelectorRange {
+    require(value.isFinite()) { "Range value must be finite, got: $value" }
+    return SelectorRange(formatNumber(value))
+}
 
 private fun formatNumber(value: Double): String =
     if (value == value.toLong().toDouble()) value.toLong().toString() else value.toString()

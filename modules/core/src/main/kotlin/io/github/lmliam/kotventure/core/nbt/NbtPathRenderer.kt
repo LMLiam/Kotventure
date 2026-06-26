@@ -1,8 +1,17 @@
 package io.github.lmliam.kotventure.core.nbt
 
+/**
+ * Escapes a string for SNBT (Stringified NBT) format.
+ * Handles backslashes and double quotes.
+ */
+private fun escapeSnbtString(value: String): String =
+    value
+        .replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+
 internal fun renderLiteral(value: NbtLiteralValue): String =
     when (value) {
-        is NbtLiteralValue.StringValue -> "\"${value.value}\""
+        is NbtLiteralValue.StringValue -> "\"${escapeSnbtString(value.value)}\""
         is NbtLiteralValue.ByteValue -> "${value.value}b"
         is NbtLiteralValue.ShortValue -> "${value.value}s"
         is NbtLiteralValue.IntValue -> "${value.value}"
