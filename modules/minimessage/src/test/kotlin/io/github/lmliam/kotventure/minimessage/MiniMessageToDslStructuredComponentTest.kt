@@ -9,10 +9,12 @@ import io.github.lmliam.kotventure.core.keybind.keybind
 import io.github.lmliam.kotventure.core.nbt.blockNbt
 import io.github.lmliam.kotventure.core.nbt.blockPos
 import io.github.lmliam.kotventure.core.nbt.entityNbt
+import io.github.lmliam.kotventure.core.nbt.nbtPath
 import io.github.lmliam.kotventure.core.nbt.storageNbt
 import io.github.lmliam.kotventure.core.objectcomponent.display
 import io.github.lmliam.kotventure.core.objectcomponent.sprite
 import io.github.lmliam.kotventure.core.score.score
+import io.github.lmliam.kotventure.core.selector.entitySelector
 import io.github.lmliam.kotventure.core.selector.selector
 import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.core.translatable.translatable
@@ -104,10 +106,10 @@ class MiniMessageToDslStructuredComponentTest :
                         expectedSource =
                             """
                         component {
-                            selector("@p")
+                            selector(entitySelector("@p"))
                         }
                         """.trimIndent(),
-                        expectedComponent = component { selector("@p") },
+                        expectedComponent = component { selector(entitySelector("@p")) },
                     )
                 }
 
@@ -117,7 +119,7 @@ class MiniMessageToDslStructuredComponentTest :
                         expectedSource =
                             """
                         component {
-                            selector("@e") {
+                            selector(entitySelector("@e")) {
                                 separator {
                                     text(", ")
                                 }
@@ -126,7 +128,7 @@ class MiniMessageToDslStructuredComponentTest :
                         """.trimIndent(),
                         expectedComponent =
                             component {
-                                selector("@e") {
+                                selector(entitySelector("@e")) {
                                     separator { text(", ") }
                                 }
                             },
@@ -358,12 +360,12 @@ class MiniMessageToDslStructuredComponentTest :
 
             context("NBT component emission") {
                 test("emits bare block NBT components from a compiled expected DSL") {
-                    val nbt = component { blockNbt(blockPos("1 64 -3"), "Items") }
+                    val nbt = component { blockNbt(blockPos("1 64 -3"), nbtPath("Items")) }
 
                     MiniMessageToDslWriter.write(nbt) shouldBe
                             """
                     component {
-                        blockNbt(blockPos("1 64 -3"), "Items")
+                        blockNbt(blockPos("1 64 -3"), nbtPath("Items"))
                     }
                     """.trimIndent()
                 }
@@ -371,7 +373,7 @@ class MiniMessageToDslStructuredComponentTest :
                 test("emits block NBT interpretation, separators, and style together") {
                     val nbt =
                         component {
-                            blockNbt(blockPos("1 64 -3"), "Items") {
+                            blockNbt(blockPos("1 64 -3"), nbtPath("Items")) {
                                 interpret(true)
                                 separator { text(", ") }
                                 color(aqua)
@@ -381,7 +383,7 @@ class MiniMessageToDslStructuredComponentTest :
                     MiniMessageToDslWriter.write(nbt) shouldBe
                             """
                     component {
-                        blockNbt(blockPos("1 64 -3"), "Items") {
+                        blockNbt(blockPos("1 64 -3"), nbtPath("Items")) {
                             interpret(true)
                             separator {
                                 text(", ")
@@ -393,12 +395,12 @@ class MiniMessageToDslStructuredComponentTest :
                 }
 
                 test("emits entity NBT components from a compiled expected DSL") {
-                    val nbt = component { entityNbt("@e[type=armor_stand]", "Pos") }
+                    val nbt = component { entityNbt(entitySelector("@e[type=armor_stand]"), nbtPath("Pos")) }
 
                     MiniMessageToDslWriter.write(nbt) shouldBe
                             """
                     component {
-                        entityNbt("@e[type=armor_stand]", "Pos")
+                        entityNbt(entitySelector("@e[type=armor_stand]"), nbtPath("Pos"))
                     }
                     """.trimIndent()
                 }
@@ -406,7 +408,7 @@ class MiniMessageToDslStructuredComponentTest :
                 test("emits storage NBT components carrying interpretation") {
                     val nbt =
                         component {
-                            storageNbt(key("minecraft", "data"), "Contents") {
+                            storageNbt(key("minecraft", "data"), nbtPath("Contents")) {
                                 interpret(true)
                             }
                         }
@@ -414,7 +416,7 @@ class MiniMessageToDslStructuredComponentTest :
                     MiniMessageToDslWriter.write(nbt) shouldBe
                             """
                     component {
-                        storageNbt(key("minecraft", "data"), "Contents") {
+                        storageNbt(key("minecraft", "data"), nbtPath("Contents")) {
                             interpret(true)
                         }
                     }
@@ -427,10 +429,10 @@ class MiniMessageToDslStructuredComponentTest :
                         expectedSource =
                             """
                         component {
-                            blockNbt(blockPos("1 64 -3"), "Items")
+                            blockNbt(blockPos("1 64 -3"), nbtPath("Items"))
                         }
                         """.trimIndent(),
-                        expectedComponent = component { blockNbt(blockPos("1 64 -3"), "Items") },
+                        expectedComponent = component { blockNbt(blockPos("1 64 -3"), nbtPath("Items")) },
                     )
                 }
             }

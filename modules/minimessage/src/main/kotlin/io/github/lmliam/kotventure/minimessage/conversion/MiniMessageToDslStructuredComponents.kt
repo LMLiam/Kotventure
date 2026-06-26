@@ -31,7 +31,7 @@ internal fun KotlinSourceBuilder.appendScore(component: ScoreComponent) {
 internal fun KotlinSourceBuilder.appendSelector(component: SelectorComponent) {
     val separator = component.separator()
     appendStructured(
-        header = "selector(\"${escapeKotlinString(component.pattern())}\")",
+        header = "selector(entitySelector(\"${escapeKotlinString(component.pattern())}\"))",
         component = component,
         hasExtraBody = separator != null,
     ) {

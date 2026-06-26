@@ -21,11 +21,13 @@ internal fun compileGeneratedDsl(source: String): Component {
         import io.github.lmliam.kotventure.core.nbt.blockNbt
         import io.github.lmliam.kotventure.core.nbt.blockPos
         import io.github.lmliam.kotventure.core.nbt.entityNbt
+        import io.github.lmliam.kotventure.core.nbt.nbtPath
         import io.github.lmliam.kotventure.core.nbt.storageNbt
         import io.github.lmliam.kotventure.core.objectcomponent.display
         import io.github.lmliam.kotventure.core.objectcomponent.sprite
         import io.github.lmliam.kotventure.core.objectcomponent.head
         import io.github.lmliam.kotventure.core.score.score
+        import io.github.lmliam.kotventure.core.selector.entitySelector
         import io.github.lmliam.kotventure.core.selector.selector
         import io.github.lmliam.kotventure.core.text.text
         import io.github.lmliam.kotventure.core.translatable.translatable
