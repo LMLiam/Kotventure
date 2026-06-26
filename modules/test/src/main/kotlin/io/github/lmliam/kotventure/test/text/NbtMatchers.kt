@@ -1,5 +1,7 @@
 package io.github.lmliam.kotventure.test.text
 
+import io.github.lmliam.kotventure.core.nbt.NbtPath
+import io.github.lmliam.kotventure.core.selector.EntitySelector
 import io.kotest.matchers.Matcher
 import io.kotest.matchers.MatcherResult
 import io.kotest.matchers.should
@@ -127,6 +129,14 @@ public infix fun NBTComponent<*>.shouldHaveNbtPath(expected: String): NBTCompone
     }
 
 /**
+ * Asserts that this NBT component has [expected] as its NBT path.
+ */
+public infix fun NBTComponent<*>.shouldHaveNbtPath(expected: NbtPath): NBTComponent<*> =
+    apply {
+        this should haveNbtPath(expected.asString())
+    }
+
+/**
  * Asserts that this NBT component interprets fetched NBT as component JSON.
  */
 public fun NBTComponent<*>.shouldInterpret(): NBTComponent<*> =
@@ -172,6 +182,14 @@ public infix fun BlockNBTComponent.shouldHaveBlockPos(expected: BlockNBTComponen
 public infix fun EntityNBTComponent.shouldHaveEntitySelector(expected: String): EntityNBTComponent =
     apply {
         this should haveEntitySelector(expected)
+    }
+
+/**
+ * Asserts that this entity NBT component has [expected] as its selector.
+ */
+public infix fun EntityNBTComponent.shouldHaveEntitySelector(expected: EntitySelector): EntityNBTComponent =
+    apply {
+        this should haveEntitySelector(expected.asString())
     }
 
 /**
