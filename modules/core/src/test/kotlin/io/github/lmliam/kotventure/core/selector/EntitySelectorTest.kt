@@ -242,5 +242,23 @@ class EntitySelectorTest :
 
                 selector.asString() shouldBe "@e[tag=admin,tag=vip]"
             }
+
+            "name with backslash and special chars is escaped" {
+                val selector = nearestPlayer { name("path\\to [file]") }
+
+                selector.asString() shouldBe "@p[name=\"path\\\\to [file]\"]"
+            }
+
+            "limit rejects zero" {
+                shouldThrow<IllegalArgumentException> {
+                    entities { limit(0) }
+                }
+            }
+
+            "limit rejects negative" {
+                shouldThrow<IllegalArgumentException> {
+                    entities { limit(-1) }
+                }
+            }
         },
     )

@@ -1,16 +1,17 @@
 package io.github.lmliam.kotventure.core.nbt
 
 internal class NbtPredicateBuilder : NbtPredicateScope {
-    private val entries = mutableListOf<NbtPredicateEntry>()
+    private val entries = linkedMapOf<String, NbtLiteralValue>()
 
     fun addEntry(
         key: String,
         value: NbtLiteralValue,
     ) {
-        entries += NbtPredicateEntry(key, value)
+        entries[key] = value
     }
 
-    fun build(): NbtCompoundPredicate = NbtCompoundPredicate(entries.toList())
+    fun build(): NbtCompoundPredicate =
+        NbtCompoundPredicate(entries.map { (key, value) -> NbtPredicateEntry(key, value) })
 
     override fun key(name: String): NbtPredicateKey = NbtPredicateKey(name)
 

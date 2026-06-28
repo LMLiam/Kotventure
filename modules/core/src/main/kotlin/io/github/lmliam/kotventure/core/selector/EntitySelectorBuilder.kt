@@ -28,6 +28,7 @@ internal class EntitySelectorBuilder(
     }
 
     override fun limit(n: Int) {
+        require(n > 0) { "Selector limit must be positive, got: $n" }
         limit = n
     }
 

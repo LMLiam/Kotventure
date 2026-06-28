@@ -3,20 +3,6 @@ package io.github.lmliam.kotventure.core.nbt
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 
 /**
- * A key reference within a compound predicate, used with [NbtPredicateScope.eq] to specify the expected value.
- */
-public class NbtPredicateKey internal constructor(
-    internal val name: String,
-)
-
-/**
- * A typed NBT literal value for use in compound predicates.
- */
-public class NbtLiteral internal constructor(
-    internal val value: NbtLiteralValue,
-)
-
-/**
  * Scope for building NBT compound predicates.
  *
  * ```kotlin

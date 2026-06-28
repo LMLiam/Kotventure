@@ -1,6 +1,5 @@
 package io.github.lmliam.kotventure.core.nbt
 
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
@@ -85,16 +84,34 @@ class NbtPathTest :
                 path.asString() shouldBe "[0].id"
             }
 
-            "chaining operators on a raw path throws" {
-                shouldThrow<IllegalArgumentException> {
-                    nbtPath("Items[0].id")["tag"]
-                }
+            "chaining operators on a raw path extends it" {
+                val path = nbtPath("Items[0].id")["tag"]
+
+                path.asString() shouldBe "Items[0].id.tag"
             }
 
-            "predicate value with quote characters is escaped" {
-                val path = nbtPath("Items")[matching { key("Name") eq "Bob's \"Special\" Item" }]
+            "predicate value with quote and backslash characters is escaped" {
+                val path = nbtPath("Items")[matching { key("Name") eq "path\\to\\\"file\"" }]
 
-                path.asString() shouldBe "Items[{Name:\"Bob's \\\"Special\\\" Item\"}]"
+                path.asString() shouldBe "Items[{Name:\"path\\\\to\\\\\\\"file\\\"\"}]"
+            }
+
+            "predicate value with control characters is escaped" {
+                val path = nbtPath("Data")[matching { key("text") eq "line1\nline2\ttab" }]
+
+                path.asString() shouldBe "Data[{text:\"line1\\nline2\\ttab\"}]"
+            }
+
+            "duplicate predicate keys use last-write-wins" {
+                val path =
+                    nbtPath("Items")[
+                        matching {
+                            key("id") eq "minecraft:stone"
+                            key("id") eq "minecraft:diamond"
+                        },
+                    ]
+
+                path.asString() shouldBe "Items[{id:\"minecraft:diamond\"}]"
             }
 
             "predicate eq with Byte primitive" {
