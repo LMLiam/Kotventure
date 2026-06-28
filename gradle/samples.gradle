@@ -20,6 +20,10 @@ tasks.named('compileSamplesKotlin') {
     }
 }
 
+tasks.named('check') {
+    dependsOn('compileSamplesKotlin')
+}
+
 dokka {
     dokkaSourceSets.configureEach {
         samples.from(file('src/samples/kotlin'))
