@@ -5,7 +5,7 @@ import io.github.lmliam.kotventure.core.color.gold
 internal fun textSample() {
     val greeting =
         text("Hello") {
-        color(gold)
-        bold()
-    }
+            color(gold)
+            bold()
+        }
 }

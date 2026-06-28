@@ -8,7 +8,7 @@ internal fun miniWithPlaceholdersSample() {
     val playerName = "Alex"
     val line =
         mini("<greeting> <player>!") {
-        parsed("greeting", "<gold>Welcome")
-        unparsed("player", playerName)
-    }
+            parsed("greeting", "<gold>Welcome")
+            unparsed("player", playerName)
+        }
 }

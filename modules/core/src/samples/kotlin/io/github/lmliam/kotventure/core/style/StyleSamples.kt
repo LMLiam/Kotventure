@@ -8,18 +8,18 @@ import net.kyori.adventure.text.format.Style
 internal fun styleSample() {
     val heading =
         style {
-        color(gold)
-        bold()
-    }
+            color(gold)
+            bold()
+        }
     val title = text("Welcome") { style(heading) }
 }
 
 internal fun styledSample() {
     val heading =
         style {
-        color(gold)
-        bold()
-    }
+            color(gold)
+            bold()
+        }
     val highlighted = component { text("important") } styled heading
 }
 
