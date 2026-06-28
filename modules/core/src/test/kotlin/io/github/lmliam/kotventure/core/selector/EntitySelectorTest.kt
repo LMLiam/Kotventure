@@ -220,5 +220,27 @@ class EntitySelectorTest :
                     exactly(Double.POSITIVE_INFINITY)
                 }
             }
+
+            "singleton options use last-write-wins" {
+                val selector =
+                    entities {
+                    limit(1)
+                    limit(5)
+                    sort(nearest)
+                    sort(furthest)
+                }
+
+                selector.asString() shouldBe "@e[limit=5,sort=furthest]"
+            }
+
+            "multiple tags are all preserved" {
+                val selector =
+                    entities {
+                    tag("admin")
+                    tag("vip")
+                }
+
+                selector.asString() shouldBe "@e[tag=admin,tag=vip]"
+            }
         },
     )

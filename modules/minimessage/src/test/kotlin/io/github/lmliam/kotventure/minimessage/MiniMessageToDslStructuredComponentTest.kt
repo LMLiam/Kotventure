@@ -435,6 +435,36 @@ class MiniMessageToDslStructuredComponentTest :
                         expectedComponent = component { blockNbt(blockPos("1 64 -3"), nbtPath("Items")) },
                     )
                 }
+
+                test("round-trips selector with arguments through the full parse-write path") {
+                    assertGoldenRoundTrip(
+                        input = "<selector:'@e[type=armor_stand,limit=1]'>",
+                        expectedSource =
+                            """
+                        component {
+                            selector(entitySelector("@e[type=armor_stand,limit=1]"))
+                        }
+                        """.trimIndent(),
+                        expectedComponent =
+                            component { selector(entitySelector("@e[type=armor_stand,limit=1]")) },
+                    )
+                }
+
+                test("round-trips complex NBT path through the raw wrapper") {
+                    assertGoldenRoundTrip(
+                        input = "<nbt:block:'1 64 -3':'Items[0].tag.display.Name'>",
+                        expectedSource =
+                            """
+                        component {
+                            blockNbt(blockPos("1 64 -3"), nbtPath("Items[0].tag.display.Name"))
+                        }
+                        """.trimIndent(),
+                        expectedComponent =
+                            component {
+                                blockNbt(blockPos("1 64 -3"), nbtPath("Items[0].tag.display.Name"))
+                            },
+                    )
+                }
             }
 
             context("object component emission") {
