@@ -20,7 +20,7 @@ public val all: NbtSelection = NbtSelection(NbtPathNode.AllElements)
  * Selects list elements matching a compound predicate (`[{...}]`).
  *
  * ```kotlin
- * nbtPath("Items")[matching { key("id") eq "minecraft:diamond" }]["Count"]
+ * nbtPath("Items")[matching { "id" eq "minecraft:diamond" }]["Count"]
  * ```
  */
 public fun matching(init: NbtPredicateScope.() -> Unit): NbtSelection {

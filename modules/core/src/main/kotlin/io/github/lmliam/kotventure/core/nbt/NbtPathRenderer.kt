@@ -24,11 +24,7 @@ internal fun renderLiteral(value: NbtLiteralValue): String =
         is NbtLiteralValue.LongValue -> "${value.value}L"
         is NbtLiteralValue.FloatValue -> "${value.value}f"
         is NbtLiteralValue.DoubleValue -> "${value.value}d"
-        is NbtLiteralValue.ByteArrayValue -> value.values.joinToString(",", "[B;", "]") { "${it}b" }
-        is NbtLiteralValue.IntArrayValue -> value.values.joinToString(",", "[I;", "]") { "$it" }
-        is NbtLiteralValue.LongArrayValue -> value.values.joinToString(",", "[L;", "]") { "${it}L" }
         is NbtLiteralValue.CompoundValue -> renderPredicate(value.predicate)
-        is NbtLiteralValue.ListValue -> value.elements.joinToString(",", "[", "]") { renderLiteral(it) }
     }
 
 internal fun renderPredicate(predicate: NbtCompoundPredicate): String =
