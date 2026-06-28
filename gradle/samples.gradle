@@ -1,0 +1,35 @@
+sourceSets {
+    samples {
+        kotlin {
+            srcDir 'src/samples/kotlin'
+        }
+    }
+}
+
+configurations {
+    samplesImplementation.extendsFrom(implementation, api)
+}
+
+dependencies {
+    samplesImplementation sourceSets.main.output
+}
+
+tasks.named('compileSamplesKotlin') {
+    compilerOptions {
+        freeCompilerArgs.add('-Xexplicit-api=disable')
+    }
+}
+
+dokka {
+    dokkaSourceSets.configureEach {
+        samples.from(file('src/samples/kotlin'))
+    }
+}
+
+kover {
+    currentProject {
+        sources {
+            excludedSourceSets.add('samples')
+        }
+    }
+}
