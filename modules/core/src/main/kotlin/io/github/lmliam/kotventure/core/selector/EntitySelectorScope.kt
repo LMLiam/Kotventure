@@ -48,7 +48,8 @@ public interface EntitySelectorScope {
     public fun type(entityType: Key)
 
     /**
-     * Filters by entity type using a string (implies `minecraft` namespace).
+     * Filters by entity type using a string. An already-namespaced id (containing `:`) is used as
+     * given; a bare id is prefixed with the `minecraft` namespace.
      */
     public fun type(entityType: String)
 

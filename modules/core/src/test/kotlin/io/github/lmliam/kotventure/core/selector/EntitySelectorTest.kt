@@ -84,6 +84,12 @@ class EntitySelectorTest :
                 }
             }
 
+            "distance with non-finite Kotlin range is rejected" {
+                shouldThrow<IllegalArgumentException> {
+                    entities { distance(1.0..Double.POSITIVE_INFINITY) }
+                }
+            }
+
             "level with Kotlin IntRange" {
                 val selector = allPlayers { level(5..30) }
 

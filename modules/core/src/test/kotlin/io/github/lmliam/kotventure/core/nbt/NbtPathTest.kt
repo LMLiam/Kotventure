@@ -24,6 +24,12 @@ class NbtPathTest :
                 path.asString() shouldBe "root.\"foo.bar\".\"with space\".\"[index]\".\"say \\\"hi\\\"\""
             }
 
+            "uses the root key verbatim as a pre-formed escape hatch" {
+                val path = nbtPath("display name")
+
+                path.asString() shouldBe "display name"
+            }
+
             "quotes empty keys instead of emitting a bare segment" {
                 val path = nbtPath("root")[""]
 
