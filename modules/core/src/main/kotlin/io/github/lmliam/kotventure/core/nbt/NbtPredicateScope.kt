@@ -39,9 +39,34 @@ public interface NbtPredicateScope {
     public infix fun NbtPredicateKey.eq(value: String)
 
     /**
-     * Asserts that this key equals the given int value.
+     * Asserts that this key equals the given byte value (renders as SNBT byte, e.g. `1b`).
+     */
+    public infix fun NbtPredicateKey.eq(value: Byte)
+
+    /**
+     * Asserts that this key equals the given short value (renders as SNBT short, e.g. `1s`).
+     */
+    public infix fun NbtPredicateKey.eq(value: Short)
+
+    /**
+     * Asserts that this key equals the given int value (renders as SNBT int, e.g. `1`).
      */
     public infix fun NbtPredicateKey.eq(value: Int)
+
+    /**
+     * Asserts that this key equals the given long value (renders as SNBT long, e.g. `1L`).
+     */
+    public infix fun NbtPredicateKey.eq(value: Long)
+
+    /**
+     * Asserts that this key equals the given float value (renders as SNBT float, e.g. `1.0f`).
+     */
+    public infix fun NbtPredicateKey.eq(value: Float)
+
+    /**
+     * Asserts that this key equals the given double value (renders as SNBT double, e.g. `1.0d`).
+     */
+    public infix fun NbtPredicateKey.eq(value: Double)
 
     /**
      * Asserts that this key equals the given typed literal.

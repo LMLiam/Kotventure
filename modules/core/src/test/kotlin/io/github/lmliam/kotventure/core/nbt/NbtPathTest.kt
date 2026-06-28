@@ -96,5 +96,35 @@ class NbtPathTest :
 
                 path.asString() shouldBe "Items[{Name:\"Bob's \\\"Special\\\" Item\"}]"
             }
+
+            "predicate eq with Byte primitive" {
+                val path = nbtPath("Entities")[matching { key("NoAI") eq 1.toByte() }]
+
+                path.asString() shouldBe "Entities[{NoAI:1b}]"
+            }
+
+            "predicate eq with Short primitive" {
+                val path = nbtPath("Items")[matching { key("Damage") eq 100.toShort() }]
+
+                path.asString() shouldBe "Items[{Damage:100s}]"
+            }
+
+            "predicate eq with Long primitive" {
+                val path = nbtPath("Data")[matching { key("Time") eq 1000L }]
+
+                path.asString() shouldBe "Data[{Time:1000L}]"
+            }
+
+            "predicate eq with Float primitive" {
+                val path = nbtPath("Entities")[matching { key("Speed") eq 1.5f }]
+
+                path.asString() shouldBe "Entities[{Speed:1.5f}]"
+            }
+
+            "predicate eq with Double primitive" {
+                val path = nbtPath("Entities")[matching { key("Health") eq 20.0 }]
+
+                path.asString() shouldBe "Entities[{Health:20.0d}]"
+            }
         },
     )

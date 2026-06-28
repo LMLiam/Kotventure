@@ -18,8 +18,28 @@ internal class NbtPredicateBuilder : NbtPredicateScope {
         this@NbtPredicateBuilder.addEntry(name, NbtLiteralValue.StringValue(value))
     }
 
+    override infix fun NbtPredicateKey.eq(value: Byte) {
+        this@NbtPredicateBuilder.addEntry(name, NbtLiteralValue.ByteValue(value))
+    }
+
+    override infix fun NbtPredicateKey.eq(value: Short) {
+        this@NbtPredicateBuilder.addEntry(name, NbtLiteralValue.ShortValue(value))
+    }
+
     override infix fun NbtPredicateKey.eq(value: Int) {
         this@NbtPredicateBuilder.addEntry(name, NbtLiteralValue.IntValue(value))
+    }
+
+    override infix fun NbtPredicateKey.eq(value: Long) {
+        this@NbtPredicateBuilder.addEntry(name, NbtLiteralValue.LongValue(value))
+    }
+
+    override infix fun NbtPredicateKey.eq(value: Float) {
+        this@NbtPredicateBuilder.addEntry(name, NbtLiteralValue.FloatValue(value))
+    }
+
+    override infix fun NbtPredicateKey.eq(value: Double) {
+        this@NbtPredicateBuilder.addEntry(name, NbtLiteralValue.DoubleValue(value))
     }
 
     override infix fun NbtPredicateKey.eq(value: NbtLiteral) {
