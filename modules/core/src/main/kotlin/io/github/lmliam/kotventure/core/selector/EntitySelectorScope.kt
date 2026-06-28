@@ -30,6 +30,18 @@ public interface EntitySelectorScope {
     /** No guaranteed order. */
     public val arbitrary: SelectorSort
 
+    /** Survival mode. */
+    public val survival: GameMode
+
+    /** Creative mode. */
+    public val creative: GameMode
+
+    /** Adventure mode. */
+    public val adventure: GameMode
+
+    /** Spectator mode. */
+    public val spectator: GameMode
+
     /**
      * Filters by entity type using an Adventure [Key].
      */
@@ -71,12 +83,17 @@ public interface EntitySelectorScope {
     public fun name(name: String)
 
     /**
-     * Filters by experience level using a [SelectorRange].
+     * Filters by experience level using a [SelectorRange] (for open-ended or exact bounds).
      */
     public fun level(range: SelectorRange)
 
     /**
+     * Filters by experience level using a Kotlin [IntRange].
+     */
+    public fun level(range: IntRange)
+
+    /**
      * Filters by game mode.
      */
-    public fun gamemode(mode: String)
+    public fun gamemode(mode: GameMode)
 }

@@ -7,17 +7,22 @@ internal class EntitySelectorBuilder(
 ) : EntitySelectorScope {
     private var type: String? = null
     private var limit: Int? = null
-    private var distance: String? = null
-    private var sort: String? = null
+    private var distance: SelectorRange? = null
+    private var sort: SelectorSort? = null
     private var name: String? = null
-    private var level: String? = null
-    private var gamemode: String? = null
+    private var level: SelectorRange? = null
+    private var gamemode: GameMode? = null
     private val tags = mutableListOf<String>()
 
     override val nearest: SelectorSort get() = SelectorSort.NEAREST
     override val furthest: SelectorSort get() = SelectorSort.FURTHEST
     override val random: SelectorSort get() = SelectorSort.RANDOM
     override val arbitrary: SelectorSort get() = SelectorSort.ARBITRARY
+
+    override val survival: GameMode get() = GameMode.SURVIVAL
+    override val creative: GameMode get() = GameMode.CREATIVE
+    override val adventure: GameMode get() = GameMode.ADVENTURE
+    override val spectator: GameMode get() = GameMode.SPECTATOR
 
     override fun type(entityType: Key) {
         type = entityType.asString()
@@ -33,15 +38,16 @@ internal class EntitySelectorBuilder(
     }
 
     override fun distance(range: SelectorRange) {
-        distance = range.rendered
+        distance = range
     }
 
     override fun distance(range: ClosedFloatingPointRange<Double>) {
-        distance = between(range.start, range.endInclusive).rendered
+        require(!range.isEmpty()) { "Range must not be empty, got: $range" }
+        distance = closedRange(range.start, range.endInclusive)
     }
 
     override fun sort(sort: SelectorSort) {
-        this.sort = sort.value
+        this.sort = sort
     }
 
     override fun tag(tag: String) {
@@ -49,13 +55,23 @@ internal class EntitySelectorBuilder(
     }
 
     override fun name(name: String) {
-        this.name =
-            if (needsQuoting(name)) {
-                "\"${escapeQuotes(name)}\""
-            } else {
-                name
-            }
+        this.name = name
     }
+
+    override fun level(range: SelectorRange) {
+        level = range
+    }
+
+    override fun level(range: IntRange) {
+        require(!range.isEmpty()) { "Range must not be empty, got: $range" }
+        level = SelectorRange("${range.first}..${range.last}")
+    }
+
+    override fun gamemode(mode: GameMode) {
+        gamemode = mode
+    }
+
+    private fun renderName(value: String): String = if (needsQuoting(value)) "\"${escapeQuotes(value)}\"" else value
 
     private fun needsQuoting(str: String): Boolean = str.any { it in ",[]{}\" " }
 
@@ -64,24 +80,16 @@ internal class EntitySelectorBuilder(
             .replace("\\", "\\\\")
             .replace("\"", "\\\"")
 
-    override fun level(range: SelectorRange) {
-        level = range.rendered
-    }
-
-    override fun gamemode(mode: String) {
-        gamemode = mode
-    }
-
     fun build(): EntitySelector {
         val arguments =
             buildList {
                 type?.let { add("type=$it") }
-                name?.let { add("name=$it") }
-                distance?.let { add("distance=$it") }
-                level?.let { add("level=$it") }
-                gamemode?.let { add("gamemode=$it") }
+                name?.let { add("name=${renderName(it)}") }
+                distance?.let { add("distance=${it.rendered}") }
+                level?.let { add("level=${it.rendered}") }
+                gamemode?.let { add("gamemode=${it.value}") }
                 limit?.let { add("limit=$it") }
-                sort?.let { add("sort=$it") }
+                sort?.let { add("sort=${it.value}") }
                 tags.forEach { add("tag=$it") }
             }
         val suffix = if (arguments.isEmpty()) "" else arguments.joinToString(",", prefix = "[", postfix = "]")

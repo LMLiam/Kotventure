@@ -3,9 +3,11 @@ package io.github.lmliam.kotventure.core.selector
 /**
  * A numeric range for selector arguments like `distance` and `level`.
  *
- * Construct via the helpers [atMost], [atLeast], [between], and [exactly].
+ * Construct open-ended or exact bounds via the helpers [atMost], [atLeast], and [exactly]; for a
+ * closed range, pass a native Kotlin range to `distance(a..b)` / `level(a..b)` directly.
  */
-public class SelectorRange internal constructor(
+@JvmInline
+public value class SelectorRange internal constructor(
     internal val rendered: String,
 ) {
     override fun toString(): String = rendered
@@ -32,21 +34,6 @@ public fun atLeast(min: Double): SelectorRange {
 }
 
 /**
- * A range matching values between [min] and [max] inclusive (renders as `min..max`).
- *
- * @throws IllegalArgumentException if [min] or [max] is NaN or infinite, or if [min] > [max]
- */
-public fun between(
-    min: Double,
-    max: Double,
-): SelectorRange {
-    require(min.isFinite()) { "Range min must be finite, got: $min" }
-    require(max.isFinite()) { "Range max must be finite, got: $max" }
-    require(min <= max) { "Range min ($min) must not exceed max ($max)" }
-    return SelectorRange("${formatNumber(min)}..${formatNumber(max)}")
-}
-
-/**
  * A range matching exactly [value] (renders as `value`).
  *
  * @throws IllegalArgumentException if [value] is NaN or infinite
@@ -54,6 +41,16 @@ public fun between(
 public fun exactly(value: Double): SelectorRange {
     require(value.isFinite()) { "Range value must be finite, got: $value" }
     return SelectorRange(formatNumber(value))
+}
+
+internal fun closedRange(
+    min: Double,
+    max: Double,
+): SelectorRange {
+    require(min.isFinite()) { "Range min must be finite, got: $min" }
+    require(max.isFinite()) { "Range max must be finite, got: $max" }
+    require(min <= max) { "Range min ($min) must not exceed max ($max)" }
+    return SelectorRange("${formatNumber(min)}..${formatNumber(max)}")
 }
 
 private fun formatNumber(value: Double): String =
