@@ -37,23 +37,23 @@ class NbtPathTest :
             }
 
             "builds a path with a compound filter" {
-                val path = nbtPath("Items")[matching { key("id") eq "minecraft:diamond" }]["Count"]
+                val path = nbtPath("Items")[matching { "id" eq "minecraft:diamond" }]["Count"]
 
                 path.asString() shouldBe "Items[{id:\"minecraft:diamond\"}].Count"
             }
 
-            "predicate with typed byte literal" {
-                val path = nbtPath("Entities")[matching { key("NoAI") eq nbtByte(1) }]
+            "predicate with a nested compound" {
+                val path = nbtPath("Items")[matching { "tag" eq { "Unbreakable" eq 1.toByte() } }]
 
-                path.asString() shouldBe "Entities[{NoAI:1b}]"
+                path.asString() shouldBe "Items[{tag:{Unbreakable:1b}}]"
             }
 
             "predicate with multiple entries" {
                 val path =
                     nbtPath("Items")[
                         matching {
-                            key("id") eq "minecraft:diamond"
-                            key("Count") eq nbtByte(64)
+                            "id" eq "minecraft:diamond"
+                            "Count" eq 64.toByte()
                         },
                     ]["Slot"]
 
@@ -66,7 +66,7 @@ class NbtPathTest :
                 path.asString() shouldBe "Items[{id:\"minecraft:diamond\"}].Count"
             }
 
-            "heuristic detects dot as raw path" {
+            "pre-formed dotted string is used verbatim" {
                 val path = nbtPath("welcome.title")
 
                 path.asString() shouldBe "welcome.title"
@@ -91,13 +91,13 @@ class NbtPathTest :
             }
 
             "predicate value with quote and backslash characters is escaped" {
-                val path = nbtPath("Items")[matching { key("Name") eq "path\\to\\\"file\"" }]
+                val path = nbtPath("Items")[matching { "Name" eq "path\\to\\\"file\"" }]
 
                 path.asString() shouldBe "Items[{Name:\"path\\\\to\\\\\\\"file\\\"\"}]"
             }
 
             "predicate value with control characters is escaped" {
-                val path = nbtPath("Data")[matching { key("text") eq "line1\nline2\ttab" }]
+                val path = nbtPath("Data")[matching { "text" eq "line1\nline2\ttab" }]
 
                 path.asString() shouldBe "Data[{text:\"line1\\nline2\\ttab\"}]"
             }
@@ -106,8 +106,8 @@ class NbtPathTest :
                 val path =
                     nbtPath("Items")[
                         matching {
-                            key("id") eq "minecraft:stone"
-                            key("id") eq "minecraft:diamond"
+                            "id" eq "minecraft:stone"
+                            "id" eq "minecraft:diamond"
                         },
                     ]
 
@@ -115,31 +115,31 @@ class NbtPathTest :
             }
 
             "predicate eq with Byte primitive" {
-                val path = nbtPath("Entities")[matching { key("NoAI") eq 1.toByte() }]
+                val path = nbtPath("Entities")[matching { "NoAI" eq 1.toByte() }]
 
                 path.asString() shouldBe "Entities[{NoAI:1b}]"
             }
 
             "predicate eq with Short primitive" {
-                val path = nbtPath("Items")[matching { key("Damage") eq 100.toShort() }]
+                val path = nbtPath("Items")[matching { "Damage" eq 100.toShort() }]
 
                 path.asString() shouldBe "Items[{Damage:100s}]"
             }
 
             "predicate eq with Long primitive" {
-                val path = nbtPath("Data")[matching { key("Time") eq 1000L }]
+                val path = nbtPath("Data")[matching { "Time" eq 1000L }]
 
                 path.asString() shouldBe "Data[{Time:1000L}]"
             }
 
             "predicate eq with Float primitive" {
-                val path = nbtPath("Entities")[matching { key("Speed") eq 1.5f }]
+                val path = nbtPath("Entities")[matching { "Speed" eq 1.5f }]
 
                 path.asString() shouldBe "Entities[{Speed:1.5f}]"
             }
 
             "predicate eq with Double primitive" {
-                val path = nbtPath("Entities")[matching { key("Health") eq 20.0 }]
+                val path = nbtPath("Entities")[matching { "Health" eq 20.0 }]
 
                 path.asString() shouldBe "Entities[{Health:20.0d}]"
             }
