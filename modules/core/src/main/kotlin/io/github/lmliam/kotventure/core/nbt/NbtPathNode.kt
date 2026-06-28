@@ -1,6 +1,10 @@
 package io.github.lmliam.kotventure.core.nbt
 
 internal sealed interface NbtPathNode {
+    data class RawRoot(
+        val value: String,
+    ) : NbtPathNode
+
     data class Key(
         val name: String,
     ) : NbtPathNode

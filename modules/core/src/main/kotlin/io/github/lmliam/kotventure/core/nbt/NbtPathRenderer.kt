@@ -15,6 +15,13 @@ private fun escapeSnbtString(value: String): String =
         }
     }
 
+private fun renderKey(key: String): String =
+    if (key.all { it.isLetterOrDigit() || it == '_' || it == '+' || it == '-' }) {
+        key
+    } else {
+        "\"${escapeSnbtString(key)}\""
+    }
+
 internal fun renderLiteral(value: NbtLiteralValue): String =
     when (value) {
         is NbtLiteralValue.StringValue -> "\"${escapeSnbtString(value.value)}\""
@@ -37,9 +44,11 @@ internal fun renderNodes(nodes: List<NbtPathNode>): String =
     buildString {
         nodes.forEachIndexed { i, node ->
             when (node) {
+                is NbtPathNode.RawRoot -> append(node.value)
+
                 is NbtPathNode.Key -> {
                     if (i > 0) append('.')
-                    append(node.name)
+                    append(renderKey(node.name))
                 }
 
                 is NbtPathNode.Index -> append("[${node.index}]")

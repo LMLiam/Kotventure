@@ -192,11 +192,17 @@ class EntitySelectorTest :
                 }
             }
 
-            "atLeast rejects infinity" {
-                shouldThrow<IllegalArgumentException> {
-                    atLeast(Double.POSITIVE_INFINITY)
-                }
+        "atLeast rejects infinity" {
+            shouldThrow<IllegalArgumentException> {
+                atLeast(Double.POSITIVE_INFINITY)
             }
+        }
+
+        "atLeast rejects negative infinity" {
+            shouldThrow<IllegalArgumentException> {
+                atLeast(Double.NEGATIVE_INFINITY)
+            }
+        }
 
             "exactly rejects NaN" {
                 shouldThrow<IllegalArgumentException> {
@@ -204,11 +210,17 @@ class EntitySelectorTest :
                 }
             }
 
-            "exactly rejects infinity" {
-                shouldThrow<IllegalArgumentException> {
-                    exactly(Double.POSITIVE_INFINITY)
-                }
+        "exactly rejects infinity" {
+            shouldThrow<IllegalArgumentException> {
+                exactly(Double.POSITIVE_INFINITY)
             }
+        }
+
+        "exactly rejects negative infinity" {
+            shouldThrow<IllegalArgumentException> {
+                exactly(Double.NEGATIVE_INFINITY)
+            }
+        }
 
             "singleton options use last-write-wins" {
                 val selector =

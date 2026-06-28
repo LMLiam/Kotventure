@@ -14,7 +14,7 @@ package io.github.lmliam.kotventure.core.nbt
  * nbtPath("Items[0]")["tag"]
  * ```
  */
-public fun nbtPath(key: String): NbtPath = NbtPath(listOf(NbtPathNode.Key(key)))
+public fun nbtPath(key: String): NbtPath = NbtPath(listOf(NbtPathNode.RawRoot(key)))
 
 /**
  * Creates an [NbtPath] starting from a root list index (rare — for paths beginning with `[n]`).

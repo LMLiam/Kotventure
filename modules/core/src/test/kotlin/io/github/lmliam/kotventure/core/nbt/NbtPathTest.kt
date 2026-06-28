@@ -15,7 +15,13 @@ class NbtPathTest :
             "builds a dotted compound path via indexing" {
                 val path = nbtPath("tag")["display"]["Name"]
 
-                path.asString() shouldBe "tag.display.Name"
+            path.asString() shouldBe "tag.display.Name"
+        }
+
+        "quotes special characters in indexed keys" {
+            val path = nbtPath("root")["foo.bar"]["with space"]["[index]"]["say \"hi\""]
+
+            path.asString() shouldBe "root.\"foo.bar\".\"with space\".\"[index]\".\"say \\\"hi\\\"\""
             }
 
             "builds a path with a list index" {
