@@ -15,13 +15,3 @@ internal sealed interface NbtPathNode {
         val predicate: NbtCompoundPredicate,
     ) : NbtPathNode
 }
-
-internal sealed interface NbtPathRepr {
-    data class Structured(
-        val nodes: List<NbtPathNode>,
-    ) : NbtPathRepr
-
-    data class Raw(
-        val path: String,
-    ) : NbtPathRepr
-}
