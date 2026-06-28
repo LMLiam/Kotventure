@@ -9,38 +9,38 @@ import net.kyori.adventure.text.StorageNBTComponent
  * Builds a storage-NBT [Component] — text the client resolves from command-storage NBT under a key.
  *
  * ```kotlin
- * val score = storageNbt(key("myplugin", "scores"), "top.player")
+ * val score = storageNbt(key("myplugin", "scores"), nbtPath("top.player"))
  * ```
  *
  * @param storage the command-storage key to read, e.g. from `key(...)`.
- * @param nbtPath the NBT path within that storage, such as `"top.player"`.
+ * @param nbtPath the NBT path within that storage, constructed via [nbtPath].
  * @param init sets [NbtScope.interpret]/[NbtScope.separator] and appends any children.
  */
 public fun storageNbt(
     storage: Key,
-    nbtPath: String,
+    nbtPath: NbtPath,
     init: NbtScope.() -> Unit = {},
 ): Component = buildStorageNbtComponent(storage, nbtPath, init)
 
 internal fun buildStorageNbtComponent(
     storage: Key,
-    nbtPath: String,
+    nbtPath: NbtPath,
     init: NbtScope.() -> Unit = {},
 ): Component =
     NbtComponentBuilder(
-        Component.storageNBT().storage(storage).nbtPath(nbtPath),
+        Component.storageNBT().storage(storage).nbtPath(nbtPath.asString()),
     ).apply(init).build()
 
 /**
  * Appends a storage-NBT child to this scope, for use inside a `component { }` or other component block.
  *
  * @param storage the command-storage key to read, e.g. from `key(...)`.
- * @param nbtPath the NBT path within that storage, such as `"top.player"`.
+ * @param nbtPath the NBT path within that storage, constructed via [nbtPath].
  * @param init sets [NbtScope.interpret]/[NbtScope.separator] and appends any children.
  */
 public fun ComponentScope.storageNbt(
     storage: Key,
-    nbtPath: String,
+    nbtPath: NbtPath,
     init: NbtScope.() -> Unit = {},
 ) {
     append(buildStorageNbtComponent(storage, nbtPath, init))

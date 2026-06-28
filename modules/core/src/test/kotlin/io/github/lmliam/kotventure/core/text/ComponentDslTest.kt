@@ -5,8 +5,12 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import io.github.lmliam.kotventure.core.keybind.keybind
 import io.github.lmliam.kotventure.core.nbt.blockNbt
 import io.github.lmliam.kotventure.core.nbt.entityNbt
+import io.github.lmliam.kotventure.core.nbt.nbtPath
 import io.github.lmliam.kotventure.core.nbt.storageNbt
 import io.github.lmliam.kotventure.core.score.score
+import io.github.lmliam.kotventure.core.selector.allPlayers
+import io.github.lmliam.kotventure.core.selector.entitySelector
+import io.github.lmliam.kotventure.core.selector.nearestPlayer
 import io.github.lmliam.kotventure.core.selector.selector
 import io.github.lmliam.kotventure.core.translatable.translatable
 import io.github.lmliam.kotventure.test.compilation.assertDoesNotCompile
@@ -142,7 +146,7 @@ class ComponentDslTest :
                             color(NamedTextColor.YELLOW)
                         }
                         score("Alex", "kills")
-                        selector("@a") {
+                        selector(allPlayers()) {
                             separator(separator)
                         }
                     }
@@ -166,9 +170,9 @@ class ComponentDslTest :
 
                 val component =
                     component {
-                        blockNbt(pos, "Items[0].id")
-                        entityNbt("@p", "Inventory[0].id")
-                        storageNbt(storage, "entries[0].id")
+                        blockNbt(pos, nbtPath("Items[0].id"))
+                        entityNbt(nearestPlayer(), nbtPath("Inventory[0].id"))
+                        storageNbt(storage, nbtPath("entries[0].id"))
                     }
 
                 component shouldHaveChildCount 3

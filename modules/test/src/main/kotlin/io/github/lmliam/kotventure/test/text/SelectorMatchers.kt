@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.test.text
 
+import io.github.lmliam.kotventure.core.selector.EntitySelector
 import io.kotest.matchers.Matcher
 import io.kotest.matchers.MatcherResult
 import io.kotest.matchers.should
@@ -19,6 +20,12 @@ public fun haveSelectorPattern(expected: String): Matcher<SelectorComponent> =
             { "Expected selector pattern not to be <$expected>." },
         )
     }
+
+/**
+ * Matches a selector component whose pattern is [expected]. Combine with `and`/`or` or negate with `shouldNot`.
+ */
+public fun haveSelectorPattern(expected: EntitySelector): Matcher<SelectorComponent> =
+    haveSelectorPattern(expected.asString())
 
 /**
  * Matches a selector component whose separator is [expected].
@@ -56,6 +63,14 @@ public fun Component.shouldBeSelectorComponent(): SelectorComponent = asComponen
  * Asserts that this selector component has [expected] as its selector pattern.
  */
 public infix fun SelectorComponent.shouldHaveSelectorPattern(expected: String): SelectorComponent =
+    apply {
+        this should haveSelectorPattern(expected)
+    }
+
+/**
+ * Asserts that this selector component has [expected] as its selector pattern.
+ */
+public infix fun SelectorComponent.shouldHaveSelectorPattern(expected: EntitySelector): SelectorComponent =
     apply {
         this should haveSelectorPattern(expected)
     }

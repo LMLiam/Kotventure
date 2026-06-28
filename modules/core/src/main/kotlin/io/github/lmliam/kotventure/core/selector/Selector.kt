@@ -7,31 +7,31 @@ import net.kyori.adventure.text.Component
  * Builds a selector [Component] — text the client expands to the names matched by an entity selector.
  *
  * ```kotlin
- * val nearby = selector("@e[distance=..10]") { separator { content(", ") } }
+ * val nearby = selector(entities { distance(atMost(10.0)) }) { separator { content(", ") } }
  * ```
  *
- * @param pattern the entity-selector pattern, such as `"@a"` or `"@e[type=zombie]"`.
+ * @param selector the entity selector, constructed via [self], [entities], or friends.
  * @param init configures the selector (e.g. its separator) and appends any children.
  */
 public fun selector(
-    pattern: String,
+    selector: EntitySelector,
     init: SelectorScope.() -> Unit = {},
-): Component = buildSelectorComponent(pattern, init)
+): Component = buildSelectorComponent(selector, init)
 
 internal fun buildSelectorComponent(
-    pattern: String,
+    selector: EntitySelector,
     init: SelectorScope.() -> Unit = {},
-): Component = SelectorComponentBuilder(pattern).apply(init).build()
+): Component = SelectorComponentBuilder(selector.asString()).apply(init).build()
 
 /**
  * Appends a selector child to this scope, for use inside a `component { }` or other component block.
  *
- * @param pattern the entity-selector pattern, such as `"@a"` or `"@e[type=zombie]"`.
+ * @param selector the entity selector, constructed via [self], [entities], or friends.
  * @param init configures the selector (e.g. its separator) and appends any children.
  */
 public fun ComponentScope.selector(
-    pattern: String,
+    selector: EntitySelector,
     init: SelectorScope.() -> Unit = {},
 ) {
-    append(buildSelectorComponent(pattern, init))
+    append(buildSelectorComponent(selector, init))
 }

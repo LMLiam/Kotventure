@@ -11,7 +11,7 @@ internal fun KotlinSourceBuilder.appendBlockNbt(component: BlockNBTComponent) {
 }
 
 internal fun KotlinSourceBuilder.appendEntityNbt(component: EntityNBTComponent) {
-    appendNbt("entityNbt", "\"${escapeKotlinString(component.selector())}\"", component)
+    appendNbt("entityNbt", "entitySelector(\"${escapeKotlinString(component.selector())}\")", component)
 }
 
 internal fun KotlinSourceBuilder.appendStorageNbt(component: StorageNBTComponent) {
@@ -26,7 +26,7 @@ private fun KotlinSourceBuilder.appendNbt(
     val interpret = component.interpret()
     val separator = component.separator()
     appendStructured(
-        header = "$function($source, \"${escapeKotlinString(component.nbtPath())}\")",
+        header = "$function($source, nbtPath(\"${escapeKotlinString(component.nbtPath())}\"))",
         component = component,
         hasExtraBody = interpret || separator != null,
     ) {

@@ -24,8 +24,9 @@ class StorageNbtDslTest :
         {
             "builds a storage nbt component with a key and path" {
                 val storage = Key.key("kotventure", "messages")
+                val path = nbtPath("welcome")["title"]
 
-                val component = storageNbt(storage, "welcome.title").shouldBeStorageNbtComponent()
+                val component = storageNbt(storage, path).shouldBeStorageNbtComponent()
 
                 component shouldHaveStorageKey storage
                 component shouldHaveNbtPath "welcome.title"
@@ -33,9 +34,19 @@ class StorageNbtDslTest :
                 component.shouldNotHaveNbtSeparator()
             }
 
+            "accepts an nbt path from the string escape hatch" {
+                val component =
+                    storageNbt(
+                        Key.key("kotventure", "messages"),
+                        nbtPath("welcome.title"),
+                    ).shouldBeStorageNbtComponent()
+
+                component shouldHaveNbtPath "welcome.title"
+            }
+
             "applies style to the storage nbt root" {
                 val component =
-                    storageNbt(Key.key("kotventure", "messages"), "welcome.title") {
+                    storageNbt(Key.key("kotventure", "messages"), nbtPath("welcome.title")) {
                         color(NamedTextColor.AQUA)
                         bold()
                         style {
@@ -52,7 +63,7 @@ class StorageNbtDslTest :
                 val suffix = Component.text(" storage")
 
                 val component =
-                    storageNbt(Key.key("kotventure", "messages"), "welcome.title") {
+                    storageNbt(Key.key("kotventure", "messages"), nbtPath("welcome.title")) {
                         append(suffix)
                     }
 
@@ -62,7 +73,7 @@ class StorageNbtDslTest :
 
             "sets interpret true" {
                 val component =
-                    storageNbt(Key.key("kotventure", "messages"), "welcome.title") {
+                    storageNbt(Key.key("kotventure", "messages"), nbtPath("welcome.title")) {
                         interpret(true)
                     }
 
@@ -71,9 +82,10 @@ class StorageNbtDslTest :
 
             "sets a component separator" {
                 val separator = Component.text(", ")
+                val path = nbtPath("entries")[all]["id"]
 
                 val component =
-                    storageNbt(Key.key("kotventure", "messages"), "entries[].id") {
+                    storageNbt(Key.key("kotventure", "messages"), path) {
                         separator(separator)
                     }
 
@@ -82,7 +94,7 @@ class StorageNbtDslTest :
 
             "sets an inline text separator" {
                 val component =
-                    storageNbt(Key.key("kotventure", "messages"), "entries[].id") {
+                    storageNbt(Key.key("kotventure", "messages"), nbtPath("entries[].id")) {
                         separator {
                             content(" | ")
                             color(NamedTextColor.GRAY)

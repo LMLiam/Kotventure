@@ -24,8 +24,9 @@ class BlockNbtDslTest :
         {
             "builds a block nbt component with a position and path" {
                 val pos = BlockNBTComponent.Pos.fromString("~1 ~2 ~3")
+                val path = nbtPath("Items")[0]["tag"]["display"]["Name"]
 
-                val component = blockNbt(pos, "Items[0].tag.display.Name").shouldBeBlockNbtComponent()
+                val component = blockNbt(pos, path).shouldBeBlockNbtComponent()
 
                 component shouldHaveBlockPos pos
                 component shouldHaveNbtPath "Items[0].tag.display.Name"
@@ -33,9 +34,17 @@ class BlockNbtDslTest :
                 component.shouldNotHaveNbtSeparator()
             }
 
+            "accepts an nbt path from the string escape hatch" {
+                val pos = blockPos(1, 2, 3)
+
+                val component = blockNbt(pos, nbtPath("CustomName")).shouldBeBlockNbtComponent()
+
+                component shouldHaveNbtPath "CustomName"
+            }
+
             "applies style to the block nbt root" {
                 val component =
-                    blockNbt(BlockNBTComponent.Pos.fromString("1 2 3"), "CustomName") {
+                    blockNbt(BlockNBTComponent.Pos.fromString("1 2 3"), nbtPath("CustomName")) {
                         color(NamedTextColor.AQUA)
                         bold()
                         style {
@@ -52,7 +61,7 @@ class BlockNbtDslTest :
                 val suffix = Component.text(" block")
 
                 val component =
-                    blockNbt(BlockNBTComponent.Pos.fromString("1 2 3"), "CustomName") {
+                    blockNbt(BlockNBTComponent.Pos.fromString("1 2 3"), nbtPath("CustomName")) {
                         append(suffix)
                     }
 
@@ -62,7 +71,7 @@ class BlockNbtDslTest :
 
             "sets interpret true" {
                 val component =
-                    blockNbt(BlockNBTComponent.Pos.fromString("1 2 3"), "CustomName") {
+                    blockNbt(BlockNBTComponent.Pos.fromString("1 2 3"), nbtPath("CustomName")) {
                         interpret(true)
                     }
 
@@ -71,9 +80,10 @@ class BlockNbtDslTest :
 
             "sets a component separator" {
                 val separator = Component.text(", ")
+                val path = nbtPath("Items")[all]["id"]
 
                 val component =
-                    blockNbt(BlockNBTComponent.Pos.fromString("1 2 3"), "Items[].id") {
+                    blockNbt(BlockNBTComponent.Pos.fromString("1 2 3"), path) {
                         separator(separator)
                     }
 
@@ -82,7 +92,7 @@ class BlockNbtDslTest :
 
             "sets an inline text separator" {
                 val component =
-                    blockNbt(BlockNBTComponent.Pos.fromString("1 2 3"), "Items[].id") {
+                    blockNbt(BlockNBTComponent.Pos.fromString("1 2 3"), nbtPath("Items[].id")) {
                         separator {
                             content(" | ")
                             color(NamedTextColor.GRAY)
