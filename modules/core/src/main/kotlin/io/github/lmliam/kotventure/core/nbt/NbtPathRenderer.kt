@@ -44,11 +44,13 @@ internal fun renderNodes(nodes: List<NbtPathNode>): String =
     buildString {
         nodes.forEachIndexed { i, node ->
             when (node) {
-                is NbtPathNode.RawRoot -> append(node.value)
-
                 is NbtPathNode.Key -> {
-                    if (i > 0) append('.')
-                    append(renderKey(node.name))
+                    if (i == 0) {
+                        append(node.name)
+                    } else {
+                        append('.')
+                        append(renderKey(node.name))
+                    }
                 }
 
                 is NbtPathNode.Index -> append("[${node.index}]")
