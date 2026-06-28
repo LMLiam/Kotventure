@@ -14,12 +14,7 @@ import net.kyori.adventure.text.format.Style
  * [StyleScope], so a component's own style and its
  * children are configured in one place.
  *
- * ```kotlin
- * component {
- *     text("Hello ") { color(aqua) }
- *     keybind("key.jump")
- * }
- * ```
+ * @sample io.github.lmliam.kotventure.core.component.componentScopeSample
  */
 @KotventureDslMarker
 public interface ComponentScope : StyleScope {

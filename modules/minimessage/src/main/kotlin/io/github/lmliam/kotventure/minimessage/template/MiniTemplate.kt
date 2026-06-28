@@ -14,17 +14,7 @@ import io.github.lmliam.kotventure.minimessage.placeholder.placeholder as create
  * Subclass and declare each placeholder as a property; rendering invokes the template and binds every
  * placeholder with the [bind][MiniTemplateBindingScope.bind] infix function:
  *
- * ```kotlin
- * object WelcomeTemplate : MiniTemplate("<gold>Welcome <player>, <count> new messages</gold>") {
- *     val player = placeholder<Component>("player")
- *     val count = placeholder<Int>("count")
- * }
- *
- * val forAlex = WelcomeTemplate {
- *     player bind component { text("Alex") }
- *     count bind 3
- * }
- * ```
+ * @sample io.github.lmliam.kotventure.minimessage.template.miniTemplateRenderSample
  *
  * @param markup the MiniMessage markup string this template renders; must not be blank.
  * @throws IllegalArgumentException when [markup] is blank.

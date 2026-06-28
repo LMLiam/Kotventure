@@ -9,9 +9,7 @@ private val hexColorPattern: Regex = Regex("#[0-9A-Fa-f]{6}")
 /**
  * Creates a [TextColor] from an exact `#RRGGBB` hex string.
  *
- * ```kotlin
- * val gold = hex("#FFAA00")
- * ```
+ * @sample io.github.lmliam.kotventure.core.color.hexColorSample
  *
  * @param value a six-digit hex string with a leading `#`, e.g. `"#FF0000"`.
  * @throws IllegalArgumentException if [value] is not exactly `#RRGGBB`.

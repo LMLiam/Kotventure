@@ -11,9 +11,7 @@ import net.kyori.adventure.text.ComponentIteratorType
  * Being a [Sequence], it composes with the standard library and stays lazy, so short-circuiting terminals stop
  * walking as early as they can:
  *
- * ```kotlin
- * val mentionsAlex = root.asSequence().any { it is TextComponent && "Alex" in it.content() }
- * ```
+ * @sample io.github.lmliam.kotventure.core.text.componentSequenceSample
  *
  * Traversal follows Adventure's own [Component.iterable], visiting every node in the tree (including object
  * components). Translatable arguments and hover contents are not children and are not visited; pass the relevant

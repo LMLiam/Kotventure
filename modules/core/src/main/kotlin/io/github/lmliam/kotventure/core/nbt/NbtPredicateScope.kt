@@ -9,13 +9,7 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
  * literal form (e.g. a [Byte] renders as `1b`, a [Long] as `1L`). Nest a compound with the lambda
  * overload of [eq]:
  *
- * ```kotlin
- * matching {
- *     "id" eq "minecraft:diamond"
- *     "Count" eq 1.toByte()
- *     "tag" eq { "Unbreakable" eq 1.toByte() }
- * }
- * ```
+ * @sample io.github.lmliam.kotventure.core.nbt.nbtPredicateScopeSample
  */
 @KotventureDslMarker
 public interface NbtPredicateScope {

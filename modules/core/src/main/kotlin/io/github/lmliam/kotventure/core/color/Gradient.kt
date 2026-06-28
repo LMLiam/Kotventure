@@ -43,9 +43,7 @@ public class ColorGradient public constructor(
 /**
  * Creates a [ColorGradient] from two or more color stops.
  *
- * ```kotlin
- * val fire = gradient(hex("#FF0000"), hex("#FFAA00"), hex("#FFFF00"))
- * ```
+ * @sample io.github.lmliam.kotventure.core.color.gradientSample
  *
  * @throws IllegalArgumentException if fewer than two stops are supplied.
  */
@@ -61,9 +59,7 @@ public fun gradient(stops: Iterable<TextColor>): ColorGradient = ColorGradient(s
 /**
  * Builds a component that spreads [stops] across [value], coloring one child per code point.
  *
- * ```kotlin
- * val title = gradientText("Kotventure", hex("#FF0000"), hex("#0000FF"))
- * ```
+ * @sample io.github.lmliam.kotventure.core.color.gradientTextSample
  *
  * @param value the text to color; its code points (not chars) are colored so surrogate pairs stay intact.
  * @throws IllegalArgumentException if fewer than two stops are supplied.

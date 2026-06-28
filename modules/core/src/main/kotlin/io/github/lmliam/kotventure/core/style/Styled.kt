@@ -7,8 +7,6 @@ import net.kyori.adventure.text.format.Style
 /**
  * Returns a copy of this component with [style] applied, replacing any existing style.
  *
- * ```kotlin
- * val highlighted = component { text("important") } styled heading
- * ```
+ * @sample io.github.lmliam.kotventure.core.style.styledSample
  */
 public infix fun <T : ComponentLike> T.styled(style: Style): Component = asComponent().style(style)

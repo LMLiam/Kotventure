@@ -8,9 +8,7 @@ import net.kyori.adventure.text.ScoreComponent
 /**
  * Builds a score [Component] — text the client resolves to a scoreboard value at display time.
  *
- * ```kotlin
- * val kills = score(name = "@s", objective = "kills")
- * ```
+ * @sample io.github.lmliam.kotventure.core.score.scoreSample
  *
  * @param name the scoreholder, e.g. a player name or selector like `"@s"`.
  * @param objective the scoreboard objective to read.

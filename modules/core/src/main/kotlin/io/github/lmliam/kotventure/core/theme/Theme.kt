@@ -14,16 +14,7 @@ import io.github.lmliam.kotventure.core.style.style as buildStyle
  * [ThemeProvider.style] lookup. Styles are recorded in declaration order during object
  * initialization, so palette properties must be declared before the styles that use them.
  *
- * ```kotlin
- * object Brand : Theme("brand") {
- *     val primary = hex("#5865F2")
- *
- *     val header: Style by style {
- *         color(primary)
- *         bold()
- *     }
- * }
- * ```
+ * @sample io.github.lmliam.kotventure.core.theme.themeSample
  *
  * Runtime lookups require explicit registration: add the theme to a [ThemeRegistry] during
  * startup. Declaring a theme does not register it.

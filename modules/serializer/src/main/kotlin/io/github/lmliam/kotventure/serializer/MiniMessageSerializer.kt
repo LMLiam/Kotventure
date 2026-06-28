@@ -6,9 +6,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage
 /**
  * Serializes this component to MiniMessage markup using Adventure's default serializer.
  *
- * ```kotlin
- * val markup = component.toMiniMessage() // e.g. "<gold>Welcome"
- * ```
+ * @sample io.github.lmliam.kotventure.serializer.toMiniMessageSample
  *
  * The inverse of `mini(...)`. Note the round trip is not always identical, as distinct components can
  * serialize to equivalent markup.
