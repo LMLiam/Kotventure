@@ -1,10 +1,11 @@
 package io.github.lmliam.kotventure.core.selector
 
 /**
- * A numeric range for selector arguments like `distance` and `level`.
+ * A floating-point range for the `distance` selector argument.
  *
  * Construct open-ended or exact bounds via the helpers [atMost], [atLeast], and [exactly]; for a
- * closed range, pass a native Kotlin range to `distance(a..b)` / `level(a..b)` directly.
+ * closed range, pass a native Kotlin range to `distance(a..b)` directly. Integer-valued `level`
+ * uses the distinct [LevelRange] instead.
  */
 @JvmInline
 public value class SelectorRange internal constructor(

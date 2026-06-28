@@ -83,9 +83,9 @@ public interface EntitySelectorScope {
     public fun name(name: String)
 
     /**
-     * Filters by experience level using a [SelectorRange] (for open-ended or exact bounds).
+     * Filters by experience level using a [LevelRange] (for open-ended or exact bounds).
      */
-    public fun level(range: SelectorRange)
+    public fun level(range: LevelRange)
 
     /**
      * Filters by experience level using a Kotlin [IntRange].

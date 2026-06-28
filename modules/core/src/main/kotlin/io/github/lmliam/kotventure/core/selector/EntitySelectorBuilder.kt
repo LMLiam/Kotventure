@@ -10,7 +10,7 @@ internal class EntitySelectorBuilder(
     private var distance: SelectorRange? = null
     private var sort: SelectorSort? = null
     private var name: String? = null
-    private var level: SelectorRange? = null
+    private var level: LevelRange? = null
     private var gamemode: GameMode? = null
     private val tags = mutableListOf<String>()
 
@@ -58,13 +58,13 @@ internal class EntitySelectorBuilder(
         this.name = name
     }
 
-    override fun level(range: SelectorRange) {
+    override fun level(range: LevelRange) {
         level = range
     }
 
     override fun level(range: IntRange) {
         require(!range.isEmpty()) { "Range must not be empty, got: $range" }
-        level = SelectorRange("${range.first}..${range.last}")
+        level = LevelRange("${range.first}..${range.last}")
     }
 
     override fun gamemode(mode: GameMode) {

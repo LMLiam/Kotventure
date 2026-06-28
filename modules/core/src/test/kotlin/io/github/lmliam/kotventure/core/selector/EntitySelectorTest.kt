@@ -91,9 +91,21 @@ class EntitySelectorTest :
             }
 
             "level with open-ended range" {
-                val selector = allPlayers { level(atLeast(10.0)) }
+                val selector = allPlayers { level(atLeast(10)) }
 
                 selector.asString() shouldBe "@a[level=10..]"
+            }
+
+            "level with atMost bound" {
+                val selector = allPlayers { level(atMost(30)) }
+
+                selector.asString() shouldBe "@a[level=..30]"
+            }
+
+            "level with exact value" {
+                val selector = allPlayers { level(exactly(5)) }
+
+                selector.asString() shouldBe "@a[level=5]"
             }
 
             "level with inverted IntRange is rejected" {
