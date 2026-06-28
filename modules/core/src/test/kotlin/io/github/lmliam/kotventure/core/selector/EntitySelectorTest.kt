@@ -78,16 +78,28 @@ class EntitySelectorTest :
                 selector.asString() shouldBe "@e[distance=5]"
             }
 
-            "distance with between" {
-                val selector = entities { distance(between(1.5, 10.5)) }
-
-                selector.asString() shouldBe "@e[distance=1.5..10.5]"
+            "distance with inverted Kotlin range is rejected" {
+                shouldThrow<IllegalArgumentException> {
+                    entities { distance(10.0..1.0) }
+                }
             }
 
-            "level with range" {
-                val selector = allPlayers { level(between(5.0, 30.0)) }
+            "level with Kotlin IntRange" {
+                val selector = allPlayers { level(5..30) }
 
                 selector.asString() shouldBe "@a[level=5..30]"
+            }
+
+            "level with open-ended range" {
+                val selector = allPlayers { level(atLeast(10.0)) }
+
+                selector.asString() shouldBe "@a[level=10..]"
+            }
+
+            "level with inverted IntRange is rejected" {
+                shouldThrow<IllegalArgumentException> {
+                    entities { level(5..1) }
+                }
             }
 
             "type with Adventure Key" {
@@ -96,10 +108,17 @@ class EntitySelectorTest :
                 selector.asString() shouldBe "@e[type=minecraft:creeper]"
             }
 
-            "gamemode filter" {
-                val selector = allPlayers { gamemode("survival") }
+            "gamemode filter with typed constant" {
+                val selector = allPlayers { gamemode(survival) }
 
                 selector.asString() shouldBe "@a[gamemode=survival]"
+            }
+
+            "gamemode with all constant variants" {
+                allPlayers { gamemode(survival) }.asString() shouldBe "@a[gamemode=survival]"
+                allPlayers { gamemode(creative) }.asString() shouldBe "@a[gamemode=creative]"
+                allPlayers { gamemode(adventure) }.asString() shouldBe "@a[gamemode=adventure]"
+                allPlayers { gamemode(spectator) }.asString() shouldBe "@a[gamemode=spectator]"
             }
 
             "sort with all constant variants" {
@@ -176,36 +195,6 @@ class EntitySelectorTest :
             "atLeast rejects infinity" {
                 shouldThrow<IllegalArgumentException> {
                     atLeast(Double.POSITIVE_INFINITY)
-                }
-            }
-
-            "between rejects NaN in min" {
-                shouldThrow<IllegalArgumentException> {
-                    between(Double.NaN, 10.0)
-                }
-            }
-
-            "between rejects NaN in max" {
-                shouldThrow<IllegalArgumentException> {
-                    between(1.0, Double.NaN)
-                }
-            }
-
-            "between rejects infinity in min" {
-                shouldThrow<IllegalArgumentException> {
-                    between(Double.POSITIVE_INFINITY, 10.0)
-                }
-            }
-
-            "between rejects infinity in max" {
-                shouldThrow<IllegalArgumentException> {
-                    between(1.0, Double.POSITIVE_INFINITY)
-                }
-            }
-
-            "between rejects inverted range" {
-                shouldThrow<IllegalArgumentException> {
-                    between(10.0, 5.0)
                 }
             }
 
