@@ -37,9 +37,9 @@ class StorageNbtDslTest :
             "accepts an nbt path from the string escape hatch" {
                 val component =
                     storageNbt(
-                    Key.key("kotventure", "messages"),
-                    nbtPath("welcome.title"),
-                ).shouldBeStorageNbtComponent()
+                        Key.key("kotventure", "messages"),
+                        nbtPath("welcome.title"),
+                    ).shouldBeStorageNbtComponent()
 
                 component shouldHaveNbtPath "welcome.title"
             }

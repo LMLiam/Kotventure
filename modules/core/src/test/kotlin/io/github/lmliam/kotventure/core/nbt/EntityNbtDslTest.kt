@@ -41,9 +41,9 @@ class EntityNbtDslTest :
             "accepts selector and path from escape hatches" {
                 val component =
                     entityNbt(
-                    entitySelector("@e[type=zombie,limit=1]"),
-                    nbtPath("CustomName"),
-                ).shouldBeEntityNbtComponent()
+                        entitySelector("@e[type=zombie,limit=1]"),
+                        nbtPath("CustomName"),
+                    ).shouldBeEntityNbtComponent()
 
                 component shouldHaveEntitySelector "@e[type=zombie,limit=1]"
                 component shouldHaveNbtPath "CustomName"
@@ -121,9 +121,9 @@ class EntityNbtDslTest :
             "uses entities with arguments" {
                 val selector =
                     entities {
-                    type("armor_stand")
-                    limit(1)
-                }
+                        type("armor_stand")
+                        limit(1)
+                    }
 
                 val component = entityNbt(selector, nbtPath("CustomName")).shouldBeEntityNbtComponent()
 

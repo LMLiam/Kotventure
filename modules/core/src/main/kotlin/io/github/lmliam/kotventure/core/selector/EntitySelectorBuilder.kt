@@ -74,15 +74,15 @@ internal class EntitySelectorBuilder(
     fun build(): EntitySelector {
         val arguments =
             buildList {
-            type?.let { add("type=$it") }
-            name?.let { add("name=$it") }
-            distance?.let { add("distance=$it") }
-            level?.let { add("level=$it") }
-            gamemode?.let { add("gamemode=$it") }
-            limit?.let { add("limit=$it") }
-            sort?.let { add("sort=$it") }
-            tags.forEach { add("tag=$it") }
-        }
+                type?.let { add("type=$it") }
+                name?.let { add("name=$it") }
+                distance?.let { add("distance=$it") }
+                level?.let { add("level=$it") }
+                gamemode?.let { add("gamemode=$it") }
+                limit?.let { add("limit=$it") }
+                sort?.let { add("sort=$it") }
+                tags.forEach { add("tag=$it") }
+            }
         val suffix = if (arguments.isEmpty()) "" else arguments.joinToString(",", prefix = "[", postfix = "]")
         return EntitySelector("$head$suffix")
     }

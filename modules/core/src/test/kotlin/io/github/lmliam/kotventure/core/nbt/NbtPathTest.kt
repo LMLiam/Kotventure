@@ -53,9 +53,9 @@ class NbtPathTest :
                 val path =
                     nbtPath("Items")[
                         matching {
-                    key("id") eq "minecraft:diamond"
-                    key("Count") eq nbtByte(64)
-                },
+                            key("id") eq "minecraft:diamond"
+                            key("Count") eq nbtByte(64)
+                        },
                     ]["Slot"]
 
                 path.asString() shouldBe "Items[{id:\"minecraft:diamond\",Count:64b}].Slot"

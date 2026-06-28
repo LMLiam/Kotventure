@@ -36,6 +36,7 @@ internal fun renderNodes(nodes: List<NbtPathNode>): String =
                     if (i > 0) append('.')
                     append(node.name)
                 }
+
                 is NbtPathNode.Index -> append("[${node.index}]")
                 is NbtPathNode.AllElements -> append("[]")
                 is NbtPathNode.MatchingElements -> append("[${renderPredicate(node.predicate)}]")

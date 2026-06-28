@@ -31,9 +31,9 @@ class EntitySelectorTest :
             "entities with type and limit" {
                 val selector =
                     entities {
-                    type("armor_stand")
-                    limit(1)
-                }
+                        type("armor_stand")
+                        limit(1)
+                    }
 
                 selector.asString() shouldBe "@e[type=minecraft:armor_stand,limit=1]"
             }
@@ -53,9 +53,9 @@ class EntitySelectorTest :
             "entities with name and scoped sort constant" {
                 val selector =
                     entities {
-                    name("Dinnerbone")
-                    sort(nearest)
-                }
+                        name("Dinnerbone")
+                        sort(nearest)
+                    }
 
                 selector.asString() shouldBe "@e[name=Dinnerbone,sort=nearest]"
             }
@@ -224,11 +224,11 @@ class EntitySelectorTest :
             "singleton options use last-write-wins" {
                 val selector =
                     entities {
-                    limit(1)
-                    limit(5)
-                    sort(nearest)
-                    sort(furthest)
-                }
+                        limit(1)
+                        limit(5)
+                        sort(nearest)
+                        sort(furthest)
+                    }
 
                 selector.asString() shouldBe "@e[limit=5,sort=furthest]"
             }
@@ -236,9 +236,9 @@ class EntitySelectorTest :
             "multiple tags are all preserved" {
                 val selector =
                     entities {
-                    tag("admin")
-                    tag("vip")
-                }
+                        tag("admin")
+                        tag("vip")
+                    }
 
                 selector.asString() shouldBe "@e[tag=admin,tag=vip]"
             }
