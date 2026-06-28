@@ -40,14 +40,14 @@ internal class NbtPredicateBuilder : NbtPredicateScope {
     }
 
     override infix fun String.eq(values: ByteArray) {
-        entries[this] = NbtLiteralValue.ByteArrayValue(values)
+        entries[this] = NbtLiteralValue.ByteArrayValue(values.copyOf())
     }
 
     override infix fun String.eq(values: IntArray) {
-        entries[this] = NbtLiteralValue.IntArrayValue(values)
+        entries[this] = NbtLiteralValue.IntArrayValue(values.copyOf())
     }
 
     override infix fun String.eq(values: LongArray) {
-        entries[this] = NbtLiteralValue.LongArrayValue(values)
+        entries[this] = NbtLiteralValue.LongArrayValue(values.copyOf())
     }
 }

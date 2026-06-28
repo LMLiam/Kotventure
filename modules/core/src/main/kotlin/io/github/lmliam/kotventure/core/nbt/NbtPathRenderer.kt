@@ -16,7 +16,7 @@ private fun escapeSnbtString(value: String): String =
     }
 
 private fun renderKey(key: String): String =
-    if (key.all { it.isLetterOrDigit() || it == '_' || it == '+' || it == '-' }) {
+    if (key.isNotEmpty() && key.all { it.isLetterOrDigit() || it == '_' || it == '+' || it == '-' }) {
         key
     } else {
         "\"${escapeSnbtString(key)}\""

@@ -24,6 +24,12 @@ class NbtPathTest :
                 path.asString() shouldBe "root.\"foo.bar\".\"with space\".\"[index]\".\"say \\\"hi\\\"\""
             }
 
+            "quotes empty keys instead of emitting a bare segment" {
+                val path = nbtPath("root")[""]
+
+                path.asString() shouldBe "root.\"\""
+            }
+
             "builds a path with a list index" {
                 val path = nbtPath("Items")[0]["id"]
 
@@ -65,6 +71,14 @@ class NbtPathTest :
                     ]
 
                 path.asString() shouldBe "Entities[{UUID:[I;1,2,3,4],Data:[B;1b,2b],Times:[L;10L,20L]}]"
+            }
+
+            "predicate copies array values so later caller mutation is ignored" {
+                val data = intArrayOf(1, 2, 3)
+                val path = nbtPath("Entities")[matching { "UUID" eq data }]
+                data[0] = 99
+
+                path.asString() shouldBe "Entities[{UUID:[I;1,2,3]}]"
             }
 
             "predicate with multiple entries" {
