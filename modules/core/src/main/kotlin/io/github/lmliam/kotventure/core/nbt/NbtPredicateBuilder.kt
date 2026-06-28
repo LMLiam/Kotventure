@@ -38,4 +38,16 @@ internal class NbtPredicateBuilder : NbtPredicateScope {
         val nested = NbtPredicateBuilder().apply(init).build()
         entries[this] = NbtLiteralValue.CompoundValue(nested)
     }
+
+    override infix fun String.eq(values: ByteArray) {
+        entries[this] = NbtLiteralValue.ByteArrayValue(values)
+    }
+
+    override infix fun String.eq(values: IntArray) {
+        entries[this] = NbtLiteralValue.IntArrayValue(values)
+    }
+
+    override infix fun String.eq(values: LongArray) {
+        entries[this] = NbtLiteralValue.LongArrayValue(values)
+    }
 }

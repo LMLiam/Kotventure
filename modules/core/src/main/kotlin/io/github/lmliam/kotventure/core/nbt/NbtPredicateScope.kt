@@ -42,4 +42,13 @@ public interface NbtPredicateScope {
 
     /** Asserts that [this] key equals a nested compound built by [init] (renders as `{...}`). */
     public infix fun String.eq(init: NbtPredicateScope.() -> Unit)
+
+    /** Asserts that [this] key equals the given byte array (renders as SNBT byte array, e.g. `[B;1b,2b]`). */
+    public infix fun String.eq(values: ByteArray)
+
+    /** Asserts that [this] key equals the given int array (renders as SNBT int array, e.g. `[I;1,2]`). */
+    public infix fun String.eq(values: IntArray)
+
+    /** Asserts that [this] key equals the given long array (renders as SNBT long array, e.g. `[L;1L,2L]`). */
+    public infix fun String.eq(values: LongArray)
 }

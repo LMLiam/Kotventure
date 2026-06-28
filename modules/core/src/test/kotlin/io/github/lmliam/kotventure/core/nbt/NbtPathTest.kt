@@ -48,6 +48,19 @@ class NbtPathTest :
                 path.asString() shouldBe "Items[{tag:{Unbreakable:1b}}]"
             }
 
+            "predicate with typed arrays" {
+                val path =
+                    nbtPath("Entities")[
+                        matching {
+                            "UUID" eq intArrayOf(1, 2, 3, 4)
+                            "Data" eq byteArrayOf(1, 2)
+                            "Times" eq longArrayOf(10L, 20L)
+                        },
+                    ]
+
+                path.asString() shouldBe "Entities[{UUID:[I;1,2,3,4],Data:[B;1b,2b],Times:[L;10L,20L]}]"
+            }
+
             "predicate with multiple entries" {
                 val path =
                     nbtPath("Items")[

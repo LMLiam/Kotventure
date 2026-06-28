@@ -41,4 +41,28 @@ internal sealed interface NbtLiteralValue {
     data class CompoundValue(
         val predicate: NbtCompoundPredicate,
     ) : NbtLiteralValue
+
+    data class ByteArrayValue(
+        val values: ByteArray,
+    ) : NbtLiteralValue {
+        override fun equals(other: Any?): Boolean = other is ByteArrayValue && values.contentEquals(other.values)
+
+        override fun hashCode(): Int = values.contentHashCode()
+    }
+
+    data class IntArrayValue(
+        val values: IntArray,
+    ) : NbtLiteralValue {
+        override fun equals(other: Any?): Boolean = other is IntArrayValue && values.contentEquals(other.values)
+
+        override fun hashCode(): Int = values.contentHashCode()
+    }
+
+    data class LongArrayValue(
+        val values: LongArray,
+    ) : NbtLiteralValue {
+        override fun equals(other: Any?): Boolean = other is LongArrayValue && values.contentEquals(other.values)
+
+        override fun hashCode(): Int = values.contentHashCode()
+    }
 }
