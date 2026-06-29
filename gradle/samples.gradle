@@ -25,6 +25,9 @@ tasks.named('check') {
 }
 
 dokka {
+    dokkaPublications.configureEach {
+        failOnWarning.set(true)
+    }
     dokkaSourceSets.configureEach {
         samples.from(file('src/samples/kotlin'))
     }
