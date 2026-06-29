@@ -52,3 +52,33 @@ public fun ComponentScope.text(
 public fun ComponentScope.text(init: TextScope.() -> Unit) {
     append(buildTextComponent(init))
 }
+
+/**
+ * Appends a styled text child to the surrounding component, using the string literal as its content.
+ *
+ * This is the string-literal shorthand for [text]: `"Hello" { color(gold) }` is exactly
+ * `text("Hello") { color(gold) }`, letting the content lead the call inside a `component { }` block. For plain
+ * text with no styling, prefer the [unaryPlus] form (`+"Hello"`); [init] is required here, so `"Hello"()` does
+ * not compile.
+ *
+ * @sample io.github.lmliam.kotventure.core.text.stringInvokeSample
+ *
+ * @param init styles the child and appends any of its own children.
+ */
+context(scope: ComponentScope)
+public operator fun String.invoke(init: TextScope.() -> Unit) {
+    scope.text(this, init)
+}
+
+/**
+ * Appends a plain text child to the surrounding component, using the string literal as its content.
+ *
+ * This is the documented shorthand for an unstyled text child inside a `component { }` block: `+"Hello"` is
+ * exactly `text("Hello")`. Reach for the [invoke] form (`"Hello" { ... }`) when the child needs styling.
+ *
+ * @sample io.github.lmliam.kotventure.core.text.stringUnaryPlusSample
+ */
+context(scope: ComponentScope)
+public operator fun String.unaryPlus() {
+    scope.text(this)
+}
