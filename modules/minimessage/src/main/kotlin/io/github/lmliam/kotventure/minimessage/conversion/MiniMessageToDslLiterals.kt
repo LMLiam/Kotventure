@@ -43,7 +43,9 @@ private val namedColorLiterals: Map<NamedTextColor, String> =
     )
 
 /**
- * Renders [color] as the DSL expression that reconstructs it by composing [hex] and the [shadow] overload.
+ * Renders [color] as the DSL expression that reconstructs it by composing
+ * [hex][io.github.lmliam.kotventure.core.color.hex] and the
+ * [shadow][io.github.lmliam.kotventure.core.style.StyleScope.shadow] overload.
  *
  * Emits `hex("#RRGGBB"), alpha = 0xAA` when alpha differs from the default (0xFF),
  * otherwise just `hex("#RRGGBB")`. The call site wraps this in `shadow(...)`.
