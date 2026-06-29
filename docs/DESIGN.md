@@ -96,7 +96,8 @@ driver schedules/executes frames**.
 // ── Construction ───────────────────────────────────────────────
 val msg = component {
     text("Hello ") { color(AQUA); bold() }
-    text("world") { color(hex("#FF00AA")) }
+    "world" { color(hex("#FF00AA")) }        // string-literal sugar for text("world") { … }
+    +"!"                                      // bare literal → plain text child
     newline()
     translatable("item.minecraft.diamond") { fallback("Diamond") }
     keybind("key.jump") { color(YELLOW) }
