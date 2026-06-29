@@ -1,401 +1,74 @@
 package io.github.lmliam.kotventure.minimessage.conversion
 
+import net.kyori.adventure.nbt.BinaryTag
+import net.kyori.adventure.nbt.ByteArrayBinaryTag
+import net.kyori.adventure.nbt.ByteBinaryTag
+import net.kyori.adventure.nbt.CompoundBinaryTag
+import net.kyori.adventure.nbt.DoubleBinaryTag
+import net.kyori.adventure.nbt.FloatBinaryTag
+import net.kyori.adventure.nbt.IntArrayBinaryTag
+import net.kyori.adventure.nbt.IntBinaryTag
+import net.kyori.adventure.nbt.LongArrayBinaryTag
+import net.kyori.adventure.nbt.LongBinaryTag
+import net.kyori.adventure.nbt.ShortBinaryTag
+import net.kyori.adventure.nbt.StringBinaryTag
+import net.kyori.adventure.nbt.TagStringIO
+import java.io.IOException
+
 /**
- * Attempts to convert an SNBT compound string into a Kotlin DSL expression using `nbt { ... }`.
+ * Converts an SNBT compound string into a Kotlin DSL expression using `nbt { ... }`.
  *
- * Returns `null` if the SNBT contains constructs that cannot be expressed in the typed DSL
- * (e.g. generic lists), signalling the caller to fall back to `nbt("raw")`.
+ * The SNBT is parsed with Adventure's [TagStringIO], then each entry is rendered to its DSL form.
+ * Keys are emitted in alphabetical order so the output is deterministic and JDK-independent (NBT
+ * compounds are unordered, so reordering is semantically transparent).
+ *
+ * Returns `null` when the SNBT is malformed, has trailing content, or contains a construct the typed
+ * DSL cannot yet express (a generic `TAG_List`), signalling the caller to fall back to `nbt("raw")`.
  */
 internal fun snbtToDslExpression(snbt: String): String? {
-    val parser = SnbtParser(snbt)
-    val entries = parser.parseCompound() ?: return null
-    if (parser.hasRemaining()) return null
-    return "nbt { ${renderEntries(entries)} }"
-}
-
-private fun renderEntries(entries: List<SnbtEntry>): String =
-    entries.joinToString("; ") { entry ->
-        "\"${escapeKotlinString(entry.key)}\" eq ${renderDslValue(entry.value)}"
-    }
-
-private fun renderDslValue(value: SnbtParsedValue): String? =
-    when (value) {
-        is SnbtParsedValue.ByteVal -> "${value.value}.toByte()"
-        is SnbtParsedValue.ShortVal -> "${value.value}.toShort()"
-        is SnbtParsedValue.IntVal -> "${value.value}"
-        is SnbtParsedValue.LongVal -> "${value.value}L"
-        is SnbtParsedValue.FloatVal -> "${value.value}f"
-        is SnbtParsedValue.DoubleVal -> "${value.value}"
-        is SnbtParsedValue.StringVal -> "\"${escapeKotlinString(value.value)}\""
-        is SnbtParsedValue.CompoundVal -> "{ ${renderEntries(value.entries)} }"
-        is SnbtParsedValue.ByteArrayVal ->
-            "byteArrayOf(${value.values.joinToString(", ")})"
-
-        is SnbtParsedValue.IntArrayVal ->
-            "intArrayOf(${value.values.joinToString(", ")})"
-
-        is SnbtParsedValue.LongArrayVal ->
-            "longArrayOf(${value.values.joinToString(", ") { "${it}L" }})"
-
-        is SnbtParsedValue.Unsupported -> null
-    }
-
-internal sealed interface SnbtParsedValue {
-    data class ByteVal(
-        val value: Byte,
-    ) : SnbtParsedValue
-
-    data class ShortVal(
-        val value: Short,
-    ) : SnbtParsedValue
-
-    data class IntVal(
-        val value: Int,
-    ) : SnbtParsedValue
-
-    data class LongVal(
-        val value: Long,
-    ) : SnbtParsedValue
-
-    data class FloatVal(
-        val value: Float,
-    ) : SnbtParsedValue
-
-    data class DoubleVal(
-        val value: Double,
-    ) : SnbtParsedValue
-
-    data class StringVal(
-        val value: String,
-    ) : SnbtParsedValue
-
-    data class CompoundVal(
-        val entries: List<SnbtEntry>,
-    ) : SnbtParsedValue
-
-    data class ByteArrayVal(
-        val values: List<Byte>,
-    ) : SnbtParsedValue
-
-    data class IntArrayVal(
-        val values: List<Int>,
-    ) : SnbtParsedValue
-
-    data class LongArrayVal(
-        val values: List<Long>,
-    ) : SnbtParsedValue
-
-    data object Unsupported : SnbtParsedValue
-}
-
-internal data class SnbtEntry(
-    val key: String,
-    val value: SnbtParsedValue,
-)
-
-internal class SnbtParser(
-    private val input: String,
-) {
-    private var pos = 0
-
-    fun hasRemaining(): Boolean {
-        skipWhitespace()
-        return pos < input.length
-    }
-
-    fun parseCompound(): List<SnbtEntry>? {
-        skipWhitespace()
-        if (!consume('{')) return null
-        val entries = mutableListOf<SnbtEntry>()
-        skipWhitespace()
-        if (peek() == '}') {
-            pos++
-            return entries
-        }
-        while (true) {
-            val entry = parseEntry() ?: return null
-            entries += entry
-            skipWhitespace()
-            if (consume('}')) break
-            if (!consume(',')) return null
-        }
-        return entries
-    }
-
-    private fun parseEntry(): SnbtEntry? {
-        skipWhitespace()
-        val key = parseKey() ?: return null
-        skipWhitespace()
-        if (!consume(':')) return null
-        skipWhitespace()
-        val value = parseValue() ?: return null
-        return SnbtEntry(key, value)
-    }
-
-    private fun parseKey(): String? {
-        if (pos >= input.length) return null
-        return if (peek() == '"') parseQuotedString() else parseUnquotedKey()
-    }
-
-    private fun parseUnquotedKey(): String? {
-        val start = pos
-        while (pos < input.length && isUnquotedChar(input[pos])) pos++
-        if (pos == start) return null
-        return input.substring(start, pos)
-    }
-
-    private fun isUnquotedChar(ch: Char): Boolean =
-        ch.isLetterOrDigit() || ch == '_' || ch == '-' || ch == '.' || ch == '+'
-
-    private fun parseValue(): SnbtParsedValue? {
-        skipWhitespace()
-        if (pos >= input.length) return null
-        return when (peek()) {
-            '{' -> {
-                val entries = parseCompound() ?: return null
-                SnbtParsedValue.CompoundVal(entries)
-            }
-
-            '[' -> parseArray()
-            '"' -> {
-                val str = parseQuotedString() ?: return null
-                SnbtParsedValue.StringVal(str)
-            }
-
-            '\'' -> {
-                val str = parseSingleQuotedString() ?: return null
-                SnbtParsedValue.StringVal(str)
-            }
-
-            else -> parseNumberOrUnquotedString()
-        }
-    }
-
-    private fun parseArray(): SnbtParsedValue? {
-        if (!consume('[')) return null
-        skipWhitespace()
-
-        if (pos + 1 < input.length && input[pos + 1] == ';') {
-            return when (input[pos]) {
-                'B' -> parseTypedArray('B')
-                'I' -> parseTypedArray('I')
-                'L' -> parseTypedArray('L')
-                else -> SnbtParsedValue.Unsupported
-            }
-        }
-
-        return SnbtParsedValue.Unsupported
-    }
-
-    private fun parseTypedArray(type: Char): SnbtParsedValue? {
-        pos += 2 // skip type char and semicolon
-        skipWhitespace()
-        return when (type) {
-            'B' -> parseByteArray()
-            'I' -> parseIntArray()
-            'L' -> parseLongArray()
-            else -> null
-        }
-    }
-
-    private fun parseByteArray(): SnbtParsedValue? {
-        val values = mutableListOf<Byte>()
-        if (peek() == ']') {
-            pos++
-            return SnbtParsedValue.ByteArrayVal(values)
-        }
-        while (true) {
-            skipWhitespace()
-            val num = parseRawNumber() ?: return null
-            val stripped = num.removeSuffix("b").removeSuffix("B")
-            values += stripped.toByteOrNull() ?: return null
-            skipWhitespace()
-            if (consume(']')) break
-            if (!consume(',')) return null
-        }
-        return SnbtParsedValue.ByteArrayVal(values)
-    }
-
-    private fun parseIntArray(): SnbtParsedValue? {
-        val values = mutableListOf<Int>()
-        if (peek() == ']') {
-            pos++
-            return SnbtParsedValue.IntArrayVal(values)
-        }
-        while (true) {
-            skipWhitespace()
-            val num = parseRawNumber() ?: return null
-            values += num.toIntOrNull() ?: return null
-            skipWhitespace()
-            if (consume(']')) break
-            if (!consume(',')) return null
-        }
-        return SnbtParsedValue.IntArrayVal(values)
-    }
-
-    private fun parseLongArray(): SnbtParsedValue? {
-        val values = mutableListOf<Long>()
-        if (peek() == ']') {
-            pos++
-            return SnbtParsedValue.LongArrayVal(values)
-        }
-        while (true) {
-            skipWhitespace()
-            val num = parseRawNumber() ?: return null
-            val stripped = num.removeSuffix("l").removeSuffix("L")
-            values += stripped.toLongOrNull() ?: return null
-            skipWhitespace()
-            if (consume(']')) break
-            if (!consume(',')) return null
-        }
-        return SnbtParsedValue.LongArrayVal(values)
-    }
-
-    private fun parseNumberOrUnquotedString(): SnbtParsedValue {
-        val start = pos
-        val raw = parseRawNumber() ?: return parseUnquotedString(start)
-        return classifyNumber(raw) ?: parseUnquotedString(start)
-    }
-
-    private fun parseRawNumber(): String? {
-        val start = pos
-        if (pos < input.length && (input[pos] == '-' || input[pos] == '+')) pos++
-        if (pos >= input.length) {
-            pos = start
+    val compound =
+        try {
+            TagStringIO.tagStringIO().asCompound(snbt)
+        } catch (e: IOException) {
             return null
         }
-        if (!input[pos].isDigit() && input[pos] != '.') {
-            pos = start
-            return null
-        }
-        while (pos < input.length && input[pos].isDigit()) pos++
-        if (pos < input.length && input[pos] == '.') {
-            pos++
-            while (pos < input.length && input[pos].isDigit()) pos++
-        }
-        if (pos < input.length && input[pos].lowercaseChar() in "eE".toList()) {
-            pos++
-            if (pos < input.length && (input[pos] == '+' || input[pos] == '-')) pos++
-            while (pos < input.length && input[pos].isDigit()) pos++
-        }
-        if (pos < input.length && input[pos].lowercaseChar() in "bslfd".toList()) pos++
-        if (pos == start) return null
-        return input.substring(start, pos)
-    }
-
-    private fun classifyNumber(raw: String): SnbtParsedValue? {
-        val lastChar = raw.last().lowercaseChar()
-        return when (lastChar) {
-            'b' -> {
-                val n = raw.dropLast(1).toByteOrNull() ?: return null
-                SnbtParsedValue.ByteVal(n)
-            }
-
-            's' -> {
-                val n = raw.dropLast(1).toShortOrNull() ?: return null
-                SnbtParsedValue.ShortVal(n)
-            }
-
-            'l' -> {
-                val n = raw.dropLast(1).toLongOrNull() ?: return null
-                SnbtParsedValue.LongVal(n)
-            }
-
-            'f' -> {
-                val n = raw.dropLast(1).toFloatOrNull() ?: return null
-                SnbtParsedValue.FloatVal(n)
-            }
-
-            'd' -> {
-                val n = raw.dropLast(1).toDoubleOrNull() ?: return null
-                SnbtParsedValue.DoubleVal(n)
-            }
-
-            else -> {
-                if ('.' in raw || 'e' in raw.lowercase()) {
-                    val n = raw.toDoubleOrNull() ?: return null
-                    SnbtParsedValue.DoubleVal(n)
-                } else {
-                    val n = raw.toIntOrNull() ?: return null
-                    SnbtParsedValue.IntVal(n)
-                }
-            }
-        }
-    }
-
-    private fun parseUnquotedString(start: Int): SnbtParsedValue {
-        pos = start
-        while (pos < input.length && isUnquotedChar(input[pos])) pos++
-        return if (pos > start) {
-            SnbtParsedValue.StringVal(input.substring(start, pos))
-        } else {
-            SnbtParsedValue.Unsupported
-        }
-    }
-
-    private fun parseQuotedString(): String? {
-        if (!consume('"')) return null
-        val sb = StringBuilder()
-        while (pos < input.length) {
-            val ch = input[pos++]
-            if (ch == '"') return sb.toString()
-            if (ch == '\\') {
-                if (pos >= input.length) return null
-                val escaped = input[pos++]
-                when (escaped) {
-                    '"' -> sb.append('"')
-                    '\\' -> sb.append('\\')
-                    'n' -> sb.append('\n')
-                    't' -> sb.append('\t')
-                    'r' -> sb.append('\r')
-                    else -> {
-                        sb.append('\\')
-                        sb.append(escaped)
-                    }
-                }
-            } else {
-                sb.append(ch)
-            }
-        }
-        return null
-    }
-
-    private fun parseSingleQuotedString(): String? {
-        if (pos >= input.length || input[pos] != '\'') return null
-        pos++
-        val sb = StringBuilder()
-        while (pos < input.length) {
-            val ch = input[pos++]
-            if (ch == '\'') return sb.toString()
-            if (ch == '\\') {
-                if (pos >= input.length) return null
-                val escaped = input[pos++]
-                when (escaped) {
-                    '\'' -> sb.append('\'')
-                    '\\' -> sb.append('\\')
-                    else -> {
-                        sb.append('\\')
-                        sb.append(escaped)
-                    }
-                }
-            } else {
-                sb.append(ch)
-            }
-        }
-        return null
-    }
-
-    private fun skipWhitespace() {
-        while (pos < input.length && input[pos].isWhitespace()) pos++
-    }
-
-    private fun peek(): Char = if (pos < input.length) input[pos] else ' '
-
-    private fun consume(expected: Char): Boolean {
-        if (pos < input.length && input[pos] == expected) {
-            pos++
-            return true
-        }
-        return false
-    }
+    val body = renderCompoundBody(compound) ?: return null
+    return if (body.isEmpty()) "nbt { }" else "nbt { $body }"
 }
+
+private fun renderCompoundBody(compound: CompoundBinaryTag): String? {
+    val entries =
+        compound.keySet().sorted().map { key ->
+            val value = renderValue(compound.get(key) ?: return null) ?: return null
+            "\"${escapeKotlinString(key)}\" eq $value"
+        }
+    return entries.joinToString("; ")
+}
+
+private fun renderValue(tag: BinaryTag): String? =
+    when (tag) {
+        is ByteBinaryTag -> renderByteLiteral(tag.value())
+        is ShortBinaryTag -> renderShortLiteral(tag.value())
+        is IntBinaryTag -> renderIntLiteral(tag.value())
+        is LongBinaryTag -> renderLongLiteral(tag.value())
+        is FloatBinaryTag -> "${tag.value()}f"
+        is DoubleBinaryTag -> "${tag.value()}"
+        is StringBinaryTag -> "\"${escapeKotlinString(tag.value())}\""
+        is ByteArrayBinaryTag -> "byteArrayOf(${tag.value().joinToString(", ")})"
+        is IntArrayBinaryTag -> "intArrayOf(${tag.value().joinToString(", ") { renderIntLiteral(it) }})"
+        is LongArrayBinaryTag -> "longArrayOf(${tag.value().joinToString(", ") { renderLongLiteral(it) }})"
+        is CompoundBinaryTag -> renderCompoundBody(tag)?.let { if (it.isEmpty()) "{ }" else "{ $it }" }
+        else -> null // TAG_List and any other tag have no typed DSL form yet → raw fallback.
+    }
+
+/** Emits a [Byte] literal, parenthesising negatives so `(-5).toByte()` keeps the `Byte` type. */
+private fun renderByteLiteral(value: Byte): String = if (value < 0) "($value).toByte()" else "$value.toByte()"
+
+/** Emits a [Short] literal, parenthesising negatives so `(-5).toShort()` keeps the `Short` type. */
+private fun renderShortLiteral(value: Short): String = if (value < 0) "($value).toShort()" else "$value.toShort()"
+
+/** Emits an [Int] literal, using `Int.MIN_VALUE` (which has no valid negated-literal form). */
+private fun renderIntLiteral(value: Int): String = if (value == Int.MIN_VALUE) "Int.MIN_VALUE" else "$value"
+
+/** Emits a [Long] literal, using `Long.MIN_VALUE` (which has no valid negated-literal form). */
+private fun renderLongLiteral(value: Long): String = if (value == Long.MIN_VALUE) "Long.MIN_VALUE" else "${value}L"

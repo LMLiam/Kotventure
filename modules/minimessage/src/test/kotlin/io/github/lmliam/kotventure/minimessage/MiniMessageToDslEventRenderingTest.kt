@@ -319,6 +319,43 @@ class MiniMessageToDslEventRenderingTest :
                     """.trimIndent()
                 }
 
+                test("round-trips negative and minimum NBT scalars as compilable literals") {
+                    assertGoldenRoundTrip(
+                        expectedSource =
+                            """
+                        component {
+                            text("Edge data") {
+                                hover {
+                                    item(
+                                        key = key("minecraft", "diamond_sword"),
+                                        dataComponents = mapOf(
+                                            key("minecraft", "custom_data") to nbt { "big" eq Int.MIN_VALUE; "huge" eq Long.MIN_VALUE; "small" eq (-5).toShort(); "tiny" eq (-5).toByte() }
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                        """.trimIndent(),
+                        expectedComponent =
+                            component {
+                                text("Edge data") {
+                                    hover {
+                                        item(
+                                            key = key("minecraft", "diamond_sword"),
+                                            dataComponents =
+                                                mapOf<Key, DataComponentValue>(
+                                                    key("minecraft", "custom_data") to
+                                                            BinaryTagHolder.binaryTagHolder(
+                                                                "{big:-2147483648,huge:-9223372036854775808L,small:-5s,tiny:-5b}",
+                                                            ),
+                                                ),
+                                        )
+                                    }
+                                }
+                            },
+                    )
+                }
+
                 test("round-trips show entity hover events against compiled expected DSL") {
                     assertGoldenRoundTrip(
                         expectedSource =

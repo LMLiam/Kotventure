@@ -12,9 +12,14 @@ class SnbtToDslTest :
                     "nbt { \"kotventure\" eq 1.toByte() }"
             }
 
-            "parses a negative byte" {
+            "parenthesises a negative byte so it keeps the Byte type" {
                 snbtToDslExpression("{val:-5b}") shouldBe
-                    "nbt { \"val\" eq -5.toByte() }"
+                    "nbt { \"val\" eq (-5).toByte() }"
+            }
+
+            "renders the minimum byte" {
+                snbtToDslExpression("{val:-128b}") shouldBe
+                    "nbt { \"val\" eq (-128).toByte() }"
             }
 
             "parses a single short entry" {
@@ -22,14 +27,29 @@ class SnbtToDslTest :
                     "nbt { \"slot\" eq 3.toShort() }"
             }
 
+            "parenthesises a negative short so it keeps the Short type" {
+                snbtToDslExpression("{slot:-3s}") shouldBe
+                    "nbt { \"slot\" eq (-3).toShort() }"
+            }
+
             "parses a single int entry" {
                 snbtToDslExpression("{count:64}") shouldBe
                     "nbt { \"count\" eq 64 }"
             }
 
+            "renders the minimum int as a constant" {
+                snbtToDslExpression("{count:-2147483648}") shouldBe
+                    "nbt { \"count\" eq Int.MIN_VALUE }"
+            }
+
             "parses a single long entry" {
                 snbtToDslExpression("{time:1000L}") shouldBe
                     "nbt { \"time\" eq 1000L }"
+            }
+
+            "renders the minimum long as a constant" {
+                snbtToDslExpression("{time:-9223372036854775808L}") shouldBe
+                    "nbt { \"time\" eq Long.MIN_VALUE }"
             }
 
             "parses a single float entry" {
@@ -57,9 +77,9 @@ class SnbtToDslTest :
                     "nbt { \"display\" eq { \"Name\" eq \"Sword\" } }"
             }
 
-            "parses multi-entry compounds" {
+            "emits compound keys in alphabetical order" {
                 snbtToDslExpression("{id:\"minecraft:diamond\",Count:64b}") shouldBe
-                    "nbt { \"id\" eq \"minecraft:diamond\"; \"Count\" eq 64.toByte() }"
+                    "nbt { \"Count\" eq 64.toByte(); \"id\" eq \"minecraft:diamond\" }"
             }
 
             "parses a byte array" {
@@ -72,13 +92,27 @@ class SnbtToDslTest :
                     "nbt { \"UUID\" eq intArrayOf(1, 2, 3, 4) }"
             }
 
+            "renders the minimum int inside an int array as a constant" {
+                snbtToDslExpression("{UUID:[I;-2147483648]}") shouldBe
+                    "nbt { \"UUID\" eq intArrayOf(Int.MIN_VALUE) }"
+            }
+
             "parses a long array" {
                 snbtToDslExpression("{Times:[L;10L,20L]}") shouldBe
                     "nbt { \"Times\" eq longArrayOf(10L, 20L) }"
             }
 
+            "renders the minimum long inside a long array as a constant" {
+                snbtToDslExpression("{Times:[L;-9223372036854775808L]}") shouldBe
+                    "nbt { \"Times\" eq longArrayOf(Long.MIN_VALUE) }"
+            }
+
             "returns null for generic lists" {
                 snbtToDslExpression("{items:[1,2,3]}").shouldBeNull()
+            }
+
+            "returns null for a generic list nested in a compound" {
+                snbtToDslExpression("{tag:{lore:[\"a\",\"b\"]}}").shouldBeNull()
             }
 
             "parses quoted keys" {
@@ -100,12 +134,17 @@ class SnbtToDslTest :
             }
 
             "parses an empty compound" {
-                snbtToDslExpression("{}") shouldBe "nbt {  }"
+                snbtToDslExpression("{}") shouldBe "nbt { }"
             }
 
             "parses deeply nested compounds" {
                 snbtToDslExpression("{a:{b:{c:1}}}") shouldBe
                     "nbt { \"a\" eq { \"b\" eq { \"c\" eq 1 } } }"
+            }
+
+            "sorts keys of a nested compound too" {
+                snbtToDslExpression("{outer:{b:1,a:2}}") shouldBe
+                    "nbt { \"outer\" eq { \"a\" eq 2; \"b\" eq 1 } }"
             }
         },
     )
