@@ -37,9 +37,6 @@ public interface NbtCompoundScope {
     /** Sets [this] key to a nested compound built by [init] (renders as `{...}`). */
     public infix fun String.eq(init: NbtCompoundScope.() -> Unit)
 
-    /** Sets [this] key to a list of NBT values built by [init] (renders as `[...]`). */
-    public infix fun String.eqList(init: NbtListScope.() -> Unit)
-
     /** Sets [this] key to the given byte array (renders as SNBT byte array, e.g. `[B;1b,2b]`). */
     public infix fun String.eq(values: ByteArray)
 

@@ -33,10 +33,6 @@ internal sealed interface NbtValue {
         val compound: NbtCompound,
     ) : NbtValue
 
-    data class ListValue(
-        val elements: List<NbtValue>,
-    ) : NbtValue
-
     data class ByteArrayValue(
         val values: ByteArray,
     ) : NbtValue {

@@ -38,11 +38,6 @@ internal class NbtCompoundBuilder : NbtCompoundScope {
         entries[this] = NbtValue.CompoundValue(nested)
     }
 
-    override infix fun String.eqList(init: NbtListScope.() -> Unit) {
-        val list = NbtListBuilder().apply(init).build()
-        entries[this] = NbtValue.ListValue(list)
-    }
-
     override infix fun String.eq(values: ByteArray) {
         entries[this] = NbtValue.ByteArrayValue(values.copyOf())
     }

@@ -68,35 +68,6 @@ class NbtFactoryTest :
                 nbt { "Times" eq longArrayOf(10L, 20L) }.string() shouldBe "{Times:[L;10L,20L]}"
             }
 
-            "builds a generic list" {
-                nbt {
-                    "items" eqList {
-                        int(1)
-                        int(2)
-                        int(3)
-                    }
-                }.string() shouldBe "{items:[1,2,3]}"
-            }
-
-            "builds a list of compounds" {
-                nbt {
-                    "entries" eqList {
-                        compound { "id" eq "a" }
-                        compound { "id" eq "b" }
-                    }
-                }.string() shouldBe "{entries:[{id:\"a\"},{id:\"b\"}]}"
-            }
-
-            "builds a heterogeneous list" {
-                nbt {
-                    "mixed" eqList {
-                        byte(1)
-                        string("hello")
-                        long(100L)
-                    }
-                }.string() shouldBe "{mixed:[1b,\"hello\",100L]}"
-            }
-
             "last-write-wins for duplicate keys" {
                 nbt {
                     "key" eq 1

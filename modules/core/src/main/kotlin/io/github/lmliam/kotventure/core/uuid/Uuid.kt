@@ -7,9 +7,4 @@ import java.util.UUID
  *
  * @throws IllegalArgumentException if [value] is not a valid UUID string.
  */
-public fun uuid(value: String): UUID =
-    try {
-        UUID.fromString(value)
-    } catch (e: IllegalArgumentException) {
-        throw IllegalArgumentException("Invalid UUID string: <$value>.", e)
-    }
+public fun uuid(value: String): UUID = UUID.fromString(value)
