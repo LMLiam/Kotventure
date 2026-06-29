@@ -6,12 +6,7 @@ import net.kyori.adventure.text.Component
 /**
  * Builds a text [Component] with [value] as its literal content.
  *
- * ```kotlin
- * val greeting = text("Hello") {
- *     color(gold)
- *     bold()
- * }
- * ```
+ * @sample io.github.lmliam.kotventure.core.text.textSample
  *
  * @param value the literal text content.
  * @param init styles the component and appends any children.

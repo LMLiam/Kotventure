@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.minimessage.validation
 
+import io.github.lmliam.kotventure.minimessage.validate
 import net.kyori.adventure.text.minimessage.ParsingException
 
 /**
@@ -13,7 +14,7 @@ public sealed interface MiniMessageDiagnostic {
      *
      * @property message Human-readable description from Adventure's parser. Prefers
      *   [ParsingException.detailMessage] (no location noise); falls back to
-     *   [ParsingException.getMessage] if `detailMessage` is null.
+     *   [ParsingException.message] if `detailMessage` is null.
      * @property startIndex Start index into the original input string, or [LOCATION_UNKNOWN] when
      *   Adventure did not report a source position.
      * @property endIndex End index into the original input string, or [LOCATION_UNKNOWN] when

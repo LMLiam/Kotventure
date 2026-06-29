@@ -6,9 +6,7 @@ import net.kyori.adventure.text.Component
 /**
  * Builds a selector [Component] — text the client expands to the names matched by an entity selector.
  *
- * ```kotlin
- * val nearby = selector(entities { distance(atMost(10.0)) }) { separator { content(", ") } }
- * ```
+ * @sample io.github.lmliam.kotventure.core.selector.selectorSample
  *
  * @param selector the entity selector, constructed via [self], [entities], or friends.
  * @param init configures the selector (e.g. its separator) and appends any children.

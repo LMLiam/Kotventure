@@ -10,18 +10,14 @@ public class NbtSelection internal constructor(
 /**
  * Selects all elements in a list (`[]`).
  *
- * ```kotlin
- * nbtPath("Passengers")[all]["CustomName"]
- * ```
+ * @sample io.github.lmliam.kotventure.core.nbt.allSample
  */
 public val all: NbtSelection = NbtSelection(NbtPathNode.AllElements)
 
 /**
  * Selects list elements matching a compound predicate (`[{...}]`).
  *
- * ```kotlin
- * nbtPath("Items")[matching { "id" eq "minecraft:diamond" }]["Count"]
- * ```
+ * @sample io.github.lmliam.kotventure.core.nbt.matchingSample
  */
 public fun matching(init: NbtPredicateScope.() -> Unit): NbtSelection {
     val builder = NbtPredicateBuilder()

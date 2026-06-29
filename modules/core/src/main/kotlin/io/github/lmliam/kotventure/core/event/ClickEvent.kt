@@ -6,9 +6,7 @@ import net.kyori.adventure.text.event.ClickEvent
  * Builds a reusable click event. Choose exactly one action inside [init] — [ClickActionScope.openUrl], [ClickActionScope.openFile], [ClickActionScope.run],
  * [ClickActionScope.suggest], [ClickActionScope.changePage], [ClickActionScope.copy], or [ClickActionScope.callback].
  *
- * ```kotlin
- * val link = click { openUrl("https://example.com") }
- * ```
+ * @sample io.github.lmliam.kotventure.core.event.clickSample
  *
  * @throws IllegalStateException when [init] does not choose exactly one click action.
  * @throws IllegalArgumentException when Adventure rejects the selected action payload.

@@ -17,13 +17,7 @@ import net.kyori.adventure.text.format.TextDecoration.State
  * it (`bold(false)`, `bold(null)`), and an explicit [State] setter — so styles can both set and unset
  * attributes when composed.
  *
- * ```kotlin
- * style {
- *     color(gold)
- *     bold()
- *     italic(false)
- * }
- * ```
+ * @sample io.github.lmliam.kotventure.core.style.styleScopeSample
  */
 @KotventureDslMarker
 public interface StyleScope :

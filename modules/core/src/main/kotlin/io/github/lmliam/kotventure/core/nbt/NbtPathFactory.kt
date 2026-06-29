@@ -6,13 +6,7 @@ package io.github.lmliam.kotventure.core.nbt
  * The key is used verbatim as the first segment, so a pre-formed path string works as a string
  * escape hatch — chaining the indexing operators simply appends to it:
  *
- * ```kotlin
- * // Structured
- * nbtPath("Items")[0]["id"]
- *
- * // Pre-formed string, still chainable
- * nbtPath("Items[0]")["tag"]
- * ```
+ * @sample io.github.lmliam.kotventure.core.nbt.nbtPathFactorySample
  */
 public fun nbtPath(key: String): NbtPath = NbtPath(listOf(NbtPathNode.Key(key)))
 

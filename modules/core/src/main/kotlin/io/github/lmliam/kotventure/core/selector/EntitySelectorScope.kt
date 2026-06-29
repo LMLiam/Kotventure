@@ -6,15 +6,7 @@ import net.kyori.adventure.key.Key
 /**
  * Scope for configuring entity selector arguments.
  *
- * ```kotlin
- * entities {
- *     type("armor_stand")
- *     distance(atMost(10.0))
- *     sort(nearest)
- *     limit(1)
- *     tag("display")
- * }
- * ```
+ * @sample io.github.lmliam.kotventure.core.selector.entitySelectorScopeSample
  */
 @KotventureDslMarker
 public interface EntitySelectorScope {

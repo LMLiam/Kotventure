@@ -8,9 +8,7 @@ public fun self(): EntitySelector = EntitySelector("@s")
 /**
  * Builds a `@p` selector targeting the nearest player, with optional arguments.
  *
- * ```kotlin
- * nearestPlayer { distance(atMost(10.0)) }
- * ```
+ * @sample io.github.lmliam.kotventure.core.selector.nearestPlayerSample
  */
 public fun nearestPlayer(init: EntitySelectorScope.() -> Unit = {}): EntitySelector =
     EntitySelectorBuilder("@p").apply(init).build()
@@ -18,9 +16,7 @@ public fun nearestPlayer(init: EntitySelectorScope.() -> Unit = {}): EntitySelec
 /**
  * Builds an `@a` selector targeting all players, with optional arguments.
  *
- * ```kotlin
- * allPlayers { tag("admin") }
- * ```
+ * @sample io.github.lmliam.kotventure.core.selector.allPlayersSample
  */
 public fun allPlayers(init: EntitySelectorScope.() -> Unit = {}): EntitySelector =
     EntitySelectorBuilder("@a").apply(init).build()
@@ -34,15 +30,7 @@ public fun randomPlayer(init: EntitySelectorScope.() -> Unit = {}): EntitySelect
 /**
  * Builds an `@e` selector targeting all entities, with optional arguments.
  *
- * ```kotlin
- * entities {
- *     type("armor_stand")
- *     distance(atMost(10.0))
- *     sort(nearest)
- *     limit(1)
- *     tag("display")
- * }
- * ```
+ * @sample io.github.lmliam.kotventure.core.selector.entitiesSample
  */
 public fun entities(init: EntitySelectorScope.() -> Unit = {}): EntitySelector =
     EntitySelectorBuilder("@e").apply(init).build()

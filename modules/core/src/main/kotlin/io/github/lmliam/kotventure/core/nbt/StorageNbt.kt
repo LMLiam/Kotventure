@@ -8,9 +8,7 @@ import net.kyori.adventure.text.StorageNBTComponent
 /**
  * Builds a storage-NBT [Component] — text the client resolves from command-storage NBT under a key.
  *
- * ```kotlin
- * val score = storageNbt(key("myplugin", "scores"), nbtPath("top.player"))
- * ```
+ * @sample io.github.lmliam.kotventure.core.nbt.storageNbtSample
  *
  * @param storage the command-storage key to read, e.g. from `key(...)`.
  * @param nbtPath the NBT path within that storage, constructed via [nbtPath].

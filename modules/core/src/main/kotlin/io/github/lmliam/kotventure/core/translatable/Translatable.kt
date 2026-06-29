@@ -6,12 +6,7 @@ import net.kyori.adventure.text.Component
 /**
  * Builds a translatable [Component] — text the client renders from a translation key in the player's locale.
  *
- * ```kotlin
- * val died = translatable("death.attack.player") {
- *     arg { content("Alex") }
- *     fallback("Alex was slain")
- * }
- * ```
+ * @sample io.github.lmliam.kotventure.core.translatable.translatableSample
  *
  * @param key the translation key, such as `"item.minecraft.diamond"`.
  * @param init supplies translation arguments and an optional fallback, and appends any children.

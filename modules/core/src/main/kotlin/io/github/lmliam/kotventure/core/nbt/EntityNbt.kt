@@ -8,9 +8,7 @@ import net.kyori.adventure.text.EntityNBTComponent
 /**
  * Builds an entity-NBT [Component] — text the client resolves from the NBT of entities matched by a selector.
  *
- * ```kotlin
- * val health = entityNbt(self(), nbtPath("Health"))
- * ```
+ * @sample io.github.lmliam.kotventure.core.nbt.entityNbtSample
  *
  * @param selector the entity selector whose NBT is read, constructed via [io.github.lmliam.kotventure.core.selector.self] or friends.
  * @param nbtPath the NBT path within each entity, constructed via [nbtPath].

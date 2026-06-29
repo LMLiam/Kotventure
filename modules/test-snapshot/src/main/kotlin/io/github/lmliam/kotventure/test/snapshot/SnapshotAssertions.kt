@@ -11,9 +11,7 @@ import net.kyori.adventure.text.Component
  * environment variable — it instead writes the current component as the snapshot and passes, so a new or
  * intentionally-changed snapshot can be regenerated. Only this assertion writes; [matchSnapshot] never does.
  *
- * ```kotlin
- * component shouldMatchSnapshot "welcome-message"
- * ```
+ * @sample io.github.lmliam.kotventure.test.snapshot.shouldMatchSnapshotSample
  */
 public infix fun Component.shouldMatchSnapshot(name: String): Component = assertSnapshot(name, compact = false)
 

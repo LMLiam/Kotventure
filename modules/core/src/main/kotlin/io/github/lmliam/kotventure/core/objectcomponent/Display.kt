@@ -7,9 +7,7 @@ import net.kyori.adventure.text.`object`.ObjectContents
 /**
  * Builds an object [Component] — an inline rendered object such as a player head or atlas sprite.
  *
- * ```kotlin
- * val head = display(head(uuid)) { fallback(component { text("?") }) }
- * ```
+ * @sample io.github.lmliam.kotventure.core.objectcomponent.displaySample
  *
  * @param contents what to render, built with the object-contents helpers (`sprite(...)`, `head(...)`).
  * @param init sets a fallback, styles the component, and appends any children.

@@ -7,9 +7,7 @@ import net.kyori.adventure.text.Component
 /**
  * Builds a block-NBT [Component] — text the client resolves from a block entity's NBT data at a position.
  *
- * ```kotlin
- * val sign = blockNbt(blockPos(0, 64, 0), nbtPath("front_text")["messages"][0])
- * ```
+ * @sample io.github.lmliam.kotventure.core.nbt.blockNbtSample
  *
  * @param pos the block position to read, e.g. from [blockPos].
  * @param nbtPath the NBT path within the block entity, constructed via [nbtPath].

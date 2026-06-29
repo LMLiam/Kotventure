@@ -4,17 +4,11 @@ package io.github.lmliam.kotventure.core.nbt
  * A typed NBT path supporting indexed traversal, all-elements selection, and compound filters.
  *
  * Construct via [nbtPath] and chain the indexing operators:
- * ```kotlin
- * nbtPath("Items")[0]["tag"]["display"]["Name"]
- * nbtPath("Inventory")[all]["id"]
- * nbtPath("Items")[matching { "id" eq "minecraft:diamond" }]["Count"]
- * ```
+ * @sample io.github.lmliam.kotventure.core.nbt.nbtPathSample
  *
  * For syntax not covered by the typed API, pass a pre-formed path string to [nbtPath]; it is used
  * verbatim as the first segment:
- * ```kotlin
- * nbtPath("Items[{id:\"minecraft:diamond\"}].Count")
- * ```
+ * @sample io.github.lmliam.kotventure.core.nbt.nbtPathVerbatimSample
  */
 public class NbtPath internal constructor(
     internal val nodes: List<NbtPathNode>,
@@ -22,28 +16,21 @@ public class NbtPath internal constructor(
     /**
      * Navigates into a compound key.
      *
-     * ```kotlin
-     * nbtPath("tag")["display"]["Name"]
-     * ```
+     * @sample io.github.lmliam.kotventure.core.nbt.nbtPathKeySample
      */
     public operator fun get(key: String): NbtPath = NbtPath(nodes + NbtPathNode.Key(key))
 
     /**
      * Navigates into a list element by index.
      *
-     * ```kotlin
-     * nbtPath("Items")[0]["id"]
-     * ```
+     * @sample io.github.lmliam.kotventure.core.nbt.nbtPathIndexSample
      */
     public operator fun get(index: Int): NbtPath = NbtPath(nodes + NbtPathNode.Index(index))
 
     /**
      * Applies an [all]-elements or [matching] compound-filter selection.
      *
-     * ```kotlin
-     * nbtPath("Inventory")[all]["id"]
-     * nbtPath("Items")[matching { "id" eq "minecraft:diamond" }]["Count"]
-     * ```
+     * @sample io.github.lmliam.kotventure.core.nbt.nbtPathSelectionSample
      */
     public operator fun get(selection: NbtSelection): NbtPath = NbtPath(nodes + selection.node)
 
