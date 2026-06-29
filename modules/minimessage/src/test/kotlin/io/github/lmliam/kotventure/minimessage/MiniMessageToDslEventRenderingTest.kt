@@ -5,6 +5,7 @@ import io.github.lmliam.kotventure.core.color.gold
 import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.text.text
+import io.github.lmliam.kotventure.core.uuid.uuid
 import io.github.lmliam.kotventure.minimessage.conversion.MiniMessageToDslConversionException
 import io.github.lmliam.kotventure.minimessage.conversion.MiniMessageToDslWriter
 import io.kotest.assertions.throwables.shouldThrow
@@ -14,7 +15,6 @@ import net.kyori.adventure.key.Key
 import net.kyori.adventure.nbt.api.BinaryTagHolder
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.DataComponentValue
-import java.util.UUID
 
 class MiniMessageToDslEventRenderingTest :
     FunSpec(
@@ -257,7 +257,7 @@ class MiniMessageToDslEventRenderingTest :
                                     item(
                                         key = key("minecraft", "diamond_sword"),
                                         dataComponents = mapOf(
-                                            key("minecraft", "custom_data") to BinaryTagHolder.binaryTagHolder("{kotventure:1b}")
+                                            key("minecraft", "custom_data") to nbt { "kotventure" eq 1.toByte() }
                                         )
                                     )
                                 }
@@ -309,8 +309,8 @@ class MiniMessageToDslEventRenderingTest :
                                 item(
                                     key = key("minecraft", "diamond_sword"),
                                     dataComponents = mapOf(
-                                        key("minecraft", "custom_data") to BinaryTagHolder.binaryTagHolder("{kotventure:1b}"),
-                                        key("minecraft", "damage") to BinaryTagHolder.binaryTagHolder("{value:5b}")
+                                        key("minecraft", "custom_data") to nbt { "kotventure" eq 1.toByte() },
+                                        key("minecraft", "damage") to nbt { "value" eq 5.toByte() }
                                     )
                                 )
                             }
@@ -328,7 +328,7 @@ class MiniMessageToDslEventRenderingTest :
                                 hover {
                                     entity(
                                         type = key("minecraft", "zombie"),
-                                        id = UUID.fromString("0d1630e2-fc7c-48ef-b7a0-8dfb9e57ec25")
+                                        id = uuid("0d1630e2-fc7c-48ef-b7a0-8dfb9e57ec25")
                                     )
                                 }
                             }
@@ -340,7 +340,7 @@ class MiniMessageToDslEventRenderingTest :
                                     hover {
                                         entity(
                                             type = key("minecraft", "zombie"),
-                                            id = UUID.fromString("0d1630e2-fc7c-48ef-b7a0-8dfb9e57ec25"),
+                                            id = uuid("0d1630e2-fc7c-48ef-b7a0-8dfb9e57ec25"),
                                         )
                                     }
                                 }
@@ -357,7 +357,7 @@ class MiniMessageToDslEventRenderingTest :
                                 hover {
                                     entity(
                                         type = key("minecraft", "player"),
-                                        id = UUID.fromString("3f5f1f4e-29cb-4c98-93f0-3c7f4b52ddee")
+                                        id = uuid("3f5f1f4e-29cb-4c98-93f0-3c7f4b52ddee")
                                     ) {
                                         text("Alex \"\$5\"") {
                                             color(aqua)
@@ -373,7 +373,7 @@ class MiniMessageToDslEventRenderingTest :
                                     hover {
                                         entity(
                                             type = key("minecraft", "player"),
-                                            id = UUID.fromString("3f5f1f4e-29cb-4c98-93f0-3c7f4b52ddee"),
+                                            id = uuid("3f5f1f4e-29cb-4c98-93f0-3c7f4b52ddee"),
                                         ) {
                                             text("Alex \"$5\"") {
                                                 color(aqua)

@@ -16,11 +16,13 @@ internal fun compileGeneratedDsl(source: String): Component {
         import io.github.lmliam.kotventure.core.component.component
         import io.github.lmliam.kotventure.core.event.click
         import io.github.lmliam.kotventure.core.event.hover
+        import io.github.lmliam.kotventure.core.event.removed
         import io.github.lmliam.kotventure.core.key.key
         import io.github.lmliam.kotventure.core.keybind.keybind
         import io.github.lmliam.kotventure.core.nbt.blockNbt
         import io.github.lmliam.kotventure.core.nbt.blockPos
         import io.github.lmliam.kotventure.core.nbt.entityNbt
+        import io.github.lmliam.kotventure.core.nbt.nbt
         import io.github.lmliam.kotventure.core.nbt.nbtPath
         import io.github.lmliam.kotventure.core.nbt.storageNbt
         import io.github.lmliam.kotventure.core.objectcomponent.display
@@ -31,13 +33,11 @@ internal fun compileGeneratedDsl(source: String): Component {
         import io.github.lmliam.kotventure.core.selector.selector
         import io.github.lmliam.kotventure.core.text.text
         import io.github.lmliam.kotventure.core.translatable.translatable
-        import net.kyori.adventure.nbt.api.BinaryTagHolder
+        import io.github.lmliam.kotventure.core.uuid.uuid
         import net.kyori.adventure.text.Component
         import net.kyori.adventure.text.format.NamedTextColor
         import net.kyori.adventure.text.format.TextColor
-        import net.kyori.adventure.text.format.ShadowColor
         import net.kyori.adventure.text.format.TextDecoration
-        import java.util.UUID
 
         fun renderGenerated(): Component =
         ${source.prependIndent("    ")}
