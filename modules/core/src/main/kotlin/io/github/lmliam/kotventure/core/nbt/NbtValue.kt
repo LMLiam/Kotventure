@@ -1,41 +1,45 @@
 package io.github.lmliam.kotventure.core.nbt
 
-internal sealed interface NbtLiteralValue {
+internal sealed interface NbtValue {
     data class StringValue(
         val value: String,
-    ) : NbtLiteralValue
+    ) : NbtValue
 
     data class ByteValue(
         val value: Byte,
-    ) : NbtLiteralValue
+    ) : NbtValue
 
     data class ShortValue(
         val value: Short,
-    ) : NbtLiteralValue
+    ) : NbtValue
 
     data class IntValue(
         val value: Int,
-    ) : NbtLiteralValue
+    ) : NbtValue
 
     data class LongValue(
         val value: Long,
-    ) : NbtLiteralValue
+    ) : NbtValue
 
     data class FloatValue(
         val value: Float,
-    ) : NbtLiteralValue
+    ) : NbtValue
 
     data class DoubleValue(
         val value: Double,
-    ) : NbtLiteralValue
+    ) : NbtValue
 
     data class CompoundValue(
-        val predicate: NbtCompoundPredicate,
-    ) : NbtLiteralValue
+        val compound: NbtCompound,
+    ) : NbtValue
+
+    data class ListValue(
+        val elements: List<NbtValue>,
+    ) : NbtValue
 
     data class ByteArrayValue(
         val values: ByteArray,
-    ) : NbtLiteralValue {
+    ) : NbtValue {
         override fun equals(other: Any?): Boolean = other is ByteArrayValue && values.contentEquals(other.values)
 
         override fun hashCode(): Int = values.contentHashCode()
@@ -43,7 +47,7 @@ internal sealed interface NbtLiteralValue {
 
     data class IntArrayValue(
         val values: IntArray,
-    ) : NbtLiteralValue {
+    ) : NbtValue {
         override fun equals(other: Any?): Boolean = other is IntArrayValue && values.contentEquals(other.values)
 
         override fun hashCode(): Int = values.contentHashCode()
@@ -51,7 +55,7 @@ internal sealed interface NbtLiteralValue {
 
     data class LongArrayValue(
         val values: LongArray,
-    ) : NbtLiteralValue {
+    ) : NbtValue {
         override fun equals(other: Any?): Boolean = other is LongArrayValue && values.contentEquals(other.values)
 
         override fun hashCode(): Int = values.contentHashCode()

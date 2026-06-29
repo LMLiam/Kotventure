@@ -12,6 +12,6 @@ internal sealed interface NbtPathNode {
     data object AllElements : NbtPathNode
 
     data class MatchingElements(
-        val predicate: NbtCompoundPredicate,
+        val compound: NbtCompound,
     ) : NbtPathNode
 }
