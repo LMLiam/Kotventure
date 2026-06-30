@@ -412,7 +412,7 @@ class MiniMessageToDslEventRenderingTest :
                                             dataComponents =
                                                 mapOf(
                                                     key("minecraft", "custom_data") to
-                                                        nbt("{Lore:[{text:\"L1\"},{text:\"L2\"}]}"),
+                                                            nbt("{Lore:[{text:\"L1\"},{text:\"L2\"}]}"),
                                                 ),
                                         )
                                     }
@@ -447,7 +447,7 @@ class MiniMessageToDslEventRenderingTest :
                                             dataComponents =
                                                 mapOf(
                                                     key("minecraft", "custom_data") to
-                                                        nbt("{items:[]}"),
+                                                            nbt("{items:[]}"),
                                                 ),
                                         )
                                     }

@@ -42,21 +42,21 @@ class NbtListTest :
             "builds a list of compounds" {
                 nbt {
                     "Lore" eq
-                        list(
-                            { "text" eq "Line 1" },
-                            { "text" eq "Line 2" },
-                        )
+                            list(
+                                { "text" eq "Line 1" },
+                                { "text" eq "Line 2" },
+                            )
                 }.string() shouldBe "{Lore:[{text:\"Line 1\"},{text:\"Line 2\"}]}"
             }
 
             "builds a list of arrays" {
                 nbt { "rows" eq list(intArrayOf(1, 2), intArrayOf(3, 4)) }.string() shouldBe
-                    "{rows:[[I;1,2],[I;3,4]]}"
+                        "{rows:[[I;1,2],[I;3,4]]}"
             }
 
             "builds a list of lists" {
                 nbt { "grid" eq list(list(1, 2), list(3, 4)) }.string() shouldBe
-                    "{grid:[[1,2],[3,4]]}"
+                        "{grid:[[1,2],[3,4]]}"
             }
 
             "nests a list inside a compound element" {

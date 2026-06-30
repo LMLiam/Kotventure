@@ -46,7 +46,7 @@ private fun nbtElement(value: Any?): NbtValue =
         is NbtList -> NbtValue.ListValue(value.elements)
         else -> throw IllegalArgumentException(
             "NBT list elements must be a scalar (String, Boolean, Byte, Short, Int, Long, Float, Double), " +
-                "an array (ByteArray, IntArray, LongArray), a nested list, or a compound block. " +
-                "Got: ${if (value == null) "null" else value::class.qualifiedName ?: value::class}.",
+                    "an array (ByteArray, IntArray, LongArray), a nested list, or a compound block. " +
+                    "Got: ${if (value == null) "null" else value::class.qualifiedName ?: value::class}.",
         )
     }
