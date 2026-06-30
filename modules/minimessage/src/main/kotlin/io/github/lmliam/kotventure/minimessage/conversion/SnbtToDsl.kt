@@ -8,6 +8,7 @@ import net.kyori.adventure.nbt.DoubleBinaryTag
 import net.kyori.adventure.nbt.FloatBinaryTag
 import net.kyori.adventure.nbt.IntArrayBinaryTag
 import net.kyori.adventure.nbt.IntBinaryTag
+import net.kyori.adventure.nbt.ListBinaryTag
 import net.kyori.adventure.nbt.LongArrayBinaryTag
 import net.kyori.adventure.nbt.LongBinaryTag
 import net.kyori.adventure.nbt.ShortBinaryTag
@@ -23,7 +24,8 @@ import java.io.IOException
  * compounds are unordered, so reordering is semantically transparent).
  *
  * Returns `null` when the SNBT is malformed, has trailing content, or contains a construct the typed
- * DSL cannot yet express (a generic `TAG_List`), signalling the caller to fall back to `nbt("raw")`.
+ * DSL cannot yet express (an empty or nested-collection `TAG_List`), signalling the caller to fall
+ * back to `nbt("raw")`.
  */
 internal fun snbtToDslExpression(snbt: String): String? {
     val compound =
@@ -58,8 +60,32 @@ private fun renderValue(tag: BinaryTag): String? =
         is IntArrayBinaryTag -> "intArrayOf(${tag.value().joinToString(", ") { renderIntLiteral(it) }})"
         is LongArrayBinaryTag -> "longArrayOf(${tag.value().joinToString(", ") { renderLongLiteral(it) }})"
         is CompoundBinaryTag -> renderCompoundBody(tag)?.let { if (it.isEmpty()) "{ }" else "{ $it }" }
-        else -> null // TAG_List and any other tag have no typed DSL form yet → raw fallback.
+        is ListBinaryTag -> renderListLiteral(tag)
+        else -> null // Any other tag has no typed DSL form yet → raw fallback.
     }
+
+// An empty list carries no element type, so there's nothing to infer `listOf`'s type argument from →
+// raw fallback. Lists of nested lists or arrays have no typed DSL form yet → raw fallback.
+private fun renderListLiteral(list: ListBinaryTag): String? {
+    val first = list.firstOrNull() ?: return null
+    if (first is CompoundBinaryTag) return renderCompoundElementList(list)
+    if (first is ListBinaryTag || first is ByteArrayBinaryTag || first is IntArrayBinaryTag ||
+        first is LongArrayBinaryTag
+    ) {
+        return null
+    }
+    val elements = list.map { renderValue(it) ?: return null }
+    return "listOf(${elements.joinToString(", ")})"
+}
+
+private fun renderCompoundElementList(list: ListBinaryTag): String? {
+    val elements =
+        list.map { element ->
+            val body = renderCompoundBody(element as CompoundBinaryTag) ?: return null
+            if (body.isEmpty()) "element { }" else "element { $body }"
+        }
+    return "listOf { ${elements.joinToString("; ")} }"
+}
 
 /** Emits a [Byte] literal, parenthesising negatives so `(-5).toByte()` keeps the `Byte` type. */
 private fun renderByteLiteral(value: Byte): String = if (value < 0) "($value).toByte()" else "$value.toByte()"

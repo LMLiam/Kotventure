@@ -107,12 +107,57 @@ class SnbtToDslTest :
                         "nbt { \"Times\" eq longArrayOf(Long.MIN_VALUE) }"
             }
 
-            "returns null for generic lists" {
-                snbtToDslExpression("{items:[1,2,3]}").shouldBeNull()
+            "parses a list of strings" {
+                snbtToDslExpression("{pages:[\"a\",\"b\"]}") shouldBe
+                    "nbt { \"pages\" eq listOf(\"a\", \"b\") }"
             }
 
-            "returns null for a generic list nested in a compound" {
-                snbtToDslExpression("{tag:{lore:[\"a\",\"b\"]}}").shouldBeNull()
+            "parses a list of ints" {
+                snbtToDslExpression("{nums:[1,2,3]}") shouldBe
+                    "nbt { \"nums\" eq listOf(1, 2, 3) }"
+            }
+
+            "parses a list of bytes" {
+                snbtToDslExpression("{flags:[1b,2b]}") shouldBe
+                    "nbt { \"flags\" eq listOf(1.toByte(), 2.toByte()) }"
+            }
+
+            "parses a list of shorts" {
+                snbtToDslExpression("{slots:[3s,4s]}") shouldBe
+                    "nbt { \"slots\" eq listOf(3.toShort(), 4.toShort()) }"
+            }
+
+            "parses a list of longs" {
+                snbtToDslExpression("{times:[10L,20L]}") shouldBe
+                    "nbt { \"times\" eq listOf(10L, 20L) }"
+            }
+
+            "parses a list of floats" {
+                snbtToDslExpression("{speeds:[1.5f,2.5f]}") shouldBe
+                    "nbt { \"speeds\" eq listOf(1.5f, 2.5f) }"
+            }
+
+            "parses a list of doubles" {
+                snbtToDslExpression("{rates:[0.5d,1.5d]}") shouldBe
+                    "nbt { \"rates\" eq listOf(0.5, 1.5) }"
+            }
+
+            "parses a list of compounds" {
+                snbtToDslExpression("{Lore:[{text:\"L1\"},{text:\"L2\"}]}") shouldBe
+                    "nbt { \"Lore\" eq listOf { element { \"text\" eq \"L1\" }; element { \"text\" eq \"L2\" } } }"
+            }
+
+            "parses a list nested in a compound" {
+                snbtToDslExpression("{tag:{lore:[\"a\",\"b\"]}}") shouldBe
+                    "nbt { \"tag\" eq { \"lore\" eq listOf(\"a\", \"b\") } }"
+            }
+
+            "returns null for an empty list" {
+                snbtToDslExpression("{items:[]}").shouldBeNull()
+            }
+
+            "returns null for a list of lists" {
+                snbtToDslExpression("{nested:[[1,2],[3,4]]}").shouldBeNull()
             }
 
             "parses quoted keys" {
