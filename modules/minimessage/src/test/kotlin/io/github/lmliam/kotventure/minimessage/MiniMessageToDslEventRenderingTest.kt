@@ -3,7 +3,6 @@ package io.github.lmliam.kotventure.minimessage
 import io.github.lmliam.kotventure.core.color.aqua
 import io.github.lmliam.kotventure.core.color.gold
 import io.github.lmliam.kotventure.core.component.component
-import io.github.lmliam.kotventure.core.event.removed
 import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.nbt.nbt
 import io.github.lmliam.kotventure.core.text.text
@@ -253,12 +252,9 @@ class MiniMessageToDslEventRenderingTest :
                         component {
                             text("Loot data") {
                                 hover {
-                                    item(
-                                        key = key("minecraft", "diamond_sword"),
-                                        dataComponents = mapOf(
-                                            key("minecraft", "custom_data") to nbt { "kotventure" eq 1.toByte() }
-                                        )
-                                    )
+                                    item(key("minecraft", "diamond_sword")) {
+                                        component(key("minecraft", "custom_data")) { "kotventure" eq 1.toByte() }
+                                    }
                                 }
                             }
                         }
@@ -267,13 +263,9 @@ class MiniMessageToDslEventRenderingTest :
                             component {
                                 text("Loot data") {
                                     hover {
-                                        item(
-                                            key = key("minecraft", "diamond_sword"),
-                                            dataComponents =
-                                                mapOf(
-                                                    key("minecraft", "custom_data") to nbt("{kotventure:1b}"),
-                                                ),
-                                        )
+                                        item(key("minecraft", "diamond_sword")) {
+                                            component(key("minecraft", "custom_data"), nbt("{kotventure:1b}"))
+                                        }
                                     }
                                 }
                             },
@@ -285,14 +277,10 @@ class MiniMessageToDslEventRenderingTest :
                         component {
                             text("Loot data") {
                                 hover {
-                                    item(
-                                        key = key("minecraft", "diamond_sword"),
-                                        dataComponents =
-                                            mapOf(
-                                                key("minecraft", "damage") to nbt("{value:5b}"),
-                                                key("minecraft", "custom_data") to nbt("{kotventure:1b}"),
-                                            ),
-                                    )
+                                    item(key("minecraft", "diamond_sword")) {
+                                        component(key("minecraft", "damage"), nbt("{value:5b}"))
+                                        component(key("minecraft", "custom_data"), nbt("{kotventure:1b}"))
+                                    }
                                 }
                             }
                         }
@@ -302,13 +290,10 @@ class MiniMessageToDslEventRenderingTest :
                     component {
                         text("Loot data") {
                             hover {
-                                item(
-                                    key = key("minecraft", "diamond_sword"),
-                                    dataComponents = mapOf(
-                                        key("minecraft", "custom_data") to nbt { "kotventure" eq 1.toByte() },
-                                        key("minecraft", "damage") to nbt { "value" eq 5.toByte() }
-                                    )
-                                )
+                                item(key("minecraft", "diamond_sword")) {
+                                    component(key("minecraft", "custom_data")) { "kotventure" eq 1.toByte() }
+                                    component(key("minecraft", "damage")) { "value" eq 5.toByte() }
+                                }
                             }
                         }
                     }
@@ -322,12 +307,9 @@ class MiniMessageToDslEventRenderingTest :
                         component {
                             text("Edge data") {
                                 hover {
-                                    item(
-                                        key = key("minecraft", "diamond_sword"),
-                                        dataComponents = mapOf(
-                                            key("minecraft", "custom_data") to nbt { "big" eq Int.MIN_VALUE; "huge" eq Long.MIN_VALUE; "small" eq (-5).toShort(); "tiny" eq (-5).toByte() }
-                                        )
-                                    )
+                                    item(key("minecraft", "diamond_sword")) {
+                                        component(key("minecraft", "custom_data")) { "big" eq Int.MIN_VALUE; "huge" eq Long.MIN_VALUE; "small" eq (-5).toShort(); "tiny" eq (-5).toByte() }
+                                    }
                                 }
                             }
                         }
@@ -336,16 +318,12 @@ class MiniMessageToDslEventRenderingTest :
                             component {
                                 text("Edge data") {
                                     hover {
-                                        item(
-                                            key = key("minecraft", "diamond_sword"),
-                                            dataComponents =
-                                                mapOf(
-                                                    key("minecraft", "custom_data") to
-                                                            nbt(
-                                                                "{big:-2147483648,huge:-9223372036854775808L,small:-5s,tiny:-5b}",
-                                                            ),
-                                                ),
-                                        )
+                                        item(key("minecraft", "diamond_sword")) {
+                                            component(
+                                                key("minecraft", "custom_data"),
+                                                nbt("{big:-2147483648,huge:-9223372036854775808L,small:-5s,tiny:-5b}"),
+                                            )
+                                        }
                                     }
                                 }
                             },
@@ -359,12 +337,9 @@ class MiniMessageToDslEventRenderingTest :
                         component {
                             text("Book") {
                                 hover {
-                                    item(
-                                        key = key("minecraft", "written_book"),
-                                        dataComponents = mapOf(
-                                            key("minecraft", "custom_data") to nbt { "pages" eq list("a", "b") }
-                                        )
-                                    )
+                                    item(key("minecraft", "written_book")) {
+                                        component(key("minecraft", "custom_data")) { "pages" eq list("a", "b") }
+                                    }
                                 }
                             }
                         }
@@ -373,13 +348,9 @@ class MiniMessageToDslEventRenderingTest :
                             component {
                                 text("Book") {
                                     hover {
-                                        item(
-                                            key = key("minecraft", "written_book"),
-                                            dataComponents =
-                                                mapOf(
-                                                    key("minecraft", "custom_data") to nbt("{pages:[\"a\",\"b\"]}"),
-                                                ),
-                                        )
+                                        item(key("minecraft", "written_book")) {
+                                            component(key("minecraft", "custom_data"), nbt("{pages:[\"a\",\"b\"]}"))
+                                        }
                                     }
                                 }
                             },
@@ -393,12 +364,9 @@ class MiniMessageToDslEventRenderingTest :
                         component {
                             text("Loot data") {
                                 hover {
-                                    item(
-                                        key = key("minecraft", "diamond_sword"),
-                                        dataComponents = mapOf(
-                                            key("minecraft", "custom_data") to nbt { "Lore" eq list({ "text" eq "L1" }, { "text" eq "L2" }) }
-                                        )
-                                    )
+                                    item(key("minecraft", "diamond_sword")) {
+                                        component(key("minecraft", "custom_data")) { "Lore" eq list({ "text" eq "L1" }, { "text" eq "L2" }) }
+                                    }
                                 }
                             }
                         }
@@ -407,14 +375,12 @@ class MiniMessageToDslEventRenderingTest :
                             component {
                                 text("Loot data") {
                                     hover {
-                                        item(
-                                            key = key("minecraft", "diamond_sword"),
-                                            dataComponents =
-                                                mapOf(
-                                                    key("minecraft", "custom_data") to
-                                                            nbt("{Lore:[{text:\"L1\"},{text:\"L2\"}]}"),
-                                                ),
-                                        )
+                                        item(key("minecraft", "diamond_sword")) {
+                                            component(
+                                                key("minecraft", "custom_data"),
+                                                nbt("{Lore:[{text:\"L1\"},{text:\"L2\"}]}"),
+                                            )
+                                        }
                                     }
                                 }
                             },
@@ -428,12 +394,9 @@ class MiniMessageToDslEventRenderingTest :
                         component {
                             text("Loot data") {
                                 hover {
-                                    item(
-                                        key = key("minecraft", "diamond_sword"),
-                                        dataComponents = mapOf(
-                                            key("minecraft", "custom_data") to nbt("{items:[]}")
-                                        )
-                                    )
+                                    item(key("minecraft", "diamond_sword")) {
+                                        component(key("minecraft", "custom_data"), nbt("{items:[]}"))
+                                    }
                                 }
                             }
                         }
@@ -442,14 +405,9 @@ class MiniMessageToDslEventRenderingTest :
                             component {
                                 text("Loot data") {
                                     hover {
-                                        item(
-                                            key = key("minecraft", "diamond_sword"),
-                                            dataComponents =
-                                                mapOf(
-                                                    key("minecraft", "custom_data") to
-                                                            nbt("{items:[]}"),
-                                                ),
-                                        )
+                                        item(key("minecraft", "diamond_sword")) {
+                                            component(key("minecraft", "custom_data"), nbt("{items:[]}"))
+                                        }
                                     }
                                 }
                             },
@@ -464,13 +422,9 @@ class MiniMessageToDslEventRenderingTest :
                         component {
                             text("Loot data") {
                                 hover {
-                                    item(
-                                        key = key("minecraft", "diamond_sword"),
-                                        dataComponents =
-                                            mapOf(
-                                                key("minecraft", "custom_data") to removed(),
-                                            ),
-                                    )
+                                    item(key("minecraft", "diamond_sword")) {
+                                        removed(key("minecraft", "custom_data"))
+                                    }
                                 }
                             }
                         }
@@ -480,12 +434,9 @@ class MiniMessageToDslEventRenderingTest :
                     component {
                         text("Loot data") {
                             hover {
-                                item(
-                                    key = key("minecraft", "diamond_sword"),
-                                    dataComponents = mapOf(
-                                        key("minecraft", "custom_data") to removed()
-                                    )
-                                )
+                                item(key("minecraft", "diamond_sword")) {
+                                    removed(key("minecraft", "custom_data"))
+                                }
                             }
                         }
                     }

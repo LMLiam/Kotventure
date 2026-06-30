@@ -6,7 +6,6 @@ import io.github.lmliam.kotventure.core.text.TextScope
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.key.Keyed
 import net.kyori.adventure.text.ComponentLike
-import net.kyori.adventure.text.event.DataComponentValue
 import java.util.UUID
 
 /**
@@ -33,27 +32,27 @@ public interface HoverContentScope {
     public fun text(init: ComponentScope.() -> Unit)
 
     /**
-     * Selects an item hover payload from [key], [count], and typed [dataComponents].
+     * Selects an item hover payload from [key] and [count], with its data components declared by [components].
      *
      * @throws IllegalArgumentException when [count] is negative.
      */
     public fun item(
         key: Key,
         count: Int = 1,
-        dataComponents: Map<Key, DataComponentValue> = emptyMap(),
+        components: ItemDataComponentScope.() -> Unit = {},
     )
 
     /**
-     * Selects an item hover payload from [item], [count], and typed [dataComponents].
+     * Selects an item hover payload from [item] and [count], with its data components declared by [components].
      *
      * @throws IllegalArgumentException when [count] is negative.
      */
     public fun item(
         item: Keyed,
         count: Int = 1,
-        dataComponents: Map<Key, DataComponentValue> = emptyMap(),
+        components: ItemDataComponentScope.() -> Unit = {},
     ) {
-        item(item.key(), count, dataComponents)
+        item(item.key(), count, components)
     }
 
     /**

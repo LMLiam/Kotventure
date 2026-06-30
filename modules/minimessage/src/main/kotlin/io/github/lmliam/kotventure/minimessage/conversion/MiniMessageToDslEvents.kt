@@ -1,6 +1,7 @@
 package io.github.lmliam.kotventure.minimessage.conversion
 
 import net.kyori.adventure.key.Key
+import net.kyori.adventure.nbt.api.BinaryTagHolder
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.DataComponentValue
@@ -37,32 +38,54 @@ internal fun KotlinSourceBuilder.appendHoverEvent(event: HoverEvent<*>) {
 
 private fun KotlinSourceBuilder.appendShowItem(item: HoverEvent.ShowItem) {
     val itemKey = keyLiteral(item.item())
+    val components = item.dataComponents()
     val arguments =
         buildList {
             add { line("key = $itemKey") }
             if (item.count() != 1) add { line("count = ${item.count()}") }
-            if (item.dataComponents().isNotEmpty()) add { appendDataComponents(item.dataComponents()) }
         }
 
-    if (arguments.size == 1) {
-        line("item($itemKey)")
-        return
+    when {
+        components.isEmpty() && arguments.size == 1 -> line("item($itemKey)")
+        components.isEmpty() -> {
+            openArguments("item(", arguments)
+            line(")")
+        }
+        arguments.size == 1 -> block("item($itemKey)") { appendDataComponents(components) }
+        else -> {
+            openArguments("item(", arguments)
+            block(")") { appendDataComponents(components) }
+        }
     }
-
-    openArguments("item(", arguments)
-    line(")")
 }
 
-private fun KotlinSourceBuilder.appendDataComponents(dataComponents: Map<Key, DataComponentValue>) {
-    val entries: List<() -> Unit> =
-        dataComponents.entries
-            .sortedBy { (key, _) -> key.asString() }
-            .map { (key, value) ->
-                { line("${keyLiteral(key)} to ${dataComponentValueLiteral(value)}") }
-            }
+private fun KotlinSourceBuilder.appendDataComponents(components: Map<Key, DataComponentValue>) {
+    components.entries
+        .sortedBy { (key, _) -> key.asString() }
+        .forEach { (key, value) -> appendDataComponent(keyLiteral(key), value) }
+}
 
-    openArguments("dataComponents = mapOf(", entries)
-    line(")")
+private fun KotlinSourceBuilder.appendDataComponent(
+    keyLiteral: String,
+    value: DataComponentValue,
+) {
+    when (value) {
+        is DataComponentValue.Removed -> line("removed($keyLiteral)")
+        is BinaryTagHolder -> appendNbtComponent(keyLiteral, value.string())
+        is DataComponentValue.TagSerializable -> appendNbtComponent(keyLiteral, value.asBinaryTag().string())
+        else -> conversionError("miniToDsl cannot represent data component value ${value::class.qualifiedName}.")
+    }
+}
+
+private fun KotlinSourceBuilder.appendNbtComponent(
+    keyLiteral: String,
+    snbt: String,
+) {
+    when (val body = snbtToDslBody(snbt)) {
+        null -> line("component($keyLiteral, nbt(\"${escapeKotlinString(snbt)}\"))")
+        "" -> line("component($keyLiteral) { }")
+        else -> line("component($keyLiteral) { $body }")
+    }
 }
 
 private fun KotlinSourceBuilder.appendShowEntity(entity: HoverEvent.ShowEntity) {

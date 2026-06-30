@@ -2,6 +2,7 @@ package io.github.lmliam.kotventure.core.event
 
 import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.key.key
+import io.github.lmliam.kotventure.core.nbt.nbt
 import io.github.lmliam.kotventure.core.style.style
 import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.test.text.childAt
@@ -16,7 +17,6 @@ import io.github.lmliam.kotventure.test.text.shouldNotHaveHoverEvent
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import net.kyori.adventure.key.Key
 import net.kyori.adventure.key.Keyed
 import net.kyori.adventure.nbt.api.BinaryTagHolder
 import net.kyori.adventure.text.Component
@@ -42,23 +42,62 @@ class HoverEventDslTest :
                 value shouldHaveColor NamedTextColor.AQUA
             }
 
-            "builds reusable item hover events with typed data components" {
-                val dataComponents =
-                    mapOf<Key, DataComponentValue>(
-                        key("minecraft", "custom_data") to BinaryTagHolder.binaryTagHolder("{kotventure:1b}"),
-                    )
+            "builds reusable item hover events with data components from a block" {
                 val event =
                     hover {
-                        item(
-                            key = key("minecraft", "diamond_sword"),
-                            count = 2,
-                            dataComponents = dataComponents,
-                        )
+                        item(key("minecraft", "diamond_sword"), count = 2) {
+                            component(key("minecraft", "custom_data")) { "kotventure" eq 1.toByte() }
+                        }
                     }
 
                 event.action() shouldBe HoverEvent.Action.SHOW_ITEM
                 event.value() shouldBe
-                        HoverEvent.ShowItem.showItem(key("minecraft", "diamond_sword"), 2, dataComponents)
+                        HoverEvent.ShowItem.showItem(
+                            key("minecraft", "diamond_sword"),
+                            2,
+                            mapOf(
+                                key("minecraft", "custom_data") to BinaryTagHolder.binaryTagHolder("{kotventure:1b}"),
+                            ),
+                        )
+            }
+
+            "builds item hover data components from pre-built values and removal markers" {
+                val event =
+                    hover {
+                        item(key("minecraft", "diamond_sword")) {
+                            component(key("minecraft", "damage"), nbt("{value:5b}"))
+                            removed(key("minecraft", "enchantments"))
+                        }
+                    }
+
+                event.value() shouldBe
+                        HoverEvent.ShowItem.showItem(
+                            key("minecraft", "diamond_sword"),
+                            1,
+                            mapOf(
+                                key("minecraft", "damage") to BinaryTagHolder.binaryTagHolder("{value:5b}"),
+                                key("minecraft", "enchantments") to DataComponentValue.removed(),
+                            ),
+                        )
+            }
+
+            "replaces an item data component when its key is declared twice" {
+                val event =
+                    hover {
+                        item(key("minecraft", "diamond_sword")) {
+                            component(key("minecraft", "custom_data")) { "kotventure" eq 1.toByte() }
+                            component(key("minecraft", "custom_data")) { "kotventure" eq 2.toByte() }
+                        }
+                    }
+
+                event.value() shouldBe
+                        HoverEvent.ShowItem.showItem(
+                            key("minecraft", "diamond_sword"),
+                            1,
+                            mapOf(
+                                key("minecraft", "custom_data") to BinaryTagHolder.binaryTagHolder("{kotventure:2b}"),
+                            ),
+                        )
             }
 
             "builds reusable item hover events from keyed values and permits zero counts" {
