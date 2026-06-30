@@ -588,10 +588,9 @@ class MiniMessageToDslStructuredComponentTest :
                         component {
                             text("Loot") {
                                 hover {
-                                    item(
-                                        key = key("minecraft", "diamond_sword"),
-                                        dataComponents = mapOf(key("minecraft", "custom_data") to unsupportedValue),
-                                    )
+                                    item(key("minecraft", "diamond_sword")) {
+                                        component(key("minecraft", "custom_data"), unsupportedValue)
+                                    }
                                 }
                             }
                         }

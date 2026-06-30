@@ -5,7 +5,6 @@ import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.text.TextScope
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.ComponentLike
-import net.kyori.adventure.text.event.DataComponentValue
 import net.kyori.adventure.text.event.HoverEvent
 import java.util.UUID
 import io.github.lmliam.kotventure.core.text.text as textComponent
@@ -31,8 +30,9 @@ internal class HoverBuilder : HoverContentScope {
     override fun item(
         key: Key,
         count: Int,
-        dataComponents: Map<Key, DataComponentValue>,
+        components: ItemDataComponentScope.() -> Unit,
     ) {
+        val dataComponents = ItemDataComponentBuilder().apply(components).build()
         set(HoverEvent.showItem(key, requireShowItemCount(count), dataComponents))
     }
 

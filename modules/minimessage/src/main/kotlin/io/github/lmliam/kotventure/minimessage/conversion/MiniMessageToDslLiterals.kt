@@ -1,8 +1,6 @@
 package io.github.lmliam.kotventure.minimessage.conversion
 
 import net.kyori.adventure.key.Key
-import net.kyori.adventure.nbt.api.BinaryTagHolder
-import net.kyori.adventure.text.event.DataComponentValue
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.ShadowColor
 import net.kyori.adventure.text.format.TextColor
@@ -104,22 +102,6 @@ private fun playerHeadLiteral(contents: PlayerHeadObjectContents): String {
     val hat = if (contents.hat()) null else "hat = ${contents.hat()}"
     return "head(${(skinSources + listOfNotNull(hat)).joinToString(", ")})"
 }
-
-/** Renders [value] as the Kotlin DSL expression that reconstructs it. */
-internal fun dataComponentValueLiteral(value: DataComponentValue): String =
-    when (value) {
-        is BinaryTagHolder ->
-            snbtToDslExpression(value.string())
-                ?: "nbt(\"${escapeKotlinString(value.string())}\")"
-
-        is DataComponentValue.TagSerializable -> {
-            val snbt = value.asBinaryTag().string()
-            snbtToDslExpression(snbt) ?: "nbt(\"${escapeKotlinString(snbt)}\")"
-        }
-
-        is DataComponentValue.Removed -> "removed()"
-        else -> conversionError("miniToDsl cannot represent data component value ${value::class.qualifiedName}.")
-    }
 
 /** Escapes [value] for embedding inside a double-quoted Kotlin string literal. */
 internal fun escapeKotlinString(value: String): String =

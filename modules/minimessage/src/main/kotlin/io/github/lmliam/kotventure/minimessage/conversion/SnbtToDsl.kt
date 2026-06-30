@@ -17,7 +17,8 @@ import net.kyori.adventure.nbt.TagStringIO
 import java.io.IOException
 
 /**
- * Converts an SNBT compound string into a Kotlin DSL expression using `nbt { ... }`.
+ * Converts an SNBT compound string into the body of a Kotventure NBT DSL block: the `"key" eq value`
+ * calls that go inside `nbt { ... }` or `component(key) { ... }`. An empty compound renders to `""`.
  *
  * The SNBT is parsed with Adventure's [TagStringIO], then each entry is rendered to its DSL form.
  * Keys are emitted in alphabetical order so the output is deterministic and JDK-independent (NBT
@@ -27,15 +28,14 @@ import java.io.IOException
  * DSL cannot express (an empty `TAG_List`, which carries no element type), signalling the caller to
  * fall back to `nbt("raw")`.
  */
-internal fun snbtToDslExpression(snbt: String): String? {
+internal fun snbtToDslBody(snbt: String): String? {
     val compound =
         try {
             TagStringIO.tagStringIO().asCompound(snbt)
         } catch (e: IOException) {
             return null
         }
-    val body = renderCompoundBody(compound) ?: return null
-    return if (body.isEmpty()) "nbt { }" else "nbt { $body }"
+    return renderCompoundBody(compound)
 }
 
 private fun renderCompoundBody(compound: CompoundBinaryTag): String? {

@@ -3,6 +3,7 @@ package io.github.lmliam.kotventure.serializer
 import io.github.lmliam.kotventure.core.color.hex
 import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.key.key
+import io.github.lmliam.kotventure.core.nbt.nbt
 import io.github.lmliam.kotventure.core.objectcomponent.display
 import io.github.lmliam.kotventure.core.objectcomponent.sprite
 import io.github.lmliam.kotventure.core.text.text
@@ -224,10 +225,9 @@ class ComponentSerializerExtensionsTest :
                     component {
                         text("Hover") {
                             hover {
-                                item(
-                                    key = key("minecraft", "diamond_sword"),
-                                    dataComponents = dataComponents,
-                                )
+                                item(key("minecraft", "diamond_sword")) {
+                                    component(key("minecraft", "custom_data"), nbt("{kotventure:1b}"))
+                                }
                             }
                         }
                     }
