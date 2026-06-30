@@ -36,7 +36,7 @@ class NbtFactoryTest :
 
             "builds a nested compound" {
                 nbt { "display" eq { "Name" eq "Sword" } }.string() shouldBe
-                    "{display:{Name:\"Sword\"}}"
+                        "{display:{Name:\"Sword\"}}"
             }
 
             "builds a deeply nested compound" {

@@ -110,7 +110,7 @@ internal fun dataComponentValueLiteral(value: DataComponentValue): String =
     when (value) {
         is BinaryTagHolder ->
             snbtToDslExpression(value.string())
-            ?: "nbt(\"${escapeKotlinString(value.string())}\")"
+                ?: "nbt(\"${escapeKotlinString(value.string())}\")"
 
         is DataComponentValue.TagSerializable -> {
             val snbt = value.asBinaryTag().string()

@@ -10,7 +10,7 @@ class UuidTest :
         {
             "parses a valid UUID string" {
                 uuid("0d1630e2-fc7c-48ef-b7a0-8dfb9e57ec25") shouldBe
-                    UUID.fromString("0d1630e2-fc7c-48ef-b7a0-8dfb9e57ec25")
+                        UUID.fromString("0d1630e2-fc7c-48ef-b7a0-8dfb9e57ec25")
             }
 
             "throws on an invalid UUID string" {
