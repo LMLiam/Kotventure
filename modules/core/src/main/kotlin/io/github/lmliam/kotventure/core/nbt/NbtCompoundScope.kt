@@ -16,6 +16,9 @@ public interface NbtCompoundScope {
     /** Sets [this] key to the given string value. */
     public infix fun String.eq(value: String)
 
+    /** Sets [this] key to the given boolean, rendered as a byte (`true` → `1b`, `false` → `0b`). */
+    public infix fun String.eq(value: Boolean)
+
     /** Sets [this] key to the given byte value (renders as SNBT byte, e.g. `1b`). */
     public infix fun String.eq(value: Byte)
 

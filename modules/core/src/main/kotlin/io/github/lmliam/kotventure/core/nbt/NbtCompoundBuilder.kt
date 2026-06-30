@@ -9,6 +9,10 @@ internal class NbtCompoundBuilder : NbtCompoundScope {
         entries[this] = NbtValue.StringValue(value)
     }
 
+    override infix fun String.eq(value: Boolean) {
+        entries[this] = NbtValue.ByteValue(if (value) 1 else 0)
+    }
+
     override infix fun String.eq(value: Byte) {
         entries[this] = NbtValue.ByteValue(value)
     }
