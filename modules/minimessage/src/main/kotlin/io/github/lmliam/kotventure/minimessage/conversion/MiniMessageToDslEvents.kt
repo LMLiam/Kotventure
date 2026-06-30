@@ -69,7 +69,7 @@ private fun KotlinSourceBuilder.appendShowEntity(entity: HoverEvent.ShowEntity) 
     val arguments: List<() -> Unit> =
         listOf(
             { line("type = ${keyLiteral(entity.type())}") },
-            { line("id = UUID.fromString(\"${entity.id()}\")") },
+            { line("id = uuid(\"${entity.id()}\")") },
         )
 
     openArguments("entity(", arguments)

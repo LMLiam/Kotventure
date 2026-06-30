@@ -15,6 +15,7 @@ spotlessKtlint = "1.8.0"
 [libraries]
 adventure-api = { module = "net.kyori:adventure-api", version.ref = "adventureApi" }
 adventure-bom = { module = "net.kyori:adventure-bom", version.ref = "adventureApi" }
+adventure-nbt = { module = "net.kyori:adventure-nbt", version.ref = "adventureApi" }
 adventure-text-minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventureApi" }
 adventure-text-serializer-gson = { module = "net.kyori:adventure-text-serializer-gson", version.ref = "adventureApi" }
 adventure-text-serializer-json-legacy-impl = { module = "net.kyori:adventure-text-serializer-json-legacy-impl", version.ref = "adventureApi" }

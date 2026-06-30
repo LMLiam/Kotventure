@@ -287,7 +287,7 @@ class MiniMessageToDslTextRenderingTest :
                             """
                         component {
                             text("shadow") {
-                                shadow(ShadowColor.shadowColor(0x3F112233.toInt()))
+                                shadow(hex("#112233"), alpha = 0x3F)
                             }
                         }
                     """.trimIndent()
@@ -304,7 +304,7 @@ class MiniMessageToDslTextRenderingTest :
                         component {
                             text("ok") {
                                 text("bad") {
-                                    shadow(ShadowColor.shadowColor(0xFF112233.toInt()))
+                                    shadow(hex("#112233"))
                                 }
                             }
                         }
@@ -325,7 +325,7 @@ class MiniMessageToDslTextRenderingTest :
                             translatable("chat.type.text") {
                                 arg {
                                     text("Alex") {
-                                        shadow(ShadowColor.shadowColor(0xFF112233.toInt()))
+                                        shadow(hex("#112233"))
                                     }
                                 }
                             }
@@ -343,7 +343,7 @@ class MiniMessageToDslTextRenderingTest :
                             selector(entitySelector("@e")) {
                                 separator {
                                     text(", ") {
-                                        shadow(ShadowColor.shadowColor(0xFF112233.toInt()))
+                                        shadow(hex("#112233"))
                                     }
                                 }
                             }
@@ -362,7 +362,7 @@ class MiniMessageToDslTextRenderingTest :
                                 hover {
                                     text {
                                         text("tip") {
-                                            shadow(ShadowColor.shadowColor(0xFF112233.toInt()))
+                                            shadow(hex("#112233"))
                                         }
                                     }
                                 }

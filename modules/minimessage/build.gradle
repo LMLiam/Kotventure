@@ -3,6 +3,7 @@ description = 'Adventure MiniMessage parsing helpers and placeholder DSL.'
 dependencies {
     api project(':core')
 
+    implementation kotventureDependencies."adventure-nbt"
     implementation kotventureDependencies."adventure-text-minimessage"
 
     testImplementation project(':core')

@@ -42,11 +42,20 @@ internal fun matchingSample() {
     nbtPath("Items")[matching { "id" eq "minecraft:diamond" }]["Count"]
 }
 
-internal fun nbtPredicateScopeSample() {
+internal fun nbtCompoundScopeSample() {
     matching {
         "id" eq "minecraft:diamond"
         "Count" eq 1.toByte()
         "tag" eq { "Unbreakable" eq 1.toByte() }
+    }
+}
+
+internal fun nbtSample() {
+    nbt {
+        "kotventure" eq 1.toByte()
+        "display" eq {
+            "Name" eq "Sword"
+        }
     }
 }
 

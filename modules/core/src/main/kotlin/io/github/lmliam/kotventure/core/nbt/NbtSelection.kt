@@ -15,12 +15,11 @@ public class NbtSelection internal constructor(
 public val all: NbtSelection = NbtSelection(NbtPathNode.AllElements)
 
 /**
- * Selects list elements matching a compound predicate (`[{...}]`).
+ * Selects list elements matching a compound filter (`[{...}]`).
  *
  * @sample io.github.lmliam.kotventure.core.nbt.matchingSample
  */
-public fun matching(init: NbtPredicateScope.() -> Unit): NbtSelection {
-    val builder = NbtPredicateBuilder()
-    builder.init()
-    return NbtSelection(NbtPathNode.MatchingElements(builder.build()))
+public fun matching(init: NbtCompoundScope.() -> Unit): NbtSelection {
+    val compound = NbtCompoundBuilder().apply(init).build()
+    return NbtSelection(NbtPathNode.MatchingElements(compound))
 }

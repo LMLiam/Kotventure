@@ -550,7 +550,7 @@ class MiniMessageToDslStructuredComponentTest :
                     MiniMessageToDslWriter.write(playerHead) shouldBe
                             """
                         component {
-                            display(head(UUID.fromString("0d1630e2-fc7c-48ef-b7a0-8dfb9e57ec25")))
+                            display(head(uuid("0d1630e2-fc7c-48ef-b7a0-8dfb9e57ec25")))
                         }
                         """.trimIndent()
                 }

@@ -42,16 +42,23 @@ private val namedColorLiterals: Map<NamedTextColor, String> =
         NamedTextColor.WHITE to "white",
     )
 
-/** Renders [color] as the `ShadowColor.shadowColor(...)` call that reconstructs its packed ARGB value. */
+/**
+ * Renders [color] as the DSL expression that reconstructs it by composing
+ * [hex][io.github.lmliam.kotventure.core.color.hex] and the
+ * [shadow][io.github.lmliam.kotventure.core.style.StyleScope.shadow] overload.
+ *
+ * Emits `hex("#RRGGBB"), alpha = 0xAA` when alpha differs from the default (0xFF),
+ * otherwise just `hex("#RRGGBB")`. The call site wraps this in `shadow(...)`.
+ */
 internal fun shadowColorLiteral(color: ShadowColor): String {
-    val argb =
-        color
-            .value()
-            .toUInt()
-            .toString(16)
-            .uppercase(Locale.ROOT)
-            .padStart(8, '0')
-    return "ShadowColor.shadowColor(0x$argb.toInt())"
+    val rgb = color.value() and 0x00FFFFFF
+    val alpha = (color.value() ushr 24) and 0xFF
+    val hexColor = "#%06X".format(rgb)
+    return if (alpha == 0xFF) {
+        "hex(\"$hexColor\")"
+    } else {
+        "hex(\"$hexColor\"), alpha = 0x%02X".format(alpha)
+    }
 }
 
 /** Renders [key] as a `key("namespace", "value")` call. */
@@ -86,7 +93,7 @@ private fun playerHeadLiteral(contents: PlayerHeadObjectContents): String {
     val skinSources =
         listOfNotNull(
             contents.name()?.let { "\"${escapeKotlinString(it)}\"" },
-            contents.id()?.let { "UUID.fromString(\"$it\")" },
+            contents.id()?.let { "uuid(\"$it\")" },
             contents.texture()?.let { keyLiteral(it) },
         )
     if (skinSources.size != 1) {
@@ -98,14 +105,19 @@ private fun playerHeadLiteral(contents: PlayerHeadObjectContents): String {
     return "head(${(skinSources + listOfNotNull(hat)).joinToString(", ")})"
 }
 
-/** Renders [value] as the Kotlin expression that reconstructs it. */
+/** Renders [value] as the Kotlin DSL expression that reconstructs it. */
 internal fun dataComponentValueLiteral(value: DataComponentValue): String =
     when (value) {
-        is BinaryTagHolder -> "BinaryTagHolder.binaryTagHolder(\"${escapeKotlinString(value.string())}\")"
-        is DataComponentValue.TagSerializable ->
-            "BinaryTagHolder.binaryTagHolder(\"${escapeKotlinString(value.asBinaryTag().string())}\")"
+        is BinaryTagHolder ->
+            snbtToDslExpression(value.string())
+                ?: "nbt(\"${escapeKotlinString(value.string())}\")"
 
-        is DataComponentValue.Removed -> "DataComponentValue.removed()"
+        is DataComponentValue.TagSerializable -> {
+            val snbt = value.asBinaryTag().string()
+            snbtToDslExpression(snbt) ?: "nbt(\"${escapeKotlinString(snbt)}\")"
+        }
+
+        is DataComponentValue.Removed -> "removed()"
         else -> conversionError("miniToDsl cannot represent data component value ${value::class.qualifiedName}.")
     }
 
