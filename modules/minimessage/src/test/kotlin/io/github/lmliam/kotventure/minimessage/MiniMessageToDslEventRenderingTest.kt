@@ -3,6 +3,7 @@ package io.github.lmliam.kotventure.minimessage
 import io.github.lmliam.kotventure.core.color.aqua
 import io.github.lmliam.kotventure.core.color.gold
 import io.github.lmliam.kotventure.core.component.component
+import io.github.lmliam.kotventure.core.event.removed
 import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.core.uuid.uuid
@@ -354,6 +355,77 @@ class MiniMessageToDslEventRenderingTest :
                                 }
                             },
                     )
+                }
+
+                test("falls back to raw nbt for data components the DSL can't model losslessly") {
+                    assertGoldenRoundTrip(
+                        expectedSource =
+                            """
+                        component {
+                            text("Loot data") {
+                                hover {
+                                    item(
+                                        key = key("minecraft", "diamond_sword"),
+                                        dataComponents = mapOf(
+                                            key("minecraft", "custom_data") to nbt("{items:[1,2,3]}")
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                        """.trimIndent(),
+                        expectedComponent =
+                            component {
+                                text("Loot data") {
+                                    hover {
+                                        item(
+                                            key = key("minecraft", "diamond_sword"),
+                                            dataComponents =
+                                                mapOf<Key, DataComponentValue>(
+                                                    key("minecraft", "custom_data") to
+                                                            BinaryTagHolder.binaryTagHolder("{items:[1,2,3]}"),
+                                                ),
+                                        )
+                                    }
+                                }
+                            },
+                    )
+                }
+
+                // Asserted via direct write rather than assertGoldenRoundTrip: Adventure's MiniMessage
+                // serializer can't emit a `show_item` hover carrying a removed (non-TagSerializable) data
+                // component, so the round-trip harness can't reach this emission branch.
+                test("emits removed data components as removed()") {
+                    val loot =
+                        component {
+                            text("Loot data") {
+                                hover {
+                                    item(
+                                        key = key("minecraft", "diamond_sword"),
+                                        dataComponents =
+                                            mapOf<Key, DataComponentValue>(
+                                                key("minecraft", "custom_data") to removed(),
+                                            ),
+                                    )
+                                }
+                            }
+                        }
+
+                    MiniMessageToDslWriter.write(loot) shouldBe
+                            """
+                    component {
+                        text("Loot data") {
+                            hover {
+                                item(
+                                    key = key("minecraft", "diamond_sword"),
+                                    dataComponents = mapOf(
+                                        key("minecraft", "custom_data") to removed()
+                                    )
+                                )
+                            }
+                        }
+                    }
+                    """.trimIndent()
                 }
 
                 test("round-trips show entity hover events against compiled expected DSL") {
