@@ -5,11 +5,11 @@ import kotlin.reflect.KClass
 /**
  * Builds a homogeneous NBT list (`TAG_List`) of scalar [values].
  *
- * The element type is fixed by `T`, so the list cannot be mixed; `listOf("a", 1)` infers `T = Any`
+ * The element type is fixed by [T], so the list cannot be mixed; `listOf("a", 1)` infers `T = Any`
  * and is rejected. Supported element types are `String`, `Byte`, `Short`, `Int`, `Long`, `Float`,
  * and `Double`. For lists of compounds, use the [listOf] overload that takes an element block.
  *
- * Defined as an extension on [NbtCompoundScope] so it shadows `kotlin.collections.listOf` only
+ * Defined as an extension on [NbtCompoundScope] so it shadows [kotlin.collections.listOf] only
  * inside an `nbt { ... }` block and never leaks into the surrounding namespace.
  *
  * @throws IllegalArgumentException if `T` is not a supported scalar NBT type.
