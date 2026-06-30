@@ -46,6 +46,6 @@ public interface NbtCompoundScope {
     /** Sets [this] key to the given long array (renders as SNBT long array, e.g. `[L;1L,2L]`). */
     public infix fun String.eq(values: LongArray)
 
-    /** Sets [this] key to a homogeneous list (renders as SNBT list, e.g. `[1,2,3]`). Build it with [listOf]. */
+    /** Sets [this] key to a homogeneous list (renders as SNBT list, e.g. `[1,2,3]`). Build it with [list]. */
     public infix fun String.eq(value: NbtList)
 }

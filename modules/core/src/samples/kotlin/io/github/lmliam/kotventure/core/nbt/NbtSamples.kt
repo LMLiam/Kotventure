@@ -61,12 +61,14 @@ internal fun nbtSample() {
 
 internal fun nbtListSample() {
     nbt {
-        "pages" eq listOf("Once", "upon", "a", "time")
+        "pages" eq list("Once", "upon", "a", "time")
         "Lore" eq
-            listOf {
-                element { "text" eq "Line 1" }
-                element { "text" eq "Line 2" }
-            }
+            list(
+                { "text" eq "Line 1" },
+                { "text" eq "Line 2" },
+            )
+        "rows" eq list(intArrayOf(1, 2), intArrayOf(3, 4))
+        "grid" eq list(list(1, 2), list(3, 4))
     }
 }
 

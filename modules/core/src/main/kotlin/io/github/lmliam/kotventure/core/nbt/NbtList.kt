@@ -3,9 +3,9 @@ package io.github.lmliam.kotventure.core.nbt
 /**
  * A homogeneous NBT list (`TAG_List`).
  *
- * Every element shares one NBT type — Minecraft rejects mixed-type lists. Homogeneity is guaranteed
- * by construction: build one with [listOf] (scalars) or [listOf] with an element block (compounds),
- * then assign it with [NbtCompoundScope.eq].
+ * Every element shares one NBT type — Minecraft rejects mixed-type lists. Homogeneity is guaranteed by
+ * construction: build one with [list] (scalars, arrays, nested lists) or the [list] compound-block
+ * overload, then assign it with [NbtCompoundScope.eq].
  *
  * @sample io.github.lmliam.kotventure.core.nbt.nbtListSample
  */
