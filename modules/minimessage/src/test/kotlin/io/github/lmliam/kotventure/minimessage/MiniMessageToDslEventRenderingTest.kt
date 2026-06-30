@@ -272,6 +272,39 @@ class MiniMessageToDslEventRenderingTest :
                     )
                 }
 
+                test("round-trips show item hover data components with a non-default count") {
+                    assertGoldenRoundTrip(
+                        expectedSource =
+                            """
+                        component {
+                            text("Loot data") {
+                                hover {
+                                    item(
+                                        key = key("minecraft", "diamond_sword"),
+                                        count = 2
+                                    ) {
+                                        component(key("minecraft", "custom_data")) { "kotventure" eq 1.toByte() }
+                                    }
+                                }
+                            }
+                        }
+                        """.trimIndent(),
+                        expectedComponent =
+                            component {
+                                text("Loot data") {
+                                    hover {
+                                        item(
+                                            key = key("minecraft", "diamond_sword"),
+                                            count = 2,
+                                        ) {
+                                            component(key("minecraft", "custom_data"), nbt("{kotventure:1b}"))
+                                        }
+                                    }
+                                }
+                            },
+                    )
+                }
+
                 test("emits show item data components in a stable key order") {
                     val loot =
                         component {
