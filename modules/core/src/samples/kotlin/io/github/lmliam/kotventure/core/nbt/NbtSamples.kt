@@ -59,6 +59,17 @@ internal fun nbtSample() {
     }
 }
 
+internal fun nbtListSample() {
+    nbt {
+        "pages" eq listOf("Once", "upon", "a", "time")
+        "Lore" eq
+            listOf {
+                element { "text" eq "Line 1" }
+                element { "text" eq "Line 2" }
+            }
+    }
+}
+
 internal fun blockNbtSample() {
     val sign = blockNbt(blockPos(0, 64, 0), nbtPath("front_text")["messages"][0])
 }

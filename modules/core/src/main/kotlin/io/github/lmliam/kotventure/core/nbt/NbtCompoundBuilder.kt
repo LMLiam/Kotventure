@@ -49,4 +49,8 @@ internal class NbtCompoundBuilder : NbtCompoundScope {
     override infix fun String.eq(values: LongArray) {
         entries[this] = NbtValue.LongArrayValue(values.copyOf())
     }
+
+    override infix fun String.eq(value: NbtList) {
+        entries[this] = NbtValue.ListValue(value.elements)
+    }
 }

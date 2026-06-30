@@ -56,4 +56,8 @@ internal sealed interface NbtValue {
 
         override fun hashCode(): Int = values.contentHashCode()
     }
+
+    data class ListValue(
+        val elements: List<NbtValue>,
+    ) : NbtValue
 }
