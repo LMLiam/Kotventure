@@ -5,6 +5,7 @@ import io.github.lmliam.kotventure.core.color.gold
 import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.event.removed
 import io.github.lmliam.kotventure.core.key.key
+import io.github.lmliam.kotventure.core.nbt.nbt
 import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.core.uuid.uuid
 import io.github.lmliam.kotventure.minimessage.conversion.MiniMessageToDslConversionException
@@ -12,10 +13,7 @@ import io.github.lmliam.kotventure.minimessage.conversion.MiniMessageToDslWriter
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import net.kyori.adventure.key.Key
-import net.kyori.adventure.nbt.api.BinaryTagHolder
 import net.kyori.adventure.text.event.ClickEvent
-import net.kyori.adventure.text.event.DataComponentValue
 
 class MiniMessageToDslEventRenderingTest :
     FunSpec(
@@ -272,9 +270,8 @@ class MiniMessageToDslEventRenderingTest :
                                         item(
                                             key = key("minecraft", "diamond_sword"),
                                             dataComponents =
-                                                mapOf<Key, DataComponentValue>(
-                                                    key("minecraft", "custom_data") to
-                                                            BinaryTagHolder.binaryTagHolder("{kotventure:1b}"),
+                                                mapOf(
+                                                    key("minecraft", "custom_data") to nbt("{kotventure:1b}"),
                                                 ),
                                         )
                                     }
@@ -291,11 +288,9 @@ class MiniMessageToDslEventRenderingTest :
                                     item(
                                         key = key("minecraft", "diamond_sword"),
                                         dataComponents =
-                                            mapOf<Key, DataComponentValue>(
-                                                key("minecraft", "damage") to
-                                                        BinaryTagHolder.binaryTagHolder("{value:5b}"),
-                                                key("minecraft", "custom_data") to
-                                                        BinaryTagHolder.binaryTagHolder("{kotventure:1b}"),
+                                            mapOf(
+                                                key("minecraft", "damage") to nbt("{value:5b}"),
+                                                key("minecraft", "custom_data") to nbt("{kotventure:1b}"),
                                             ),
                                     )
                                 }
@@ -344,9 +339,9 @@ class MiniMessageToDslEventRenderingTest :
                                         item(
                                             key = key("minecraft", "diamond_sword"),
                                             dataComponents =
-                                                mapOf<Key, DataComponentValue>(
+                                                mapOf(
                                                     key("minecraft", "custom_data") to
-                                                            BinaryTagHolder.binaryTagHolder(
+                                                            nbt(
                                                                 "{big:-2147483648,huge:-9223372036854775808L,small:-5s,tiny:-5b}",
                                                             ),
                                                 ),
@@ -381,9 +376,8 @@ class MiniMessageToDslEventRenderingTest :
                                         item(
                                             key = key("minecraft", "diamond_sword"),
                                             dataComponents =
-                                                mapOf<Key, DataComponentValue>(
-                                                    key("minecraft", "custom_data") to
-                                                            BinaryTagHolder.binaryTagHolder("{items:[1,2,3]}"),
+                                                mapOf(
+                                                    key("minecraft", "custom_data") to nbt("{items:[1,2,3]}"),
                                                 ),
                                         )
                                     }
@@ -403,7 +397,7 @@ class MiniMessageToDslEventRenderingTest :
                                     item(
                                         key = key("minecraft", "diamond_sword"),
                                         dataComponents =
-                                            mapOf<Key, DataComponentValue>(
+                                            mapOf(
                                                 key("minecraft", "custom_data") to removed(),
                                             ),
                                     )
