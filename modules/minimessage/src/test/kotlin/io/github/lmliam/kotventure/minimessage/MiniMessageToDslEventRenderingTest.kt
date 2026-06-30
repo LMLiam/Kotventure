@@ -352,7 +352,41 @@ class MiniMessageToDslEventRenderingTest :
                     )
                 }
 
-                test("falls back to raw nbt for data components the DSL can't model losslessly") {
+                test("round-trips a scalar NBT list as list against compiled expected DSL") {
+                    assertGoldenRoundTrip(
+                        expectedSource =
+                            """
+                        component {
+                            text("Book") {
+                                hover {
+                                    item(
+                                        key = key("minecraft", "written_book"),
+                                        dataComponents = mapOf(
+                                            key("minecraft", "custom_data") to nbt { "pages" eq list("a", "b") }
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                        """.trimIndent(),
+                        expectedComponent =
+                            component {
+                                text("Book") {
+                                    hover {
+                                        item(
+                                            key = key("minecraft", "written_book"),
+                                            dataComponents =
+                                                mapOf(
+                                                    key("minecraft", "custom_data") to nbt("{pages:[\"a\",\"b\"]}"),
+                                                ),
+                                        )
+                                    }
+                                }
+                            },
+                    )
+                }
+
+                test("round-trips a compound NBT list as list against compiled expected DSL") {
                     assertGoldenRoundTrip(
                         expectedSource =
                             """
@@ -362,7 +396,7 @@ class MiniMessageToDslEventRenderingTest :
                                     item(
                                         key = key("minecraft", "diamond_sword"),
                                         dataComponents = mapOf(
-                                            key("minecraft", "custom_data") to nbt("{items:[1,2,3]}")
+                                            key("minecraft", "custom_data") to nbt { "Lore" eq list({ "text" eq "L1" }, { "text" eq "L2" }) }
                                         )
                                     )
                                 }
@@ -377,7 +411,43 @@ class MiniMessageToDslEventRenderingTest :
                                             key = key("minecraft", "diamond_sword"),
                                             dataComponents =
                                                 mapOf(
-                                                    key("minecraft", "custom_data") to nbt("{items:[1,2,3]}"),
+                                                    key("minecraft", "custom_data") to
+                                                            nbt("{Lore:[{text:\"L1\"},{text:\"L2\"}]}"),
+                                                ),
+                                        )
+                                    }
+                                }
+                            },
+                    )
+                }
+
+                test("falls back to raw nbt for data components the DSL can't model losslessly") {
+                    assertGoldenRoundTrip(
+                        expectedSource =
+                            """
+                        component {
+                            text("Loot data") {
+                                hover {
+                                    item(
+                                        key = key("minecraft", "diamond_sword"),
+                                        dataComponents = mapOf(
+                                            key("minecraft", "custom_data") to nbt("{items:[]}")
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                        """.trimIndent(),
+                        expectedComponent =
+                            component {
+                                text("Loot data") {
+                                    hover {
+                                        item(
+                                            key = key("minecraft", "diamond_sword"),
+                                            dataComponents =
+                                                mapOf(
+                                                    key("minecraft", "custom_data") to
+                                                            nbt("{items:[]}"),
                                                 ),
                                         )
                                     }

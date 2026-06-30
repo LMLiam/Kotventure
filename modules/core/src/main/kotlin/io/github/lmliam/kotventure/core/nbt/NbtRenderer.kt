@@ -35,6 +35,7 @@ internal fun renderValue(value: NbtValue): String =
         is NbtValue.ByteArrayValue -> value.values.joinToString(",", "[B;", "]") { "${it}b" }
         is NbtValue.IntArrayValue -> value.values.joinToString(",", "[I;", "]") { "$it" }
         is NbtValue.LongArrayValue -> value.values.joinToString(",", "[L;", "]") { "${it}L" }
+        is NbtValue.ListValue -> value.elements.joinToString(",", "[", "]") { renderValue(it) }
     }
 
 internal fun renderCompound(compound: NbtCompound): String =

@@ -16,6 +16,9 @@ public interface NbtCompoundScope {
     /** Sets [this] key to the given string value. */
     public infix fun String.eq(value: String)
 
+    /** Sets [this] key to the given boolean, rendered as a byte (`true` → `1b`, `false` → `0b`). */
+    public infix fun String.eq(value: Boolean)
+
     /** Sets [this] key to the given byte value (renders as SNBT byte, e.g. `1b`). */
     public infix fun String.eq(value: Byte)
 
@@ -45,4 +48,7 @@ public interface NbtCompoundScope {
 
     /** Sets [this] key to the given long array (renders as SNBT long array, e.g. `[L;1L,2L]`). */
     public infix fun String.eq(values: LongArray)
+
+    /** Sets [this] key to a homogeneous list (renders as SNBT list, e.g. `[1,2,3]`). Build it with [list]. */
+    public infix fun String.eq(value: NbtList)
 }

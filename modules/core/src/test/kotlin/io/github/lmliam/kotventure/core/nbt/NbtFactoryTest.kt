@@ -14,6 +14,11 @@ class NbtFactoryTest :
                 nbt { "id" eq "minecraft:diamond" }.string() shouldBe "{id:\"minecraft:diamond\"}"
             }
 
+            "builds a single boolean entry as a byte" {
+                nbt { "Unbreakable" eq true }.string() shouldBe "{Unbreakable:1b}"
+                nbt { "Glowing" eq false }.string() shouldBe "{Glowing:0b}"
+            }
+
             "builds a single int entry" {
                 nbt { "count" eq 64 }.string() shouldBe "{count:64}"
             }
