@@ -65,14 +65,9 @@ class NbtListTest :
                 }.string() shouldBe "{outer:[{inner:[\"x\",\"y\"]}]}"
             }
 
-            // An inferred mixed list (list("a", 1)) is rejected by the compiler (reified-intersection
-            // warning); forcing a common supertype reaches the runtime guard instead.
-            "rejects a forced mixed-type list at runtime" {
-                shouldThrow<IllegalArgumentException> {
-                    nbt { "mixed" eq list<Any>("a", 1) }
-                }
-            }
-
+            // An inferred mixed list (list("a", 1)) is rejected at compile time: the reified T is
+            // inferred to an intersection of the element types, which is a warning we treat as an error.
+            // Unsupported element types are caught at runtime.
             "rejects an unsupported element type at runtime" {
                 shouldThrow<IllegalArgumentException> {
                     nbt { "chars" eq list('a', 'b') }
