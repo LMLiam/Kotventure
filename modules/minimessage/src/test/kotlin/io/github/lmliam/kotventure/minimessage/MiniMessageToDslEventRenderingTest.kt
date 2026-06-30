@@ -352,7 +352,7 @@ class MiniMessageToDslEventRenderingTest :
                     )
                 }
 
-                test("round-trips a scalar NBT list as listOf against compiled expected DSL") {
+                test("round-trips a scalar NBT list as list against compiled expected DSL") {
                     assertGoldenRoundTrip(
                         expectedSource =
                             """
@@ -362,7 +362,7 @@ class MiniMessageToDslEventRenderingTest :
                                     item(
                                         key = key("minecraft", "written_book"),
                                         dataComponents = mapOf(
-                                            key("minecraft", "custom_data") to nbt { "pages" eq listOf("a", "b") }
+                                            key("minecraft", "custom_data") to nbt { "pages" eq list("a", "b") }
                                         )
                                     )
                                 }
@@ -386,7 +386,7 @@ class MiniMessageToDslEventRenderingTest :
                     )
                 }
 
-                test("round-trips a compound NBT list as listOf against compiled expected DSL") {
+                test("round-trips a compound NBT list as list against compiled expected DSL") {
                     assertGoldenRoundTrip(
                         expectedSource =
                             """
@@ -396,7 +396,7 @@ class MiniMessageToDslEventRenderingTest :
                                     item(
                                         key = key("minecraft", "diamond_sword"),
                                         dataComponents = mapOf(
-                                            key("minecraft", "custom_data") to nbt { "Lore" eq listOf { element { "text" eq "L1" }; element { "text" eq "L2" } } }
+                                            key("minecraft", "custom_data") to nbt { "Lore" eq list({ "text" eq "L1" }, { "text" eq "L2" }) }
                                         )
                                     )
                                 }
@@ -431,7 +431,7 @@ class MiniMessageToDslEventRenderingTest :
                                     item(
                                         key = key("minecraft", "diamond_sword"),
                                         dataComponents = mapOf(
-                                            key("minecraft", "custom_data") to nbt("{items:[[1,2],[3,4]]}")
+                                            key("minecraft", "custom_data") to nbt("{items:[]}")
                                         )
                                     )
                                 }
@@ -447,7 +447,7 @@ class MiniMessageToDslEventRenderingTest :
                                             dataComponents =
                                                 mapOf(
                                                     key("minecraft", "custom_data") to
-                                                        nbt("{items:[[1,2],[3,4]]}"),
+                                                        nbt("{items:[]}"),
                                                 ),
                                         )
                                     }

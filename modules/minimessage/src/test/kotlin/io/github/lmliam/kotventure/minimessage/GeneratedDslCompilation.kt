@@ -22,7 +22,7 @@ internal fun compileGeneratedDsl(source: String): Component {
         import io.github.lmliam.kotventure.core.nbt.blockNbt
         import io.github.lmliam.kotventure.core.nbt.blockPos
         import io.github.lmliam.kotventure.core.nbt.entityNbt
-        import io.github.lmliam.kotventure.core.nbt.listOf
+        import io.github.lmliam.kotventure.core.nbt.list
         import io.github.lmliam.kotventure.core.nbt.nbt
         import io.github.lmliam.kotventure.core.nbt.nbtPath
         import io.github.lmliam.kotventure.core.nbt.storageNbt
@@ -48,7 +48,6 @@ internal fun compileGeneratedDsl(source: String): Component {
         KotlinCompilation()
             .apply {
                 inheritClassPath = true
-                // Match the library's JVM target so generated code can inline reified helpers like listOf.
                 jvmTarget = Runtime.version().feature().toString()
                 sources = listOf(SourceFile.kotlin("GeneratedDsl.kt", generated))
             }.compile()
