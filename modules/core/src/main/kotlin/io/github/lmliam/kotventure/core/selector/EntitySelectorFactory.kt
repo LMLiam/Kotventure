@@ -5,6 +5,7 @@ package io.github.lmliam.kotventure.core.selector
  *
  * @sample io.github.lmliam.kotventure.core.selector.selfSample
  */
+@JvmOverloads
 public fun self(init: SelfEntitySelectorScope.() -> Unit = {}): EntitySelector = buildSelfSelector("@s", init)
 
 /**

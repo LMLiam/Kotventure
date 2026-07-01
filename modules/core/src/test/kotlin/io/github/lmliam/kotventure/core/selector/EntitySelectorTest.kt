@@ -14,6 +14,15 @@ class EntitySelectorTest :
                 self().asString() shouldBe "@s"
             }
 
+            "self preserves its no-argument JVM entry point" {
+                val factoryClass =
+                    Class.forName(
+                        "io.github.lmliam.kotventure.core.selector.EntitySelectorFactoryKt",
+                    )
+
+                factoryClass.getMethod("self").invoke(null).toString() shouldBe "@s"
+            }
+
             "nearestPlayer with no arguments returns @p" {
                 nearestPlayer().asString() shouldBe "@p"
             }
