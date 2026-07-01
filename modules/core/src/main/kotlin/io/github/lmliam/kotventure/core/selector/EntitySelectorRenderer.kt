@@ -1,8 +1,6 @@
 package io.github.lmliam.kotventure.core.selector
 
 internal object EntitySelectorRenderer {
-    private val COORDINATE_ORDER = listOf("x", "y", "z", "dx", "dy", "dz")
-
     fun render(
         head: String,
         builder: EntitySelectorBuilder,
@@ -11,8 +9,8 @@ internal object EntitySelectorRenderer {
             buildList {
                 builder.type?.renderValues { it }?.forEach { add("type=$it") }
                 builder.name?.renderValues(::renderName)?.forEach { add("name=$it") }
-                COORDINATE_ORDER.forEach { axis ->
-                    builder.coordinates[axis]?.let { add("$axis=${formatSelectorNumber(it)}") }
+                (OriginAxis.entries + VolumeAxis.entries).forEach { axis ->
+                    builder.coordinates[axis]?.let { add("${axis.argument}=${formatSelectorNumber(it)}") }
                 }
                 builder.distance?.let { add("distance=${it.rendered}") }
                 builder.level?.let { add("level=${it.rendered}") }

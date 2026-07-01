@@ -22,11 +22,11 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     var gamemode: SelectorFilter<GameMode>? = null
         private set
 
-    private val mutableTags = mutableListOf<String>()
-    val tags: List<String> get() = mutableTags
+    private val _tags = mutableListOf<String>()
+    val tags: List<String> get() = _tags
 
-    private val mutableCoordinates = mutableMapOf<String, Double>()
-    val coordinates: Map<String, Double> get() = mutableCoordinates
+    private val _coordinates = mutableMapOf<SelectorAxis, Double>()
+    val coordinates: Map<SelectorAxis, Double> get() = _coordinates
 
     override val any: SelectorPresence get() = SelectorPresence.ANY
     override val none: SelectorPresence get() = SelectorPresence.NONE
@@ -65,15 +65,15 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     }
 
     override fun tag(tag: String) {
-        mutableTags += tag
+        _tags += tag
     }
 
     override fun tag(presence: SelectorPresence) {
-        mutableTags += presence.value
+        _tags += presence.value
     }
 
     override fun tag(tag: Excluded<String>) {
-        mutableTags += "!${tag.value}"
+        _tags += "!${tag.value}"
     }
 
     override fun name(name: String) {
@@ -136,24 +136,21 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
         type = type.excluding("type", entityType.withDefaultNamespace())
     }
 
-    private fun bindCoordinates(coordinates: List<Pair<String, Double>>) {
-        val binding = mutableSetOf<String>()
-        coordinates.forEach { (axis, _) ->
-            checkUnset(axis, mutableCoordinates[axis])
-            check(binding.add(axis)) { alreadySetMessage(axis) }
+    private fun bindCoordinates(coordinates: List<Pair<SelectorAxis, Double>>) {
+        val staged = mutableMapOf<SelectorAxis, Double>()
+        coordinates.forEach { (axis, value) ->
+            checkUnset(axis.argument, _coordinates[axis] ?: staged[axis])
+            staged[axis] = value
         }
-        mutableCoordinates += coordinates
+        _coordinates += staged
     }
 
     private fun checkUnset(
         argument: String,
         current: Any?,
     ) {
-        check(current == null) { alreadySetMessage(argument) }
+        check(current == null) { "Selector argument '$argument' is already set; vanilla syntax allows it only once." }
     }
-
-    private fun alreadySetMessage(argument: String): String =
-        "Selector argument '$argument' is already set; vanilla syntax allows it only once."
 }
 
 private fun Key.asTypeTag(): String = "#${asString()}"

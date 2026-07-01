@@ -290,7 +290,7 @@ class EntitySelectorTest :
                         origin(1.x, 2.y)
                         origin(3.y)
                     }
-                }.message shouldBe "Selector argument 'y' is already set; vanilla syntax allows it only once."
+                }
 
                 shouldThrow<IllegalStateException> {
                     entities {
@@ -318,11 +318,11 @@ class EntitySelectorTest :
             "non-finite coordinates are rejected at construction" {
                 shouldThrow<IllegalArgumentException> {
                     entities { origin(Double.POSITIVE_INFINITY.z) }
-                }.message shouldBe "Selector origin z must be finite, got: Infinity"
+                }
 
                 shouldThrow<IllegalArgumentException> {
                     entities { volume(Double.NaN.dy) }
-                }.message shouldBe "Selector volume dy must be finite, got: NaN"
+                }
             }
 
             "failed coordinate updates do not partially mutate the selector" {

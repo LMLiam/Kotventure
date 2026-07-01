@@ -58,42 +58,42 @@ public sealed interface CommonEntitySelectorScope {
      *
      * @throws IllegalArgumentException if the value is not finite
      */
-    public val Number.x: OriginCoordinate get() = originCoordinate("x", this)
+    public val Number.x: OriginCoordinate get() = originCoordinate(OriginAxis.X, this)
 
     /**
      * This number as the origin `y` coordinate.
      *
      * @throws IllegalArgumentException if the value is not finite
      */
-    public val Number.y: OriginCoordinate get() = originCoordinate("y", this)
+    public val Number.y: OriginCoordinate get() = originCoordinate(OriginAxis.Y, this)
 
     /**
      * This number as the origin `z` coordinate.
      *
      * @throws IllegalArgumentException if the value is not finite
      */
-    public val Number.z: OriginCoordinate get() = originCoordinate("z", this)
+    public val Number.z: OriginCoordinate get() = originCoordinate(OriginAxis.Z, this)
 
     /**
      * This number as the bounding-volume `dx` delta.
      *
      * @throws IllegalArgumentException if the value is not finite
      */
-    public val Number.dx: VolumeDelta get() = volumeDelta("dx", this)
+    public val Number.dx: VolumeDelta get() = volumeDelta(VolumeAxis.DX, this)
 
     /**
      * This number as the bounding-volume `dy` delta.
      *
      * @throws IllegalArgumentException if the value is not finite
      */
-    public val Number.dy: VolumeDelta get() = volumeDelta("dy", this)
+    public val Number.dy: VolumeDelta get() = volumeDelta(VolumeAxis.DY, this)
 
     /**
      * This number as the bounding-volume `dz` delta.
      *
      * @throws IllegalArgumentException if the value is not finite
      */
-    public val Number.dz: VolumeDelta get() = volumeDelta("dz", this)
+    public val Number.dz: VolumeDelta get() = volumeDelta(VolumeAxis.DZ, this)
 
     /** Filters by distance using a [SelectorRange]. */
     public fun distance(range: SelectorRange)
