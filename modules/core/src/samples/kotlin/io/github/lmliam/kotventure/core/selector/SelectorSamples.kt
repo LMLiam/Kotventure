@@ -47,6 +47,13 @@ internal fun commonEntitySelectorScopeSample() {
     }
 }
 
+internal fun selectorPositionVolumeSample() {
+    entities {
+        origin(12.5.x, 64.y)
+        volume(16.dx, 8.dy, 16.dz)
+    }
+}
+
 internal fun entitiesSample() {
     entities {
         type("armor_stand")

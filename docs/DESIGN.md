@@ -106,6 +106,8 @@ val msg = component {
     selector(
         entities {
             typeTag(key("minecraft", "raiders"))
+            origin(64.y)
+            volume(16.dx, 8.dy, 16.dz)
             tag(!"hidden")
         },
     )

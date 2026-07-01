@@ -22,8 +22,11 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     var gamemode: SelectorFilter<GameMode>? = null
         private set
 
-    private val mutableTags = mutableListOf<String>()
-    val tags: List<String> get() = mutableTags
+    val tags: List<String>
+        field = mutableListOf()
+
+    val coordinates: Map<SelectorAxis, Double>
+        field = mutableMapOf()
 
     override val any: SelectorPresence get() = SelectorPresence.ANY
     override val none: SelectorPresence get() = SelectorPresence.NONE
@@ -38,6 +41,20 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     override val random: SelectorSort get() = SelectorSort.RANDOM
     override val arbitrary: SelectorSort get() = SelectorSort.ARBITRARY
 
+    override fun origin(
+        first: OriginCoordinate,
+        vararg rest: OriginCoordinate,
+    ) {
+        bindCoordinates((listOf(first) + rest).map { it.axis to it.value })
+    }
+
+    override fun volume(
+        first: VolumeDelta,
+        vararg rest: VolumeDelta,
+    ) {
+        bindCoordinates((listOf(first) + rest).map { it.axis to it.value })
+    }
+
     override fun distance(range: SelectorRange) {
         checkUnset("distance", distance)
         distance = range
@@ -48,15 +65,15 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     }
 
     override fun tag(tag: String) {
-        mutableTags += tag
+        tags += tag
     }
 
     override fun tag(presence: SelectorPresence) {
-        mutableTags += presence.value
+        tags += presence.value
     }
 
     override fun tag(tag: Excluded<String>) {
-        mutableTags += "!${tag.value}"
+        tags += "!${tag.value}"
     }
 
     override fun name(name: String) {
@@ -117,6 +134,15 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
 
     fun excludeType(entityType: String) {
         type = type.excluding("type", entityType.withDefaultNamespace())
+    }
+
+    private fun bindCoordinates(bindings: List<Pair<SelectorAxis, Double>>) {
+        val staged = mutableMapOf<SelectorAxis, Double>()
+        bindings.forEach { (axis, value) ->
+            checkUnset(axis.argument, coordinates[axis] ?: staged[axis])
+            staged[axis] = value
+        }
+        coordinates += staged
     }
 
     private fun checkUnset(
