@@ -213,6 +213,9 @@ Three layers, shipped incrementally:
    ** (Gradle plugin over resource bundles).
 
 A **MiniMessage ⇄ DSL converter** round‑trips between markup strings and DSL/Kotlin, aiding migration and learning.
+When selector patterns are exactly representable, the converter emits the typed selector factories and arguments;
+otherwise it preserves the pattern through the raw bridge. See
+[MiniMessage selector conversion](minimessage-selector-conversion.md).
 
 ## 7. Testing strategy
 

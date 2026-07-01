@@ -29,23 +29,102 @@ import java.io.IOException
  * fall back to `nbt("raw")`.
  */
 internal fun snbtToDslBody(snbt: String): String? {
+    val source = snbtToDslSource(snbt) ?: return null
+    return source.bodyLines.joinToString("; ")
+}
+
+internal fun snbtToDslSource(snbt: String): SnbtDslSource? {
     val compound =
         try {
             TagStringIO.tagStringIO().asCompound(snbt)
         } catch (e: IOException) {
             return null
         }
-    return renderCompoundBody(compound)
+    val bodyLines = renderCompoundEntries(compound) ?: return null
+    val rendered = renderSnbtCompound(compound) ?: return null
+    return SnbtDslSource(bodyLines, rendered)
 }
 
-private fun renderCompoundBody(compound: CompoundBinaryTag): String? {
-    val entries =
-        compound.keySet().sorted().map { key ->
-            val value = renderValue(compound.get(key) ?: return null) ?: return null
-            "\"${escapeKotlinString(key)}\" eq $value"
-        }
-    return entries.joinToString("; ")
+internal data class SnbtDslSource(
+    val bodyLines: List<String>,
+    val rendered: String,
+)
+
+private fun renderCompoundEntries(compound: CompoundBinaryTag): List<String>? =
+    compound.keySet().sorted().map { key ->
+        val value = renderValue(compound.get(key) ?: return null) ?: return null
+        "\"${escapeKotlinString(key)}\" eq $value"
+    }
+
+private fun renderCompoundBody(compound: CompoundBinaryTag): String? =
+    renderCompoundEntries(compound)?.joinToString("; ")
+
+private fun renderSnbtCompound(compound: CompoundBinaryTag): String? {
+    val entries = mutableListOf<String>()
+    compound.keySet().sorted().forEach { key ->
+        val tag = compound.get(key) ?: return null
+        val value = renderSnbtValue(tag) ?: return null
+        entries += "${renderSnbtKey(key)}:$value"
+    }
+    return entries.joinToString(",", "{", "}")
 }
+
+private fun renderSnbtValue(tag: BinaryTag): String? =
+    when (tag) {
+        is ByteBinaryTag -> "${tag.value()}b"
+        is ShortBinaryTag -> "${tag.value()}s"
+        is IntBinaryTag -> "${tag.value()}"
+        is LongBinaryTag -> "${tag.value()}L"
+        is FloatBinaryTag -> "${tag.value()}f"
+        is DoubleBinaryTag -> "${tag.value()}d"
+        is StringBinaryTag -> "\"${escapeSnbtString(tag.value())}\""
+        is ByteArrayBinaryTag -> tag.value().joinToString(",", "[B;", "]") { "${it}b" }
+        is IntArrayBinaryTag -> tag.value().joinToString(",", "[I;", "]")
+        is LongArrayBinaryTag -> tag.value().joinToString(",", "[L;", "]") { "${it}L" }
+        is CompoundBinaryTag -> renderSnbtCompound(tag)
+        is ListBinaryTag ->
+            if (tag.isEmpty()) {
+                null
+            } else {
+                renderSnbtList(tag)
+            }
+        else -> null
+    }
+
+private fun renderSnbtList(list: ListBinaryTag): String? {
+    val elements = mutableListOf<String>()
+    list.forEach { element ->
+        elements += renderSnbtValue(element) ?: return null
+    }
+    return elements.joinToString(",", "[", "]")
+}
+
+private fun renderSnbtKey(key: String): String =
+    if (key.isNotEmpty() && key.all { it.isLetterOrDigit() || it == '_' || it == '+' || it == '-' }) {
+        key
+    } else {
+        "\"${escapeSnbtString(key)}\""
+    }
+
+private fun escapeSnbtString(value: String): String =
+    buildString(value.length) {
+        value.forEach { character ->
+            when (character) {
+                '\\' -> append("\\\\")
+                '"' -> append("\\\"")
+                '\b' -> append("\\b")
+                '\t' -> append("\\t")
+                '\n' -> append("\\n")
+                '\r' -> append("\\r")
+                else ->
+                    if (character.code < 0x20) {
+                        append("\\u%04x".format(character.code))
+                    } else {
+                        append(character)
+                    }
+            }
+        }
+    }
 
 private fun renderValue(tag: BinaryTag): String? =
     when (tag) {
