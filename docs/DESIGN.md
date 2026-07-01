@@ -198,6 +198,10 @@ immutable `ParsedEntitySelector` or an offset-bearing failure. Unknown arguments
 they cannot be silently normalized; `entitySelector(raw)` remains the lossless, zero-validation
 bridge for future or intentionally unsupported syntax.
 
+Selector rendering is also checked independently against the checksum-pinned Java Edition parser;
+see [Vanilla selector conformance](selector-conformance.md) for the isolated test setup and baseline
+update process.
+
 ## 6. MiniMessage strategy
 
 Three layers, shipped incrementally:

@@ -21,6 +21,10 @@ once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any
 * **core:** add whole and criterion-level selector advancement filters
 * **core:** parse raw selectors into an immutable typed model with precise failures
 
+### 🧪 Tests
+
+* **core:** validate selector DSL output against the pinned Java Edition 26.2 parser
+
 ## [0.4.1](https://github.com/LMLiam/Kotventure/compare/0.4.0...0.4.1) (2026-06-25)
 
 

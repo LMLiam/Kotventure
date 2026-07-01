@@ -1,0 +1,207 @@
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+import java.security.MessageDigest
+import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
+
+@DisableCachingByDefault(because = 'Downloads a checksum-pinned external fixture')
+abstract class DownloadVerifiedFile extends DefaultTask {
+    @Input
+    abstract Property<String> getMinecraftVersion()
+
+    @Input
+    abstract Property<String> getSourceUrl()
+
+    @Input
+    abstract Property<String> getExpectedSha1()
+
+    @OutputFile
+    abstract RegularFileProperty getDestination()
+
+    @TaskAction
+    void download() {
+        def target = destination.get().asFile
+        target.parentFile.mkdirs()
+        def temporary = new File(target.parentFile, "${target.name}.part")
+        Exception lastFailure = null
+
+        for (int attempt = 1; attempt <= 3; attempt++) {
+            temporary.delete()
+            try {
+                def connection = new URI(sourceUrl.get()).toURL().openConnection()
+                connection.connectTimeout = 30_000
+                connection.readTimeout = 120_000
+                connection.inputStream.withCloseable { input ->
+                    temporary.withOutputStream { output -> output << input }
+                }
+                def actualSha1 = sha1(temporary)
+                if (actualSha1 != expectedSha1.get()) {
+                    throw new GradleException(
+                        "Minecraft ${minecraftVersion.get()} server checksum mismatch: " +
+                            "expected ${expectedSha1.get()}, got $actualSha1",
+                    )
+                }
+                Files.move(
+                    temporary.toPath(),
+                    target.toPath(),
+                    StandardCopyOption.REPLACE_EXISTING,
+                )
+                return
+            } catch (Exception failure) {
+                lastFailure = failure
+                temporary.delete()
+                if (attempt < 3) {
+                    logger.warn(
+                        "Minecraft ${minecraftVersion.get()} server download attempt $attempt " +
+                            "failed; retrying: ${failure.message}",
+                    )
+                    Thread.sleep(attempt * 1_000L)
+                }
+            }
+        }
+
+        throw new GradleException(
+            "Failed to download the Minecraft ${minecraftVersion.get()} server bundle after 3 attempts.",
+            lastFailure,
+        )
+    }
+
+    private static String sha1(File file) {
+        def digest = MessageDigest.getInstance('SHA-1')
+        file.withInputStream { input ->
+            byte[] buffer = new byte[8192]
+            int read
+            while ((read = input.read(buffer)) != -1) {
+                digest.update(buffer, 0, read)
+            }
+        }
+        digest.digest().encodeHex().toString()
+    }
+}
+
+@DisableCachingByDefault(because = 'Verification has no outputs')
+abstract class VerifyMinecraftServerClasspath extends DefaultTask {
+    @Input
+    abstract Property<String> getMinecraftVersion()
+
+    @InputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
+    abstract RegularFileProperty getServerJar()
+
+    @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
+    abstract DirectoryProperty getLibraryDirectory()
+
+    @TaskAction
+    void verifyClasspath() {
+        def server = serverJar.get().asFile
+        def libraryRoot = libraryDirectory.get().asFile.toPath()
+        def hasLibrary =
+            Files.walk(libraryRoot).withCloseable { paths ->
+                paths.anyMatch { path ->
+                    Files.isRegularFile(path) && path.fileName.toString().endsWith('.jar')
+                }
+            }
+        if (server.length() == 0L || !hasLibrary) {
+            throw new GradleException(
+                "Minecraft ${minecraftVersion.get()} bundle layout changed: expected the " +
+                    "versioned server and bundled libraries. Update gradle/selector-conformance.gradle.",
+            )
+        }
+    }
+}
+
+def targetMinecraftVersion = '26.2'
+def serverBundleSha1 = '823e2250d24b3ddac457a60c92a6a941943fcd6a'
+def serverBundleUrl =
+    'https://piston-data.mojang.com/v1/objects/' +
+        serverBundleSha1 +
+        '/server.jar'
+def fixtureDirectory = layout.buildDirectory.dir("selector-conformance/$targetMinecraftVersion")
+def serverBundle = fixtureDirectory.map { it.file("server-$targetMinecraftVersion-bundle.jar") }
+def extractedClasspath = fixtureDirectory.map { it.dir('classpath') }
+
+def downloadServerBundle = tasks.register('downloadSelectorConformanceServer', DownloadVerifiedFile) {
+    group = 'verification'
+    description = "Downloads the checksum-pinned Minecraft Java Edition $targetMinecraftVersion server bundle."
+    minecraftVersion.set(targetMinecraftVersion)
+    sourceUrl.set(serverBundleUrl)
+    expectedSha1.set(serverBundleSha1)
+    destination.set(serverBundle)
+}
+
+def extractServerClasspath = tasks.register('extractSelectorConformanceServer', Sync) {
+    group = 'verification'
+    description = "Extracts the Minecraft $targetMinecraftVersion server and its bundled libraries for tests."
+    dependsOn downloadServerBundle
+
+    from({ zipTree(serverBundle.get().asFile) }) {
+        include "META-INF/versions/$targetMinecraftVersion/server-${targetMinecraftVersion}.jar"
+        include 'META-INF/libraries/**/*.jar'
+    }
+    into extractedClasspath
+}
+
+def verifyServerClasspath =
+    tasks.register('verifySelectorConformanceServer', VerifyMinecraftServerClasspath) {
+        group = 'verification'
+        description = "Verifies the extracted Minecraft $targetMinecraftVersion conformance classpath."
+        dependsOn extractServerClasspath
+        minecraftVersion.set(targetMinecraftVersion)
+        serverJar.set(
+            extractedClasspath.map {
+                it.file(
+                    "META-INF/versions/$targetMinecraftVersion/server-${targetMinecraftVersion}.jar",
+                )
+            },
+        )
+        libraryDirectory.set(extractedClasspath.map { it.dir('META-INF/libraries') })
+    }
+
+sourceSets {
+    selectorConformanceTest {
+        kotlin.srcDir 'src/selectorConformanceTest/kotlin'
+        resources.srcDir 'src/selectorConformanceTest/resources'
+    }
+}
+
+configurations {
+    selectorConformanceTestImplementation.extendsFrom testImplementation
+    selectorConformanceTestRuntimeOnly.extendsFrom testRuntimeOnly
+}
+
+def vanillaServerClasspath =
+    objects
+        .fileCollection()
+        .from(extractedClasspath.map { it.asFileTree })
+        .builtBy(verifyServerClasspath)
+
+dependencies {
+    selectorConformanceTestImplementation sourceSets.main.output
+    selectorConformanceTestImplementation vanillaServerClasspath
+}
+
+def selectorConformanceTest = tasks.register('selectorConformanceTest', Test) {
+    group = 'verification'
+    description = "Validates selector DSL output with Minecraft Java Edition $targetMinecraftVersion."
+    testClassesDirs = sourceSets.selectorConformanceTest.output.classesDirs
+    classpath = sourceSets.selectorConformanceTest.runtimeClasspath
+    useJUnitPlatform()
+    shouldRunAfter test
+    workingDir temporaryDir
+}
+
+tasks.named('check') {
+    dependsOn selectorConformanceTest
+}
