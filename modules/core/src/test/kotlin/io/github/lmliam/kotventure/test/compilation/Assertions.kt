@@ -28,9 +28,11 @@ internal fun assertDoesNotCompile(
 ) {
     val result = compile(fileName, source)
 
-    result.exitCode shouldBe KotlinCompilation.ExitCode.COMPILATION_ERROR
-    expectedMessages.forEach { expectedMessage ->
-        result.messages shouldContain expectedMessage
+    withClue(result.messages) {
+        result.exitCode shouldBe KotlinCompilation.ExitCode.COMPILATION_ERROR
+        expectedMessages.forEach { expectedMessage ->
+            result.messages shouldContain expectedMessage
+        }
     }
 }
 

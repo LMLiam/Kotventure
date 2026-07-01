@@ -7,10 +7,10 @@ internal class SelfEntitySelectorAdapter(
 ) : CommonEntitySelectorAdapter(state),
     SelfEntitySelectorScope {
     override fun type(entityType: Key) {
-        state.type = entityType.asString()
+        state.assignType(entityType)
     }
 
     override fun type(entityType: String) {
-        state.type = entityType.withDefaultNamespace()
+        state.assignType(entityType)
     }
 }
