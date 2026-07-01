@@ -54,6 +54,13 @@ internal fun selectorPositionVolumeSample() {
     }
 }
 
+internal fun selectorRotationSample() {
+    entities {
+        pitch(-90.0..-45.0)
+        yaw(170.0..-170.0)
+    }
+}
+
 internal fun entitiesSample() {
     entities {
         type("armor_stand")

@@ -11,6 +11,10 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
         private set
     var distance: SelectorRange? = null
         private set
+    var pitch: SelectorRange? = null
+        private set
+    var yaw: SelectorRange? = null
+        private set
     var sort: SelectorSort? = null
         private set
     var level: LevelRange? = null
@@ -57,11 +61,29 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
 
     override fun distance(range: SelectorRange) {
         checkUnset("distance", distance)
-        distance = range
+        distance = range.requireAscending("distance").requireNonNegative("distance")
     }
 
     override fun distance(range: ClosedFloatingPointRange<Double>) {
         distance(closedRange(range.start, range.endInclusive))
+    }
+
+    override fun pitch(range: SelectorRange) {
+        checkUnset("pitch", pitch)
+        pitch = range
+    }
+
+    override fun pitch(range: ClosedFloatingPointRange<Double>) {
+        pitch(closedRange(range.start, range.endInclusive))
+    }
+
+    override fun yaw(range: SelectorRange) {
+        checkUnset("yaw", yaw)
+        yaw = range
+    }
+
+    override fun yaw(range: ClosedFloatingPointRange<Double>) {
+        yaw(closedRange(range.start, range.endInclusive))
     }
 
     override fun tag(tag: String) {

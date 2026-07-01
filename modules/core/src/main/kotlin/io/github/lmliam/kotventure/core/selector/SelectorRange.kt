@@ -1,18 +1,30 @@
 package io.github.lmliam.kotventure.core.selector
 
 /**
- * A floating-point range for the `distance` selector argument.
+ * A floating-point range for selector arguments such as `distance`, `pitch`, and `yaw`.
  *
  * Construct open-ended or exact bounds via the helpers [atMost], [atLeast], and [exactly]; for a
- * closed range, pass a native Kotlin range to `distance(a..b)` directly. Integer-valued `level`
- * uses the distinct [LevelRange] instead.
+ * closed range, pass a native Kotlin range to the consuming argument directly, e.g.
+ * `distance(0.5..10.0)`. Validation that differs by argument — such as `distance` rejecting
+ * negative or descending bounds while rotations accept both — is applied by the consuming
+ * argument. Integer-valued `level` uses the distinct [LevelRange] instead.
  */
-@JvmInline
-public value class SelectorRange internal constructor(
-    internal val rendered: String,
+@ConsistentCopyVisibility
+public data class SelectorRange internal constructor(
+    internal val minimum: Double?,
+    internal val maximum: Double?,
 ) {
+    internal val rendered: String
+        get() =
+            when {
+                minimum != null && minimum == maximum -> formatSelectorNumber(minimum)
+                else -> "${minimum.renderedOrEmpty()}..${maximum.renderedOrEmpty()}"
+            }
+
     override fun toString(): String = rendered
 }
+
+private fun Double?.renderedOrEmpty(): String = this?.let(::formatSelectorNumber).orEmpty()
 
 /**
  * A range matching values up to and including [max] (renders as `..max`).
@@ -21,7 +33,7 @@ public value class SelectorRange internal constructor(
  */
 public fun atMost(max: Double): SelectorRange {
     require(max.isFinite()) { "Range value must be finite, got: $max" }
-    return SelectorRange("..${formatSelectorNumber(max)}")
+    return SelectorRange(minimum = null, maximum = max)
 }
 
 /**
@@ -31,7 +43,7 @@ public fun atMost(max: Double): SelectorRange {
  */
 public fun atLeast(min: Double): SelectorRange {
     require(min.isFinite()) { "Range value must be finite, got: $min" }
-    return SelectorRange("${formatSelectorNumber(min)}..")
+    return SelectorRange(minimum = min, maximum = null)
 }
 
 /**
@@ -41,7 +53,7 @@ public fun atLeast(min: Double): SelectorRange {
  */
 public fun exactly(value: Double): SelectorRange {
     require(value.isFinite()) { "Range value must be finite, got: $value" }
-    return SelectorRange(formatSelectorNumber(value))
+    return SelectorRange(minimum = value, maximum = value)
 }
 
 internal fun closedRange(
@@ -50,6 +62,19 @@ internal fun closedRange(
 ): SelectorRange {
     require(min.isFinite()) { "Range min must be finite, got: $min" }
     require(max.isFinite()) { "Range max must be finite, got: $max" }
-    require(min <= max) { "Range min ($min) must not exceed max ($max)" }
-    return SelectorRange("${formatSelectorNumber(min)}..${formatSelectorNumber(max)}")
+    return SelectorRange(minimum = min, maximum = max)
+}
+
+internal fun SelectorRange.requireAscending(argument: String): SelectorRange {
+    require(minimum == null || maximum == null || minimum <= maximum) {
+        "Selector argument '$argument' requires min <= max, got: $rendered"
+    }
+    return this
+}
+
+internal fun SelectorRange.requireNonNegative(argument: String): SelectorRange {
+    require((minimum ?: 0.0) >= 0.0 && (maximum ?: 0.0) >= 0.0) {
+        "Selector argument '$argument' does not accept negative bounds, got: $rendered"
+    }
+    return this
 }

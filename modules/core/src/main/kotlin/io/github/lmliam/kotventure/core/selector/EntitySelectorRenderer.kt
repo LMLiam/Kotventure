@@ -13,6 +13,8 @@ internal object EntitySelectorRenderer {
                     builder.coordinates[axis]?.let { add("${axis.argument}=${formatSelectorNumber(it)}") }
                 }
                 builder.distance?.let { add("distance=${it.rendered}") }
+                builder.pitch?.let { add("x_rotation=${it.rendered}") }
+                builder.yaw?.let { add("y_rotation=${it.rendered}") }
                 builder.level?.let { add("level=${it.rendered}") }
                 builder.gamemode?.renderValues { it.value }?.forEach { add("gamemode=$it") }
                 builder.limit?.let { add("limit=$it") }

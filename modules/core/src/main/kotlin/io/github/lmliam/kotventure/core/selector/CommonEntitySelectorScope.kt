@@ -101,6 +101,39 @@ public sealed interface CommonEntitySelectorScope {
     /** Filters by distance using a Kotlin [ClosedFloatingPointRange]. */
     public fun distance(range: ClosedFloatingPointRange<Double>)
 
+    /**
+     * Filters by vertical look angle in degrees — vanilla `x_rotation` — using a [SelectorRange]:
+     * `pitch(atMost(-45.0))`. `-90` looks straight up, `0` level, `90` straight down.
+     *
+     * @sample io.github.lmliam.kotventure.core.selector.selectorRotationSample
+     */
+    public fun pitch(range: SelectorRange)
+
+    /**
+     * Filters by vertical look angle in degrees — vanilla `x_rotation` — using a Kotlin range:
+     * `pitch(-90.0..-45.0)`.
+     *
+     * @sample io.github.lmliam.kotventure.core.selector.selectorRotationSample
+     */
+    public fun pitch(range: ClosedFloatingPointRange<Double>)
+
+    /**
+     * Filters by horizontal look angle in degrees — vanilla `y_rotation` — using a [SelectorRange]:
+     * `yaw(atLeast(90.0))`. `-180` faces due north, `-90` east, `0` south, `90` west.
+     *
+     * @sample io.github.lmliam.kotventure.core.selector.selectorRotationSample
+     */
+    public fun yaw(range: SelectorRange)
+
+    /**
+     * Filters by horizontal look angle in degrees — vanilla `y_rotation` — using a Kotlin range:
+     * `yaw(0.0..90.0)`. A descending range such as `yaw(170.0..-170.0)` wraps around ±180, matching
+     * vanilla semantics.
+     *
+     * @sample io.github.lmliam.kotventure.core.selector.selectorRotationSample
+     */
+    public fun yaw(range: ClosedFloatingPointRange<Double>)
+
     /** Filters by scoreboard tag. */
     public fun tag(tag: String)
 
