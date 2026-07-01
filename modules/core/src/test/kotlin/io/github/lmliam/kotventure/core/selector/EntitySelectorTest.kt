@@ -617,10 +617,12 @@ class EntitySelectorTest :
                             predicate(Key.key("my_pack", "hidden"))
                         }
                         predicate(Key.key("my_pack", "active"))
+                        predicate(Key.key("my_pack", "active"))
                     }
 
                 selector.asString() shouldBe
-                    "@e[predicate=minecraft:is_baby,predicate=!my_pack:hidden,predicate=my_pack:active]"
+                    "@e[predicate=minecraft:is_baby,predicate=!my_pack:hidden," +
+                    "predicate=my_pack:active,predicate=my_pack:active]"
             }
 
             "predicate filters expose only the Adventure Key API" {

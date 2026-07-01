@@ -158,6 +158,7 @@ public sealed interface CommonEntitySelectorScope {
      * Adds a datapack predicate filter.
      *
      * Repeated calls preserve every [predicate] key in call order.
+     * String keys are intentionally unsupported; use [entitySelector] for raw selector interop.
      *
      * @sample io.github.lmliam.kotventure.core.selector.selectorPredicateSample
      */
