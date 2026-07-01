@@ -402,20 +402,25 @@ class EntitySelectorTest :
                 nearestPlayer {
                     team(none)
                 }.asString() shouldBe "@p[team=]"
+
+                self {
+                    team("red_team-1.0+dev")
+                }.asString() shouldBe "@s[team=red_team-1.0+dev]"
             }
 
             "team preserves exclusions before a last-write-wins positive filter" {
                 val selector =
                     entities {
+                        team(any)
                         team("red")
                         not {
                             team("blue")
                             team("green")
                         }
-                        team("gold")
+                        team(none)
                     }
 
-                selector.asString() shouldBe "@e[team=!blue,team=!green,team=gold]"
+                selector.asString() shouldBe "@e[team=!blue,team=!green,team=]"
             }
 
             "team is available on every selector head and common negated scope" {
@@ -431,6 +436,21 @@ class EntitySelectorTest :
                         self { team("red"); not { team("blue") } }
                         entities { team("red"); not { team("blue") } }
                         nearestEntity { team("red"); not { team("blue") } }
+                    }
+                    """.trimIndent(),
+                )
+
+                assertDoesNotCompile(
+                    "NegatedSelectorTeamPresenceTest.kt",
+                    """
+                    import io.github.lmliam.kotventure.core.selector.*
+
+                    fun invalidNegatedTeamPresence() {
+                        entities {
+                            not {
+                                team(SelectorPresence.ANY)
+                            }
+                        }
                     }
                     """.trimIndent(),
                 )

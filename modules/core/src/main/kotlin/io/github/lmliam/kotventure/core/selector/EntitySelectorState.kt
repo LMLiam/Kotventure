@@ -30,7 +30,8 @@ internal class EntitySelectorState {
     var gamemode: SelectorFilter<GameMode>? = null
         private set
     val tags: MutableList<String> = mutableListOf()
-    val excludedTeams: MutableList<String> = mutableListOf()
+    var excludedTeams: List<String> = emptyList()
+        private set
 
     fun assignType(entityType: Key) {
         assignType(entityType.asString())
@@ -91,7 +92,7 @@ internal class EntitySelectorState {
 
     fun excludeTeam(value: String) {
         requireValidTeamName(value)
-        excludedTeams += value
+        excludedTeams = excludedTeams + value
     }
 
     fun assignOrigin(
