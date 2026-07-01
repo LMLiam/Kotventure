@@ -27,7 +27,6 @@ internal class EntitySelectorAdapter(
     }
 
     override fun distance(range: ClosedFloatingPointRange<Double>) {
-        require(!range.isEmpty()) { "Range must not be empty, got: $range" }
         state.distance = closedRange(range.start, range.endInclusive)
     }
 
@@ -44,8 +43,7 @@ internal class EntitySelectorAdapter(
     }
 
     override fun level(range: IntRange) {
-        require(!range.isEmpty()) { "Range must not be empty, got: $range" }
-        state.level = LevelRange("${range.first}..${range.last}")
+        state.level = closedRange(range)
     }
 
     override fun gamemode(mode: GameMode) {

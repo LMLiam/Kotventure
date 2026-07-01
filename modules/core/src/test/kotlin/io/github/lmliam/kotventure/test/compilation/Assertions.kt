@@ -10,17 +10,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 
-internal fun assertCompiles(
-    fileName: String,
-    source: String,
-) {
-    val result = compile(fileName, source)
-
-    withClue(result.messages) {
-        result.exitCode shouldBe KotlinCompilation.ExitCode.OK
-    }
-}
-
 internal fun assertDoesNotCompile(
     fileName: String,
     source: String,

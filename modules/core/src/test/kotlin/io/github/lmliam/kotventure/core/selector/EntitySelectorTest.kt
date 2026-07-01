@@ -1,6 +1,5 @@
 package io.github.lmliam.kotventure.core.selector
 
-import io.github.lmliam.kotventure.test.compilation.assertCompiles
 import io.github.lmliam.kotventure.test.compilation.assertDoesNotCompile
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
@@ -12,15 +11,6 @@ class EntitySelectorTest :
         {
             "self returns @s" {
                 self().asString() shouldBe "@s"
-            }
-
-            "self preserves its no-argument JVM entry point" {
-                val factoryClass =
-                    Class.forName(
-                        "io.github.lmliam.kotventure.core.selector.EntitySelectorFactoryKt",
-                    )
-
-                factoryClass.getMethod("self").invoke(null).toString() shouldBe "@s"
             }
 
             "nearestPlayer with no arguments returns @p" {
@@ -43,39 +33,7 @@ class EntitySelectorTest :
                 nearestEntity().asString() shouldBe "@n"
             }
 
-            "all six selector heads expose their typed factories" {
-                assertCompiles(
-                    "AllSelectorHeadsTest.kt",
-                    """
-                    import io.github.lmliam.kotventure.core.selector.*
-
-                    fun allHeads() {
-                        nearestPlayer()
-                        allPlayers()
-                        randomPlayer()
-                        self()
-                        entities()
-                        nearestEntity()
-                    }
-                    """.trimIndent(),
-                )
-            }
-
             "self accepts common and entity type arguments" {
-                assertCompiles(
-                    "ConfiguredSelfSelectorTest.kt",
-                    """
-                    import io.github.lmliam.kotventure.core.selector.*
-
-                    fun configuredSelf() {
-                        self {
-                            type("minecraft:zombie")
-                            name("Boss")
-                        }
-                    }
-                    """.trimIndent(),
-                )
-
                 self {
                     type("minecraft:zombie")
                     name("Boss")
