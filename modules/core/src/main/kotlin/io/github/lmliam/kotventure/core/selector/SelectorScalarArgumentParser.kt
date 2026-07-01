@@ -20,11 +20,15 @@ internal fun parseFloatingRangeArgument(
 ): EntitySelectorArgument.Range {
     val range = parseSelectorRange(value, valueOffset)
     if (name == "distance") {
-        if ((range.minimum ?: 0.0) < 0.0 || (range.maximum ?: 0.0) < 0.0) {
+        if ((range.minimum ?: 0.0) < 0.0) {
             fail(valueOffset, "Distance bounds must be non-negative")
         }
+        val maximumOffset = maximumBoundOffset(value, valueOffset)
+        if ((range.maximum ?: 0.0) < 0.0) {
+            fail(maximumOffset, "Distance bounds must be non-negative")
+        }
         if (range.minimum != null && range.maximum != null && range.minimum > range.maximum) {
-            fail(valueOffset, "Distance minimum must not exceed maximum")
+            fail(maximumOffset, "Distance minimum must not exceed maximum")
         }
     }
     return EntitySelectorArgument.Range(
@@ -44,11 +48,15 @@ internal fun parseSelectorIntRange(
         bounds.second?.takeIf(String::isNotEmpty)?.let {
             parseSelectorInt(it, valueOffset + value.indexOf("..") + 2)
         }
-    if (nonNegative && ((minimum ?: 0) < 0 || (maximum ?: 0) < 0)) {
+    if (nonNegative && (minimum ?: 0) < 0) {
         fail(valueOffset, "Level bounds must be non-negative")
     }
+    val maximumOffset = maximumBoundOffset(value, valueOffset)
+    if (nonNegative && (maximum ?: 0) < 0) {
+        fail(maximumOffset, "Level bounds must be non-negative")
+    }
     if (minimum != null && maximum != null && minimum > maximum) {
-        fail(valueOffset, "Range minimum must not exceed maximum")
+        fail(maximumOffset, "Range minimum must not exceed maximum")
     }
     return SelectorIntRange(minimum, maximum)
 }
@@ -220,6 +228,14 @@ private fun splitSelectorRange(
         fail(valueOffset, "Range must contain at least one bound")
     }
     return minimum to maximum
+}
+
+private fun maximumBoundOffset(
+    value: String,
+    valueOffset: Int,
+): Int {
+    val separator = value.indexOf("..")
+    return if (separator < 0) valueOffset else valueOffset + separator + 2
 }
 
 private fun parseSelectorDouble(
