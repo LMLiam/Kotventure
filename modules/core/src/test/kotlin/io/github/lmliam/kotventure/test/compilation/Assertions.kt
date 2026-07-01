@@ -7,6 +7,21 @@ import io.kotest.matchers.string.shouldContain
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 
 @OptIn(ExperimentalCompilerApi::class)
+internal fun assertCompiles(
+    fileName: String,
+    source: String,
+) {
+    val result =
+        KotlinCompilation()
+            .apply {
+                inheritClassPath = true
+                sources = listOf(SourceFile.kotlin(fileName, source))
+            }.compile()
+
+    result.exitCode shouldBe KotlinCompilation.ExitCode.OK
+}
+
+@OptIn(ExperimentalCompilerApi::class)
 internal fun assertDoesNotCompile(
     fileName: String,
     source: String,

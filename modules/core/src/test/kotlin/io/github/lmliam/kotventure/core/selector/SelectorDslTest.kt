@@ -25,6 +25,19 @@ class SelectorDslTest :
                 component.shouldNotHaveSelectorSeparator()
             }
 
+            "builds a selector component with a configured nearest entity" {
+                val component =
+                    selector(
+                        nearestEntity {
+                            type("minecraft:zombie")
+                            distance(atMost(8.0))
+                            limit(1)
+                        },
+                    ).shouldBeSelectorComponent()
+
+                component shouldHaveSelectorPattern "@n[type=minecraft:zombie,distance=..8,limit=1]"
+            }
+
             "builds a selector component with the escape hatch" {
                 val component = selector(entitySelector("@e[distance=..10]")).shouldBeSelectorComponent()
 
