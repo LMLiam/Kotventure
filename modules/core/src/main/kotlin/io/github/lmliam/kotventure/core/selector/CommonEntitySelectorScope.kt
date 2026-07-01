@@ -8,7 +8,13 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
  * @sample io.github.lmliam.kotventure.core.selector.commonEntitySelectorScopeSample
  */
 @KotventureDslMarker
-public interface CommonEntitySelectorScope {
+public sealed interface CommonEntitySelectorScope {
+    /** Requires at least one scoreboard tag. */
+    public val any: SelectorPresence
+
+    /** Requires no scoreboard tags. */
+    public val none: SelectorPresence
+
     /** Survival mode. */
     public val survival: GameMode
 
@@ -30,8 +36,25 @@ public interface CommonEntitySelectorScope {
     /** Filters by scoreboard tag. */
     public fun tag(tag: String)
 
+    /** Filters by whether any scoreboard tag is present. */
+    public fun tag(presence: SelectorPresence)
+
+    /**
+     * Excludes entities with this scoreboard tag: `tag(!"muted")`. Repeatable.
+     *
+     * @sample io.github.lmliam.kotventure.core.selector.negatedCommonArgumentsSample
+     */
+    public fun tag(tag: Excluded<String>)
+
     /** Filters by entity name. */
     public fun name(name: String)
+
+    /**
+     * Excludes entities with this name: `name(!"Boss")`. Exclusions accumulate.
+     *
+     * @sample io.github.lmliam.kotventure.core.selector.negatedCommonArgumentsSample
+     */
+    public fun name(name: Excluded<String>)
 
     /** Filters by experience level using a [LevelRange]. */
     public fun level(range: LevelRange)
@@ -41,4 +64,17 @@ public interface CommonEntitySelectorScope {
 
     /** Filters by game mode. */
     public fun gamemode(mode: GameMode)
+
+    /**
+     * Excludes entities in this game mode: `gamemode(!survival)`. Exclusions accumulate.
+     *
+     * @sample io.github.lmliam.kotventure.core.selector.negatedCommonArgumentsSample
+     */
+    public fun gamemode(mode: Excluded<GameMode>)
+
+    /** Marks a string argument value as excluded: `tag(!"muted")`. */
+    public operator fun String.not(): Excluded<String> = Excluded(this)
+
+    /** Marks a game mode as excluded: `gamemode(!survival)`. */
+    public operator fun GameMode.not(): Excluded<GameMode> = Excluded(this)
 }

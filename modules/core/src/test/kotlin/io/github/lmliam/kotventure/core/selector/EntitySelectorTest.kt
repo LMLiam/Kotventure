@@ -1,10 +1,10 @@
 package io.github.lmliam.kotventure.core.selector
 
+import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.test.compilation.assertDoesNotCompile
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import net.kyori.adventure.key.Key
 
 class EntitySelectorTest :
     StringSpec(
@@ -52,7 +52,7 @@ class EntitySelectorTest :
                         }
                     }
                     """.trimIndent(),
-                    "Unresolved reference 'type'",
+                    "receiver type mismatch",
                 )
             }
 
@@ -188,7 +188,7 @@ class EntitySelectorTest :
             }
 
             "type with Adventure Key" {
-                val selector = entities { type(Key.key("minecraft", "creeper")) }
+                val selector = entities { type(key("minecraft", "creeper")) }
 
                 selector.asString() shouldBe "@e[type=minecraft:creeper]"
             }
@@ -204,6 +204,134 @@ class EntitySelectorTest :
                 allPlayers { gamemode(creative) }.asString() shouldBe "@a[gamemode=creative]"
                 allPlayers { gamemode(adventure) }.asString() shouldBe "@a[gamemode=adventure]"
                 allPlayers { gamemode(spectator) }.asString() shouldBe "@a[gamemode=spectator]"
+            }
+
+            "negated filters accumulate in call order" {
+                val selector =
+                    entities {
+                        type(!key("minecraft", "zombie"))
+                        typeTag(!key("minecraft", "raiders"))
+                        name(!"Boss")
+                        name(!"Boss Mob")
+                        gamemode(!survival)
+                        gamemode(!creative)
+                    }
+
+                selector.asString() shouldBe
+                        "@e[type=!minecraft:zombie,type=!#minecraft:raiders,name=!Boss,name=!\"Boss Mob\"," +
+                        "gamemode=!survival,gamemode=!creative]"
+            }
+
+            "entity type tags use Adventure keys and preserve custom namespaces" {
+                entities {
+                    typeTag(key("mymod", "hostile"))
+                }.asString() shouldBe "@e[type=#mymod:hostile]"
+
+                self {
+                    typeTag(!key("mymod", "ignored"))
+                }.asString() shouldBe "@s[type=!#mymod:ignored]"
+            }
+
+            "negated string types apply the default namespace" {
+                entities {
+                    type(!"creeper")
+                }.asString() shouldBe "@e[type=!minecraft:creeper]"
+            }
+
+            "tag filters support presence and mixed repeatable forms" {
+                val selector =
+                    allPlayers {
+                        tag(any)
+                        tag("vip")
+                        tag(!"muted")
+                        tag(none)
+                    }
+
+                selector.asString() shouldBe "@a[tag=!,tag=vip,tag=!muted,tag=]"
+            }
+
+            "duplicate singleton arguments are rejected" {
+                shouldThrow<IllegalStateException> {
+                    entities {
+                        limit(1)
+                        limit(5)
+                    }
+                }
+                shouldThrow<IllegalStateException> {
+                    entities {
+                        sort(nearest)
+                        sort(furthest)
+                    }
+                }
+                shouldThrow<IllegalStateException> {
+                    entities {
+                        distance(atMost(1.0))
+                        distance(atLeast(2.0))
+                    }
+                }
+                shouldThrow<IllegalStateException> {
+                    allPlayers {
+                        level(exactly(3))
+                        level(5..10)
+                    }
+                }
+            }
+
+            "duplicate positive singleton filters are rejected" {
+                shouldThrow<IllegalStateException> {
+                    entities {
+                        type("zombie")
+                        type("skeleton")
+                    }
+                }
+                shouldThrow<IllegalStateException> {
+                    allPlayers {
+                        name("Alex")
+                        name("Steve")
+                    }
+                }
+            }
+
+            "mixed filter polarity is rejected in both orders" {
+                shouldThrow<IllegalStateException> {
+                    entities {
+                        type("zombie")
+                        type(!"skeleton")
+                    }
+                }
+                shouldThrow<IllegalStateException> {
+                    allPlayers {
+                        gamemode(!survival)
+                        gamemode(creative)
+                    }
+                }
+            }
+
+            "player selector scopes do not expose negated entity type filters" {
+                assertDoesNotCompile(
+                    "NegatedPlayerSelectorTypeTest.kt",
+                    """
+                    import io.github.lmliam.kotventure.core.selector.*
+
+                    fun invalidPlayerSelector() {
+                        allPlayers {
+                            type(!"zombie")
+                        }
+                    }
+                    """.trimIndent(),
+                    "receiver type mismatch",
+                )
+            }
+
+            "the exclusion operator is not available outside selector scopes" {
+                assertDoesNotCompile(
+                    "UnscopedExclusionOperatorTest.kt",
+                    """
+                    import io.github.lmliam.kotventure.core.selector.*
+
+                    val excluded = !"zombie"
+                    """.trimIndent(),
+                )
             }
 
             "sort with all constant variants" {
@@ -311,18 +439,6 @@ class EntitySelectorTest :
                 shouldThrow<IllegalArgumentException> {
                     exactly(Double.NEGATIVE_INFINITY)
                 }
-            }
-
-            "singleton options use last-write-wins" {
-                val selector =
-                    entities {
-                        limit(1)
-                        limit(5)
-                        sort(nearest)
-                        sort(furthest)
-                    }
-
-                selector.asString() shouldBe "@e[limit=5,sort=furthest]"
             }
 
             "multiple tags are all preserved" {

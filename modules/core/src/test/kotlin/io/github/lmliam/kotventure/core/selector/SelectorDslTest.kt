@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.core.selector
 
+import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldBeSelectorComponent
 import io.github.lmliam.kotventure.test.text.shouldContainText
@@ -36,6 +37,18 @@ class SelectorDslTest :
                     ).shouldBeSelectorComponent()
 
                 component shouldHaveSelectorPattern "@n[type=minecraft:zombie,distance=..8,limit=1]"
+            }
+
+            "builds a selector component with typed negated filters" {
+                val component =
+                    selector(
+                        entities {
+                            typeTag(key("minecraft", "raiders"))
+                            tag(!"hidden")
+                        },
+                    ).shouldBeSelectorComponent()
+
+                component shouldHaveSelectorPattern "@e[type=#minecraft:raiders,tag=!hidden]"
             }
 
             "builds a selector component with the escape hatch" {

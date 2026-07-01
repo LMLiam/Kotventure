@@ -3,22 +3,28 @@ package io.github.lmliam.kotventure.core.selector
 internal object EntitySelectorRenderer {
     fun render(
         head: String,
-        state: EntitySelectorState,
+        builder: EntitySelectorBuilder,
     ): EntitySelector {
         val arguments =
             buildList {
-                state.type?.let { add("type=$it") }
-                state.name?.let { add("name=${renderName(it)}") }
-                state.distance?.let { add("distance=${it.rendered}") }
-                state.level?.let { add("level=${it.rendered}") }
-                state.gamemode?.let { add("gamemode=${it.value}") }
-                state.limit?.let { add("limit=$it") }
-                state.sort?.let { add("sort=${it.value}") }
-                state.tags.forEach { add("tag=$it") }
+                builder.type?.renderValues { it }?.forEach { add("type=$it") }
+                builder.name?.renderValues(::renderName)?.forEach { add("name=$it") }
+                builder.distance?.let { add("distance=${it.rendered}") }
+                builder.level?.let { add("level=${it.rendered}") }
+                builder.gamemode?.renderValues { it.value }?.forEach { add("gamemode=$it") }
+                builder.limit?.let { add("limit=$it") }
+                builder.sort?.let { add("sort=${it.value}") }
+                builder.tags.forEach { add("tag=$it") }
             }
         val suffix = if (arguments.isEmpty()) "" else arguments.joinToString(",", prefix = "[", postfix = "]")
         return EntitySelector("$head$suffix")
     }
+
+    private fun <T> SelectorFilter<T>.renderValues(render: (T) -> String): List<String> =
+        when (this) {
+            is SelectorFilter.Positive -> listOf(render(value))
+            is SelectorFilter.Negative -> values.map { value -> "!${render(value)}" }
+        }
 
     private fun renderName(value: String): String = if (needsQuoting(value)) "\"${escapeQuotes(value)}\"" else value
 
@@ -26,12 +32,12 @@ internal object EntitySelectorRenderer {
 
     private fun Char.isAllowedInUnquotedString(): Boolean =
         this in '0'..'9' ||
-            this in 'A'..'Z' ||
-            this in 'a'..'z' ||
-            this == '_' ||
-            this == '-' ||
-            this == '.' ||
-            this == '+'
+                this in 'A'..'Z' ||
+                this in 'a'..'z' ||
+                this == '_' ||
+                this == '-' ||
+                this == '.' ||
+                this == '+'
 
     private fun escapeQuotes(value: String): String =
         value
