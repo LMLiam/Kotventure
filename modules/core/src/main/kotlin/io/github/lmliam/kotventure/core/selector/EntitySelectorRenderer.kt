@@ -9,6 +9,12 @@ internal object EntitySelectorRenderer {
             buildList {
                 state.type?.renderValues { it }?.forEach { add("type=$it") }
                 state.name?.renderValues(::renderName)?.forEach { add("name=$it") }
+                state.x?.let { add("x=${formatSelectorNumber(it)}") }
+                state.y?.let { add("y=${formatSelectorNumber(it)}") }
+                state.z?.let { add("z=${formatSelectorNumber(it)}") }
+                state.dx?.let { add("dx=${formatSelectorNumber(it)}") }
+                state.dy?.let { add("dy=${formatSelectorNumber(it)}") }
+                state.dz?.let { add("dz=${formatSelectorNumber(it)}") }
                 state.distance?.let { add("distance=${it.rendered}") }
                 state.level?.let { add("level=${it.rendered}") }
                 state.gamemode?.renderValues { it.value }?.forEach { add("gamemode=$it") }

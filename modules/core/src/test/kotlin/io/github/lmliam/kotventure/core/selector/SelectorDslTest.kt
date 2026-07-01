@@ -51,6 +51,18 @@ class SelectorDslTest :
                 component shouldHaveSelectorPattern "@e[type=#minecraft:raiders,tag=!hidden]"
             }
 
+            "builds a selector component with a typed origin and volume" {
+                val component =
+                    selector(
+                        nearestEntity {
+                            origin(x = 10.0, z = -4.0)
+                            volume(dx = 0.0, dy = 2.0)
+                        },
+                    ).shouldBeSelectorComponent()
+
+                component shouldHaveSelectorPattern "@n[x=10,z=-4,dx=0,dy=2]"
+            }
+
             "builds a selector component with the escape hatch" {
                 val component = selector(entitySelector("@e[distance=..10]")).shouldBeSelectorComponent()
 

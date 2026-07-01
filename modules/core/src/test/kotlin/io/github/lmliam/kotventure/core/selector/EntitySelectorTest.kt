@@ -316,6 +316,59 @@ class EntitySelectorTest :
                 selector.asString() shouldBe "@a[tag=!,tag=vip,tag=!muted,tag=]"
             }
 
+            "origin and volume render full and partial coordinates" {
+                entities {
+                    origin(x = 1.5, y = 64.0, z = -2.0)
+                    volume(dx = 0.0, dy = -3.5, dz = 4.0)
+                }.asString() shouldBe "@e[x=1.5,y=64,z=-2,dx=0,dy=-3.5,dz=4]"
+
+                allPlayers {
+                    origin(y = 80.0)
+                    volume(dx = 0.0, dz = -2.0)
+                }.asString() shouldBe "@a[y=80,dx=0,dz=-2]"
+            }
+
+            "repeated origin and volume calls replace only supplied axes" {
+                val selector =
+                    entities {
+                        origin(x = 1.0, y = 2.0)
+                        origin(y = 3.0, z = 4.0)
+                        volume(dx = 5.0, dy = 6.0, dz = 7.0)
+                        volume(dy = -6.0)
+                    }
+
+                selector.asString() shouldBe "@e[x=1,y=3,z=4,dx=5,dy=-6,dz=7]"
+            }
+
+            "finite coordinates render without unsupported exponent notation" {
+                val selector =
+                    entities {
+                        origin(x = 1e20, z = 1e-7)
+                    }
+
+                selector.asString() shouldBe "@e[x=100000000000000000000,z=0.0000001]"
+            }
+
+            "origin rejects empty and non-finite coordinates" {
+                shouldThrow<IllegalArgumentException> {
+                    entities { origin() }
+                }.message shouldBe "Selector origin requires at least one coordinate"
+
+                shouldThrow<IllegalArgumentException> {
+                    entities { origin(z = Double.POSITIVE_INFINITY) }
+                }.message shouldBe "Selector origin z must be finite, got: Infinity"
+            }
+
+            "volume rejects empty and non-finite deltas" {
+                shouldThrow<IllegalArgumentException> {
+                    entities { volume() }
+                }.message shouldBe "Selector volume requires at least one delta"
+
+                shouldThrow<IllegalArgumentException> {
+                    entities { volume(dy = Double.NaN) }
+                }.message shouldBe "Selector volume dy must be finite, got: NaN"
+            }
+
             "player negation scopes do not expose entity type filters" {
                 assertDoesNotCompile(
                     "NegatedPlayerSelectorTypeTest.kt",

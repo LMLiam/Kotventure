@@ -23,6 +23,22 @@ internal abstract class CommonEntitySelectorAdapter(
         state.distance = closedRange(range.start, range.endInclusive)
     }
 
+    final override fun origin(
+        x: Double?,
+        y: Double?,
+        z: Double?,
+    ) {
+        state.assignOrigin(x, y, z)
+    }
+
+    final override fun volume(
+        dx: Double?,
+        dy: Double?,
+        dz: Double?,
+    ) {
+        state.assignVolume(dx, dy, dz)
+    }
+
     final override fun tag(tag: String) {
         state.addTag(tag)
     }
