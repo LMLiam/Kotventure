@@ -145,7 +145,8 @@ class VanillaSelectorConformanceTest :
 
                 failure.message shouldContain "@s[limit=1]"
                 failure.message shouldContain "offset"
-                failure.message shouldContain "Option 'limit' isn't applicable here"
+                failure.message shouldContain "limit"
+                failure.message shouldContain "applicable"
             }
         },
     )

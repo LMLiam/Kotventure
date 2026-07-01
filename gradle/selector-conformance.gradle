@@ -41,26 +41,46 @@ def downloadServerBundle = tasks.register('downloadSelectorConformanceServer') {
         def target = serverBundle.get().asFile
         target.parentFile.mkdirs()
         def temporary = new File(target.parentFile, "${target.name}.part")
-        temporary.delete()
+        Exception lastFailure = null
 
-        def connection = new URI(serverBundleUrl).toURL().openConnection()
-        connection.connectTimeout = 30_000
-        connection.readTimeout = 120_000
-        connection.inputStream.withCloseable { input ->
-            temporary.withOutputStream { output -> output << input }
-        }
-        def actualSha1 = sha1(temporary)
-        if (actualSha1 != serverBundleSha1) {
+        for (int attempt = 1; attempt <= 3; attempt++) {
             temporary.delete()
-            throw new GradleException(
-                "Minecraft $minecraftVersion server checksum mismatch: " +
-                    "expected $serverBundleSha1, got $actualSha1",
-            )
+            try {
+                def connection = new URI(serverBundleUrl).toURL().openConnection()
+                connection.connectTimeout = 30_000
+                connection.readTimeout = 120_000
+                connection.inputStream.withCloseable { input ->
+                    temporary.withOutputStream { output -> output << input }
+                }
+                def actualSha1 = sha1(temporary)
+                if (actualSha1 != serverBundleSha1) {
+                    throw new GradleException(
+                        "Minecraft $minecraftVersion server checksum mismatch: " +
+                            "expected $serverBundleSha1, got $actualSha1",
+                    )
+                }
+                Files.move(
+                    temporary.toPath(),
+                    target.toPath(),
+                    StandardCopyOption.REPLACE_EXISTING,
+                )
+                return
+            } catch (Exception failure) {
+                lastFailure = failure
+                temporary.delete()
+                if (attempt < 3) {
+                    logger.warn(
+                        "Minecraft $minecraftVersion server download attempt $attempt failed; " +
+                            "retrying: ${failure.message}",
+                    )
+                    Thread.sleep(attempt * 1_000L)
+                }
+            }
         }
-        Files.move(
-            temporary.toPath(),
-            target.toPath(),
-            StandardCopyOption.REPLACE_EXISTING,
+
+        throw new GradleException(
+            "Failed to download the Minecraft $minecraftVersion server bundle after 3 attempts.",
+            lastFailure,
         )
     }
 }
@@ -75,6 +95,28 @@ def extractServerClasspath = tasks.register('extractSelectorConformanceServer', 
         include 'META-INF/libraries/**/*.jar'
     }
     into extractedClasspath
+}
+
+def verifyServerClasspath = tasks.register('verifySelectorConformanceServer') {
+    group = 'verification'
+    description = "Verifies the extracted Minecraft $minecraftVersion conformance classpath."
+    dependsOn extractServerClasspath
+
+    doLast {
+        def root = extractedClasspath.get().asFile
+        def expectedServer =
+            new File(root, "META-INF/versions/$minecraftVersion/server-${minecraftVersion}.jar")
+        def libraries =
+            fileTree(root) {
+                include 'META-INF/libraries/**/*.jar'
+            }.files
+        if (!expectedServer.isFile() || expectedServer.length() == 0L || libraries.isEmpty()) {
+            throw new GradleException(
+                "Minecraft $minecraftVersion bundle layout changed: expected the versioned " +
+                    "server and bundled libraries. Update gradle/selector-conformance.gradle.",
+            )
+        }
+    }
 }
 
 sourceSets {
@@ -94,7 +136,7 @@ def vanillaServerClasspath =
         fileTree(extractedClasspath) {
             include '**/*.jar'
         }
-    }).builtBy(extractServerClasspath)
+    }).builtBy(verifyServerClasspath)
 
 dependencies {
     selectorConformanceTestImplementation sourceSets.main.output
