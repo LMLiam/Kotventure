@@ -1,0 +1,119 @@
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+import java.security.MessageDigest
+
+def minecraftVersion = '26.2'
+def serverBundleSha1 = '823e2250d24b3ddac457a60c92a6a941943fcd6a'
+def serverBundleUrl =
+    'https://piston-data.mojang.com/v1/objects/' +
+        serverBundleSha1 +
+        '/server.jar'
+def fixtureDirectory = layout.buildDirectory.dir("selector-conformance/$minecraftVersion")
+def serverBundle = fixtureDirectory.map { it.file("server-$minecraftVersion-bundle.jar") }
+def extractedClasspath = fixtureDirectory.map { it.dir('classpath') }
+
+def sha1 = { File file ->
+    def digest = MessageDigest.getInstance('SHA-1')
+    file.withInputStream { input ->
+        byte[] buffer = new byte[8192]
+        int read
+        while ((read = input.read(buffer)) != -1) {
+            digest.update(buffer, 0, read)
+        }
+    }
+    digest.digest().encodeHex().toString()
+}
+
+def downloadServerBundle = tasks.register('downloadSelectorConformanceServer') {
+    group = 'verification'
+    description = "Downloads the checksum-pinned Minecraft Java Edition $minecraftVersion server bundle."
+
+    inputs.property('minecraftVersion', minecraftVersion)
+    inputs.property('serverBundleUrl', serverBundleUrl)
+    inputs.property('serverBundleSha1', serverBundleSha1)
+    outputs.file(serverBundle)
+    outputs.upToDateWhen {
+        def target = serverBundle.get().asFile
+        target.isFile() && sha1(target) == serverBundleSha1
+    }
+
+    doLast {
+        def target = serverBundle.get().asFile
+        target.parentFile.mkdirs()
+        def temporary = new File(target.parentFile, "${target.name}.part")
+        temporary.delete()
+
+        def connection = new URI(serverBundleUrl).toURL().openConnection()
+        connection.connectTimeout = 30_000
+        connection.readTimeout = 120_000
+        connection.inputStream.withCloseable { input ->
+            temporary.withOutputStream { output -> output << input }
+        }
+        def actualSha1 = sha1(temporary)
+        if (actualSha1 != serverBundleSha1) {
+            temporary.delete()
+            throw new GradleException(
+                "Minecraft $minecraftVersion server checksum mismatch: " +
+                    "expected $serverBundleSha1, got $actualSha1",
+            )
+        }
+        Files.move(
+            temporary.toPath(),
+            target.toPath(),
+            StandardCopyOption.REPLACE_EXISTING,
+        )
+    }
+}
+
+def extractServerClasspath = tasks.register('extractSelectorConformanceServer', Sync) {
+    group = 'verification'
+    description = "Extracts the Minecraft $minecraftVersion server and its bundled libraries for tests."
+    dependsOn downloadServerBundle
+
+    from({ zipTree(serverBundle.get().asFile) }) {
+        include "META-INF/versions/$minecraftVersion/server-${minecraftVersion}.jar"
+        include 'META-INF/libraries/**/*.jar'
+    }
+    into extractedClasspath
+}
+
+sourceSets {
+    selectorConformanceTest {
+        kotlin.srcDir 'src/selectorConformanceTest/kotlin'
+        resources.srcDir 'src/selectorConformanceTest/resources'
+    }
+}
+
+configurations {
+    selectorConformanceTestImplementation.extendsFrom testImplementation
+    selectorConformanceTestRuntimeOnly.extendsFrom testRuntimeOnly
+}
+
+def vanillaServerClasspath =
+    files({
+        fileTree(extractedClasspath) {
+            include '**/*.jar'
+        }
+    }).builtBy(extractServerClasspath)
+
+dependencies {
+    selectorConformanceTestImplementation sourceSets.main.output
+    selectorConformanceTestImplementation vanillaServerClasspath
+}
+
+def selectorConformanceTest = tasks.register('selectorConformanceTest', Test) {
+    group = 'verification'
+    description = "Validates selector DSL output with Minecraft Java Edition $minecraftVersion."
+    testClassesDirs = sourceSets.selectorConformanceTest.output.classesDirs
+    classpath = sourceSets.selectorConformanceTest.runtimeClasspath
+    useJUnitPlatform()
+    shouldRunAfter test
+    workingDir fixtureDirectory.map { it.dir('run') }
+    doFirst {
+        workingDir.mkdirs()
+    }
+}
+
+tasks.named('check') {
+    dependsOn selectorConformanceTest
+}
