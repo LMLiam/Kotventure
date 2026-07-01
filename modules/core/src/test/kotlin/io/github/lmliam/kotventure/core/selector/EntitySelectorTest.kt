@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.core.selector
 
+import io.github.lmliam.kotventure.test.compilation.assertDoesNotCompile
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
@@ -26,6 +27,72 @@ class EntitySelectorTest :
 
             "entities with no arguments returns @e" {
                 entities().asString() shouldBe "@e"
+            }
+
+            "nearestEntity with no arguments returns @n" {
+                nearestEntity().asString() shouldBe "@n"
+            }
+
+            "self accepts common and entity type arguments" {
+                self {
+                    type("minecraft:zombie")
+                    name("Boss")
+                }.asString() shouldBe "@s[type=minecraft:zombie,name=Boss]"
+            }
+
+            "player selector scopes do not expose entity type" {
+                assertDoesNotCompile(
+                    "PlayerSelectorTypeTest.kt",
+                    """
+                    import io.github.lmliam.kotventure.core.selector.*
+
+                    fun invalidPlayerSelector() {
+                        nearestPlayer {
+                            type("minecraft:zombie")
+                        }
+                    }
+                    """.trimIndent(),
+                    "Unresolved reference 'type'",
+                )
+            }
+
+            "player selector scopes retain limit and sort" {
+                val selector =
+                    nearestPlayer {
+                        limit(3)
+                        sort(nearest)
+                    }
+
+                selector.asString() shouldBe "@p[limit=3,sort=nearest]"
+            }
+
+            "self selector scope does not expose limit or sort" {
+                assertDoesNotCompile(
+                    "SelfSelectorLimitTest.kt",
+                    """
+                    import io.github.lmliam.kotventure.core.selector.*
+
+                    fun invalidSelfSelector() {
+                        self {
+                            limit(1)
+                        }
+                    }
+                    """.trimIndent(),
+                    "Unresolved reference 'limit'",
+                )
+                assertDoesNotCompile(
+                    "SelfSelectorSortTest.kt",
+                    """
+                    import io.github.lmliam.kotventure.core.selector.*
+
+                    fun invalidSelfSelector() {
+                        self {
+                            sort(nearest)
+                        }
+                    }
+                    """.trimIndent(),
+                    "Unresolved reference 'sort'",
+                )
             }
 
             "entities with type and limit" {
@@ -184,6 +251,12 @@ class EntitySelectorTest :
                 val selector = nearestPlayer { name("SimplePlayer") }
 
                 selector.asString() shouldBe "@p[name=SimplePlayer]"
+            }
+
+            "name outside Brigadier's unquoted character set is quoted" {
+                val selector = nearestPlayer { name("namespace:value") }
+
+                selector.asString() shouldBe "@p[name=\"namespace:value\"]"
             }
 
             "atMost rejects NaN" {

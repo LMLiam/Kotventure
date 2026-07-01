@@ -102,7 +102,7 @@ val msg = component {
     translatable("item.minecraft.diamond") { fallback("Diamond") }
     keybind("key.jump") { color(YELLOW) }
     score("Alex", "kills")
-    selector("@a") { separator { content(", ") } }
+    selector(allPlayers()) { separator { content(", ") } }
     blockNbt(blockPos(1, 64, 1), "Items[0].id")
     entityNbt("@p", "CustomName") { interpret(true) }
     storageNbt(key("kotventure", "messages"), "motd") { interpret(true) }

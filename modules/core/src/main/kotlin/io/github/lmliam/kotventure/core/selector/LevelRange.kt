@@ -23,3 +23,8 @@ public fun atLeast(min: Int): LevelRange = LevelRange("$min..")
 
 /** A range matching exactly [value] (renders as `value`). */
 public fun exactly(value: Int): LevelRange = LevelRange("$value")
+
+internal fun closedRange(range: IntRange): LevelRange {
+    require(!range.isEmpty()) { "Range must not be empty, got: $range" }
+    return LevelRange("${range.first}..${range.last}")
+}

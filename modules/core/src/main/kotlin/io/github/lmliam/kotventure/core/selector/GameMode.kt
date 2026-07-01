@@ -3,7 +3,7 @@ package io.github.lmliam.kotventure.core.selector
 /**
  * A Minecraft game mode, used to filter an entity selector.
  *
- * Access via scoped constants inside [EntitySelectorScope]: `gamemode(survival)`.
+ * Access via scoped constants inside any selector scope (see [CommonEntitySelectorScope]): `gamemode(survival)`.
  */
 public enum class GameMode(
     internal val value: String,

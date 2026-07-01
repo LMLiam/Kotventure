@@ -4,7 +4,7 @@ package io.github.lmliam.kotventure.core.selector
  * A typed entity selector such as `@s`, `@p`, or `@e[type=armor_stand,limit=1]`.
  *
  * Construct via the target factories ([self], [nearestPlayer], [allPlayers], [randomPlayer],
- * [entities]) or the string escape-hatch [entitySelector].
+ * [entities], [nearestEntity]) or the string escape-hatch [entitySelector].
  */
 @JvmInline
 public value class EntitySelector(
