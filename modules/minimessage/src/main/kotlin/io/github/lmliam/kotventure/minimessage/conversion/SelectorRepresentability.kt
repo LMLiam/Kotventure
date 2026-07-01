@@ -4,17 +4,19 @@ import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument
 import io.github.lmliam.kotventure.core.selector.LevelRange
 import io.github.lmliam.kotventure.core.selector.ParsedAdvancementProgress
 import io.github.lmliam.kotventure.core.selector.ParsedEntitySelector
+import io.github.lmliam.kotventure.core.selector.SelectorCoordinate
 import io.github.lmliam.kotventure.core.selector.SelectorRange
+import io.github.lmliam.kotventure.core.selector.SelectorRangeArgument
 import java.math.BigDecimal
 
-internal fun ParsedEntitySelector.isLosslesslyRepresentable(pattern: String): Boolean {
+internal fun ParsedEntitySelector.isLosslesslyRepresentable(
+    pattern: String,
+    nbtSources: SelectorNbtSources,
+): Boolean {
     if (hasExplicitArgumentList && arguments.isEmpty()) return false
     if (!arguments.haveCanonicalOrder()) return false
     if (!arguments.haveRepresentableCardinality()) return false
-    if (arguments.filterIsInstance<EntitySelectorArgument.Nbt>().any { snbtToDslSource(it.snbt) == null }) {
-        return false
-    }
-    return canonicalPattern() == pattern
+    return canonicalPattern(nbtSources) == pattern
 }
 
 private fun List<EntitySelectorArgument>.haveCanonicalOrder(): Boolean =
@@ -71,12 +73,13 @@ private fun <T> List<T>.isNegatedThenPositive(isNegated: (T) -> Boolean): Boolea
 
 private fun <T> List<T>.hasDuplicates(): Boolean = size != distinct().size
 
-private fun ParsedEntitySelector.canonicalPattern(): String {
+private fun ParsedEntitySelector.canonicalPattern(nbtSources: SelectorNbtSources): String? {
     if (arguments.isEmpty()) return head.token
-    return arguments.joinToString(",", "${head.token}[", "]", transform = EntitySelectorArgument::canonicalSource)
+    val renderedArguments = arguments.map { it.canonicalSource(nbtSources) ?: return null }
+    return renderedArguments.joinToString(",", "${head.token}[", "]")
 }
 
-private fun EntitySelectorArgument.canonicalSource(): String =
+private fun EntitySelectorArgument.canonicalSource(nbtSources: SelectorNbtSources): String? =
     when (this) {
         is EntitySelectorArgument.Coordinate ->
             "${coordinate.argumentName}=${formatSelectorNumber(value)}"
@@ -94,7 +97,7 @@ private fun EntitySelectorArgument.canonicalSource(): String =
         is EntitySelectorArgument.Tag -> "tag=${if (isNegated) "!" else ""}$value"
         is EntitySelectorArgument.Team -> "team=${if (isNegated) "!" else ""}$value"
         is EntitySelectorArgument.Nbt ->
-            "nbt=${if (isNegated) "!" else ""}${requireNotNull(snbtToDslSource(snbt)).rendered}"
+            nbtSources[this]?.let { "nbt=${if (isNegated) "!" else ""}${it.rendered}" }
         is EntitySelectorArgument.Scores ->
             scores.joinToString(",", "scores={", "}") {
                 "${it.objective}=${it.range.canonicalSource()}"
@@ -163,8 +166,21 @@ private val EntitySelectorArgument.canonicalRank: Int
         when (this) {
             is EntitySelectorArgument.Type -> 0
             is EntitySelectorArgument.Name -> 1
-            is EntitySelectorArgument.Coordinate -> 2 + coordinate.ordinal
-            is EntitySelectorArgument.Range -> 8 + argument.ordinal
+            is EntitySelectorArgument.Coordinate ->
+                when (coordinate) {
+                    SelectorCoordinate.X -> 2
+                    SelectorCoordinate.Y -> 3
+                    SelectorCoordinate.Z -> 4
+                    SelectorCoordinate.DX -> 5
+                    SelectorCoordinate.DY -> 6
+                    SelectorCoordinate.DZ -> 7
+                }
+            is EntitySelectorArgument.Range ->
+                when (argument) {
+                    SelectorRangeArgument.DISTANCE -> 8
+                    SelectorRangeArgument.X_ROTATION -> 9
+                    SelectorRangeArgument.Y_ROTATION -> 10
+                }
             is EntitySelectorArgument.Level -> 11
             is EntitySelectorArgument.Gamemode -> 12
             is EntitySelectorArgument.Limit -> 13

@@ -113,8 +113,15 @@ internal fun escapeKotlinString(value: String): String =
                 '\n' -> append("\\n")
                 '\r' -> append("\\r")
                 '\t' -> append("\\t")
+                '\b' -> append("\\b")
+                '\u000C' -> append("\\u000c")
                 '$' -> append('\\').append('$')
-                else -> append(character)
+                else ->
+                    if (character.code < 0x20 || character.code == 0x7F) {
+                        append("\\u%04x".format(character.code))
+                    } else {
+                        append(character)
+                    }
             }
         }
     }

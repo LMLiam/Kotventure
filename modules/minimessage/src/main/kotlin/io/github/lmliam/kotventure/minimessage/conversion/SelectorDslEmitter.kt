@@ -14,7 +14,7 @@ private data class EmittedSelectorArgument(
     val isNegated: Boolean = false,
 )
 
-internal fun ParsedEntitySelector.toDslBody(): List<SelectorDslNode> {
+internal fun ParsedEntitySelector.toDslBody(nbtSources: SelectorNbtSources): List<SelectorDslNode>? {
     val emitted = mutableListOf<EmittedSelectorArgument>()
     var emittedOrigin = false
     var emittedVolume = false
@@ -29,7 +29,7 @@ internal fun ParsedEntitySelector.toDslBody(): List<SelectorDslNode> {
                 emittedVolume = true
             }
         } else {
-            emitted += argument.toEmittedArgument()
+            emitted += argument.toEmittedArgument(nbtSources) ?: return null
         }
     }
     return emitted.groupNegatedArguments()
@@ -49,7 +49,7 @@ private fun ParsedEntitySelector.coordinateGroup(
     return SelectorDslNode.Line("$function($values)")
 }
 
-private fun EntitySelectorArgument.toEmittedArgument(): EmittedSelectorArgument =
+private fun EntitySelectorArgument.toEmittedArgument(nbtSources: SelectorNbtSources): EmittedSelectorArgument? =
     when (this) {
         is EntitySelectorArgument.Coordinate -> error("Coordinates are emitted in groups")
         is EntitySelectorArgument.Range ->
@@ -79,13 +79,15 @@ private fun EntitySelectorArgument.toEmittedArgument(): EmittedSelectorArgument 
         is EntitySelectorArgument.Tag -> tagArgument()
         is EntitySelectorArgument.Team -> teamArgument()
         is EntitySelectorArgument.Nbt ->
-            EmittedSelectorArgument(
-                SelectorDslNode.Block(
-                    "nbt",
-                    requireNotNull(snbtToDslSource(snbt)).bodyLines.map(SelectorDslNode::Line),
-                ),
-                isNegated,
-            )
+            nbtSources[this]?.let { source ->
+                EmittedSelectorArgument(
+                    SelectorDslNode.Block(
+                        "nbt",
+                        source.bodyLines.map(SelectorDslNode::Line),
+                    ),
+                    isNegated,
+                )
+            }
         is EntitySelectorArgument.Scores ->
             EmittedSelectorArgument(
                 SelectorDslNode.Group(

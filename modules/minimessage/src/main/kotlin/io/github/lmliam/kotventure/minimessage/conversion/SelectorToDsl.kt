@@ -1,7 +1,9 @@
 package io.github.lmliam.kotventure.minimessage.conversion
 
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument
 import io.github.lmliam.kotventure.core.selector.EntitySelectorHead
 import io.github.lmliam.kotventure.core.selector.EntitySelectorParseResult
+import io.github.lmliam.kotventure.core.selector.ParsedEntitySelector
 import io.github.lmliam.kotventure.core.selector.parseEntitySelector
 
 internal fun selectorDslSource(pattern: String): SelectorDslSource? {
@@ -10,11 +12,23 @@ internal fun selectorDslSource(pattern: String): SelectorDslSource? {
             is EntitySelectorParseResult.Success -> result.selector
             is EntitySelectorParseResult.Failure -> return null
         }
-    if (!parsed.isLosslesslyRepresentable(pattern)) return null
+    val nbtSources = parsed.selectorNbtSources() ?: return null
+    if (!parsed.isLosslesslyRepresentable(pattern, nbtSources)) return null
+    val body = parsed.toDslBody(nbtSources) ?: return null
     return SelectorDslSource(
         factoryName = parsed.head.factoryName,
-        body = parsed.toDslBody(),
+        body = body,
     )
+}
+
+internal typealias SelectorNbtSources = Map<EntitySelectorArgument.Nbt, SnbtDslSource>
+
+private fun ParsedEntitySelector.selectorNbtSources(): SelectorNbtSources? {
+    val sources = mutableMapOf<EntitySelectorArgument.Nbt, SnbtDslSource>()
+    arguments.filterIsInstance<EntitySelectorArgument.Nbt>().forEach { argument ->
+        sources[argument] = snbtToDslSource(argument.snbt) ?: return null
+    }
+    return sources
 }
 
 internal data class SelectorDslSource(

@@ -170,6 +170,7 @@ class MiniMessageToDslSelectorTest :
                     "@e[x=1.0]",
                     "@e[future=\"say \\\\\"hi\\\\\"\"]",
                     "@e[team=!,team=!red]",
+                    "@e[future=\"a\b\u000cb\u0001\"]",
                 ).forEach { pattern ->
                     assertSelectorRoundTrip(
                         pattern = pattern,
@@ -209,5 +210,19 @@ private fun assertSelectorRoundTrip(
 }
 
 private fun String.escapeForExpectedKotlin(): String =
-    replace("\\", "\\\\")
-        .replace("\"", "\\\"")
+    buildString {
+        this@escapeForExpectedKotlin.forEach { character ->
+            when (character) {
+                '\\' -> append("\\\\")
+                '"' -> append("\\\"")
+                '\b' -> append("\\b")
+                '\u000C' -> append("\\u000c")
+                else ->
+                    if (character.code < 0x20 || character.code == 0x7F) {
+                        append("\\u%04x".format(character.code))
+                    } else {
+                        append(character)
+                    }
+            }
+        }
+    }
