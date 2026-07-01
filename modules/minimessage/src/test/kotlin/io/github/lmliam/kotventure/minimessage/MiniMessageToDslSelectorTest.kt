@@ -125,12 +125,12 @@ class MiniMessageToDslSelectorTest :
 
             test("emits positive type name and game mode filters") {
                 assertSelectorRoundTrip(
-                    pattern = "@s[type=minecraft:player,name=\"Boss Mob\",gamemode=survival]",
+                    pattern = "@s[type=minecraft:player,name=\"Boss Éowyn\",gamemode=survival]",
                     expectedSelectorSource =
                         """
                         self {
                             type(key("minecraft", "player"))
-                            name("Boss Mob")
+                            name("Boss Éowyn")
                             gamemode(survival)
                         }
                         """.trimIndent(),

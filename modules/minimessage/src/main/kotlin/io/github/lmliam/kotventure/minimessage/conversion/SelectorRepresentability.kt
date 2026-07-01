@@ -125,7 +125,13 @@ private fun String.renderSelectorName(): String =
     }
 
 private fun Char.isSelectorTokenCharacter(): Boolean =
-    isLetterOrDigit() || this == '_' || this == '-' || this == '.' || this == '+'
+    this in '0'..'9' ||
+        this in 'A'..'Z' ||
+        this in 'a'..'z' ||
+        this == '_' ||
+        this == '-' ||
+        this == '.' ||
+        this == '+'
 
 private fun SelectorRange.canonicalSource(): String =
     rangeSource(
