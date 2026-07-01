@@ -309,6 +309,8 @@ class EntitySelectorTest :
                 exactly(5).hashCode() shouldBe exactly(5).hashCode()
                 atMost(5).toString() shouldBe "..5"
                 atLeast(5).toString() shouldBe "5.."
+                closedLevelRange(5, 5).toString() shouldBe "5..5"
+                (exactly(5) == closedLevelRange(5, 5)) shouldBe false
             }
 
             "scores support exact open closed negative and multiple objective ranges" {
@@ -318,10 +320,11 @@ class EntitySelectorTest :
                         score("deaths", atMost(2))
                         score("balance", atLeast(-10))
                         score("delta", -5..5)
+                        score("kills_total-1.0+dev", exactly(7))
                     }
 
                 selector.asString() shouldBe
-                    "@e[scores={kills=5,deaths=..2,balance=-10..,delta=-5..5}]"
+                    "@e[scores={kills=5,deaths=..2,balance=-10..,delta=-5..5,kills_total-1.0+dev=7}]"
             }
 
             "repeated score objectives replace in their original position" {
@@ -354,6 +357,10 @@ class EntitySelectorTest :
                 shouldThrow<IllegalArgumentException> {
                     entities { level(atLeast(-1)) }
                 }.message shouldBe "Level range bounds must be non-negative, got: -1.."
+
+                shouldThrow<IllegalArgumentException> {
+                    entities { level(atMost(-1)) }
+                }.message shouldBe "Level range bounds must be non-negative, got: ..-1"
 
                 shouldThrow<IllegalArgumentException> {
                     entities { level(-1..5) }
