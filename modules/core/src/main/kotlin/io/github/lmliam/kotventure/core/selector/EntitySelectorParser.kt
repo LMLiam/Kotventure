@@ -49,7 +49,7 @@ private class EntitySelectorSourceParser(
         val arguments = mutableListOf<EntitySelectorArgument>()
         if (peek() == ']') {
             offset++
-            return arguments
+            return emptyList()
         }
         while (true) {
             arguments += parseArgument(head)
@@ -62,7 +62,7 @@ private class EntitySelectorSourceParser(
                 }
                 ']' -> {
                     offset++
-                    return arguments
+                    return arguments.immutableSnapshot()
                 }
                 else -> fail(offset, "Expected ']' or another selector argument")
             }

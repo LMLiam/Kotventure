@@ -9,8 +9,10 @@ package io.github.lmliam.kotventure.core.selector
  * `level` and scoreboard objectives use the distinct [LevelRange] instead.
  */
 public class SelectorRange internal constructor(
-    internal val minimum: Double?,
-    internal val maximum: Double?,
+    /** Inclusive lower bound, or `null` when the range is open below. */
+    public val minimum: Double?,
+    /** Inclusive upper bound, or `null` when the range is open above. */
+    public val maximum: Double?,
     internal val rendered: String,
 ) {
     public override fun equals(other: Any?): Boolean = other is SelectorRange && rendered == other.rendered

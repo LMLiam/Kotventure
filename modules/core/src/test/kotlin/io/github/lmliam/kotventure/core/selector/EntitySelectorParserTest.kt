@@ -2,6 +2,7 @@ package io.github.lmliam.kotventure.core.selector
 
 import io.github.lmliam.kotventure.test.text.shouldBeSelectorComponent
 import io.github.lmliam.kotventure.test.text.shouldHaveSelectorPattern
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -27,8 +28,10 @@ class EntitySelectorParserTest :
                         "level=1..30,gamemode=!creative,limit=2,sort=nearest," +
                         "tag=!,tag=!hidden,team=!red,team=blue," +
                         "nbt={Tags:[\"boss\"],Data:[I;1,2]}," +
+                        "nbt={Health:20.0f}," +
                         "scores={kills=5,balance=-10..}," +
                         "predicate=!my_pack:hidden," +
+                        "predicate=my_pack:other," +
                         "advancements={minecraft:story/root=true,my_pack:secret={found_item=false}}" +
                         "]"
 
@@ -63,6 +66,64 @@ class EntitySelectorParserTest :
                 transformed.asString() shouldBe "@e[type=minecraft:zombie,tag=!hidden]"
             }
 
+            "defensively snapshots every collection-backed model value" {
+                val sourceArguments =
+                    mutableListOf<EntitySelectorArgument>(
+                        EntitySelectorArgument.Tag("admin", isNegated = false),
+                    )
+                val parsed = ParsedEntitySelector(EntitySelectorHead.ENTITIES, sourceArguments)
+                sourceArguments.clear()
+
+                parsed.arguments shouldHaveSize 1
+                shouldThrow<UnsupportedOperationException> {
+                    @Suppress("UNCHECKED_CAST")
+                    (parsed.arguments as MutableList<EntitySelectorArgument>).clear()
+                }
+
+                val scoreSource = mutableListOf(ParsedSelectorScore("kills", exactly(1)))
+                val scores = EntitySelectorArgument.Scores(scoreSource)
+                scoreSource.clear()
+                scores.scores shouldHaveSize 1
+
+                val structured =
+                    parseSuccess(
+                        "@e[advancements={minecraft:story/root={criterion=true}}]",
+                    ).arguments
+                        .filterIsInstance<EntitySelectorArgument.Advancements>()
+                        .single()
+                val criteria =
+                    structured.advancements
+                        .single()
+                        .progress
+                        .shouldBeInstanceOf<ParsedAdvancementProgress.Criteria>()
+                shouldThrow<UnsupportedOperationException> {
+                    @Suppress("UNCHECKED_CAST")
+                    (structured.advancements as MutableList<ParsedSelectorAdvancement>).clear()
+                }
+                shouldThrow<UnsupportedOperationException> {
+                    @Suppress("UNCHECKED_CAST")
+                    (criteria.criteria as MutableList<ParsedAdvancementCriterion>).clear()
+                }
+            }
+
+            "exposes parsed range bounds without reparsing rendered strings" {
+                val parsed = parseSuccess("@e[distance=..10,level=2..5,scores={kills=-1..}]")
+                val distance = parsed.arguments.filterIsInstance<EntitySelectorArgument.Range>().single()
+                val level = parsed.arguments.filterIsInstance<EntitySelectorArgument.Level>().single()
+                val scores = parsed.arguments.filterIsInstance<EntitySelectorArgument.Scores>().single()
+
+                distance.range.minimum shouldBe null
+                distance.range.maximum shouldBe 10.0
+                level.range.minimum shouldBe 2
+                level.range.maximum shouldBe 5
+                scores.scores
+                    .single()
+                    .range.minimum shouldBe -1
+                scores.scores
+                    .single()
+                    .range.maximum shouldBe null
+            }
+
             "supplies parsed selectors to selector components" {
                 val parsed = parseSuccess("@a[tag=admin]")
 
@@ -91,6 +152,7 @@ class EntitySelectorParserTest :
             "rejects malformed values in each structured grammar family" {
                 assertParseFailure("@e[x=NaN]", 5, "finite decimal")
                 assertParseFailure("@e[distance=..]", 12, "at least one bound")
+                assertParseFailure("@e[x_rotation=1...2]", 16, "more than one")
                 assertParseFailure("@e[level=-1]", 9, "non-negative")
                 assertParseFailure("@e[limit=0]", 9, "positive")
                 assertParseFailure("@e[sort=closest]", 8, "Unsupported selector sort")

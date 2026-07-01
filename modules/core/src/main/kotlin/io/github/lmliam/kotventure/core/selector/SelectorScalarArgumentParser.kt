@@ -210,8 +210,9 @@ private fun splitSelectorRange(
     }
     val separator = value.indexOf("..")
     if (separator < 0) return value to null
-    if (value.indexOf("..", separator + 2) >= 0) {
-        fail(valueOffset + separator + 2, "Range contains more than one '..' separator")
+    val secondSeparator = value.indexOf("..", separator + 1)
+    if (secondSeparator >= 0) {
+        fail(valueOffset + secondSeparator, "Range contains more than one '..' separator")
     }
     val minimum = value.substring(0, separator)
     val maximum = value.substring(separator + 2)

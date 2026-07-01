@@ -45,9 +45,13 @@ internal class SelectorSnbtValidator(
         expect('[')
         skipWhitespace()
         val arrayType = peek()
-        if (arrayType in setOf('B', 'I', 'L') && source.getOrNull(offset + 1) == ';') {
+        if (
+            arrayType != null &&
+            arrayType in TYPED_ARRAY_PREFIXES &&
+            source.getOrNull(offset + 1) == ';'
+        ) {
             offset += 2
-            parseArrayValues(arrayType!!)
+            parseArrayValues(arrayType)
             return
         }
         if (consume(']')) return
@@ -169,3 +173,4 @@ internal class SelectorSnbtValidator(
 private val SNBT_BYTE: Regex = Regex("-?[0-9]+[bB]")
 private val SNBT_INT: Regex = Regex("-?[0-9]+")
 private val SNBT_LONG: Regex = Regex("-?[0-9]+[lL]")
+private val TYPED_ARRAY_PREFIXES: Set<Char> = setOf('B', 'I', 'L')

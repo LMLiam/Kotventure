@@ -9,8 +9,10 @@ package io.github.lmliam.kotventure.core.selector
  * floating-point [SelectorRange], so fractional values are compile errors.
  */
 public class LevelRange internal constructor(
-    internal val minimum: Int?,
-    internal val maximum: Int?,
+    /** Inclusive lower bound, or `null` when the range is open below. */
+    public val minimum: Int?,
+    /** Inclusive upper bound, or `null` when the range is open above. */
+    public val maximum: Int?,
     internal val rendered: String,
 ) {
     public override fun equals(other: Any?): Boolean = other is LevelRange && rendered == other.rendered
