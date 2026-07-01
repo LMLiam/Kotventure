@@ -61,6 +61,16 @@ class EntitySelectorParserTest :
                 parseSuccess(source).asString() shouldBe source
             }
 
+            "preserves Java Edition 26.2 SNBT container forms" {
+                listOf(
+                    "@e[nbt={foo:1b,}]",
+                    "@e[nbt={Tags:[1b,\"mixed\",]}]",
+                    "@e[nbt={Data:[B;+1b,]}]",
+                ).forEach { source ->
+                    parseSuccess(source).asString() shouldBe source
+                }
+            }
+
             "exposes an immutable model that can be transformed" {
                 val parsed = parseSuccess("@e[type=minecraft:zombie,name=\"Boss Mob\",tag=!hidden]")
 
@@ -180,7 +190,7 @@ class EntitySelectorParserTest :
                 assertParseFailure("@e[name=\"bad\\q\"]", 12, "Invalid quoted-string escape")
                 assertParseFailure("@e[type=#Bad:Key]", 9, "Invalid namespaced key")
                 assertParseFailure("@e[tag=bad value]", 7, "Invalid unquoted selector token")
-                assertParseFailure("@e[nbt={list:[1,]}]", 16, "Expected SNBT list value")
+                assertParseFailure("@e[nbt={list:[1 2]}]", 16, "Expected ','")
                 assertParseFailure("@e[nbt={id:minecraft:stone}]", 20, "Invalid unquoted SNBT token")
                 listOf(
                     "@e[nbt={Data:[B;128b]}]" to "128b",
