@@ -2,6 +2,7 @@ package io.github.lmliam.kotventure.core.selector
 
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import io.github.lmliam.kotventure.core.nbt.NbtCompoundScope
+import net.kyori.adventure.key.Key
 
 /**
  * Negated filters shared by every typed selector head.
@@ -46,6 +47,15 @@ public sealed interface NegatedCommonEntitySelectorScope {
      * @sample io.github.lmliam.kotventure.core.selector.selectorNbtSample
      */
     public fun nbt(init: NbtCompoundScope.() -> Unit)
+
+    /**
+     * Adds a negated datapack predicate filter.
+     *
+     * Repeated positive and negated calls preserve every [predicate] key in call order.
+     *
+     * @sample io.github.lmliam.kotventure.core.selector.selectorPredicateSample
+     */
+    public fun predicate(predicate: Key)
 
     /** Excludes entities in this game mode. */
     public fun gamemode(mode: GameMode)

@@ -609,6 +609,53 @@ class EntitySelectorTest :
                     "{bytes:[B;1b,2b],ints:[I;3,4],longs:[L;5L,6L],rows:[[7,8],[9,10]]}}]"
             }
 
+            "predicate filters preserve positive and negated keys in call order" {
+                val selector =
+                    entities {
+                        predicate(Key.key("minecraft", "is_baby"))
+                        not {
+                            predicate(Key.key("my_pack", "hidden"))
+                        }
+                        predicate(Key.key("my_pack", "active"))
+                    }
+
+                selector.asString() shouldBe
+                    "@e[predicate=minecraft:is_baby,predicate=!my_pack:hidden,predicate=my_pack:active]"
+            }
+
+            "predicate filters expose only the Adventure Key API" {
+                assertCompiles(
+                    "AllSelectorPredicateFiltersTest.kt",
+                    """
+                    import io.github.lmliam.kotventure.core.selector.*
+                    import net.kyori.adventure.key.Key
+
+                    fun allPredicateFilters() {
+                        val key = Key.key("my_pack", "active")
+                        nearestPlayer { predicate(key) }
+                        allPlayers { predicate(key) }
+                        randomPlayer { predicate(key) }
+                        self { predicate(key) }
+                        entities { predicate(key); not { predicate(key) } }
+                        nearestEntity { predicate(key) }
+                    }
+                    """.trimIndent(),
+                )
+
+                assertDoesNotCompile(
+                    "RawSelectorPredicateFilterTest.kt",
+                    """
+                    import io.github.lmliam.kotventure.core.selector.*
+
+                    fun rawPredicateFilter() {
+                        entities {
+                            predicate("my_pack:active")
+                        }
+                    }
+                    """.trimIndent(),
+                )
+            }
+
             "origin and volume render full and partial coordinates" {
                 entities {
                     origin(x = 1.5, y = 64.0, z = -2.0)

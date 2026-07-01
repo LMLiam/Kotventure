@@ -2,6 +2,7 @@ package io.github.lmliam.kotventure.core.selector
 
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import io.github.lmliam.kotventure.core.nbt.NbtCompoundScope
+import net.kyori.adventure.key.Key
 
 /**
  * Arguments shared by every typed entity-selector head.
@@ -152,6 +153,15 @@ public sealed interface CommonEntitySelectorScope {
         objective: String,
         range: IntRange,
     )
+
+    /**
+     * Adds a datapack predicate filter.
+     *
+     * Repeated calls preserve every [predicate] key in call order.
+     *
+     * @sample io.github.lmliam.kotventure.core.selector.selectorPredicateSample
+     */
+    public fun predicate(predicate: Key)
 
     /** Filters by entity name. */
     public fun name(name: String)

@@ -87,6 +87,15 @@ internal fun selectorScoreSample() {
     }
 }
 
+internal fun selectorPredicateSample() {
+    entities {
+        predicate(Key.key("minecraft", "is_baby"))
+        not {
+            predicate(Key.key("my_pack", "hidden"))
+        }
+    }
+}
+
 internal fun entitiesSample() {
     entities {
         type("armor_stand")

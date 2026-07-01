@@ -39,6 +39,8 @@ internal class EntitySelectorState {
         private set
     var scores: Map<String, LevelRange> = emptyMap()
         private set
+    var predicateFilters: List<SelectorPredicateFilter> = emptyList()
+        private set
 
     fun assignType(entityType: Key) {
         assignType(entityType.asString())
@@ -120,6 +122,13 @@ internal class EntitySelectorState {
                 .toMutableMap()
                 .apply { this[objective] = range }
                 .toMap()
+    }
+
+    fun addPredicateFilter(
+        predicate: Key,
+        isNegated: Boolean,
+    ) {
+        predicateFilters = predicateFilters + SelectorPredicateFilter(predicate, isNegated)
     }
 
     fun assignOrigin(

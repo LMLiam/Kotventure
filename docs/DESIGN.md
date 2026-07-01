@@ -113,6 +113,7 @@ val msg = component {
             team("raiders")
             nbt { "Health" eq 20.0f }
             score("kills", atLeast(10))
+            predicate(key("minecraft", "is_baby"))
             not { tag("hidden") }
         },
     )

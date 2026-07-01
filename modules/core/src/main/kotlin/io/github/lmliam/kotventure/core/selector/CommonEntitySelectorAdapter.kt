@@ -1,6 +1,7 @@
 package io.github.lmliam.kotventure.core.selector
 
 import io.github.lmliam.kotventure.core.nbt.NbtCompoundScope
+import net.kyori.adventure.key.Key
 
 internal abstract class CommonEntitySelectorAdapter(
     final override val selectorState: EntitySelectorState,
@@ -88,6 +89,10 @@ internal abstract class CommonEntitySelectorAdapter(
         range: IntRange,
     ) {
         state.assignScore(objective, closedLevelRange(range.first, range.last))
+    }
+
+    final override fun predicate(predicate: Key) {
+        state.addPredicateFilter(predicate, isNegated = false)
     }
 
     final override fun name(name: String) {

@@ -116,6 +116,21 @@ class SelectorDslTest :
                 component shouldHaveSelectorPattern "@a[scores={kills=10..,deaths=0..2}]"
             }
 
+            "builds a selector component with typed predicate filters" {
+                val component =
+                    selector(
+                        entities {
+                            predicate(Key.key("minecraft", "is_baby"))
+                            not {
+                                predicate(Key.key("my_pack", "hidden"))
+                            }
+                        },
+                    ).shouldBeSelectorComponent()
+
+                component shouldHaveSelectorPattern
+                    "@e[predicate=minecraft:is_baby,predicate=!my_pack:hidden]"
+            }
+
             "builds a selector component with the escape hatch" {
                 val component = selector(entitySelector("@e[distance=..10]")).shouldBeSelectorComponent()
 

@@ -1,6 +1,7 @@
 package io.github.lmliam.kotventure.core.selector
 
 import io.github.lmliam.kotventure.core.nbt.NbtCompoundScope
+import net.kyori.adventure.key.Key
 
 internal open class NegatedCommonEntitySelectorAdapter(
     protected val state: EntitySelectorState,
@@ -24,6 +25,10 @@ internal open class NegatedCommonEntitySelectorAdapter(
 
     final override fun nbt(init: NbtCompoundScope.() -> Unit) {
         state.addNbtFilter(isNegated = true, init)
+    }
+
+    final override fun predicate(predicate: Key) {
+        state.addPredicateFilter(predicate, isNegated = true)
     }
 
     final override fun gamemode(mode: GameMode) {
