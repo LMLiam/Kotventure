@@ -1,6 +1,6 @@
 package io.github.lmliam.kotventure.core.selector
 
-internal abstract class NegatedCommonEntitySelectorAdapter(
+internal open class NegatedCommonEntitySelectorAdapter(
     protected val state: EntitySelectorState,
 ) : NegatedCommonEntitySelectorScope {
     final override val survival: GameMode get() = GameMode.SURVIVAL

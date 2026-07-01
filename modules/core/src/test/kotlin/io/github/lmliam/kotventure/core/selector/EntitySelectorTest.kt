@@ -334,6 +334,24 @@ class EntitySelectorTest :
                 )
             }
 
+            "negated scopes cannot call positive filters through an outer receiver" {
+                assertDoesNotCompile(
+                    "NegatedSelectorOuterScopeTest.kt",
+                    """
+                    import io.github.lmliam.kotventure.core.selector.*
+
+                    fun invalidNegatedSelector() {
+                        allPlayers {
+                            not {
+                                distance(atMost(1.0))
+                            }
+                        }
+                    }
+                    """.trimIndent(),
+                    "implicit receiver",
+                )
+            }
+
             "sort with all constant variants" {
                 entities { sort(nearest) }.asString() shouldBe "@e[sort=nearest]"
                 entities { sort(furthest) }.asString() shouldBe "@e[sort=furthest]"

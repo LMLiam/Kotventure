@@ -99,24 +99,19 @@ internal fun entitySelectorNegationSample() {
     }
 }
 
+internal fun selectorPresenceSample() {
+    allPlayers {
+        tag(any)
+        tag(none)
+    }
+}
+
 internal fun negatedCommonEntitySelectorScopeSample() {
     allPlayers {
         not {
             name("Bot")
             tag("hidden")
         }
-    }
-}
-
-internal fun negatedPlayerEntitySelectorScopeSample() {
-    allPlayers {
-        not { gamemode(spectator) }
-    }
-}
-
-internal fun negatedSelfEntitySelectorScopeSample() {
-    self {
-        not { type(Key.key("minecraft", "player")) }
     }
 }
 
