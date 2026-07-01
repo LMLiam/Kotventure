@@ -36,6 +36,8 @@ public sealed interface CommonEntitySelectorScope {
     /**
      * Sets supplied selector origin coordinates.
      *
+     * Repeated calls replace only the coordinates supplied by the later call.
+     *
      * @throws IllegalArgumentException if no coordinate is supplied or a supplied value is not finite
      * @sample io.github.lmliam.kotventure.core.selector.selectorPositionVolumeSample
      */
@@ -47,6 +49,8 @@ public sealed interface CommonEntitySelectorScope {
 
     /**
      * Sets supplied selector bounding-volume deltas.
+     *
+     * Repeated calls replace only the deltas supplied by the later call.
      *
      * @throws IllegalArgumentException if no delta is supplied or a supplied value is not finite
      * @sample io.github.lmliam.kotventure.core.selector.selectorPositionVolumeSample

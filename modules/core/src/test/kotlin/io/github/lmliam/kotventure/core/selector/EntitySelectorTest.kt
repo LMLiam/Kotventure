@@ -187,6 +187,16 @@ class EntitySelectorTest :
                 selector.asString() shouldBe "@e[distance=5]"
             }
 
+            "distance ranges render without unsupported exponent notation" {
+                entities {
+                    distance(exactly(1e20))
+                }.asString() shouldBe "@e[distance=100000000000000000000]"
+
+                entities {
+                    distance(atMost(1e-7))
+                }.asString() shouldBe "@e[distance=..0.0000001]"
+            }
+
             "distance with inverted Kotlin range is rejected" {
                 shouldThrow<IllegalArgumentException> {
                     entities { distance(10.0..1.0) }
@@ -357,6 +367,22 @@ class EntitySelectorTest :
                 shouldThrow<IllegalArgumentException> {
                     entities { origin(z = Double.POSITIVE_INFINITY) }
                 }.message shouldBe "Selector origin z must be finite, got: Infinity"
+            }
+
+            "failed coordinate updates do not partially mutate the selector" {
+                val selector =
+                    entities {
+                        origin(x = 1.0, y = 2.0)
+                        shouldThrow<IllegalArgumentException> {
+                            origin(x = 9.0, z = Double.NaN)
+                        }
+                        volume(dx = 3.0, dy = 4.0)
+                        shouldThrow<IllegalArgumentException> {
+                            volume(dx = 8.0, dz = Double.POSITIVE_INFINITY)
+                        }
+                    }
+
+                selector.asString() shouldBe "@e[x=1,y=2,dx=3,dy=4]"
             }
 
             "volume rejects empty and non-finite deltas" {
