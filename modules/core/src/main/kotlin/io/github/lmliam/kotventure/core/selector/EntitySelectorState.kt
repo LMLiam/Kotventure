@@ -7,6 +7,8 @@ internal class EntitySelectorState {
         private set
     var limit: Int? = null
     var distance: SelectorRange? = null
+    var xRotation: SelectorRange? = null
+    var yRotation: SelectorRange? = null
     var x: Double? = null
         private set
     var y: Double? = null

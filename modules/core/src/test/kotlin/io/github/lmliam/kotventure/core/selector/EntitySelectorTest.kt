@@ -197,6 +197,65 @@ class EntitySelectorTest :
                 }.asString() shouldBe "@e[distance=..0.0000001]"
             }
 
+            "selector ranges preserve value equality and rendering" {
+                exactly(5.0) shouldBe exactly(5.0)
+                exactly(-0.0) shouldBe exactly(0.0)
+                atMost(5.0).toString() shouldBe "..5"
+                atLeast(5.0).toString() shouldBe "5.."
+            }
+
+            "rotation accepts exact and open-ended ranges" {
+                entities {
+                    xRotation(exactly(30.0))
+                    yRotation(atLeast(-45.0))
+                }.asString() shouldBe "@e[x_rotation=30,y_rotation=-45..]"
+
+                nearestPlayer {
+                    xRotation(atMost(90.0))
+                    yRotation(exactly(-180.0))
+                }.asString() shouldBe "@p[x_rotation=..90,y_rotation=-180]"
+            }
+
+            "rotation accepts closed and descending wrap-around ranges" {
+                entities {
+                    xRotation(-10.0..20.0)
+                    yRotation(170.0..-170.0)
+                }.asString() shouldBe "@e[x_rotation=-10..20,y_rotation=170..-170]"
+            }
+
+            "rotation axes use last-write-wins state" {
+                entities {
+                    xRotation(exactly(10.0))
+                    xRotation(-20.0..20.0)
+                    yRotation(atMost(45.0))
+                    yRotation(atLeast(-45.0))
+                }.asString() shouldBe "@e[x_rotation=-20..20,y_rotation=-45..]"
+            }
+
+            "rotation rejects non-finite native bounds" {
+                shouldThrow<IllegalArgumentException> {
+                    entities { xRotation(Double.NaN..10.0) }
+                }.message shouldBe "Range min must be finite, got: NaN"
+
+                shouldThrow<IllegalArgumentException> {
+                    entities { yRotation(0.0..Double.POSITIVE_INFINITY) }
+                }.message shouldBe "Range max must be finite, got: Infinity"
+            }
+
+            "distance rejects negative bounds without restricting rotation" {
+                shouldThrow<IllegalArgumentException> {
+                    entities { distance(atLeast(-1.0)) }
+                }.message shouldBe "Distance range bounds must be non-negative, got: -1.."
+
+                shouldThrow<IllegalArgumentException> {
+                    entities { distance(-1.0..5.0) }
+                }.message shouldBe "Distance range bounds must be non-negative, got: -1..5"
+
+                entities {
+                    xRotation(atLeast(-1.0))
+                }.asString() shouldBe "@e[x_rotation=-1..]"
+            }
+
             "distance with inverted Kotlin range is rejected" {
                 shouldThrow<IllegalArgumentException> {
                     entities { distance(10.0..1.0) }

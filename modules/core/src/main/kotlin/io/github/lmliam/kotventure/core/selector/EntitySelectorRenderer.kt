@@ -16,6 +16,8 @@ internal object EntitySelectorRenderer {
                 state.dy?.let { add("dy=${formatSelectorNumber(it)}") }
                 state.dz?.let { add("dz=${formatSelectorNumber(it)}") }
                 state.distance?.let { add("distance=${it.rendered}") }
+                state.xRotation?.let { add("x_rotation=${it.rendered}") }
+                state.yRotation?.let { add("y_rotation=${it.rendered}") }
                 state.level?.let { add("level=${it.rendered}") }
                 state.gamemode?.renderValues { it.value }?.forEach { add("gamemode=$it") }
                 state.limit?.let { add("limit=$it") }

@@ -15,12 +15,27 @@ internal abstract class CommonEntitySelectorAdapter(
     final override val spectator: GameMode get() = GameMode.SPECTATOR
 
     final override fun distance(range: SelectorRange) {
-        state.distance = range
+        state.distance = validateDistanceRange(range)
     }
 
     final override fun distance(range: ClosedFloatingPointRange<Double>) {
-        require(!range.isEmpty()) { "Range must not be empty, got: $range" }
-        state.distance = closedRange(range.start, range.endInclusive)
+        state.distance = validateDistanceRange(closedRange(range.start, range.endInclusive))
+    }
+
+    final override fun xRotation(range: SelectorRange) {
+        state.xRotation = range
+    }
+
+    final override fun xRotation(range: ClosedFloatingPointRange<Double>) {
+        state.xRotation = closedRange(range.start, range.endInclusive)
+    }
+
+    final override fun yRotation(range: SelectorRange) {
+        state.yRotation = range
+    }
+
+    final override fun yRotation(range: ClosedFloatingPointRange<Double>) {
+        state.yRotation = closedRange(range.start, range.endInclusive)
     }
 
     final override fun origin(
@@ -62,5 +77,24 @@ internal abstract class CommonEntitySelectorAdapter(
 
     final override fun gamemode(mode: GameMode) {
         state.assignGamemode(mode)
+    }
+
+    private fun validateDistanceRange(range: SelectorRange): SelectorRange {
+        val minimum = range.minimum
+        val maximum = range.maximum
+        require(
+            (minimum == null || minimum >= 0.0) &&
+                (maximum == null || maximum >= 0.0),
+        ) {
+            "Distance range bounds must be non-negative, got: $range"
+        }
+        require(
+            minimum == null ||
+                maximum == null ||
+                minimum <= maximum,
+        ) {
+            "Distance range min ($minimum) must not exceed max ($maximum)"
+        }
+        return range
     }
 }

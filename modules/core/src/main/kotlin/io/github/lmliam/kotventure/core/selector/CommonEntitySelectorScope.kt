@@ -34,6 +34,34 @@ public sealed interface CommonEntitySelectorScope {
     public fun distance(range: ClosedFloatingPointRange<Double>)
 
     /**
+     * Filters by vertical rotation using a [SelectorRange].
+     *
+     * @sample io.github.lmliam.kotventure.core.selector.selectorRotationSample
+     */
+    public fun xRotation(range: SelectorRange)
+
+    /**
+     * Filters by vertical rotation using a Kotlin range, including descending wrap-around ranges.
+     *
+     * @sample io.github.lmliam.kotventure.core.selector.selectorRotationSample
+     */
+    public fun xRotation(range: ClosedFloatingPointRange<Double>)
+
+    /**
+     * Filters by horizontal rotation using a [SelectorRange].
+     *
+     * @sample io.github.lmliam.kotventure.core.selector.selectorRotationSample
+     */
+    public fun yRotation(range: SelectorRange)
+
+    /**
+     * Filters by horizontal rotation using a Kotlin range, including descending wrap-around ranges.
+     *
+     * @sample io.github.lmliam.kotventure.core.selector.selectorRotationSample
+     */
+    public fun yRotation(range: ClosedFloatingPointRange<Double>)
+
+    /**
      * Sets supplied selector origin coordinates.
      *
      * Repeated calls replace only the coordinates supplied by the later call.

@@ -108,6 +108,8 @@ val msg = component {
             typeTag(key("minecraft", "raiders"))
             origin(y = 64.0)
             volume(dx = 16.0, dy = 8.0, dz = 16.0)
+            xRotation(atMost(45.0))
+            yRotation(170.0..-170.0)
             not { tag("hidden") }
         },
     )

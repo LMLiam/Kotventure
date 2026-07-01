@@ -63,6 +63,18 @@ class SelectorDslTest :
                 component shouldHaveSelectorPattern "@n[x=10,z=-4,dx=0,dy=2]"
             }
 
+            "builds a selector component with typed rotation ranges" {
+                val component =
+                    selector(
+                        entities {
+                            xRotation(atMost(45.0))
+                            yRotation(170.0..-170.0)
+                        },
+                    ).shouldBeSelectorComponent()
+
+                component shouldHaveSelectorPattern "@e[x_rotation=..45,y_rotation=170..-170]"
+            }
+
             "builds a selector component with the escape hatch" {
                 val component = selector(entitySelector("@e[distance=..10]")).shouldBeSelectorComponent()
 

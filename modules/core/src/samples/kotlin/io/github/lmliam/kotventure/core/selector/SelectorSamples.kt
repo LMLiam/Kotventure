@@ -54,6 +54,13 @@ internal fun selectorPositionVolumeSample() {
     }
 }
 
+internal fun selectorRotationSample() {
+    entities {
+        xRotation(atMost(45.0))
+        yRotation(170.0..-170.0)
+    }
+}
+
 internal fun entitiesSample() {
     entities {
         type("armor_stand")
