@@ -17,6 +17,8 @@ public sealed interface EntitySelectorParseResult {
 
 /**
  * A precise entity-selector parse failure.
+ *
+ * [offset] is the zero-based Kotlin string index at which parsing failed.
  */
 public data class EntitySelectorParseError(
     public val offset: Int,

@@ -127,7 +127,12 @@ val msg = component {
     mini("<gradient:gold:red>Epic</gradient>")
 }
 
-val parsedSelector = parseEntitySelector("@e[type=minecraft:zombie,tag=!hidden]")
+val parsedSelector =
+    when (val result = parseEntitySelector("@e[type=minecraft:zombie,tag=!hidden]")) {
+        is EntitySelectorParseResult.Success -> result.selector
+        is EntitySelectorParseResult.Failure -> error(result.error.message)
+    }
+selector(parsedSelector.asEntitySelector())
 
 // ── Reusable styles ────────────────────────────────────────────
 val headerStyle = style {

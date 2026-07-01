@@ -30,7 +30,7 @@ public sealed interface EntitySelectorArgument {
 
     /** An integral experience-level range. */
     public data class Level(
-        public val range: LevelRange,
+        public val range: SelectorIntRange,
     ) : EntitySelectorArgument
 
     /** A game-mode filter. */
@@ -71,10 +71,22 @@ public sealed interface EntitySelectorArgument {
         public val isNegated: Boolean,
     ) : EntitySelectorArgument
 
-    /** A collection of scoreboard objective ranges. */
-    public data class Scores(
-        public val scores: List<ParsedSelectorScore>,
-    ) : EntitySelectorArgument
+    /** An immutable collection of scoreboard objective ranges. */
+    public class Scores(
+        scores: Collection<ParsedSelectorScore>,
+    ) : EntitySelectorArgument {
+        /** Score requirements in source order. */
+        public val scores: List<ParsedSelectorScore> = scores.immutableSnapshot()
+
+        /** Returns a score argument with the supplied requirements. */
+        public fun copy(scores: Collection<ParsedSelectorScore> = this.scores): Scores = Scores(scores)
+
+        public override fun equals(other: Any?): Boolean = other is Scores && scores == other.scores
+
+        public override fun hashCode(): Int = scores.hashCode()
+
+        public override fun toString(): String = "Scores(scores=$scores)"
+    }
 
     /** A datapack predicate filter. */
     public data class Predicate(
@@ -82,10 +94,24 @@ public sealed interface EntitySelectorArgument {
         public val isNegated: Boolean,
     ) : EntitySelectorArgument
 
-    /** A collection of advancement requirements. */
-    public data class Advancements(
-        public val advancements: List<ParsedSelectorAdvancement>,
-    ) : EntitySelectorArgument
+    /** An immutable collection of advancement requirements. */
+    public class Advancements(
+        advancements: Collection<ParsedSelectorAdvancement>,
+    ) : EntitySelectorArgument {
+        /** Advancement requirements in source order. */
+        public val advancements: List<ParsedSelectorAdvancement> =
+            advancements.immutableSnapshot()
+
+        /** Returns an advancement argument with the supplied requirements. */
+        public fun copy(advancements: Collection<ParsedSelectorAdvancement> = this.advancements): Advancements =
+            Advancements(advancements)
+
+        public override fun equals(other: Any?): Boolean = other is Advancements && advancements == other.advancements
+
+        public override fun hashCode(): Int = advancements.hashCode()
+
+        public override fun toString(): String = "Advancements(advancements=$advancements)"
+    }
 }
 
 /**
@@ -134,7 +160,7 @@ public enum class SelectorRangeArgument(
  */
 public data class ParsedSelectorScore(
     public val objective: String,
-    public val range: LevelRange,
+    public val range: SelectorIntRange,
 )
 
 /**
@@ -155,9 +181,21 @@ public sealed interface ParsedAdvancementProgress {
     ) : ParsedAdvancementProgress
 
     /** Criterion-level completion. */
-    public data class Criteria(
-        public val criteria: List<ParsedAdvancementCriterion>,
-    ) : ParsedAdvancementProgress
+    public class Criteria(
+        criteria: Collection<ParsedAdvancementCriterion>,
+    ) : ParsedAdvancementProgress {
+        /** Criterion requirements in source order. */
+        public val criteria: List<ParsedAdvancementCriterion> = criteria.immutableSnapshot()
+
+        /** Returns criterion progress with the supplied requirements. */
+        public fun copy(criteria: Collection<ParsedAdvancementCriterion> = this.criteria): Criteria = Criteria(criteria)
+
+        public override fun equals(other: Any?): Boolean = other is Criteria && criteria == other.criteria
+
+        public override fun hashCode(): Int = criteria.hashCode()
+
+        public override fun toString(): String = "Criteria(criteria=$criteria)"
+    }
 }
 
 /**

@@ -23,7 +23,7 @@ internal fun parseScoresArgument(
                 entryOffset,
             ->
             validateSelectorUnquotedToken(key, keyOffset)
-            ParsedSelectorScore(key, parseSelectorLevelRange(entry, entryOffset, nonNegative = false))
+            ParsedSelectorScore(key, parseSelectorIntRange(entry, entryOffset, nonNegative = false))
         }
     return EntitySelectorArgument.Scores(scores)
 }

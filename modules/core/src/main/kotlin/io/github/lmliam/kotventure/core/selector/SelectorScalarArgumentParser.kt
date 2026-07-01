@@ -33,11 +33,11 @@ internal fun parseFloatingRangeArgument(
     )
 }
 
-internal fun parseSelectorLevelRange(
+internal fun parseSelectorIntRange(
     value: String,
     valueOffset: Int,
     nonNegative: Boolean,
-): LevelRange {
+): SelectorIntRange {
     val bounds = splitSelectorRange(value, valueOffset)
     val minimum = bounds.first.takeIf(String::isNotEmpty)?.let { parseSelectorInt(it, valueOffset) }
     val maximum =
@@ -50,7 +50,7 @@ internal fun parseSelectorLevelRange(
     if (minimum != null && maximum != null && minimum > maximum) {
         fail(valueOffset, "Range minimum must not exceed maximum")
     }
-    return LevelRange(minimum, maximum, value)
+    return SelectorIntRange(minimum, maximum)
 }
 
 internal fun parseLimitArgument(
@@ -198,7 +198,7 @@ private fun parseSelectorRange(
         bounds.second?.takeIf(String::isNotEmpty)?.let {
             parseSelectorDouble(it, valueOffset + value.indexOf("..") + 2)
         }
-    return SelectorRange(minimum, maximum, value)
+    return SelectorRange(minimum, maximum)
 }
 
 private fun splitSelectorRange(
@@ -210,8 +210,9 @@ private fun splitSelectorRange(
     }
     val separator = value.indexOf("..")
     if (separator < 0) return value to null
-    if (value.indexOf("..", separator + 2) >= 0) {
-        fail(valueOffset + separator + 2, "Range contains more than one '..' separator")
+    val secondSeparator = value.indexOf("..", separator + 1)
+    if (secondSeparator >= 0) {
+        fail(valueOffset + secondSeparator, "Range contains more than one '..' separator")
     }
     val minimum = value.substring(0, separator)
     val maximum = value.substring(separator + 2)

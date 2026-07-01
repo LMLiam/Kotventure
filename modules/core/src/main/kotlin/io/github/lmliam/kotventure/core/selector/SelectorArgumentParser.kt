@@ -12,7 +12,7 @@ internal fun parseSelectorArgument(
         "x", "y", "z", "dx", "dy", "dz" -> parseCoordinateArgument(name, value, valueOffset)
         "distance", "x_rotation", "y_rotation" ->
             parseFloatingRangeArgument(name, value, valueOffset)
-        "level" -> EntitySelectorArgument.Level(parseSelectorLevelRange(value, valueOffset, true))
+        "level" -> EntitySelectorArgument.Level(parseSelectorIntRange(value, valueOffset, true))
         "limit" -> parseLimitArgument(value, valueOffset)
         "sort" -> parseSortArgument(value, valueOffset)
         "gamemode" -> parseGamemodeArgument(value, valueOffset)
