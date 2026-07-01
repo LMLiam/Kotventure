@@ -5,8 +5,8 @@ package io.github.lmliam.kotventure.core.selector
  *
  * Construct open-ended or exact bounds via the helpers [atMost], [atLeast], and [exactly]; for a
  * closed range, pass a native Kotlin range to the consuming selector argument. Validation that
- * differs by argument is applied when the range is consumed. Integer-valued `level` uses the
- * distinct [LevelRange] instead.
+ * differs by argument is applied when the range is consumed. Integer-valued arguments such as
+ * `level` and scoreboard objectives use the distinct [LevelRange] instead.
  */
 public class SelectorRange internal constructor(
     internal val minimum: Double?,

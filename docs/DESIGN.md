@@ -112,6 +112,7 @@ val msg = component {
             yRotation(170.0..-170.0)
             team("raiders")
             nbt { "Health" eq 20.0f }
+            score("kills", atLeast(10))
             not { tag("hidden") }
         },
     )

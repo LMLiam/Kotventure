@@ -76,17 +76,30 @@ internal abstract class CommonEntitySelectorAdapter(
         state.addNbtFilter(isNegated = false, init)
     }
 
+    final override fun score(
+        objective: String,
+        range: LevelRange,
+    ) {
+        state.assignScore(objective, range)
+    }
+
+    final override fun score(
+        objective: String,
+        range: IntRange,
+    ) {
+        state.assignScore(objective, closedLevelRange(range.first, range.last))
+    }
+
     final override fun name(name: String) {
         state.assignName(name)
     }
 
     final override fun level(range: LevelRange) {
-        state.level = range
+        state.level = validateLevelRange(range)
     }
 
     final override fun level(range: IntRange) {
-        require(!range.isEmpty()) { "Range must not be empty, got: $range" }
-        state.level = LevelRange("${range.first}..${range.last}")
+        state.level = validateLevelRange(closedLevelRange(range.first, range.last))
     }
 
     final override fun gamemode(mode: GameMode) {
@@ -108,6 +121,18 @@ internal abstract class CommonEntitySelectorAdapter(
                 minimum <= maximum,
         ) {
             "Distance range min ($minimum) must not exceed max ($maximum)"
+        }
+        return range
+    }
+
+    private fun validateLevelRange(range: LevelRange): LevelRange {
+        val minimum = range.minimum
+        val maximum = range.maximum
+        require(
+            (minimum == null || minimum >= 0) &&
+                (maximum == null || maximum >= 0),
+        ) {
+            "Level range bounds must be non-negative, got: $range"
         }
         return range
     }

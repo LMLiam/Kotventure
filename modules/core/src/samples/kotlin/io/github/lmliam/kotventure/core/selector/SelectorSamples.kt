@@ -80,6 +80,13 @@ internal fun selectorNbtSample() {
     }
 }
 
+internal fun selectorScoreSample() {
+    allPlayers {
+        score("kills", atLeast(10))
+        score("deaths", 0..2)
+    }
+}
+
 internal fun entitiesSample() {
     entities {
         type("armor_stand")

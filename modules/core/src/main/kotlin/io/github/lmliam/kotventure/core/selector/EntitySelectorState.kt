@@ -37,6 +37,8 @@ internal class EntitySelectorState {
         private set
     var nbtFilters: List<SelectorNbtFilter> = emptyList()
         private set
+    var scores: Map<String, LevelRange> = emptyMap()
+        private set
 
     fun assignType(entityType: Key) {
         assignType(entityType.asString())
@@ -106,6 +108,18 @@ internal class EntitySelectorState {
     ) {
         val compound = NbtCompoundBuilder().apply(init).build()
         nbtFilters = nbtFilters + SelectorNbtFilter(renderCompound(compound), isNegated)
+    }
+
+    fun assignScore(
+        objective: String,
+        range: LevelRange,
+    ) {
+        requireValidScoreObjective(objective)
+        scores =
+            scores
+                .toMutableMap()
+                .apply { this[objective] = range }
+                .toMap()
     }
 
     fun assignOrigin(

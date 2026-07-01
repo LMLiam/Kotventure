@@ -104,6 +104,18 @@ class SelectorDslTest :
                 component shouldHaveSelectorPattern "@e[nbt={Tags:[\"boss\"]},nbt=!{Silent:1b}]"
             }
 
+            "builds a selector component with typed score filters" {
+                val component =
+                    selector(
+                        allPlayers {
+                            score("kills", atLeast(10))
+                            score("deaths", 0..2)
+                        },
+                    ).shouldBeSelectorComponent()
+
+                component shouldHaveSelectorPattern "@a[scores={kills=10..,deaths=0..2}]"
+            }
+
             "builds a selector component with the escape hatch" {
                 val component = selector(entitySelector("@e[distance=..10]")).shouldBeSelectorComponent()
 

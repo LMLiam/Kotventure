@@ -304,6 +304,66 @@ class EntitySelectorTest :
                 }
             }
 
+            "integral selector ranges preserve value equality and rendering" {
+                exactly(5) shouldBe exactly(5)
+                exactly(5).hashCode() shouldBe exactly(5).hashCode()
+                atMost(5).toString() shouldBe "..5"
+                atLeast(5).toString() shouldBe "5.."
+            }
+
+            "scores support exact open closed negative and multiple objective ranges" {
+                val selector =
+                    entities {
+                        score("kills", exactly(5))
+                        score("deaths", atMost(2))
+                        score("balance", atLeast(-10))
+                        score("delta", -5..5)
+                    }
+
+                selector.asString() shouldBe
+                    "@e[scores={kills=5,deaths=..2,balance=-10..,delta=-5..5}]"
+            }
+
+            "repeated score objectives replace in their original position" {
+                val selector =
+                    allPlayers {
+                        score("kills", exactly(1))
+                        score("deaths", exactly(2))
+                        score("kills", atLeast(3))
+                    }
+
+                selector.asString() shouldBe "@a[scores={kills=3..,deaths=2}]"
+            }
+
+            "scores reject invalid objectives and descending ranges" {
+                shouldThrow<IllegalArgumentException> {
+                    entities { score("", exactly(1)) }
+                }.message shouldBe "Score objective must not be empty"
+
+                shouldThrow<IllegalArgumentException> {
+                    entities { score("total kills", exactly(1)) }
+                }.message shouldBe
+                    "Score objective must use vanilla unquoted-token characters [0-9A-Za-z_.+-], got: total kills"
+
+                shouldThrow<IllegalArgumentException> {
+                    entities { score("kills", 5..1) }
+                }.message shouldBe "Range min (5) must not exceed max (1)"
+            }
+
+            "level rejects negative bounds without restricting scores" {
+                shouldThrow<IllegalArgumentException> {
+                    entities { level(atLeast(-1)) }
+                }.message shouldBe "Level range bounds must be non-negative, got: -1.."
+
+                shouldThrow<IllegalArgumentException> {
+                    entities { level(-1..5) }
+                }.message shouldBe "Level range bounds must be non-negative, got: -1..5"
+
+                entities {
+                    score("balance", atMost(-1))
+                }.asString() shouldBe "@e[scores={balance=..-1}]"
+            }
+
             "type with Adventure Key" {
                 val selector = entities { type(Key.key("minecraft", "creeper")) }
 

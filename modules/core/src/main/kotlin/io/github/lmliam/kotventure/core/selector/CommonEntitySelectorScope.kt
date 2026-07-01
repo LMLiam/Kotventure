@@ -127,6 +127,32 @@ public sealed interface CommonEntitySelectorScope {
      */
     public fun nbt(init: NbtCompoundScope.() -> Unit)
 
+    /**
+     * Filters a scoreboard [objective] using an integral [range].
+     *
+     * Repeated objectives replace their range without changing insertion order.
+     *
+     * @throws IllegalArgumentException if [objective] is empty or is not a vanilla unquoted token
+     * @sample io.github.lmliam.kotventure.core.selector.selectorScoreSample
+     */
+    public fun score(
+        objective: String,
+        range: LevelRange,
+    )
+
+    /**
+     * Filters a scoreboard [objective] using a closed Kotlin [IntRange].
+     *
+     * Repeated objectives replace their range without changing insertion order.
+     *
+     * @throws IllegalArgumentException if [objective] is invalid or [range] is descending
+     * @sample io.github.lmliam.kotventure.core.selector.selectorScoreSample
+     */
+    public fun score(
+        objective: String,
+        range: IntRange,
+    )
+
     /** Filters by entity name. */
     public fun name(name: String)
 

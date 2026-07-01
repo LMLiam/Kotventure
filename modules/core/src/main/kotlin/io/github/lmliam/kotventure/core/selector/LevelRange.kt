@@ -1,25 +1,57 @@
 package io.github.lmliam.kotventure.core.selector
 
 /**
- * A range for the integer-valued experience `level` selector argument.
+ * An integer-valued range for selector arguments such as `level` and scoreboard objectives.
  *
  * Construct open-ended or exact bounds via [atMost], [atLeast], [exactly]; for a closed range, pass
- * a native Kotlin [IntRange] to `level(a..b)` directly. Levels are integers, so this is kept
- * distinct from the floating-point [SelectorRange] used by `distance` — `level(exactly(1.5))` is a
- * compile error rather than an invalid selector.
+ * a native Kotlin [IntRange] to the consuming selector argument. Validation that differs by
+ * argument is applied when the range is consumed. Integral ranges are distinct from the
+ * floating-point [SelectorRange], so fractional values are compile errors.
  */
-@JvmInline
-public value class LevelRange internal constructor(
+public class LevelRange internal constructor(
+    internal val minimum: Int?,
+    internal val maximum: Int?,
     internal val rendered: String,
 ) {
-    override fun toString(): String = rendered
+    public override fun equals(other: Any?): Boolean = other is LevelRange && rendered == other.rendered
+
+    public override fun hashCode(): Int = rendered.hashCode()
+
+    public override fun toString(): String = rendered
 }
 
-/** A range matching levels up to and including [max] (renders as `..max`). */
-public fun atMost(max: Int): LevelRange = LevelRange("..$max")
+/** A range matching integer values up to and including [max] (renders as `..max`). */
+public fun atMost(max: Int): LevelRange =
+    LevelRange(
+        minimum = null,
+        maximum = max,
+        rendered = "..$max",
+    )
 
-/** A range matching levels of at least [min] (renders as `min..`). */
-public fun atLeast(min: Int): LevelRange = LevelRange("$min..")
+/** A range matching integer values of at least [min] (renders as `min..`). */
+public fun atLeast(min: Int): LevelRange =
+    LevelRange(
+        minimum = min,
+        maximum = null,
+        rendered = "$min..",
+    )
 
 /** A range matching exactly [value] (renders as `value`). */
-public fun exactly(value: Int): LevelRange = LevelRange("$value")
+public fun exactly(value: Int): LevelRange =
+    LevelRange(
+        minimum = value,
+        maximum = value,
+        rendered = "$value",
+    )
+
+internal fun closedLevelRange(
+    min: Int,
+    max: Int,
+): LevelRange {
+    require(min <= max) { "Range min ($min) must not exceed max ($max)" }
+    return LevelRange(
+        minimum = min,
+        maximum = max,
+        rendered = "$min..$max",
+    )
+}
