@@ -27,7 +27,7 @@ internal class SelectorSnbtValidator(
             if (consume('}')) return
             expect(',')
             skipWhitespace()
-            if (peek() == '}') failAt(offset, "Expected SNBT compound key")
+            if (consume('}')) return
         }
     }
 
@@ -61,7 +61,7 @@ internal class SelectorSnbtValidator(
             if (consume(']')) return
             expect(',')
             skipWhitespace()
-            if (peek() == ']') failAt(offset, "Expected SNBT list value")
+            if (consume(']')) return
         }
     }
 
@@ -78,7 +78,7 @@ internal class SelectorSnbtValidator(
             if (consume(']')) return
             expect(',')
             skipWhitespace()
-            if (peek() == ']') failAt(offset, "Expected SNBT array value")
+            if (consume(']')) return
         }
     }
 
