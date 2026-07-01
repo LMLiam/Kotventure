@@ -36,7 +36,7 @@ public sealed interface SelfEntitySelectorScope : CommonEntitySelectorScope {
 
 // The negated type overloads live outside the interface: Excluded<Key> and Excluded<String> erase
 // to the same JVM signature, and @JvmName cannot disambiguate overridable members. The casts are
-// safe because the sealed hierarchy's only implementation is EntitySelectorAdapter.
+// safe because the sealed hierarchy's only implementation is EntitySelectorBuilder.
 
 /**
  * Excludes an entity type using an Adventure [Key]: `type(!key("minecraft", "zombie"))`.
@@ -45,7 +45,7 @@ public sealed interface SelfEntitySelectorScope : CommonEntitySelectorScope {
  * @sample io.github.lmliam.kotventure.core.selector.negatedTypeArgumentsSample
  */
 public fun SelfEntitySelectorScope.type(entityType: Excluded<Key>) {
-    (this as EntitySelectorAdapter).state.excludeType(entityType.value)
+    (this as EntitySelectorBuilder).excludeType(entityType.value)
 }
 
 /**
@@ -56,5 +56,5 @@ public fun SelfEntitySelectorScope.type(entityType: Excluded<Key>) {
  */
 @JvmName("typeExcludedByString")
 public fun SelfEntitySelectorScope.type(entityType: Excluded<String>) {
-    (this as EntitySelectorAdapter).state.excludeType(entityType.value)
+    (this as EntitySelectorBuilder).excludeType(entityType.value)
 }
