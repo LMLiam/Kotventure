@@ -43,7 +43,7 @@ dependency of `:core:check`, so the root `./gradlew build` and CI run it automat
 ## Updating the baseline
 
 1. Find the new release in Mojang's official version manifest and open its version JSON.
-2. Update `minecraftVersion` and `serverBundleSha1` in
+2. Update `targetMinecraftVersion` and `serverBundleSha1` in
    `gradle/selector-conformance.gradle`. The download URL is derived from that checksum.
 3. Confirm the version JSON's required Java major matches the repository toolchain.
 4. Re-run `./gradlew :core:selectorConformanceTest --rerun-tasks`; update the test adapter only if
