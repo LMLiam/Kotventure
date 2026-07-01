@@ -50,6 +50,17 @@ class EntitySelectorParserTest :
                     "@e[tag=,tag=!,team=,team=!]"
             }
 
+            "accepts typed SNBT array boundaries" {
+                val source =
+                    "@e[nbt={" +
+                        "Bytes:[B;-128b,+127b]," +
+                        "Ints:[I;-2147483648,+2147483647]," +
+                        "Longs:[L;-9223372036854775808L,+9223372036854775807L]" +
+                        "}]"
+
+                parseSuccess(source).asString() shouldBe source
+            }
+
             "exposes an immutable model that can be transformed" {
                 val parsed = parseSuccess("@e[type=minecraft:zombie,name=\"Boss Mob\",tag=!hidden]")
 
@@ -75,6 +86,13 @@ class EntitySelectorParserTest :
                 sourceArguments.clear()
 
                 parsed.arguments shouldHaveSize 1
+                parsed.hasExplicitArgumentList shouldBe true
+                parsed shouldBe
+                    ParsedEntitySelector(
+                        EntitySelectorHead.ENTITIES,
+                        parsed.arguments,
+                        hasExplicitArgumentList = false,
+                    )
                 shouldThrow<UnsupportedOperationException> {
                     @Suppress("UNCHECKED_CAST")
                     (parsed.arguments as MutableList<EntitySelectorArgument>).clear()
@@ -137,7 +155,7 @@ class EntitySelectorParserTest :
                 assertParseFailure("@q", 1, "Unsupported selector head")
                 assertParseFailure("@e[unknown=value]", 3, "Unsupported selector argument 'unknown'")
                 assertParseFailure("@e[name=\"Boss]", 8, "Unterminated quoted string")
-                assertParseFailure("@e[distance=10..1]", 12, "must not exceed")
+                assertParseFailure("@e[distance=10..1]", 16, "must not exceed")
                 assertParseFailure("@e[type=!!minecraft:zombie]", 9, "Invalid namespaced key")
                 assertParseFailure("@e[nbt={foo}]", 11, "Expected ':'")
                 assertParseFailure("@e[scores={kills=1,}]", 19, "Expected score objective")
@@ -152,8 +170,10 @@ class EntitySelectorParserTest :
             "rejects malformed values in each structured grammar family" {
                 assertParseFailure("@e[x=NaN]", 5, "finite decimal")
                 assertParseFailure("@e[distance=..]", 12, "at least one bound")
+                assertParseFailure("@e[distance=..-1]", 14, "non-negative")
                 assertParseFailure("@e[x_rotation=1...2]", 16, "more than one")
                 assertParseFailure("@e[level=-1]", 9, "non-negative")
+                assertParseFailure("@e[level=5..2]", 12, "must not exceed")
                 assertParseFailure("@e[limit=0]", 9, "positive")
                 assertParseFailure("@e[sort=closest]", 8, "Unsupported selector sort")
                 assertParseFailure("@e[gamemode=!builder]", 13, "Unsupported game mode")
@@ -162,6 +182,13 @@ class EntitySelectorParserTest :
                 assertParseFailure("@e[tag=bad value]", 7, "Invalid unquoted selector token")
                 assertParseFailure("@e[nbt={list:[1,]}]", 16, "Expected SNBT list value")
                 assertParseFailure("@e[nbt={id:minecraft:stone}]", 20, "Invalid unquoted SNBT token")
+                listOf(
+                    "@e[nbt={Data:[B;128b]}]" to "128b",
+                    "@e[nbt={Data:[I;2147483648]}]" to "2147483648",
+                    "@e[nbt={Data:[L;9223372036854775808L]}]" to "9223372036854775808L",
+                ).forEach { (source, invalidValue) ->
+                    assertParseFailure(source, source.indexOf(invalidValue), "Invalid")
+                }
                 assertParseFailure("@e[scores={kills}]", 16, "Expected '='")
                 assertParseFailure(
                     "@e[advancements={minecraft:story/root=maybe}]",

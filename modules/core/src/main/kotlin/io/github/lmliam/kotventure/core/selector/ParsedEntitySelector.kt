@@ -6,15 +6,20 @@ package io.github.lmliam.kotventure.core.selector
  * [hasExplicitArgumentList] distinguishes `@e[]` from `@e` so valid empty argument lists round trip
  * without loss.
  *
+ * @property head parsed selector head
+ * @property hasExplicitArgumentList whether the source includes square brackets
  * @sample io.github.lmliam.kotventure.core.selector.parsedEntitySelectorSample
  */
 public class ParsedEntitySelector(
     public val head: EntitySelectorHead,
     arguments: Collection<EntitySelectorArgument>,
-    public val hasExplicitArgumentList: Boolean = arguments.isNotEmpty(),
+    hasExplicitArgumentList: Boolean = arguments.isNotEmpty(),
 ) {
     /** Parsed arguments in source order. */
     public val arguments: List<EntitySelectorArgument> = arguments.immutableSnapshot()
+
+    /** Whether this selector renders an explicit square-bracket argument list. */
+    public val hasExplicitArgumentList: Boolean = hasExplicitArgumentList || this.arguments.isNotEmpty()
 
     /**
      * Returns a parsed selector with the supplied immutable state.

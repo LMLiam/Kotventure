@@ -87,9 +87,9 @@ internal class SelectorSnbtValidator(
         arrayType: Char,
     ): Boolean =
         when (arrayType) {
-            'B' -> value.matches(SNBT_BYTE)
-            'I' -> value.matches(SNBT_INT)
-            'L' -> value.matches(SNBT_LONG)
+            'B' -> value.matches(SNBT_BYTE) && value.dropLast(1).toByteOrNull() != null
+            'I' -> value.matches(SNBT_INT) && value.toIntOrNull() != null
+            'L' -> value.matches(SNBT_LONG) && value.dropLast(1).toLongOrNull() != null
             else -> false
         }
 
@@ -170,7 +170,7 @@ internal class SelectorSnbtValidator(
     ): Nothing = fail(sourceOffset + localOffset, message)
 }
 
-private val SNBT_BYTE: Regex = Regex("-?[0-9]+[bB]")
-private val SNBT_INT: Regex = Regex("-?[0-9]+")
-private val SNBT_LONG: Regex = Regex("-?[0-9]+[lL]")
+private val SNBT_BYTE: Regex = Regex("[+-]?[0-9]+[bB]")
+private val SNBT_INT: Regex = Regex("[+-]?[0-9]+")
+private val SNBT_LONG: Regex = Regex("[+-]?[0-9]+[lL]")
 private val TYPED_ARRAY_PREFIXES: Set<Char> = setOf('B', 'I', 'L')

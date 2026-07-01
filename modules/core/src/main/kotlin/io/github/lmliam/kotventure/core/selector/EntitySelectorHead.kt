@@ -2,6 +2,8 @@ package io.github.lmliam.kotventure.core.selector
 
 /**
  * A Java Edition entity-selector head.
+ *
+ * @property token canonical selector source token, such as `@p`
  */
 public enum class EntitySelectorHead(
     public val token: String,
