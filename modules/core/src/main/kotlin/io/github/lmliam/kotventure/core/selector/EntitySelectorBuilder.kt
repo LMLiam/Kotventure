@@ -25,6 +25,9 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     private val mutableTags = mutableListOf<String>()
     val tags: List<String> get() = mutableTags
 
+    private val mutableCoordinates = mutableMapOf<String, Double>()
+    val coordinates: Map<String, Double> get() = mutableCoordinates
+
     override val any: SelectorPresence get() = SelectorPresence.ANY
     override val none: SelectorPresence get() = SelectorPresence.NONE
 
@@ -37,6 +40,20 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     override val furthest: SelectorSort get() = SelectorSort.FURTHEST
     override val random: SelectorSort get() = SelectorSort.RANDOM
     override val arbitrary: SelectorSort get() = SelectorSort.ARBITRARY
+
+    override fun origin(
+        first: OriginCoordinate,
+        vararg rest: OriginCoordinate,
+    ) {
+        bindCoordinates((listOf(first) + rest).map { it.axis to it.value })
+    }
+
+    override fun volume(
+        first: VolumeDelta,
+        vararg rest: VolumeDelta,
+    ) {
+        bindCoordinates((listOf(first) + rest).map { it.axis to it.value })
+    }
 
     override fun distance(range: SelectorRange) {
         checkUnset("distance", distance)
@@ -119,12 +136,24 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
         type = type.excluding("type", entityType.withDefaultNamespace())
     }
 
+    private fun bindCoordinates(coordinates: List<Pair<String, Double>>) {
+        val binding = mutableSetOf<String>()
+        coordinates.forEach { (axis, _) ->
+            checkUnset(axis, mutableCoordinates[axis])
+            check(binding.add(axis)) { alreadySetMessage(axis) }
+        }
+        mutableCoordinates += coordinates
+    }
+
     private fun checkUnset(
         argument: String,
         current: Any?,
     ) {
-        check(current == null) { "Selector argument '$argument' is already set; vanilla syntax allows it only once." }
+        check(current == null) { alreadySetMessage(argument) }
     }
+
+    private fun alreadySetMessage(argument: String): String =
+        "Selector argument '$argument' is already set; vanilla syntax allows it only once."
 }
 
 private fun Key.asTypeTag(): String = "#${asString()}"

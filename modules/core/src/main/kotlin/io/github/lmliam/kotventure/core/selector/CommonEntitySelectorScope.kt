@@ -27,6 +27,74 @@ public sealed interface CommonEntitySelectorScope {
     /** Spectator mode. */
     public val spectator: GameMode
 
+    /**
+     * Sets selector origin coordinates (vanilla `x`, `y`, `z`): `origin(12.5.x, 64.y)`.
+     *
+     * Each coordinate binds once across the whole selector.
+     *
+     * @throws IllegalStateException if a supplied coordinate is already set
+     * @sample io.github.lmliam.kotventure.core.selector.selectorPositionVolumeSample
+     */
+    public fun origin(
+        first: OriginCoordinate,
+        vararg rest: OriginCoordinate,
+    )
+
+    /**
+     * Sets selector bounding-volume deltas (vanilla `dx`, `dy`, `dz`): `volume(16.dx, 8.dy)`.
+     *
+     * Each delta binds once across the whole selector.
+     *
+     * @throws IllegalStateException if a supplied delta is already set
+     * @sample io.github.lmliam.kotventure.core.selector.selectorPositionVolumeSample
+     */
+    public fun volume(
+        first: VolumeDelta,
+        vararg rest: VolumeDelta,
+    )
+
+    /**
+     * This number as the origin `x` coordinate.
+     *
+     * @throws IllegalArgumentException if the value is not finite
+     */
+    public val Number.x: OriginCoordinate get() = originCoordinate("x", this)
+
+    /**
+     * This number as the origin `y` coordinate.
+     *
+     * @throws IllegalArgumentException if the value is not finite
+     */
+    public val Number.y: OriginCoordinate get() = originCoordinate("y", this)
+
+    /**
+     * This number as the origin `z` coordinate.
+     *
+     * @throws IllegalArgumentException if the value is not finite
+     */
+    public val Number.z: OriginCoordinate get() = originCoordinate("z", this)
+
+    /**
+     * This number as the bounding-volume `dx` delta.
+     *
+     * @throws IllegalArgumentException if the value is not finite
+     */
+    public val Number.dx: VolumeDelta get() = volumeDelta("dx", this)
+
+    /**
+     * This number as the bounding-volume `dy` delta.
+     *
+     * @throws IllegalArgumentException if the value is not finite
+     */
+    public val Number.dy: VolumeDelta get() = volumeDelta("dy", this)
+
+    /**
+     * This number as the bounding-volume `dz` delta.
+     *
+     * @throws IllegalArgumentException if the value is not finite
+     */
+    public val Number.dz: VolumeDelta get() = volumeDelta("dz", this)
+
     /** Filters by distance using a [SelectorRange]. */
     public fun distance(range: SelectorRange)
 

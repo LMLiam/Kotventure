@@ -21,7 +21,7 @@ public value class SelectorRange internal constructor(
  */
 public fun atMost(max: Double): SelectorRange {
     require(max.isFinite()) { "Range value must be finite, got: $max" }
-    return SelectorRange("..${formatNumber(max)}")
+    return SelectorRange("..${formatSelectorNumber(max)}")
 }
 
 /**
@@ -31,7 +31,7 @@ public fun atMost(max: Double): SelectorRange {
  */
 public fun atLeast(min: Double): SelectorRange {
     require(min.isFinite()) { "Range value must be finite, got: $min" }
-    return SelectorRange("${formatNumber(min)}..")
+    return SelectorRange("${formatSelectorNumber(min)}..")
 }
 
 /**
@@ -41,7 +41,7 @@ public fun atLeast(min: Double): SelectorRange {
  */
 public fun exactly(value: Double): SelectorRange {
     require(value.isFinite()) { "Range value must be finite, got: $value" }
-    return SelectorRange(formatNumber(value))
+    return SelectorRange(formatSelectorNumber(value))
 }
 
 internal fun closedRange(
@@ -51,8 +51,5 @@ internal fun closedRange(
     require(min.isFinite()) { "Range min must be finite, got: $min" }
     require(max.isFinite()) { "Range max must be finite, got: $max" }
     require(min <= max) { "Range min ($min) must not exceed max ($max)" }
-    return SelectorRange("${formatNumber(min)}..${formatNumber(max)}")
+    return SelectorRange("${formatSelectorNumber(min)}..${formatSelectorNumber(max)}")
 }
-
-private fun formatNumber(value: Double): String =
-    if (value == value.toLong().toDouble()) value.toLong().toString() else value.toString()
