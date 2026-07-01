@@ -43,6 +43,7 @@ public sealed interface CommonEntitySelectorScope {
     /**
      * Filters by vertical rotation using a Kotlin range, including descending wrap-around ranges.
      *
+     * @throws IllegalArgumentException if either bound is not finite
      * @sample io.github.lmliam.kotventure.core.selector.selectorRotationSample
      */
     public fun xRotation(range: ClosedFloatingPointRange<Double>)
@@ -57,6 +58,7 @@ public sealed interface CommonEntitySelectorScope {
     /**
      * Filters by horizontal rotation using a Kotlin range, including descending wrap-around ranges.
      *
+     * @throws IllegalArgumentException if either bound is not finite
      * @sample io.github.lmliam.kotventure.core.selector.selectorRotationSample
      */
     public fun yRotation(range: ClosedFloatingPointRange<Double>)

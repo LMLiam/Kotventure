@@ -200,6 +200,7 @@ class EntitySelectorTest :
             "selector ranges preserve value equality and rendering" {
                 exactly(5.0) shouldBe exactly(5.0)
                 exactly(-0.0) shouldBe exactly(0.0)
+                exactly(-0.0).hashCode() shouldBe exactly(0.0).hashCode()
                 atMost(5.0).toString() shouldBe "..5"
                 atLeast(5.0).toString() shouldBe "5.."
             }
@@ -246,6 +247,10 @@ class EntitySelectorTest :
                 shouldThrow<IllegalArgumentException> {
                     entities { distance(atLeast(-1.0)) }
                 }.message shouldBe "Distance range bounds must be non-negative, got: -1.."
+
+                shouldThrow<IllegalArgumentException> {
+                    entities { distance(atMost(-1.0)) }
+                }.message shouldBe "Distance range bounds must be non-negative, got: ..-1"
 
                 shouldThrow<IllegalArgumentException> {
                     entities { distance(-1.0..5.0) }
