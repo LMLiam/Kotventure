@@ -25,6 +25,8 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
         private set
     var gamemode: SelectorFilter<GameMode>? = null
         private set
+    var team: SelectorFilter<String>? = null
+        private set
 
     val tags: List<String>
         field = mutableListOf()
@@ -123,6 +125,22 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
         gamemode = gamemode.excluding("gamemode", mode.value)
     }
 
+    override fun team(team: String) {
+        this.team = this.team.including("team", validTeamName(team, emptyHint = "team(none)"))
+    }
+
+    override fun team(presence: SelectorPresence) {
+        team =
+            when (presence) {
+                SelectorPresence.ANY -> team.excluding("team", "")
+                SelectorPresence.NONE -> team.including("team", "")
+            }
+    }
+
+    override fun team(team: Excluded<String>) {
+        this.team = this.team.excluding("team", validTeamName(team.value, emptyHint = "team(any)"))
+    }
+
     override fun limit(n: Int) {
         require(n > 0) { "Selector limit must be positive, got: $n" }
         checkUnset("limit", limit)
@@ -172,6 +190,17 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
         current: Any?,
     ) {
         check(current == null) { "Selector argument '$argument' is already set; vanilla syntax allows it only once." }
+    }
+
+    private fun validTeamName(
+        team: String,
+        emptyHint: String,
+    ): String {
+        require(team.isNotEmpty()) { "Team name must not be empty; use $emptyHint to filter by team presence." }
+        require(team.all { it.isAllowedInUnquotedSelectorToken() }) {
+            "Team name '$team' contains characters outside vanilla's unquoted-token syntax."
+        }
+        return team
     }
 }
 

@@ -17,6 +17,7 @@ internal object EntitySelectorRenderer {
                 builder.yaw?.let { add("y_rotation=${it.rendered}") }
                 builder.level?.let { add("level=${it.rendered}") }
                 builder.gamemode?.renderValues { it.value }?.forEach { add("gamemode=$it") }
+                builder.team?.renderValues { it }?.forEach { add("team=$it") }
                 builder.limit?.let { add("limit=$it") }
                 builder.sort?.let { add("sort=${it.value}") }
                 builder.tags.forEach { add("tag=$it") }
@@ -33,16 +34,7 @@ internal object EntitySelectorRenderer {
 
     private fun renderName(value: String): String = if (needsQuoting(value)) "\"${escapeQuotes(value)}\"" else value
 
-    private fun needsQuoting(value: String): Boolean = value.any { !it.isAllowedInUnquotedString() }
-
-    private fun Char.isAllowedInUnquotedString(): Boolean =
-        this in '0'..'9' ||
-                this in 'A'..'Z' ||
-                this in 'a'..'z' ||
-                this == '_' ||
-                this == '-' ||
-                this == '.' ||
-                this == '+'
+    private fun needsQuoting(value: String): Boolean = value.any { !it.isAllowedInUnquotedSelectorToken() }
 
     private fun escapeQuotes(value: String): String =
         value
