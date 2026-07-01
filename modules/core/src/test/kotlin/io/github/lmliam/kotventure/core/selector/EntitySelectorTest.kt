@@ -167,6 +167,58 @@ class EntitySelectorTest :
                 }
             }
 
+            "distance with negative bounds is rejected" {
+                shouldThrow<IllegalArgumentException> {
+                    entities { distance(atLeast(-1.0)) }
+                }
+
+                shouldThrow<IllegalArgumentException> {
+                    entities { distance(-5.0..5.0) }
+                }
+            }
+
+            "distance with equal Kotlin range bounds renders as exact value" {
+                entities { distance(5.0..5.0) }.asString() shouldBe "@e[distance=5]"
+            }
+
+            "pitch with typed range" {
+                entities { pitch(atMost(-45.0)) }.asString() shouldBe "@e[x_rotation=..-45]"
+            }
+
+            "yaw with typed range" {
+                allPlayers { yaw(atLeast(90.0)) }.asString() shouldBe "@a[y_rotation=90..]"
+            }
+
+            "pitch with exact value" {
+                entities { pitch(exactly(0.0)) }.asString() shouldBe "@e[x_rotation=0]"
+            }
+
+            "pitch and yaw with Kotlin ranges render in vanilla order" {
+                entities {
+                    yaw(0.0..90.0)
+                    distance(atMost(10.0))
+                    pitch(-90.0..-45.0)
+                }.asString() shouldBe "@e[distance=..10,x_rotation=-90..-45,y_rotation=0..90]"
+            }
+
+            "yaw with descending Kotlin range renders vanilla wrap-around" {
+                entities { yaw(170.0..-170.0) }.asString() shouldBe "@e[y_rotation=170..-170]"
+            }
+
+            "rotation is available on the self scope" {
+                self { pitch(atMost(0.0)) }.asString() shouldBe "@s[x_rotation=..0]"
+            }
+
+            "rotation with non-finite bounds is rejected" {
+                shouldThrow<IllegalArgumentException> {
+                    entities { pitch(Double.NaN..0.0) }
+                }
+
+                shouldThrow<IllegalArgumentException> {
+                    entities { yaw(0.0..Double.POSITIVE_INFINITY) }
+                }
+            }
+
             "level with Kotlin IntRange" {
                 val selector = allPlayers { level(5..30) }
 
@@ -382,6 +434,18 @@ class EntitySelectorTest :
                     allPlayers {
                         level(exactly(3))
                         level(5..10)
+                    }
+                }
+                shouldThrow<IllegalStateException> {
+                    entities {
+                        pitch(atMost(0.0))
+                        pitch(exactly(45.0))
+                    }
+                }
+                shouldThrow<IllegalStateException> {
+                    entities {
+                        yaw(0.0..90.0)
+                        yaw(atLeast(90.0))
                     }
                 }
             }
