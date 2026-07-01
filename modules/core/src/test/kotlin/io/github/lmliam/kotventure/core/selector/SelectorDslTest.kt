@@ -11,6 +11,7 @@ import io.github.lmliam.kotventure.test.text.shouldHaveSelectorSeparator
 import io.github.lmliam.kotventure.test.text.shouldNotHaveSelectorSeparator
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
+import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextDecoration
@@ -36,6 +37,18 @@ class SelectorDslTest :
                     ).shouldBeSelectorComponent()
 
                 component shouldHaveSelectorPattern "@n[type=minecraft:zombie,distance=..8,limit=1]"
+            }
+
+            "builds a selector component with typed negated filters" {
+                val component =
+                    selector(
+                        entities {
+                            typeTag(Key.key("minecraft", "raiders"))
+                            not { tag("hidden") }
+                        },
+                    ).shouldBeSelectorComponent()
+
+                component shouldHaveSelectorPattern "@e[type=#minecraft:raiders,tag=!hidden]"
             }
 
             "builds a selector component with the escape hatch" {

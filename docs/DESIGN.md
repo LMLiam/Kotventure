@@ -103,6 +103,12 @@ val msg = component {
     keybind("key.jump") { color(YELLOW) }
     score("Alex", "kills")
     selector(allPlayers()) { separator { content(", ") } }
+    selector(
+        entities {
+            typeTag(key("minecraft", "raiders"))
+            not { tag("hidden") }
+        },
+    )
     blockNbt(blockPos(1, 64, 1), "Items[0].id")
     entityNbt("@p", "CustomName") { interpret(true) }
     storageNbt(key("kotventure", "messages"), "motd") { interpret(true) }

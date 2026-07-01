@@ -13,4 +13,8 @@ internal class SelfEntitySelectorAdapter(
     override fun type(entityType: String) {
         state.assignType(entityType)
     }
+
+    override fun typeTag(entityTypeTag: Key) {
+        state.assignTypeTag(entityTypeTag)
+    }
 }

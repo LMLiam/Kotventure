@@ -1,0 +1,22 @@
+package io.github.lmliam.kotventure.core.selector
+
+internal abstract class NegatedCommonEntitySelectorAdapter(
+    protected val state: EntitySelectorState,
+) : NegatedCommonEntitySelectorScope {
+    final override val survival: GameMode get() = GameMode.SURVIVAL
+    final override val creative: GameMode get() = GameMode.CREATIVE
+    final override val adventure: GameMode get() = GameMode.ADVENTURE
+    final override val spectator: GameMode get() = GameMode.SPECTATOR
+
+    final override fun name(name: String) {
+        state.excludeName(name)
+    }
+
+    final override fun tag(tag: String) {
+        state.excludeTag(tag)
+    }
+
+    final override fun gamemode(mode: GameMode) {
+        state.excludeGamemode(mode)
+    }
+}

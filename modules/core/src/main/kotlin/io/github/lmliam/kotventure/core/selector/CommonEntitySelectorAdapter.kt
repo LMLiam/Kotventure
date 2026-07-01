@@ -1,8 +1,14 @@
 package io.github.lmliam.kotventure.core.selector
 
 internal abstract class CommonEntitySelectorAdapter(
-    protected val state: EntitySelectorState,
-) : CommonEntitySelectorScope {
+    final override val selectorState: EntitySelectorState,
+) : CommonEntitySelectorScope,
+    EntitySelectorStateOwner {
+    protected val state: EntitySelectorState get() = selectorState
+
+    final override val any: SelectorPresence get() = SelectorPresence.ANY
+    final override val none: SelectorPresence get() = SelectorPresence.NONE
+
     final override val survival: GameMode get() = GameMode.SURVIVAL
     final override val creative: GameMode get() = GameMode.CREATIVE
     final override val adventure: GameMode get() = GameMode.ADVENTURE
@@ -18,11 +24,15 @@ internal abstract class CommonEntitySelectorAdapter(
     }
 
     final override fun tag(tag: String) {
-        state.tags += tag
+        state.addTag(tag)
+    }
+
+    final override fun tag(presence: SelectorPresence) {
+        state.addTag(presence)
     }
 
     final override fun name(name: String) {
-        state.name = name
+        state.assignName(name)
     }
 
     final override fun level(range: LevelRange) {
@@ -35,6 +45,6 @@ internal abstract class CommonEntitySelectorAdapter(
     }
 
     final override fun gamemode(mode: GameMode) {
-        state.gamemode = mode
+        state.assignGamemode(mode)
     }
 }

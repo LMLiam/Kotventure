@@ -8,7 +8,13 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
  * @sample io.github.lmliam.kotventure.core.selector.commonEntitySelectorScopeSample
  */
 @KotventureDslMarker
-public interface CommonEntitySelectorScope {
+public sealed interface CommonEntitySelectorScope {
+    /** Requires at least one scoreboard tag. */
+    public val any: SelectorPresence
+
+    /** Requires no scoreboard tags. */
+    public val none: SelectorPresence
+
     /** Survival mode. */
     public val survival: GameMode
 
@@ -29,6 +35,9 @@ public interface CommonEntitySelectorScope {
 
     /** Filters by scoreboard tag. */
     public fun tag(tag: String)
+
+    /** Filters by whether any scoreboard tag is present. */
+    public fun tag(presence: SelectorPresence)
 
     /** Filters by entity name. */
     public fun name(name: String)

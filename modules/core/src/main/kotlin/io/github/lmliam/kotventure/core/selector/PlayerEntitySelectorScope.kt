@@ -8,7 +8,7 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
  * @sample io.github.lmliam.kotventure.core.selector.playerEntitySelectorScopeSample
  */
 @KotventureDslMarker
-public interface PlayerEntitySelectorScope : CommonEntitySelectorScope {
+public sealed interface PlayerEntitySelectorScope : CommonEntitySelectorScope {
     /** Sort by proximity (closest first). */
     public val nearest: SelectorSort
 

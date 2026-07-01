@@ -11,6 +11,7 @@ once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any
 ### ✨ Features
 
 * **core:** add all typed selector heads with capability-safe scopes
+* **core:** add selector negation, entity type tags, and tag-presence filters
 
 ## [0.4.1](https://github.com/LMLiam/Kotventure/compare/0.4.0...0.4.1) (2026-06-25)
 

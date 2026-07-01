@@ -248,6 +248,92 @@ class EntitySelectorTest :
                 allPlayers { gamemode(spectator) }.asString() shouldBe "@a[gamemode=spectator]"
             }
 
+            "negated singleton filters accumulate in call order" {
+                val selector =
+                    entities {
+                        not {
+                            type(Key.key("minecraft", "zombie"))
+                            typeTag(Key.key("minecraft", "raiders"))
+                            name("Boss")
+                            name("Boss Mob")
+                            gamemode(survival)
+                            gamemode(creative)
+                        }
+                    }
+
+                selector.asString() shouldBe
+                    "@e[type=!minecraft:zombie,type=!#minecraft:raiders,name=!Boss,name=!\"Boss Mob\"," +
+                    "gamemode=!survival,gamemode=!creative]"
+            }
+
+            "latest singleton polarity replaces the previous polarity" {
+                entities {
+                    type(Key.key("minecraft", "zombie"))
+                    not {
+                        type(Key.key("minecraft", "skeleton"))
+                        type(Key.key("minecraft", "creeper"))
+                    }
+                }.asString() shouldBe "@e[type=!minecraft:skeleton,type=!minecraft:creeper]"
+
+                entities {
+                    not {
+                        name("Boss")
+                        name("Minion")
+                    }
+                    name("Alex")
+                }.asString() shouldBe "@e[name=Alex]"
+
+                allPlayers {
+                    not {
+                        gamemode(survival)
+                        gamemode(creative)
+                    }
+                    gamemode(adventure)
+                }.asString() shouldBe "@a[gamemode=adventure]"
+            }
+
+            "entity type tags use Adventure keys and preserve custom namespaces" {
+                entities {
+                    typeTag(Key.key("mymod", "hostile"))
+                }.asString() shouldBe "@e[type=#mymod:hostile]"
+
+                self {
+                    not {
+                        typeTag(Key.key("mymod", "ignored"))
+                    }
+                }.asString() shouldBe "@s[type=!#mymod:ignored]"
+            }
+
+            "tag filters support presence and mixed repeatable forms" {
+                val selector =
+                    allPlayers {
+                        tag(any)
+                        tag("vip")
+                        not { tag("muted") }
+                        tag(none)
+                    }
+
+                selector.asString() shouldBe "@a[tag=!,tag=vip,tag=!muted,tag=]"
+            }
+
+            "player negation scopes do not expose entity type filters" {
+                assertDoesNotCompile(
+                    "NegatedPlayerSelectorTypeTest.kt",
+                    """
+                    import io.github.lmliam.kotventure.core.selector.*
+
+                    fun invalidPlayerSelector() {
+                        allPlayers {
+                            not {
+                                type("minecraft:zombie")
+                            }
+                        }
+                    }
+                    """.trimIndent(),
+                    "Unresolved reference 'type'",
+                )
+            }
+
             "sort with all constant variants" {
                 entities { sort(nearest) }.asString() shouldBe "@e[sort=nearest]"
                 entities { sort(furthest) }.asString() shouldBe "@e[sort=furthest]"

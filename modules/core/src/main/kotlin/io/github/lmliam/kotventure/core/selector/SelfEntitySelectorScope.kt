@@ -9,7 +9,7 @@ import net.kyori.adventure.key.Key
  * @sample io.github.lmliam.kotventure.core.selector.selfEntitySelectorScopeSample
  */
 @KotventureDslMarker
-public interface SelfEntitySelectorScope : CommonEntitySelectorScope {
+public sealed interface SelfEntitySelectorScope : CommonEntitySelectorScope {
     /** Filters by entity type using an Adventure [Key]. */
     public fun type(entityType: Key)
 
@@ -19,4 +19,7 @@ public interface SelfEntitySelectorScope : CommonEntitySelectorScope {
      * An already-namespaced id is preserved; a bare id uses the `minecraft` namespace.
      */
     public fun type(entityType: String)
+
+    /** Filters by an entity type tag using an Adventure [Key]. */
+    public fun typeTag(entityTypeTag: Key)
 }
