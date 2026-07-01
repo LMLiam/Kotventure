@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.core.selector
 
+import io.github.lmliam.kotventure.core.nbt.list
 import net.kyori.adventure.key.Key
 
 internal fun selectorSample() {
@@ -65,6 +66,17 @@ internal fun selectorTeamSample() {
     allPlayers {
         not { team("spectators") }
         team(any)
+    }
+}
+
+internal fun selectorNbtSample() {
+    entities {
+        nbt {
+            "Tags" eq list("boss", "hostile")
+        }
+        not {
+            nbt { "Invisible" eq true }
+        }
     }
 }
 

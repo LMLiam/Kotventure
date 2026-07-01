@@ -1,5 +1,8 @@
 package io.github.lmliam.kotventure.core.selector
 
+import io.github.lmliam.kotventure.core.nbt.NbtCompoundBuilder
+import io.github.lmliam.kotventure.core.nbt.NbtCompoundScope
+import io.github.lmliam.kotventure.core.nbt.renderCompound
 import net.kyori.adventure.key.Key
 
 internal class EntitySelectorState {
@@ -31,6 +34,8 @@ internal class EntitySelectorState {
         private set
     val tags: MutableList<String> = mutableListOf()
     var excludedTeams: List<String> = emptyList()
+        private set
+    var nbtFilters: List<SelectorNbtFilter> = emptyList()
         private set
 
     fun assignType(entityType: Key) {
@@ -93,6 +98,14 @@ internal class EntitySelectorState {
     fun excludeTeam(value: String) {
         requireValidTeamName(value)
         excludedTeams = excludedTeams + value
+    }
+
+    fun addNbtFilter(
+        isNegated: Boolean,
+        init: NbtCompoundScope.() -> Unit,
+    ) {
+        val compound = NbtCompoundBuilder().apply(init).build()
+        nbtFilters = nbtFilters + SelectorNbtFilter(renderCompound(compound), isNegated)
     }
 
     fun assignOrigin(

@@ -1,5 +1,7 @@
 package io.github.lmliam.kotventure.core.selector
 
+import io.github.lmliam.kotventure.core.nbt.NbtCompoundScope
+
 internal open class NegatedCommonEntitySelectorAdapter(
     protected val state: EntitySelectorState,
 ) : NegatedCommonEntitySelectorScope {
@@ -18,6 +20,10 @@ internal open class NegatedCommonEntitySelectorAdapter(
 
     final override fun team(team: String) {
         state.excludeTeam(team)
+    }
+
+    final override fun nbt(init: NbtCompoundScope.() -> Unit) {
+        state.addNbtFilter(isNegated = true, init)
     }
 
     final override fun gamemode(mode: GameMode) {

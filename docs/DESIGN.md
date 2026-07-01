@@ -111,6 +111,7 @@ val msg = component {
             xRotation(atMost(45.0))
             yRotation(170.0..-170.0)
             team("raiders")
+            nbt { "Health" eq 20.0f }
             not { tag("hidden") }
         },
     )

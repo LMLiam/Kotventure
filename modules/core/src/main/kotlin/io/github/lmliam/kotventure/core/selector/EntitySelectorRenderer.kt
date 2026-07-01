@@ -25,6 +25,7 @@ internal object EntitySelectorRenderer {
                 state.tags.forEach { add("tag=$it") }
                 state.excludedTeams.forEach { add("team=!$it") }
                 state.team?.let { add("team=$it") }
+                state.nbtFilters.forEach { add("nbt=${it.rendered}") }
             }
         val suffix = if (arguments.isEmpty()) "" else arguments.joinToString(",", prefix = "[", postfix = "]")
         return EntitySelector("$head$suffix")

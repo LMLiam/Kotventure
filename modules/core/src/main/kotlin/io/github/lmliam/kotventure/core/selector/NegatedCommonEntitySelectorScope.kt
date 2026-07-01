@@ -1,6 +1,7 @@
 package io.github.lmliam.kotventure.core.selector
 
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
+import io.github.lmliam.kotventure.core.nbt.NbtCompoundScope
 
 /**
  * Negated filters shared by every typed selector head.
@@ -36,6 +37,15 @@ public sealed interface NegatedCommonEntitySelectorScope {
      * @sample io.github.lmliam.kotventure.core.selector.selectorTeamSample
      */
     public fun team(team: String)
+
+    /**
+     * Adds a negated structured NBT compound filter.
+     *
+     * Repeated positive and negated calls preserve every compound in call order.
+     *
+     * @sample io.github.lmliam.kotventure.core.selector.selectorNbtSample
+     */
+    public fun nbt(init: NbtCompoundScope.() -> Unit)
 
     /** Excludes entities in this game mode. */
     public fun gamemode(mode: GameMode)

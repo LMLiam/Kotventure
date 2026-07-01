@@ -1,5 +1,7 @@
 package io.github.lmliam.kotventure.core.selector
 
+import io.github.lmliam.kotventure.core.nbt.NbtCompoundScope
+
 internal abstract class CommonEntitySelectorAdapter(
     final override val selectorState: EntitySelectorState,
 ) : CommonEntitySelectorScope,
@@ -68,6 +70,10 @@ internal abstract class CommonEntitySelectorAdapter(
 
     final override fun team(presence: SelectorPresence) {
         state.assignTeam(presence)
+    }
+
+    final override fun nbt(init: NbtCompoundScope.() -> Unit) {
+        state.addNbtFilter(isNegated = false, init)
     }
 
     final override fun name(name: String) {

@@ -1,6 +1,7 @@
 package io.github.lmliam.kotventure.core.selector
 
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
+import io.github.lmliam.kotventure.core.nbt.NbtCompoundScope
 
 /**
  * Arguments shared by every typed entity-selector head.
@@ -115,6 +116,15 @@ public sealed interface CommonEntitySelectorScope {
      * @sample io.github.lmliam.kotventure.core.selector.selectorTeamSample
      */
     public fun team(presence: SelectorPresence)
+
+    /**
+     * Adds a structured NBT compound filter.
+     *
+     * Repeated calls preserve every compound in call order.
+     *
+     * @sample io.github.lmliam.kotventure.core.selector.selectorNbtSample
+     */
+    public fun nbt(init: NbtCompoundScope.() -> Unit)
 
     /** Filters by entity name. */
     public fun name(name: String)

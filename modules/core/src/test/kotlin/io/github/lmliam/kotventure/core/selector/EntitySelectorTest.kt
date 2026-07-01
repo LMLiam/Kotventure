@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.core.selector
 
+import io.github.lmliam.kotventure.core.nbt.list
 import io.github.lmliam.kotventure.test.compilation.assertCompiles
 import io.github.lmliam.kotventure.test.compilation.assertDoesNotCompile
 import io.kotest.assertions.throwables.shouldThrow
@@ -472,6 +473,42 @@ class EntitySelectorTest :
                     }
                 }.message shouldBe
                     "Team name must use vanilla unquoted-token characters [0-9A-Za-z_.+-], got: !red"
+            }
+
+            "NBT filters preserve positive and negated call order" {
+                val selector =
+                    entities {
+                        nbt {
+                            "Health" eq 20.0f
+                            "Tags" eq list("boss", "hostile")
+                        }
+                        not {
+                            nbt { "Invisible" eq true }
+                        }
+                        nbt {}
+                    }
+
+                selector.asString() shouldBe
+                    "@e[nbt={Health:20.0f,Tags:[\"boss\",\"hostile\"]},nbt=!{Invisible:1b},nbt={}]"
+            }
+
+            "NBT filters reuse nested compound array list and escaping rules" {
+                val selector =
+                    self {
+                        nbt {
+                            "display name" eq "say \"hello\""
+                            "nested" eq {
+                                "bytes" eq byteArrayOf(1, 2)
+                                "ints" eq intArrayOf(3, 4)
+                                "longs" eq longArrayOf(5L, 6L)
+                                "rows" eq list(list(7, 8), list(9, 10))
+                            }
+                        }
+                    }
+
+                selector.asString() shouldBe
+                    "@s[nbt={\"display name\":\"say \\\"hello\\\"\",nested:" +
+                    "{bytes:[B;1b,2b],ints:[I;3,4],longs:[L;5L,6L],rows:[[7,8],[9,10]]}}]"
             }
 
             "origin and volume render full and partial coordinates" {
