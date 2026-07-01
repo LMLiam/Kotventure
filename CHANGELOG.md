@@ -14,6 +14,7 @@ once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any
 * **core:** add selector negation, entity type tags, and tag-presence filters
 * **core:** add selector origin and bounding-volume arguments
 * **core:** add typed selector rotation ranges with wrap-around support
+* **core:** add named, negated, any, and no-team selector filters
 
 ## [0.4.1](https://github.com/LMLiam/Kotventure/compare/0.4.0...0.4.1) (2026-06-25)
 

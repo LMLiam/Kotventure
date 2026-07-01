@@ -390,6 +390,70 @@ class EntitySelectorTest :
                 selector.asString() shouldBe "@a[tag=!,tag=vip,tag=!muted,tag=]"
             }
 
+            "team supports named and presence filters" {
+                entities {
+                    team("red")
+                }.asString() shouldBe "@e[team=red]"
+
+                allPlayers {
+                    team(any)
+                }.asString() shouldBe "@a[team=!]"
+
+                nearestPlayer {
+                    team(none)
+                }.asString() shouldBe "@p[team=]"
+            }
+
+            "team preserves exclusions before a last-write-wins positive filter" {
+                val selector =
+                    entities {
+                        team("red")
+                        not {
+                            team("blue")
+                            team("green")
+                        }
+                        team("gold")
+                    }
+
+                selector.asString() shouldBe "@e[team=!blue,team=!green,team=gold]"
+            }
+
+            "team is available on every selector head and common negated scope" {
+                assertCompiles(
+                    "AllSelectorTeamFiltersTest.kt",
+                    """
+                    import io.github.lmliam.kotventure.core.selector.*
+
+                    fun allTeamFilters() {
+                        nearestPlayer { team("red"); not { team("blue") } }
+                        allPlayers { team(any); not { team("blue") } }
+                        randomPlayer { team(none); not { team("blue") } }
+                        self { team("red"); not { team("blue") } }
+                        entities { team("red"); not { team("blue") } }
+                        nearestEntity { team("red"); not { team("blue") } }
+                    }
+                    """.trimIndent(),
+                )
+            }
+
+            "team rejects empty and invalid named values" {
+                shouldThrow<IllegalArgumentException> {
+                    entities { team("") }
+                }.message shouldBe "Team name must not be empty; use team(none) to match no team"
+
+                shouldThrow<IllegalArgumentException> {
+                    entities { team("red team") }
+                }.message shouldBe
+                    "Team name must use vanilla unquoted-token characters [0-9A-Za-z_.+-], got: red team"
+
+                shouldThrow<IllegalArgumentException> {
+                    entities {
+                        not { team("!red") }
+                    }
+                }.message shouldBe
+                    "Team name must use vanilla unquoted-token characters [0-9A-Za-z_.+-], got: !red"
+            }
+
             "origin and volume render full and partial coordinates" {
                 entities {
                     origin(x = 1.5, y = 64.0, z = -2.0)

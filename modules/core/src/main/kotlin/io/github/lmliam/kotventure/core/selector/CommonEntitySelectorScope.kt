@@ -9,10 +9,10 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
  */
 @KotventureDslMarker
 public sealed interface CommonEntitySelectorScope {
-    /** Requires at least one scoreboard tag. */
+    /** Requires at least one value for a presence-aware selector argument. */
     public val any: SelectorPresence
 
-    /** Requires no scoreboard tags. */
+    /** Requires no value for a presence-aware selector argument. */
     public val none: SelectorPresence
 
     /** Survival mode. */
@@ -96,6 +96,25 @@ public sealed interface CommonEntitySelectorScope {
 
     /** Filters by whether any scoreboard tag is present. */
     public fun tag(presence: SelectorPresence)
+
+    /**
+     * Filters by a named scoreboard team.
+     *
+     * Repeated calls replace the previous positive team filter.
+     *
+     * @throws IllegalArgumentException if [team] is empty or is not a vanilla unquoted token
+     * @sample io.github.lmliam.kotventure.core.selector.selectorTeamSample
+     */
+    public fun team(team: String)
+
+    /**
+     * Filters by whether any scoreboard team is present.
+     *
+     * Repeated calls replace the previous positive team filter.
+     *
+     * @sample io.github.lmliam.kotventure.core.selector.selectorTeamSample
+     */
+    public fun team(presence: SelectorPresence)
 
     /** Filters by entity name. */
     public fun name(name: String)

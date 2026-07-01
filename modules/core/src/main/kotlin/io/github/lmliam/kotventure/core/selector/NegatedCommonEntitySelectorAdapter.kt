@@ -16,6 +16,10 @@ internal open class NegatedCommonEntitySelectorAdapter(
         state.excludeTag(tag)
     }
 
+    final override fun team(team: String) {
+        state.excludeTeam(team)
+    }
+
     final override fun gamemode(mode: GameMode) {
         state.excludeGamemode(mode)
     }

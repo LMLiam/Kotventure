@@ -24,10 +24,13 @@ internal class EntitySelectorState {
     var sort: SelectorSort? = null
     var name: SelectorFilter<String>? = null
         private set
+    var team: String? = null
+        private set
     var level: LevelRange? = null
     var gamemode: SelectorFilter<GameMode>? = null
         private set
     val tags: MutableList<String> = mutableListOf()
+    val excludedTeams: MutableList<String> = mutableListOf()
 
     fun assignType(entityType: Key) {
         assignType(entityType.asString())
@@ -75,6 +78,20 @@ internal class EntitySelectorState {
 
     fun excludeTag(value: String) {
         tags += "!$value"
+    }
+
+    fun assignTeam(value: String) {
+        requireValidTeamName(value)
+        team = value
+    }
+
+    fun assignTeam(presence: SelectorPresence) {
+        team = presence.value
+    }
+
+    fun excludeTeam(value: String) {
+        requireValidTeamName(value)
+        excludedTeams += value
     }
 
     fun assignOrigin(

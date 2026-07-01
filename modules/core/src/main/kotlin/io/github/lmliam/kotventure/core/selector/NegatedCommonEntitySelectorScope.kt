@@ -27,6 +27,16 @@ public sealed interface NegatedCommonEntitySelectorScope {
     /** Excludes entities with this scoreboard tag. */
     public fun tag(tag: String)
 
+    /**
+     * Excludes entities in this named scoreboard team.
+     *
+     * Repeated calls preserve each named exclusion.
+     *
+     * @throws IllegalArgumentException if [team] is empty or is not a vanilla unquoted token
+     * @sample io.github.lmliam.kotventure.core.selector.selectorTeamSample
+     */
+    public fun team(team: String)
+
     /** Excludes entities in this game mode. */
     public fun gamemode(mode: GameMode)
 }

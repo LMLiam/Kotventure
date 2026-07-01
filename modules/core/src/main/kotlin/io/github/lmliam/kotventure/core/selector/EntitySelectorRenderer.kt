@@ -23,6 +23,8 @@ internal object EntitySelectorRenderer {
                 state.limit?.let { add("limit=$it") }
                 state.sort?.let { add("sort=${it.value}") }
                 state.tags.forEach { add("tag=$it") }
+                state.excludedTeams.forEach { add("team=!$it") }
+                state.team?.let { add("team=$it") }
             }
         val suffix = if (arguments.isEmpty()) "" else arguments.joinToString(",", prefix = "[", postfix = "]")
         return EntitySelector("$head$suffix")
@@ -30,16 +32,7 @@ internal object EntitySelectorRenderer {
 
     private fun renderName(value: String): String = if (needsQuoting(value)) "\"${escapeQuotes(value)}\"" else value
 
-    private fun needsQuoting(value: String): Boolean = value.any { !it.isAllowedInUnquotedString() }
-
-    private fun Char.isAllowedInUnquotedString(): Boolean =
-        this in '0'..'9' ||
-            this in 'A'..'Z' ||
-            this in 'a'..'z' ||
-            this == '_' ||
-            this == '-' ||
-            this == '.' ||
-            this == '+'
+    private fun needsQuoting(value: String): Boolean = value.any { !it.isAllowedInUnquotedSelectorToken() }
 
     private fun escapeQuotes(value: String): String =
         value

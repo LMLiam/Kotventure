@@ -1,7 +1,7 @@
 package io.github.lmliam.kotventure.core.selector
 
 /**
- * Presence condition for scoreboard tag selector arguments.
+ * Presence condition for selector arguments that distinguish any value from no value.
  *
  * Access via the scoped [CommonEntitySelectorScope.any] and [CommonEntitySelectorScope.none] constants.
  *

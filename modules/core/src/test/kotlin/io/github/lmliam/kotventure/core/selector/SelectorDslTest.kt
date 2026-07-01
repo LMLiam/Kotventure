@@ -75,6 +75,18 @@ class SelectorDslTest :
                 component shouldHaveSelectorPattern "@e[x_rotation=..45,y_rotation=170..-170]"
             }
 
+            "builds a selector component with typed team filters" {
+                val component =
+                    selector(
+                        entities {
+                            not { team("blue") }
+                            team(any)
+                        },
+                    ).shouldBeSelectorComponent()
+
+                component shouldHaveSelectorPattern "@e[team=!blue,team=!]"
+            }
+
             "builds a selector component with the escape hatch" {
                 val component = selector(entitySelector("@e[distance=..10]")).shouldBeSelectorComponent()
 

@@ -110,6 +110,7 @@ val msg = component {
             volume(dx = 16.0, dy = 8.0, dz = 16.0)
             xRotation(atMost(45.0))
             yRotation(170.0..-170.0)
+            team("raiders")
             not { tag("hidden") }
         },
     )

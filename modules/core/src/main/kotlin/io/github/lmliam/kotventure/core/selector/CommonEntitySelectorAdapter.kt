@@ -62,6 +62,14 @@ internal abstract class CommonEntitySelectorAdapter(
         state.addTag(presence)
     }
 
+    final override fun team(team: String) {
+        state.assignTeam(team)
+    }
+
+    final override fun team(presence: SelectorPresence) {
+        state.assignTeam(presence)
+    }
+
     final override fun name(name: String) {
         state.assignName(name)
     }

@@ -61,6 +61,13 @@ internal fun selectorRotationSample() {
     }
 }
 
+internal fun selectorTeamSample() {
+    allPlayers {
+        not { team("spectators") }
+        team(any)
+    }
+}
+
 internal fun entitiesSample() {
     entities {
         type("armor_stand")
