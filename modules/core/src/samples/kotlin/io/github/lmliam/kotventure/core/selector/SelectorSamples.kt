@@ -178,3 +178,14 @@ internal fun negatedEntitySelectorScopeSample() {
         not { typeTag(Key.key("minecraft", "undead")) }
     }
 }
+
+internal fun parsedEntitySelectorSample() {
+    val parsed = parseEntitySelector("@e[type=minecraft:zombie,tag=!hidden]")
+    val typed =
+        when (parsed) {
+            is EntitySelectorParseResult.Success -> parsed.selector
+            is EntitySelectorParseResult.Failure -> error(parsed.error.message)
+        }
+
+    selector(typed.asEntitySelector())
+}
