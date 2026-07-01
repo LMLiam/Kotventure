@@ -121,6 +121,7 @@ public sealed interface CommonEntitySelectorScope {
      * Adds a structured NBT compound filter.
      *
      * Repeated calls preserve every compound in call order.
+     * Raw SNBT is intentionally unsupported; use [entitySelector] for raw selector interop.
      *
      * @sample io.github.lmliam.kotventure.core.selector.selectorNbtSample
      */

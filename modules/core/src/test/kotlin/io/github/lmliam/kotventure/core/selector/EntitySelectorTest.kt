@@ -492,6 +492,37 @@ class EntitySelectorTest :
                     "@e[nbt={Health:20.0f,Tags:[\"boss\",\"hostile\"]},nbt=!{Invisible:1b},nbt={}]"
             }
 
+            "NBT filters are available on every selector head without a raw overload" {
+                assertCompiles(
+                    "AllSelectorNbtFiltersTest.kt",
+                    """
+                    import io.github.lmliam.kotventure.core.selector.*
+
+                    fun allNbtFilters() {
+                        nearestPlayer { nbt {} }
+                        allPlayers { nbt {} }
+                        randomPlayer { nbt {} }
+                        self { nbt {} }
+                        entities { nbt {}; not { nbt {} } }
+                        nearestEntity { nbt {} }
+                    }
+                    """.trimIndent(),
+                )
+
+                assertDoesNotCompile(
+                    "RawSelectorNbtFilterTest.kt",
+                    """
+                    import io.github.lmliam.kotventure.core.selector.*
+
+                    fun rawNbtFilter() {
+                        entities {
+                            nbt("{Health:20f}")
+                        }
+                    }
+                    """.trimIndent(),
+                )
+            }
+
             "NBT filters reuse nested compound array list and escaping rules" {
                 val selector =
                     self {
