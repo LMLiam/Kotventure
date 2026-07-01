@@ -22,7 +22,16 @@ internal object EntitySelectorRenderer {
 
     private fun renderName(value: String): String = if (needsQuoting(value)) "\"${escapeQuotes(value)}\"" else value
 
-    private fun needsQuoting(value: String): Boolean = value.any { it in ",[]{}\" " }
+    private fun needsQuoting(value: String): Boolean = value.any { !it.isAllowedInUnquotedString() }
+
+    private fun Char.isAllowedInUnquotedString(): Boolean =
+        this in '0'..'9' ||
+            this in 'A'..'Z' ||
+            this in 'a'..'z' ||
+            this == '_' ||
+            this == '-' ||
+            this == '.' ||
+            this == '+'
 
     private fun escapeQuotes(value: String): String =
         value

@@ -276,6 +276,12 @@ class EntitySelectorTest :
                 selector.asString() shouldBe "@p[name=SimplePlayer]"
             }
 
+            "name outside Brigadier's unquoted character set is quoted" {
+                val selector = nearestPlayer { name("namespace:value") }
+
+                selector.asString() shouldBe "@p[name=\"namespace:value\"]"
+            }
+
             "atMost rejects NaN" {
                 shouldThrow<IllegalArgumentException> {
                     atMost(Double.NaN)
