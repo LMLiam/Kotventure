@@ -173,6 +173,34 @@ public sealed interface CommonEntitySelectorScope {
      */
     public fun gamemode(mode: Excluded<GameMode>)
 
+    /**
+     * Filters by team membership: `team("red")`. A selector has at most one positive team.
+     *
+     * @throws IllegalArgumentException if the team name is empty (use `team(none)`) or contains
+     *   characters outside vanilla's unquoted-token syntax
+     * @throws IllegalStateException if a positive team is already set or exclusions are present
+     * @sample io.github.lmliam.kotventure.core.selector.selectorTeamSample
+     */
+    public fun team(team: String)
+
+    /**
+     * Filters by team presence: `team(any)` matches entities on any team (vanilla `team=!`),
+     * `team(none)` matches teamless entities (vanilla `team=`).
+     *
+     * @sample io.github.lmliam.kotventure.core.selector.selectorTeamSample
+     */
+    public fun team(presence: SelectorPresence)
+
+    /**
+     * Excludes a team: `team(!"red")`. Exclusions accumulate and may combine with `team(any)`.
+     *
+     * @throws IllegalArgumentException if the team name is empty (use `team(any)`) or contains
+     *   characters outside vanilla's unquoted-token syntax
+     * @throws IllegalStateException if a positive team is already set
+     * @sample io.github.lmliam.kotventure.core.selector.selectorTeamSample
+     */
+    public fun team(team: Excluded<String>)
+
     /** Marks a string argument value as excluded: `tag(!"muted")`. */
     public operator fun String.not(): Excluded<String> = Excluded(this)
 

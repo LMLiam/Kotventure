@@ -312,6 +312,75 @@ class EntitySelectorTest :
                 selector.asString() shouldBe "@a[tag=!,tag=vip,tag=!muted,tag=]"
             }
 
+            "team filter with named team" {
+                allPlayers { team("red") }.asString() shouldBe "@a[team=red]"
+            }
+
+            "team exclusions accumulate" {
+                entities {
+                    team(!"red")
+                    team(!"blue")
+                }.asString() shouldBe "@e[team=!red,team=!blue]"
+            }
+
+            "team presence renders vanilla forms" {
+                entities { team(any) }.asString() shouldBe "@e[team=!]"
+                entities { team(none) }.asString() shouldBe "@e[team=]"
+            }
+
+            "team presence combines with named exclusions" {
+                entities {
+                    team(any)
+                    team(!"red")
+                }.asString() shouldBe "@e[team=!,team=!red]"
+            }
+
+            "team is available on the self scope" {
+                self { team("red") }.asString() shouldBe "@s[team=red]"
+            }
+
+            "duplicate positive team filters are rejected" {
+                shouldThrow<IllegalStateException> {
+                    allPlayers {
+                        team("red")
+                        team("blue")
+                    }
+                }
+                shouldThrow<IllegalStateException> {
+                    entities {
+                        team(none)
+                        team("red")
+                    }
+                }
+            }
+
+            "mixed team polarity is rejected in both orders" {
+                shouldThrow<IllegalStateException> {
+                    entities {
+                        team("red")
+                        team(!"blue")
+                    }
+                }
+                shouldThrow<IllegalStateException> {
+                    entities {
+                        team(any)
+                        team(none)
+                    }
+                }
+            }
+
+            "invalid team names are rejected" {
+                shouldThrow<IllegalArgumentException> {
+                    allPlayers { team("") }
+                }
+                shouldThrow<IllegalArgumentException> {
+                    allPlayers { team(!"") }
+                }
+                shouldThrow<IllegalArgumentException> {
+                    allPlayers { team("red team") }
+                }
+            }
+
             "origin and volume render full and partial coordinates" {
                 entities {
                     origin(1.5.x, 64.y, (-2).z)
