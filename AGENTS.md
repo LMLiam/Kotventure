@@ -19,7 +19,7 @@ MiniMessage, a component-testing toolkit, ANSI preview, and codegen.
 - [`docs/DESIGN.md`](docs/DESIGN.md) — architecture, module map, canonical DSL surface, roadmap. **This governs design
   decisions.**
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — phase sequencing.
-- **Epic [#5](https://github.com/LMLiam/Kotventure/issues/5)** + its milestoned sub-issues — the work, sliced.
+- **The roadmap epic and its milestoned sub-issues** on GitHub — the work, sliced.
 
 ## 2. Golden rules
 
@@ -59,16 +59,16 @@ the catalog.
 
 See `docs/DESIGN.md` §4 for the full map. Non-negotiables:
 
-- **Modules are added lazily, per phase** (issue #7 owns the restructure). Each lives under `modules/<name>` and is
+- **Modules are added lazily, per phase.** Each lives under `modules/<name>` and is
   re-enabled in `settings.gradle` when it lands.
 - **`core` depends only on `adventure-api`.** Do not pull MiniMessage, coroutines, or platform code into `core`.
 - **Hybrid extensibility:** when runtime lookup is genuinely needed, the **owning feature** exposes a small **explicit
   registry** as part of its public API (e.g. `ThemeRegistry`) — never a hidden process-global registry or classpath
-  scanning. **Do NOT reintroduce `ServiceLoader`/SPI/reflection** (removed in #6), and **do NOT** centralise these into a
+  scanning. **Do NOT reintroduce `ServiceLoader`/SPI/reflection** (deliberately removed), and **do NOT** centralise these into a
   single ambient registry (the old `AdventureDsl` god-object was removed deliberately).
 - **Public API is explicit:** `explicitApi()` is on for library modules. Every public/`protected` declaration needs an
-  explicit visibility modifier, an explicit return type, and **KDoc**. In KDoc, reference symbols from other packages
-  with inline code or prose — not `[text][fully.qualified.name]` Dokka links.
+  explicit visibility modifier, an explicit return type, and **KDoc**. When referencing symbols in KDoc, prefer in
+  order: `[Ref]`, then `[text][fully.qualified.name]`, then inline `` `code` ``.
 
 ## 5. Code quality & structure — the part that matters
 
@@ -182,7 +182,5 @@ Write implementation plans to `.agents/plans/`.
 
 ## 10. Don't touch without a reason tied to your issue
 
-- Build wiring / module layout is restructured per phase (#7). Keep build changes minimal and scoped.
-- Don't change the public API of a frozen module without updating the binary-compatibility baseline (post-#55).
-- Binary compatibility is deliberately **unenforced until the #55 baseline lands** — don't add
-  `@JvmName`/`@JvmOverloads`/`@JvmMultifileClass` facades just to preserve old JVM entry points.
+- Build wiring / module layout is restructured per phase. Keep build changes minimal and scoped.
+- Don't change the public API of a frozen module without updating the binary-compatibility baseline (once one exists).
