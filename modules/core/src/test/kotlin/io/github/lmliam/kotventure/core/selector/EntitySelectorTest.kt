@@ -676,11 +676,13 @@ class EntitySelectorTest :
                             criterion("zombie", completed = false)
                             criterion("skeleton", completed = true)
                             criterion("zombie", completed = true)
+                            criterion("found_item-1.0+dev", completed = false)
                         }
                     }
 
                 selector.asString() shouldBe
-                    "@e[advancements={minecraft:adventure/kill_a_mob={zombie=true,skeleton=true}}]"
+                    "@e[advancements={minecraft:adventure/kill_a_mob=" +
+                    "{zombie=true,skeleton=true,found_item-1.0+dev=false}}]"
             }
 
             "advancements replace values without changing advancement position" {
@@ -723,6 +725,37 @@ class EntitySelectorTest :
             }
 
             "advancement false is explicit and is not exposed through not" {
+                assertCompiles(
+                    "AllSelectorAdvancementFiltersTest.kt",
+                    """
+                    import io.github.lmliam.kotventure.core.selector.*
+                    import net.kyori.adventure.key.Key
+
+                    fun allAdvancementFilters() {
+                        val key = Key.key("minecraft", "story/root")
+                        nearestPlayer { advancement(key, completed = true) }
+                        allPlayers { advancement(key) {} }
+                        randomPlayer { advancement(key, completed = false) }
+                        self { advancement(key) { criterion("done", true) } }
+                        entities { advancement(key, completed = true) }
+                        nearestEntity { advancement(key) {} }
+                    }
+                    """.trimIndent(),
+                )
+
+                assertDoesNotCompile(
+                    "RawSelectorAdvancementFilterTest.kt",
+                    """
+                    import io.github.lmliam.kotventure.core.selector.*
+
+                    fun rawAdvancementFilter() {
+                        entities {
+                            advancement("minecraft:story/root", completed = true)
+                        }
+                    }
+                    """.trimIndent(),
+                )
+
                 assertDoesNotCompile(
                     "NegatedSelectorAdvancementTest.kt",
                     """
@@ -733,6 +766,22 @@ class EntitySelectorTest :
                         entities {
                             not {
                                 advancement(Key.key("minecraft", "story/root"), completed = false)
+                            }
+                        }
+                    }
+                    """.trimIndent(),
+                )
+
+                assertDoesNotCompile(
+                    "LeakedSelectorAdvancementScopeTest.kt",
+                    """
+                    import io.github.lmliam.kotventure.core.selector.*
+                    import net.kyori.adventure.key.Key
+
+                    fun leakedSelectorScope() {
+                        entities {
+                            advancement(Key.key("minecraft", "story/root")) {
+                                team("red")
                             }
                         }
                     }
