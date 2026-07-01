@@ -11,6 +11,14 @@ public class VolumeDelta internal constructor(
     internal val value: Double,
 )
 
+internal enum class VolumeAxis(
+    override val argument: String,
+) : SelectorAxis {
+    DX("dx"),
+    DY("dy"),
+    DZ("dz"),
+}
+
 internal fun volumeDelta(
     axis: VolumeAxis,
     value: Number,

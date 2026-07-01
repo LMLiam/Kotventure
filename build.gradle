@@ -31,6 +31,9 @@ subprojects {
             // visibility modifier and an explicit type. App/sample modules may opt out with
             // `explicitApi = org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode.Disabled`.
             explicitApi()
+            compilerOptions {
+                freeCompilerArgs.add('-Xexplicit-backing-fields')
+            }
         }
 
         test {

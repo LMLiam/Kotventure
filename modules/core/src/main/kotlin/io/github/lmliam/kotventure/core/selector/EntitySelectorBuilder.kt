@@ -22,11 +22,11 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     var gamemode: SelectorFilter<GameMode>? = null
         private set
 
-    private val _tags = mutableListOf<String>()
-    val tags: List<String> get() = _tags
+    val tags: List<String>
+        field = mutableListOf()
 
-    private val _coordinates = mutableMapOf<SelectorAxis, Double>()
-    val coordinates: Map<SelectorAxis, Double> get() = _coordinates
+    val coordinates: Map<SelectorAxis, Double>
+        field = mutableMapOf()
 
     override val any: SelectorPresence get() = SelectorPresence.ANY
     override val none: SelectorPresence get() = SelectorPresence.NONE
@@ -65,15 +65,15 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     }
 
     override fun tag(tag: String) {
-        _tags += tag
+        tags += tag
     }
 
     override fun tag(presence: SelectorPresence) {
-        _tags += presence.value
+        tags += presence.value
     }
 
     override fun tag(tag: Excluded<String>) {
-        _tags += "!${tag.value}"
+        tags += "!${tag.value}"
     }
 
     override fun name(name: String) {
@@ -136,13 +136,13 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
         type = type.excluding("type", entityType.withDefaultNamespace())
     }
 
-    private fun bindCoordinates(coordinates: List<Pair<SelectorAxis, Double>>) {
+    private fun bindCoordinates(bindings: List<Pair<SelectorAxis, Double>>) {
         val staged = mutableMapOf<SelectorAxis, Double>()
-        coordinates.forEach { (axis, value) ->
-            checkUnset(axis.argument, _coordinates[axis] ?: staged[axis])
+        bindings.forEach { (axis, value) ->
+            checkUnset(axis.argument, coordinates[axis] ?: staged[axis])
             staged[axis] = value
         }
-        _coordinates += staged
+        coordinates += staged
     }
 
     private fun checkUnset(

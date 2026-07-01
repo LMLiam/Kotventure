@@ -11,6 +11,14 @@ public class OriginCoordinate internal constructor(
     internal val value: Double,
 )
 
+internal enum class OriginAxis(
+    override val argument: String,
+) : SelectorAxis {
+    X("x"),
+    Y("y"),
+    Z("z"),
+}
+
 internal fun originCoordinate(
     axis: OriginAxis,
     value: Number,
