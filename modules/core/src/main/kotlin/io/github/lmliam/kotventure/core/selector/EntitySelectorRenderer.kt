@@ -7,11 +7,11 @@ internal object EntitySelectorRenderer {
     ): EntitySelector {
         val arguments =
             buildList {
-                state.type?.let { add("type=$it") }
-                state.name?.let { add("name=${renderName(it)}") }
+                state.type?.renderValues { it }?.forEach { add("type=$it") }
+                state.name?.renderValues(::renderName)?.forEach { add("name=$it") }
                 state.distance?.let { add("distance=${it.rendered}") }
                 state.level?.let { add("level=${it.rendered}") }
-                state.gamemode?.let { add("gamemode=${it.value}") }
+                state.gamemode?.renderValues { it.value }?.forEach { add("gamemode=$it") }
                 state.limit?.let { add("limit=$it") }
                 state.sort?.let { add("sort=${it.value}") }
                 state.tags.forEach { add("tag=$it") }

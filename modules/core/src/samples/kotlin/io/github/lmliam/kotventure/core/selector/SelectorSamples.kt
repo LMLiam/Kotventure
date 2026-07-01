@@ -1,5 +1,7 @@
 package io.github.lmliam.kotventure.core.selector
 
+import io.github.lmliam.kotventure.core.key.key
+
 internal fun selectorSample() {
     val nearby = selector(entities { distance(atMost(10.0)) }) { separator { content(", ") } }
 }
@@ -69,5 +71,29 @@ internal fun entitySelectorScopeSample() {
         sort(nearest)
         limit(1)
         tag("display")
+    }
+}
+
+internal fun selectorPresenceSample() {
+    allPlayers {
+        tag(any)
+        tag(none)
+    }
+}
+
+internal fun negatedCommonArgumentsSample() {
+    allPlayers {
+        name(!"Bot")
+        gamemode(!spectator)
+        tag("vip")
+        tag(!"muted")
+    }
+}
+
+internal fun negatedTypeArgumentsSample() {
+    entities {
+        type(!"zombie")
+        type(!key("minecraft", "skeleton"))
+        typeTag(!key("minecraft", "raiders"))
     }
 }
