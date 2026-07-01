@@ -51,6 +51,7 @@ private fun KotlinSourceBuilder.appendShowItem(item: HoverEvent.ShowItem) {
             openArguments("item(", arguments)
             line(")")
         }
+
         arguments.size == 1 -> block("item($itemKey)") { appendDataComponents(components) }
         else -> {
             openArguments("item(", arguments)

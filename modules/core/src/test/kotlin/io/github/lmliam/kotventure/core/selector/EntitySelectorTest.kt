@@ -218,8 +218,8 @@ class EntitySelectorTest :
                     }
 
                 selector.asString() shouldBe
-                    "@e[type=!minecraft:zombie,type=!#minecraft:raiders,name=!Boss,name=!\"Boss Mob\"," +
-                    "gamemode=!survival,gamemode=!creative]"
+                        "@e[type=!minecraft:zombie,type=!#minecraft:raiders,name=!Boss,name=!\"Boss Mob\"," +
+                        "gamemode=!survival,gamemode=!creative]"
             }
 
             "entity type tags use Adventure keys and preserve custom namespaces" {

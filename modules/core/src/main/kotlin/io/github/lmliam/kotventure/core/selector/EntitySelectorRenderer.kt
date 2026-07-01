@@ -32,12 +32,12 @@ internal object EntitySelectorRenderer {
 
     private fun Char.isAllowedInUnquotedString(): Boolean =
         this in '0'..'9' ||
-            this in 'A'..'Z' ||
-            this in 'a'..'z' ||
-            this == '_' ||
-            this == '-' ||
-            this == '.' ||
-            this == '+'
+                this in 'A'..'Z' ||
+                this in 'a'..'z' ||
+                this == '_' ||
+                this == '-' ||
+                this == '.' ||
+                this == '+'
 
     private fun escapeQuotes(value: String): String =
         value

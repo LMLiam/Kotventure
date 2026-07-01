@@ -21,6 +21,7 @@ internal fun <T> SelectorFilter<T>?.including(
         null -> SelectorFilter.Positive(value)
         is SelectorFilter.Positive ->
             error("Selector argument '$argument' is already set; vanilla syntax allows one positive value.")
+
         is SelectorFilter.Negative ->
             error(
                 "Selector argument '$argument' already has exclusions; vanilla syntax cannot combine them with a positive value.",
