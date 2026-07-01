@@ -658,6 +658,88 @@ class EntitySelectorTest :
                 )
             }
 
+            "advancements render whole completion with custom namespaces" {
+                val selector =
+                    allPlayers {
+                        advancement(Key.key("minecraft", "story/root"), completed = true)
+                        advancement(Key.key("my_pack", "secret"), completed = false)
+                    }
+
+                selector.asString() shouldBe
+                    "@a[advancements={minecraft:story/root=true,my_pack:secret=false}]"
+            }
+
+            "advancement criteria preserve position with last-write-wins values" {
+                val selector =
+                    entities {
+                        advancement(Key.key("minecraft", "adventure/kill_a_mob")) {
+                            criterion("zombie", completed = false)
+                            criterion("skeleton", completed = true)
+                            criterion("zombie", completed = true)
+                        }
+                    }
+
+                selector.asString() shouldBe
+                    "@e[advancements={minecraft:adventure/kill_a_mob={zombie=true,skeleton=true}}]"
+            }
+
+            "advancements replace values without changing advancement position" {
+                val selector =
+                    entities {
+                        advancement(Key.key("minecraft", "story/root"), completed = false)
+                        advancement(Key.key("my_pack", "secret"), completed = true)
+                        advancement(Key.key("minecraft", "story/root")) {
+                            criterion("complete", completed = true)
+                        }
+                    }
+
+                selector.asString() shouldBe
+                    "@e[advancements={minecraft:story/root={complete=true},my_pack:secret=true}]"
+            }
+
+            "advancement accepts an empty criterion block" {
+                entities {
+                    advancement(Key.key("minecraft", "story/root")) {}
+                }.asString() shouldBe "@e[advancements={minecraft:story/root={}}]"
+            }
+
+            "advancement criteria reject invalid tokens" {
+                shouldThrow<IllegalArgumentException> {
+                    entities {
+                        advancement(Key.key("minecraft", "story/root")) {
+                            criterion("", completed = true)
+                        }
+                    }
+                }.message shouldBe "Advancement criterion must not be empty"
+
+                shouldThrow<IllegalArgumentException> {
+                    entities {
+                        advancement(Key.key("minecraft", "story/root")) {
+                            criterion("found item", completed = true)
+                        }
+                    }
+                }.message shouldBe
+                    "Advancement criterion must use vanilla unquoted-token characters [0-9A-Za-z_.+-], got: found item"
+            }
+
+            "advancement false is explicit and is not exposed through not" {
+                assertDoesNotCompile(
+                    "NegatedSelectorAdvancementTest.kt",
+                    """
+                    import io.github.lmliam.kotventure.core.selector.*
+                    import net.kyori.adventure.key.Key
+
+                    fun invalidNegatedAdvancement() {
+                        entities {
+                            not {
+                                advancement(Key.key("minecraft", "story/root"), completed = false)
+                            }
+                        }
+                    }
+                    """.trimIndent(),
+                )
+            }
+
             "origin and volume render full and partial coordinates" {
                 entities {
                     origin(x = 1.5, y = 64.0, z = -2.0)

@@ -96,6 +96,15 @@ internal fun selectorPredicateSample() {
     }
 }
 
+internal fun selectorAdvancementSample() {
+    allPlayers {
+        advancement(Key.key("minecraft", "story/root"), completed = true)
+        advancement(Key.key("my_pack", "secret")) {
+            criterion("found_item", completed = false)
+        }
+    }
+}
+
 internal fun entitiesSample() {
     entities {
         type("armor_stand")

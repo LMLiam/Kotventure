@@ -41,6 +41,8 @@ internal class EntitySelectorState {
         private set
     var predicateFilters: List<SelectorPredicateFilter> = emptyList()
         private set
+    var advancements: Map<Key, SelectorAdvancementRequirement> = emptyMap()
+        private set
 
     fun assignType(entityType: Key) {
         assignType(entityType.asString())
@@ -129,6 +131,32 @@ internal class EntitySelectorState {
         isNegated: Boolean,
     ) {
         predicateFilters = predicateFilters + SelectorPredicateFilter(predicate, isNegated)
+    }
+
+    fun assignAdvancement(
+        advancement: Key,
+        completed: Boolean,
+    ) {
+        assignAdvancement(advancement, SelectorAdvancementRequirement.Completion(completed))
+    }
+
+    fun assignAdvancement(
+        advancement: Key,
+        init: AdvancementCriteriaScope.() -> Unit,
+    ) {
+        val criteria = AdvancementCriteriaBuilder().apply(init).build()
+        assignAdvancement(advancement, SelectorAdvancementRequirement.Criteria(criteria))
+    }
+
+    private fun assignAdvancement(
+        advancement: Key,
+        requirement: SelectorAdvancementRequirement,
+    ) {
+        advancements =
+            advancements
+                .toMutableMap()
+                .apply { this[advancement] = requirement }
+                .toMap()
     }
 
     fun assignOrigin(

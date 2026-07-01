@@ -164,6 +164,31 @@ public sealed interface CommonEntitySelectorScope {
      */
     public fun predicate(predicate: Key)
 
+    /**
+     * Filters by whole-advancement completion.
+     *
+     * Repeated [advancement] keys replace their value without changing insertion order.
+     *
+     * @sample io.github.lmliam.kotventure.core.selector.selectorAdvancementSample
+     */
+    public fun advancement(
+        advancement: Key,
+        completed: Boolean,
+    )
+
+    /**
+     * Filters by criterion-level progress for an [advancement].
+     *
+     * An empty [init] block is valid and renders an empty criterion map.
+     * Repeated [advancement] keys replace their value without changing insertion order.
+     *
+     * @sample io.github.lmliam.kotventure.core.selector.selectorAdvancementSample
+     */
+    public fun advancement(
+        advancement: Key,
+        init: AdvancementCriteriaScope.() -> Unit,
+    )
+
     /** Filters by entity name. */
     public fun name(name: String)
 

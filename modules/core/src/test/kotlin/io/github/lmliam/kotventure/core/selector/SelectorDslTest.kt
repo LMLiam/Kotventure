@@ -131,6 +131,21 @@ class SelectorDslTest :
                     "@e[predicate=minecraft:is_baby,predicate=!my_pack:hidden]"
             }
 
+            "builds a selector component with typed advancement filters" {
+                val component =
+                    selector(
+                        allPlayers {
+                            advancement(Key.key("minecraft", "story/root"), completed = true)
+                            advancement(Key.key("my_pack", "secret")) {
+                                criterion("found_item", completed = false)
+                            }
+                        },
+                    ).shouldBeSelectorComponent()
+
+                component shouldHaveSelectorPattern
+                    "@a[advancements={minecraft:story/root=true,my_pack:secret={found_item=false}}]"
+            }
+
             "builds a selector component with the escape hatch" {
                 val component = selector(entitySelector("@e[distance=..10]")).shouldBeSelectorComponent()
 

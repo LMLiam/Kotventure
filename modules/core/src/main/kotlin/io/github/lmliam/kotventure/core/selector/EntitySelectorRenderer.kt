@@ -30,6 +30,13 @@ internal object EntitySelectorRenderer {
                     add(state.scores.entries.joinToString(",", "scores={", "}") { "${it.key}=${it.value.rendered}" })
                 }
                 state.predicateFilters.forEach { add("predicate=${it.rendered}") }
+                if (state.advancements.isNotEmpty()) {
+                    add(
+                        state.advancements.entries.joinToString(",", "advancements={", "}") {
+                            "${it.key.asString()}=${it.value.rendered}"
+                        },
+                    )
+                }
             }
         val suffix = if (arguments.isEmpty()) "" else arguments.joinToString(",", prefix = "[", postfix = "]")
         return EntitySelector("$head$suffix")

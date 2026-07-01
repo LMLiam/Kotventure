@@ -95,6 +95,20 @@ internal abstract class CommonEntitySelectorAdapter(
         state.addPredicateFilter(predicate, isNegated = false)
     }
 
+    final override fun advancement(
+        advancement: Key,
+        completed: Boolean,
+    ) {
+        state.assignAdvancement(advancement, completed)
+    }
+
+    final override fun advancement(
+        advancement: Key,
+        init: AdvancementCriteriaScope.() -> Unit,
+    ) {
+        state.assignAdvancement(advancement, init)
+    }
+
     final override fun name(name: String) {
         state.assignName(name)
     }
