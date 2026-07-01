@@ -98,6 +98,16 @@ class EntitySelectorTest :
                 )
             }
 
+            "player selector scopes retain limit and sort" {
+                val selector =
+                    nearestPlayer {
+                        limit(3)
+                        sort(nearest)
+                    }
+
+                selector.asString() shouldBe "@p[limit=3,sort=nearest]"
+            }
+
             "self selector scope does not expose limit or sort" {
                 assertDoesNotCompile(
                     "SelfSelectorLimitTest.kt",
