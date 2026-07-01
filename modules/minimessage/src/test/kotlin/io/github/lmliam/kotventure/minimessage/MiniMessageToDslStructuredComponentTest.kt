@@ -106,7 +106,7 @@ class MiniMessageToDslStructuredComponentTest :
                         expectedSource =
                             """
                         component {
-                            selector(entitySelector("@p"))
+                            selector(nearestPlayer())
                         }
                         """.trimIndent(),
                         expectedComponent = component { selector(entitySelector("@p")) },
@@ -119,7 +119,7 @@ class MiniMessageToDslStructuredComponentTest :
                         expectedSource =
                             """
                         component {
-                            selector(entitySelector("@e")) {
+                            selector(entities()) {
                                 separator {
                                     text(", ")
                                 }

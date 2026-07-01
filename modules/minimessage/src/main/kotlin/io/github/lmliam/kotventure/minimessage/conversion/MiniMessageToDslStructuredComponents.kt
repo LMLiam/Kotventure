@@ -30,8 +30,25 @@ internal fun KotlinSourceBuilder.appendScore(component: ScoreComponent) {
 
 internal fun KotlinSourceBuilder.appendSelector(component: SelectorComponent) {
     val separator = component.separator()
+    val pattern = component.pattern()
+    val selectorSource = selectorDslSource(pattern)
+    if (selectorSource != null && selectorSource.body.isNotEmpty()) {
+        appendStructuredArgument(
+            opener = "selector(",
+            component = component,
+            hasExtraBody = separator != null,
+            argument = { selectorSource.appendTo(this) },
+        ) {
+            separator?.let { appendComponentArgument("separator", it) }
+        }
+        return
+    }
+
+    val selectorArgument =
+        selectorSource?.let { "${it.factoryName}()" }
+            ?: "entitySelector(\"${escapeKotlinString(pattern)}\")"
     appendStructured(
-        header = "selector(entitySelector(\"${escapeKotlinString(component.pattern())}\"))",
+        header = "selector($selectorArgument)",
         component = component,
         hasExtraBody = separator != null,
     ) {
