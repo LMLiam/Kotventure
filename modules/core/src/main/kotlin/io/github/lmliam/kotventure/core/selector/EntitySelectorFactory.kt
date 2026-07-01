@@ -6,7 +6,7 @@ package io.github.lmliam.kotventure.core.selector
  * @sample io.github.lmliam.kotventure.core.selector.selfSample
  */
 @JvmOverloads
-public fun self(init: SelfEntitySelectorScope.() -> Unit = {}): EntitySelector = buildSelfSelector("@s", init)
+public fun self(init: SelfEntitySelectorScope.() -> Unit = {}): EntitySelector = buildSelector("@s") { init() }
 
 /**
  * Builds a `@p` selector targeting the nearest player, with optional arguments.
@@ -14,14 +14,14 @@ public fun self(init: SelfEntitySelectorScope.() -> Unit = {}): EntitySelector =
  * @sample io.github.lmliam.kotventure.core.selector.nearestPlayerSample
  */
 public fun nearestPlayer(init: PlayerEntitySelectorScope.() -> Unit = {}): EntitySelector =
-    buildPlayerSelector("@p", init)
+    buildSelector("@p") { init() }
 
 /**
  * Builds an `@a` selector targeting all players, with optional arguments.
  *
  * @sample io.github.lmliam.kotventure.core.selector.allPlayersSample
  */
-public fun allPlayers(init: PlayerEntitySelectorScope.() -> Unit = {}): EntitySelector = buildPlayerSelector("@a", init)
+public fun allPlayers(init: PlayerEntitySelectorScope.() -> Unit = {}): EntitySelector = buildSelector("@a") { init() }
 
 /**
  * Builds an `@r` selector targeting a random player, with optional arguments.
@@ -29,21 +29,21 @@ public fun allPlayers(init: PlayerEntitySelectorScope.() -> Unit = {}): EntitySe
  * @sample io.github.lmliam.kotventure.core.selector.randomPlayerSample
  */
 public fun randomPlayer(init: PlayerEntitySelectorScope.() -> Unit = {}): EntitySelector =
-    buildPlayerSelector("@r", init)
+    buildSelector("@r") { init() }
 
 /**
  * Builds an `@e` selector targeting all entities, with optional arguments.
  *
  * @sample io.github.lmliam.kotventure.core.selector.entitiesSample
  */
-public fun entities(init: EntitySelectorScope.() -> Unit = {}): EntitySelector = buildEntitySelector("@e", init)
+public fun entities(init: EntitySelectorScope.() -> Unit = {}): EntitySelector = buildSelector("@e") { init() }
 
 /**
  * Builds an `@n` selector targeting the nearest entity, with optional arguments.
  *
  * @sample io.github.lmliam.kotventure.core.selector.nearestEntitySample
  */
-public fun nearestEntity(init: EntitySelectorScope.() -> Unit = {}): EntitySelector = buildEntitySelector("@n", init)
+public fun nearestEntity(init: EntitySelectorScope.() -> Unit = {}): EntitySelector = buildSelector("@n") { init() }
 
 /**
  * Wraps a raw selector string as an [EntitySelector].
@@ -52,29 +52,11 @@ public fun nearestEntity(init: EntitySelectorScope.() -> Unit = {}): EntitySelec
  */
 public fun entitySelector(raw: String): EntitySelector = EntitySelector(raw)
 
-private fun buildPlayerSelector(
+private fun buildSelector(
     head: String,
-    init: PlayerEntitySelectorScope.() -> Unit,
+    configure: EntitySelectorScope.() -> Unit,
 ): EntitySelector {
     val state = EntitySelectorState()
-    PlayerEntitySelectorAdapter(state).init()
-    return EntitySelectorRenderer.render(head, state)
-}
-
-private fun buildSelfSelector(
-    head: String,
-    init: SelfEntitySelectorScope.() -> Unit,
-): EntitySelector {
-    val state = EntitySelectorState()
-    SelfEntitySelectorAdapter(state).init()
-    return EntitySelectorRenderer.render(head, state)
-}
-
-private fun buildEntitySelector(
-    head: String,
-    init: EntitySelectorScope.() -> Unit,
-): EntitySelector {
-    val state = EntitySelectorState()
-    EntitySelectorAdapter(state).init()
+    EntitySelectorAdapter(state).configure()
     return EntitySelectorRenderer.render(head, state)
 }
