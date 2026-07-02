@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.minimessage.conversion
 
+import io.github.lmliam.kotventure.core.selector.entitySelector
 import net.kyori.adventure.text.BlockNBTComponent
 import net.kyori.adventure.text.EntityNBTComponent
 import net.kyori.adventure.text.NBTComponent
@@ -11,7 +12,9 @@ internal fun KotlinSourceBuilder.appendBlockNbt(component: BlockNBTComponent) {
 }
 
 internal fun KotlinSourceBuilder.appendEntityNbt(component: EntityNBTComponent) {
-    appendNbt("entityNbt", "entitySelector(\"${escapeKotlinString(component.selector())}\")", component)
+    val selector = component.selector()
+    entitySelector(selector)
+    appendNbt("entityNbt", "entitySelector(\"${escapeKotlinString(selector)}\")", component)
 }
 
 internal fun KotlinSourceBuilder.appendStorageNbt(component: StorageNBTComponent) {

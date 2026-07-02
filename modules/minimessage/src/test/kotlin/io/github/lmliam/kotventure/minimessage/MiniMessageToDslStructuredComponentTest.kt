@@ -14,6 +14,7 @@ import io.github.lmliam.kotventure.core.nbt.storageNbt
 import io.github.lmliam.kotventure.core.objectcomponent.display
 import io.github.lmliam.kotventure.core.objectcomponent.sprite
 import io.github.lmliam.kotventure.core.score.score
+import io.github.lmliam.kotventure.core.selector.EntitySelectorParseException
 import io.github.lmliam.kotventure.core.selector.entitySelector
 import io.github.lmliam.kotventure.core.selector.selector
 import io.github.lmliam.kotventure.core.text.text
@@ -133,6 +134,14 @@ class MiniMessageToDslStructuredComponentTest :
                                 }
                             },
                     )
+                }
+
+                test("rejects unsupported selector syntax during conversion") {
+                    val component = Component.selector("@future[unknown=value]")
+
+                    shouldThrow<EntitySelectorParseException> {
+                        MiniMessageToDslWriter.write(component)
+                    }
                 }
 
                 test("round-trips argument-free translatable components against compiled expected DSL") {
@@ -409,6 +418,14 @@ class MiniMessageToDslStructuredComponentTest :
                         entityNbt(entitySelector("@e[type=minecraft:armor_stand]"), nbtPath("Pos"))
                     }
                     """.trimIndent()
+                }
+
+                test("rejects unsupported entity NBT selector syntax during conversion") {
+                    val component = Component.entityNBT("Health", "@future[unknown=value]")
+
+                    shouldThrow<EntitySelectorParseException> {
+                        MiniMessageToDslWriter.write(component)
+                    }
                 }
 
                 test("emits storage NBT components carrying interpretation") {
