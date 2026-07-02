@@ -1,6 +1,7 @@
 package io.github.lmliam.kotventure.core.selector
 
 import io.github.lmliam.kotventure.core.key.key
+import io.github.lmliam.kotventure.core.nbt.list
 
 internal fun selectorSample() {
     val nearby = selector(entities { distance(atMost(10.0)) }) { separator { content(", ") } }
@@ -101,6 +102,16 @@ internal fun selectorPresenceSample() {
     allPlayers {
         tag(any)
         tag(none)
+    }
+}
+
+internal fun selectorNbtSample() {
+    entities {
+        nbt {
+            "Health" eq 20.0f
+            "Tags" eq list("boss", "hostile")
+        }
+        !nbt { "Invisible" eq true }
     }
 }
 

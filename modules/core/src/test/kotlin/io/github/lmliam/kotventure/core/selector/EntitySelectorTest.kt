@@ -1,6 +1,7 @@
 package io.github.lmliam.kotventure.core.selector
 
 import io.github.lmliam.kotventure.core.key.key
+import io.github.lmliam.kotventure.core.nbt.list
 import io.github.lmliam.kotventure.test.compilation.assertDoesNotCompile
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
@@ -337,6 +338,70 @@ class EntitySelectorTest :
 
             "team is available on the self scope" {
                 self { team("red") }.asString() shouldBe "@s[team=red]"
+            }
+
+            "NBT filters preserve positive and negated call order" {
+                val selector =
+                    entities {
+                        nbt {
+                            "Health" eq 20.0f
+                            "Tags" eq list("boss", "hostile")
+                        }
+                        !nbt { "Invisible" eq true }
+                        nbt {}
+                    }
+
+                selector.asString() shouldBe
+                    "@e[nbt={Health:20.0f,Tags:[\"boss\",\"hostile\"]},nbt=!{Invisible:1b},nbt={}]"
+            }
+
+            "NBT filters are available on every selector head" {
+                fun CommonEntitySelectorScope.bothPolarities() {
+                    nbt {}
+                    !nbt {}
+                }
+
+                nearestPlayer { bothPolarities() }.asString() shouldBe "@p[nbt={},nbt=!{}]"
+                allPlayers { bothPolarities() }.asString() shouldBe "@a[nbt={},nbt=!{}]"
+                randomPlayer { bothPolarities() }.asString() shouldBe "@r[nbt={},nbt=!{}]"
+                self { bothPolarities() }.asString() shouldBe "@s[nbt={},nbt=!{}]"
+                entities { bothPolarities() }.asString() shouldBe "@e[nbt={},nbt=!{}]"
+                nearestEntity { bothPolarities() }.asString() shouldBe "@n[nbt={},nbt=!{}]"
+            }
+
+            "raw SNBT strings do not compile as selector NBT filters" {
+                assertDoesNotCompile(
+                    "RawSelectorNbtFilterTest.kt",
+                    """
+                    import io.github.lmliam.kotventure.core.selector.*
+
+                    fun rawNbtFilter() {
+                        entities {
+                            nbt("{Health:20f}")
+                        }
+                    }
+                    """.trimIndent(),
+                    "Argument type mismatch",
+                )
+            }
+
+            "NBT filters reuse nested compound array list and escaping rules" {
+                val selector =
+                    self {
+                        nbt {
+                            "display name" eq "say \"hello\""
+                            "nested" eq {
+                                "bytes" eq byteArrayOf(1, 2)
+                                "ints" eq intArrayOf(3, 4)
+                                "longs" eq longArrayOf(5L, 6L)
+                                "rows" eq list(list(7, 8), list(9, 10))
+                            }
+                        }
+                    }
+
+                selector.asString() shouldBe
+                    "@s[nbt={\"display name\":\"say \\\"hello\\\"\",nested:" +
+                    "{bytes:[B;1b,2b],ints:[I;3,4],longs:[L;5L,6L],rows:[[7,8],[9,10]]}}]"
             }
 
             "duplicate positive team filters are rejected" {

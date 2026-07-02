@@ -1,5 +1,7 @@
 package io.github.lmliam.kotventure.core.selector
 
+import io.github.lmliam.kotventure.core.nbt.renderCompound
+
 internal object EntitySelectorRenderer {
     fun render(
         head: String,
@@ -21,6 +23,7 @@ internal object EntitySelectorRenderer {
                 builder.limit?.let { add("limit=$it") }
                 builder.sort?.let { add("sort=${it.value}") }
                 addAll(builder.tagFilters.rendered { it })
+                addAll(builder.nbtFilters.rendered(::renderCompound))
             }
         val suffix = if (arguments.isEmpty()) "" else arguments.joinToString(",", prefix = "[", postfix = "]")
         return EntitySelector("$head$suffix")
