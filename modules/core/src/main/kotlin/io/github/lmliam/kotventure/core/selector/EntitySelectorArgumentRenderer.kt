@@ -7,9 +7,9 @@ internal fun EntitySelectorArgument.render(): String =
         is EntitySelectorArgument.Limit -> "limit=$value"
         is EntitySelectorArgument.Sort -> "sort=${value.value}"
         is EntitySelectorArgument.Level -> "level=$range"
-        is EntitySelectorArgument.Gamemode -> "gamemode=$negationPrefix${value.value}"
+        is EntitySelectorArgument.GameMode -> "gamemode=$negationPrefix${value.value}"
         is EntitySelectorArgument.Name -> "name=$negationPrefix${renderQuotable()}"
-        is EntitySelectorArgument.Type -> "type=$negationPrefix${if (isTag) "#" else ""}${key.asString()}"
+        is EntitySelectorArgument.Type -> "type=$negationPrefix${target.render()}"
         is EntitySelectorArgument.Tag -> "tag=$negationPrefix${condition.render()}"
         is EntitySelectorArgument.Team -> "team=$negationPrefix${condition.render()}"
         is EntitySelectorArgument.Nbt -> "nbt=$negationPrefix${snbt.value}"
@@ -25,6 +25,12 @@ internal fun EntitySelectorArgument.render(): String =
 
 private val EntitySelectorArgument.Negatable.negationPrefix: String
     get() = if (isNegated) "!" else ""
+
+private fun SelectorEntityType.render(): String =
+    when (this) {
+        is SelectorEntityType.Direct -> key.asString()
+        is SelectorEntityType.Tag -> "#${key.asString()}"
+    }
 
 private fun EntitySelectorArgument.Name.renderQuotable(): String =
     if (value.all(Char::isAllowedInUnquotedSelectorToken)) value else value.quoteSelectorString()
@@ -45,9 +51,9 @@ private fun SelectorStringCondition.render(): String =
         is SelectorStringCondition.Presence -> value.value
     }
 
-private fun ParsedAdvancementProgress.render(): String =
+private fun SelectorAdvancementProgress.render(): String =
     when (this) {
-        is ParsedAdvancementProgress.Completion -> completed.toString()
-        is ParsedAdvancementProgress.Criteria ->
+        is SelectorAdvancementProgress.Completion -> completed.toString()
+        is SelectorAdvancementProgress.Criteria ->
             criteria.joinToString(",", "{", "}") { "${it.name}=${it.completed}" }
     }

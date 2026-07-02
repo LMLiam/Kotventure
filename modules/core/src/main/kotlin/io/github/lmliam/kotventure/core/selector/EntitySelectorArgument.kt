@@ -77,8 +77,8 @@ public sealed interface EntitySelectorArgument {
      * @property value parsed game mode
      * @property isNegated whether the filter excludes this game mode
      */
-    public data class Gamemode(
-        public val value: GameMode,
+    public data class GameMode(
+        public val value: io.github.lmliam.kotventure.core.selector.GameMode,
         override val isNegated: Boolean,
     ) : Negatable
 
@@ -96,48 +96,36 @@ public sealed interface EntitySelectorArgument {
     /**
      * An entity type or entity-type-tag filter.
      *
-     * @property key entity type or tag key
-     * @property isTag whether [key] identifies an entity-type tag
+     * @property target concrete entity type or entity-type tag
      * @property isNegated whether the filter excludes this type or tag
      */
     public data class Type(
-        public val key: Key,
-        public val isTag: Boolean,
+        public val target: SelectorEntityType,
         override val isNegated: Boolean,
     ) : Negatable
 
     /**
-     * A scoreboard-tag filter.
+     * A scoreboard-tag filter. Negation lives inside [condition]; presence conditions carry their
+     * polarity and are never additionally negated.
      *
      * @property condition named tag or explicit presence condition
-     * @property isNegated whether a named condition is negated
      */
     public data class Tag(
         public val condition: SelectorStringCondition,
-        override val isNegated: Boolean,
     ) : Negatable {
-        init {
-            require(condition is SelectorStringCondition.Named || !isNegated) {
-                "Selector presence conditions cannot be prefix-negated."
-            }
-        }
+        override val isNegated: Boolean get() = condition.isNegated
     }
 
     /**
-     * A scoreboard-team filter.
+     * A scoreboard-team filter. Negation lives inside [condition]; presence conditions carry their
+     * polarity and are never additionally negated.
      *
      * @property condition named team or explicit presence condition
-     * @property isNegated whether a named condition is negated
      */
     public data class Team(
         public val condition: SelectorStringCondition,
-        override val isNegated: Boolean,
     ) : Negatable {
-        init {
-            require(condition is SelectorStringCondition.Named || !isNegated) {
-                "Selector presence conditions cannot be prefix-negated."
-            }
-        }
+        override val isNegated: Boolean get() = condition.isNegated
     }
 
     /**
@@ -153,16 +141,16 @@ public sealed interface EntitySelectorArgument {
 
     /** An immutable collection of scoreboard objective ranges. */
     public class Scores(
-        scores: Collection<ParsedSelectorScore>,
+        scores: Collection<SelectorScoreRequirement>,
     ) : EntitySelectorArgument {
         /** Score requirements in source order. */
-        public val scores: List<ParsedSelectorScore> =
+        public val scores: List<SelectorScoreRequirement> =
             buildList(scores.size) {
                 addAll(scores)
             }
 
         /** Returns a score argument with the supplied requirements. */
-        public fun copy(scores: Collection<ParsedSelectorScore> = this.scores): Scores = Scores(scores)
+        public fun copy(scores: Collection<SelectorScoreRequirement> = this.scores): Scores = Scores(scores)
 
         public override fun equals(other: Any?): Boolean = other is Scores && scores == other.scores
 
@@ -184,16 +172,16 @@ public sealed interface EntitySelectorArgument {
 
     /** An immutable collection of advancement requirements. */
     public class Advancements(
-        advancements: Collection<ParsedSelectorAdvancement>,
+        advancements: Collection<SelectorAdvancementRequirement>,
     ) : EntitySelectorArgument {
         /** Advancement requirements in source order. */
-        public val advancements: List<ParsedSelectorAdvancement> =
+        public val advancements: List<SelectorAdvancementRequirement> =
             buildList(advancements.size) {
                 addAll(advancements)
             }
 
         /** Returns an advancement argument with the supplied requirements. */
-        public fun copy(advancements: Collection<ParsedSelectorAdvancement> = this.advancements): Advancements =
+        public fun copy(advancements: Collection<SelectorAdvancementRequirement> = this.advancements): Advancements =
             Advancements(advancements)
 
         public override fun equals(other: Any?): Boolean = other is Advancements && advancements == other.advancements

@@ -36,6 +36,42 @@ class EntitySelectorModelTest :
                 negatable.count { it.isNegated } shouldBe 2
             }
 
+            "represents direct entity types and type tags without a boolean flag" {
+                val direct =
+                    entitySelector("@e[type=minecraft:zombie]")
+                        .arguments
+                        .filterIsInstance<EntitySelectorArgument.Type>()
+                        .single()
+                val tag =
+                    entitySelector("@e[type=#minecraft:raiders]")
+                        .arguments
+                        .filterIsInstance<EntitySelectorArgument.Type>()
+                        .single()
+
+                direct.target shouldBe SelectorEntityType.Direct(key("minecraft", "zombie"))
+                tag.target shouldBe SelectorEntityType.Tag(key("minecraft", "raiders"))
+            }
+
+            "stores named string-filter negation inside the condition" {
+                val tag =
+                    entitySelector("@e[tag=!hidden]")
+                        .arguments
+                        .filterIsInstance<EntitySelectorArgument.Tag>()
+                        .single()
+
+                tag.condition shouldBe SelectorStringCondition.Named("hidden", isNegated = true)
+                tag.isNegated shouldBe true
+            }
+
+            "uses semantic requirement names for scores and advancements" {
+                val scores =
+                    EntitySelectorArgument.Scores(
+                        listOf(SelectorScoreRequirement("kills", exactly(1))),
+                    )
+
+                scores.scores.single().objective shouldBe "kills"
+            }
+
             "rejects invalid public argument construction" {
                 shouldThrow<IllegalArgumentException> {
                     EntitySelectorArgument.Limit(0)
@@ -45,6 +81,12 @@ class EntitySelectorModelTest :
                 }
                 shouldThrow<IllegalArgumentException> {
                     SelectorStringCondition.Named("")
+                }
+                shouldThrow<IllegalArgumentException> {
+                    SelectorScoreRequirement("bad objective", exactly(1))
+                }
+                shouldThrow<IllegalArgumentException> {
+                    SelectorAdvancementCriterion("bad criterion", completed = true)
                 }
                 shouldThrow<EntitySelectorParseException> {
                     SnbtCompoundSource.parse("definitely not SNBT")
@@ -57,8 +99,7 @@ class EntitySelectorModelTest :
                         EntitySelectorHead.ALL_PLAYERS,
                         listOf(
                             EntitySelectorArgument.Type(
-                                key("minecraft", "zombie"),
-                                isTag = false,
+                                SelectorEntityType.Direct(key("minecraft", "zombie")),
                                 isNegated = false,
                             ),
                         ),
@@ -85,7 +126,7 @@ class EntitySelectorModelTest :
                 teams.map(EntitySelectorArgument.Team::condition) shouldBe
                     listOf(
                         SelectorStringCondition.Named("red"),
-                        SelectorStringCondition.Named("blue"),
+                        SelectorStringCondition.Named("blue", isNegated = true),
                     )
                 teams.map(EntitySelectorArgument.Team::isNegated) shouldBe listOf(false, true)
             }
@@ -103,10 +144,7 @@ class EntitySelectorModelTest :
             "defensively snapshots every collection-backed model value" {
                 val sourceArguments =
                     mutableListOf<EntitySelectorArgument>(
-                        EntitySelectorArgument.Tag(
-                            SelectorStringCondition.Named("admin"),
-                            isNegated = false,
-                        ),
+                        EntitySelectorArgument.Tag(SelectorStringCondition.Named("admin")),
                     )
                 val parsed = EntitySelector(EntitySelectorHead.ENTITIES, sourceArguments)
                 sourceArguments.clear()
@@ -122,7 +160,7 @@ class EntitySelectorModelTest :
                     (parsed.arguments as MutableList<EntitySelectorArgument>).clear()
                 }
 
-                val scoreSource = mutableListOf(ParsedSelectorScore("kills", exactly(1)))
+                val scoreSource = mutableListOf(SelectorScoreRequirement("kills", exactly(1)))
                 val scores = EntitySelectorArgument.Scores(scoreSource)
                 scoreSource.clear()
                 scores.scores shouldHaveSize 1
@@ -137,14 +175,14 @@ class EntitySelectorModelTest :
                     structured.advancements
                         .single()
                         .progress
-                        .shouldBeInstanceOf<ParsedAdvancementProgress.Criteria>()
+                        .shouldBeInstanceOf<SelectorAdvancementProgress.Criteria>()
                 shouldThrow<UnsupportedOperationException> {
                     @Suppress("UNCHECKED_CAST")
-                    (structured.advancements as MutableList<ParsedSelectorAdvancement>).clear()
+                    (structured.advancements as MutableList<SelectorAdvancementRequirement>).clear()
                 }
                 shouldThrow<UnsupportedOperationException> {
                     @Suppress("UNCHECKED_CAST")
-                    (criteria.criteria as MutableList<ParsedAdvancementCriterion>).clear()
+                    (criteria.criteria as MutableList<SelectorAdvancementCriterion>).clear()
                 }
             }
 

@@ -1,40 +1,40 @@
 package io.github.lmliam.kotventure.core.selector.parsing
 
 import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument
-import io.github.lmliam.kotventure.core.selector.ParsedAdvancementCriterion
-import io.github.lmliam.kotventure.core.selector.ParsedAdvancementProgress
-import io.github.lmliam.kotventure.core.selector.ParsedSelectorAdvancement
-import io.github.lmliam.kotventure.core.selector.ParsedSelectorScore
+import io.github.lmliam.kotventure.core.selector.SelectorAdvancementCriterion
+import io.github.lmliam.kotventure.core.selector.SelectorAdvancementProgress
+import io.github.lmliam.kotventure.core.selector.SelectorAdvancementRequirement
+import io.github.lmliam.kotventure.core.selector.SelectorScoreRequirement
 
 internal fun SelectorReader.readScoresArgument(): EntitySelectorArgument.Scores =
     EntitySelectorArgument.Scores(
         readSelectorMap("score objective") { objective, objectiveOffset ->
             validateUnquotedToken(objective, objectiveOffset)
-            ParsedSelectorScore(objective, readIntRange(objective, nonNegative = false))
+            SelectorScoreRequirement(objective, readIntRange(objective, nonNegative = false))
         },
     )
 
 internal fun SelectorReader.readAdvancementsArgument(): EntitySelectorArgument.Advancements =
     EntitySelectorArgument.Advancements(
         readSelectorMap("advancement") { advancement, advancementOffset ->
-            ParsedSelectorAdvancement(
+            SelectorAdvancementRequirement(
                 advancement = parseSelectorKey(advancement, advancementOffset),
                 progress = readAdvancementProgress(),
             )
         },
     )
 
-private fun SelectorReader.readAdvancementProgress(): ParsedAdvancementProgress =
+private fun SelectorReader.readAdvancementProgress(): SelectorAdvancementProgress =
     if (peek() == '{') {
-        ParsedAdvancementProgress.Criteria(readAdvancementCriteria())
+        SelectorAdvancementProgress.Criteria(readAdvancementCriteria())
     } else {
-        ParsedAdvancementProgress.Completion(readSelectorBoolean())
+        SelectorAdvancementProgress.Completion(readSelectorBoolean())
     }
 
-private fun SelectorReader.readAdvancementCriteria(): List<ParsedAdvancementCriterion> =
+private fun SelectorReader.readAdvancementCriteria(): List<SelectorAdvancementCriterion> =
     readSelectorMap("advancement criterion") { criterion, criterionOffset ->
         validateUnquotedToken(criterion, criterionOffset)
-        ParsedAdvancementCriterion(criterion, readSelectorBoolean())
+        SelectorAdvancementCriterion(criterion, readSelectorBoolean())
     }
 
 private fun <T> SelectorReader.readSelectorMap(

@@ -2,18 +2,18 @@ package io.github.lmliam.kotventure.core.selector.parsing
 
 import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument
 import io.github.lmliam.kotventure.core.selector.GameMode
-import io.github.lmliam.kotventure.core.selector.SelectorPresence
+import io.github.lmliam.kotventure.core.selector.SelectorEntityType
 import io.github.lmliam.kotventure.core.selector.SelectorStringCondition
 import io.github.lmliam.kotventure.core.selector.SnbtCompoundSource
 
-internal fun SelectorReader.readGamemodeArgument(): EntitySelectorArgument.Gamemode {
+internal fun SelectorReader.readGamemodeArgument(): EntitySelectorArgument.GameMode {
     val negated = consume('!')
     val tokenOffset = offset
     val token = readValueToken()
     val gamemode =
         GameMode.entries.firstOrNull { it.value == token }
             ?: failAt(tokenOffset, "Unsupported game mode '$token'")
-    return EntitySelectorArgument.Gamemode(gamemode, negated)
+    return EntitySelectorArgument.GameMode(gamemode, negated)
 }
 
 internal fun SelectorReader.readNameArgument(): EntitySelectorArgument.Name {
@@ -31,23 +31,23 @@ internal fun SelectorReader.readNameArgument(): EntitySelectorArgument.Name {
 internal fun SelectorReader.readTypeArgument(): EntitySelectorArgument.Type {
     val negated = consume('!')
     val isTag = consume('#')
-    return EntitySelectorArgument.Type(readSelectorKey(), isTag, negated)
+    val key = readSelectorKey()
+    val target = if (isTag) SelectorEntityType.Tag(key) else SelectorEntityType.Direct(key)
+    return EntitySelectorArgument.Type(target, negated)
 }
 
 internal fun SelectorReader.readTagArgument(): EntitySelectorArgument.Tag =
-    readStringConditionArgument(EntitySelectorArgument::Tag)
+    EntitySelectorArgument.Tag(readStringCondition())
 
 internal fun SelectorReader.readTeamArgument(): EntitySelectorArgument.Team =
-    readStringConditionArgument(EntitySelectorArgument::Team)
+    EntitySelectorArgument.Team(readStringCondition())
 
-private fun <T : EntitySelectorArgument> SelectorReader.readStringConditionArgument(
-    create: (SelectorStringCondition, Boolean) -> T,
-): T {
+private fun SelectorReader.readStringCondition(): SelectorStringCondition {
     val negated = consume('!')
     val tokenOffset = offset
     val token = readValueToken()
     if (token.isNotEmpty()) validateUnquotedToken(token, tokenOffset)
-    return create(token.selectorStringCondition(negated), token.isNotEmpty() && negated)
+    return SelectorStringCondition.of(token, negated)
 }
 
 internal fun SelectorReader.readNbtArgument(): EntitySelectorArgument.Nbt {
@@ -61,12 +61,3 @@ internal fun SelectorReader.readPredicateArgument(): EntitySelectorArgument.Pred
     val negated = consume('!')
     return EntitySelectorArgument.Predicate(readSelectorKey(), negated)
 }
-
-private fun String.selectorStringCondition(isNegated: Boolean): SelectorStringCondition =
-    if (isEmpty()) {
-        SelectorStringCondition.Presence(
-            if (isNegated) SelectorPresence.ANY else SelectorPresence.NONE,
-        )
-    } else {
-        SelectorStringCondition.Named(this)
-    }

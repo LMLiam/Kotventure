@@ -41,7 +41,7 @@ internal fun EntitySelectorHead.requireSupportFor(argument: EntitySelectorArgume
             is EntitySelectorArgument.Sort -> "sort".takeUnless { acceptsResultControls }
             is EntitySelectorArgument.Advancements,
             is EntitySelectorArgument.Coordinate,
-            is EntitySelectorArgument.Gamemode,
+            is EntitySelectorArgument.GameMode,
             is EntitySelectorArgument.Level,
             is EntitySelectorArgument.Name,
             is EntitySelectorArgument.Nbt,

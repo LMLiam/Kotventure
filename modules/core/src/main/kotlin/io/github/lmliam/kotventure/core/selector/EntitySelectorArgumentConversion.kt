@@ -5,7 +5,7 @@ import io.github.lmliam.kotventure.core.nbt.renderCompound
 import net.kyori.adventure.key.Key
 import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Advancements as AdvancementsArgument
 import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Coordinate as CoordinateArgument
-import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Gamemode as GamemodeArgument
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.GameMode as GameModeArgument
 import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Level as LevelArgument
 import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Limit as LimitArgument
 import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Name as NameArgument
@@ -38,7 +38,7 @@ internal fun EntitySelectorBuilder.selectorArguments(): List<EntitySelectorArgum
         advancements?.let { advancements ->
             add(AdvancementsArgument(advancements.map(::advancementArgument)))
         }
-        addAll(gamemodeFilters.arguments(::GamemodeArgument))
+        addAll(gamemodeFilters.arguments(::GameModeArgument))
         addAll(teamFilters.arguments(::teamArgument))
         limit?.let { add(LimitArgument(it)) }
         sort?.let { add(SortArgument(it)) }
@@ -56,8 +56,13 @@ private fun typeArgument(
     value: String,
     isNegated: Boolean,
 ): TypeArgument {
-    val isTag = value.startsWith("#")
-    return TypeArgument(Key.key(value.removePrefix("#")), isTag, isNegated)
+    val target =
+        if (value.startsWith("#")) {
+            SelectorEntityType.Tag(Key.key(value.removePrefix("#")))
+        } else {
+            SelectorEntityType.Direct(Key.key(value))
+        }
+    return TypeArgument(target, isNegated)
 }
 
 private fun predicateArgument(
@@ -68,45 +73,29 @@ private fun predicateArgument(
 private fun teamArgument(
     value: String,
     isNegated: Boolean,
-): TeamArgument = stringConditionArgument(value, isNegated, ::TeamArgument)
+): TeamArgument = TeamArgument(SelectorStringCondition.of(value, isNegated))
 
 private fun tagArgument(
     value: String,
     isNegated: Boolean,
-): TagArgument = stringConditionArgument(value, isNegated, ::TagArgument)
+): TagArgument = TagArgument(SelectorStringCondition.of(value, isNegated))
 
 private fun nbtArgument(
     value: NbtCompound,
     isNegated: Boolean,
 ): NbtArgument = NbtArgument(SnbtCompoundSource.trusted(renderCompound(value)), isNegated)
 
-private fun <T : EntitySelectorArgument> stringConditionArgument(
-    value: String,
-    isNegated: Boolean,
-    create: (SelectorStringCondition, Boolean) -> T,
-): T =
-    if (value.isEmpty()) {
-        create(
-            SelectorStringCondition.Presence(
-                if (isNegated) SelectorPresence.ANY else SelectorPresence.NONE,
-            ),
-            false,
-        )
-    } else {
-        create(SelectorStringCondition.Named(value), isNegated)
-    }
+private fun scoreArgument(score: Map.Entry<String, SelectorIntRange>): SelectorScoreRequirement =
+    SelectorScoreRequirement(score.key, score.value)
 
-private fun scoreArgument(score: Map.Entry<String, SelectorIntRange>): ParsedSelectorScore =
-    ParsedSelectorScore(score.key, score.value)
+private fun advancementArgument(advancement: Map.Entry<String, AdvancementCondition>): SelectorAdvancementRequirement =
+    SelectorAdvancementRequirement(Key.key(advancement.key), advancement.value.progress())
 
-private fun advancementArgument(advancement: Map.Entry<String, AdvancementCondition>): ParsedSelectorAdvancement =
-    ParsedSelectorAdvancement(Key.key(advancement.key), advancement.value.progress())
-
-private fun AdvancementCondition.progress(): ParsedAdvancementProgress =
+private fun AdvancementCondition.progress(): SelectorAdvancementProgress =
     when (this) {
-        is AdvancementCondition.Completed -> ParsedAdvancementProgress.Completion(completed)
+        is AdvancementCondition.Completed -> SelectorAdvancementProgress.Completion(completed)
         is AdvancementCondition.Criteria ->
-            ParsedAdvancementProgress.Criteria(
-                criteria.map { (name, completed) -> ParsedAdvancementCriterion(name, completed) },
+            SelectorAdvancementProgress.Criteria(
+                criteria.map { (name, completed) -> SelectorAdvancementCriterion(name, completed) },
             )
     }
