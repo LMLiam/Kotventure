@@ -134,28 +134,23 @@ public sealed interface CommonEntitySelectorScope {
      */
     public fun yaw(range: ClosedFloatingPointRange<Double>)
 
-    /** Filters by scoreboard tag. */
-    public fun tag(tag: String)
+    /**
+     * Filters by scoreboard tag. Prefix the call with `!` to exclude the tag.
+     *
+     * @throws IllegalArgumentException if the tag name is empty (use `tag(any)` or `tag(none)`)
+     * @sample io.github.lmliam.kotventure.core.selector.negatedCommonArgumentsSample
+     */
+    public fun tag(tag: String): SelectorFilterExpression
 
     /** Filters by whether any scoreboard tag is present. */
     public fun tag(presence: SelectorPresence)
 
     /**
-     * Excludes entities with this scoreboard tag: `tag(!"muted")`. Repeatable.
+     * Filters by entity name. Prefix the call with `!` to exclude the name.
      *
      * @sample io.github.lmliam.kotventure.core.selector.negatedCommonArgumentsSample
      */
-    public fun tag(tag: Excluded<String>)
-
-    /** Filters by entity name. */
-    public fun name(name: String)
-
-    /**
-     * Excludes entities with this name: `name(!"Boss")`. Exclusions accumulate.
-     *
-     * @sample io.github.lmliam.kotventure.core.selector.negatedCommonArgumentsSample
-     */
-    public fun name(name: Excluded<String>)
+    public fun name(name: String): SelectorFilterExpression
 
     /** Filters by experience level using a [LevelRange]. */
     public fun level(range: LevelRange)
@@ -163,25 +158,23 @@ public sealed interface CommonEntitySelectorScope {
     /** Filters by experience level using a Kotlin [IntRange]. */
     public fun level(range: IntRange)
 
-    /** Filters by game mode. */
-    public fun gamemode(mode: GameMode)
-
     /**
-     * Excludes entities in this game mode: `gamemode(!survival)`. Exclusions accumulate.
+     * Filters by game mode. Prefix the call with `!` to exclude the mode.
      *
      * @sample io.github.lmliam.kotventure.core.selector.negatedCommonArgumentsSample
      */
-    public fun gamemode(mode: Excluded<GameMode>)
+    public fun gamemode(mode: GameMode): SelectorFilterExpression
 
     /**
-     * Filters by team membership: `team("red")`. A selector has at most one positive team.
+     * Filters by team membership: `team("red")`. Prefix the call with `!` to exclude the team.
+     * A selector has at most one positive team.
      *
      * @throws IllegalArgumentException if the team name is empty (use `team(none)`) or contains
      *   characters outside vanilla's unquoted-token syntax
      * @throws IllegalStateException if a positive team is already set or exclusions are present
      * @sample io.github.lmliam.kotventure.core.selector.selectorTeamSample
      */
-    public fun team(team: String)
+    public fun team(team: String): SelectorFilterExpression
 
     /**
      * Filters by team presence: `team(any)` matches entities on any team (vanilla `team=!`),
@@ -192,18 +185,11 @@ public sealed interface CommonEntitySelectorScope {
     public fun team(presence: SelectorPresence)
 
     /**
-     * Excludes a team: `team(!"red")`. Exclusions accumulate and may combine with `team(any)`.
+     * Negates a filter expression created by this selector: `!tag("muted")`.
      *
-     * @throws IllegalArgumentException if the team name is empty (use `team(any)`) or contains
-     *   characters outside vanilla's unquoted-token syntax
-     * @throws IllegalStateException if a positive team is already set
-     * @sample io.github.lmliam.kotventure.core.selector.selectorTeamSample
+     * @throws IllegalStateException if the expression belongs to another selector, is no longer
+     *   active, or is already negated
+     * @sample io.github.lmliam.kotventure.core.selector.negatedCommonArgumentsSample
      */
-    public fun team(team: Excluded<String>)
-
-    /** Marks a string argument value as excluded: `tag(!"muted")`. */
-    public operator fun String.not(): Excluded<String> = Excluded(this)
-
-    /** Marks a game mode as excluded: `gamemode(!survival)`. */
-    public operator fun GameMode.not(): Excluded<GameMode> = Excluded(this)
+    public operator fun SelectorFilterExpression.not(): Unit
 }

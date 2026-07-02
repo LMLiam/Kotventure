@@ -52,4 +52,8 @@ public fun entitySelector(raw: String): EntitySelector = EntitySelector(raw)
 private fun buildSelector(
     head: String,
     configure: EntitySelectorScope.() -> Unit,
-): EntitySelector = EntitySelectorRenderer.render(head, EntitySelectorBuilder().apply(configure))
+): EntitySelector {
+    val builder = EntitySelectorBuilder()
+    builder.configure(configure)
+    return EntitySelectorRenderer.render(head, builder)
+}

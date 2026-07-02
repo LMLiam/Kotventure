@@ -44,7 +44,7 @@ class SelectorDslTest :
                     selector(
                         entities {
                             typeTag(key("minecraft", "raiders"))
-                            tag(!"hidden")
+                            !tag("hidden")
                         },
                     ).shouldBeSelectorComponent()
 

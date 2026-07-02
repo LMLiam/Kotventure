@@ -92,6 +92,9 @@ driver schedules/executes frames**.
 
 ## 5. Canonical DSL surface (illustrative)
 
+Negatable selector filters use prefix negation (`!tag("hidden")`). The former value-wrapped form
+(`tag(!"hidden")`) has been removed so every filter, including structured filters, follows one syntax.
+
 ```kotlin
 // ── Construction ───────────────────────────────────────────────
 val msg = component {
@@ -108,7 +111,7 @@ val msg = component {
             typeTag(key("minecraft", "raiders"))
             origin(64.y)
             volume(16.dx, 8.dy, 16.dz)
-            tag(!"hidden")
+            !tag("hidden")
         },
     )
     blockNbt(blockPos(1, 64, 1), "Items[0].id")

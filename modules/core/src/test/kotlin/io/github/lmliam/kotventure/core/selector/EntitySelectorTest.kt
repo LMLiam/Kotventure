@@ -52,7 +52,7 @@ class EntitySelectorTest :
                         }
                     }
                     """.trimIndent(),
-                    "receiver type mismatch",
+                    "Unresolved reference 'type'",
                 )
             }
 
@@ -271,12 +271,12 @@ class EntitySelectorTest :
             "negated filters accumulate in call order" {
                 val selector =
                     entities {
-                        type(!key("minecraft", "zombie"))
-                        typeTag(!key("minecraft", "raiders"))
-                        name(!"Boss")
-                        name(!"Boss Mob")
-                        gamemode(!survival)
-                        gamemode(!creative)
+                        !type(key("minecraft", "zombie"))
+                        !typeTag(key("minecraft", "raiders"))
+                        !name("Boss")
+                        !name("Boss Mob")
+                        !gamemode(survival)
+                        !gamemode(creative)
                     }
 
                 selector.asString() shouldBe
@@ -290,13 +290,13 @@ class EntitySelectorTest :
                 }.asString() shouldBe "@e[type=#mymod:hostile]"
 
                 self {
-                    typeTag(!key("mymod", "ignored"))
+                    !typeTag(key("mymod", "ignored"))
                 }.asString() shouldBe "@s[type=!#mymod:ignored]"
             }
 
             "negated string types apply the default namespace" {
                 entities {
-                    type(!"creeper")
+                    !type("creeper")
                 }.asString() shouldBe "@e[type=!minecraft:creeper]"
             }
 
@@ -305,7 +305,7 @@ class EntitySelectorTest :
                     allPlayers {
                         tag(any)
                         tag("vip")
-                        tag(!"muted")
+                        !tag("muted")
                         tag(none)
                     }
 
@@ -318,8 +318,8 @@ class EntitySelectorTest :
 
             "team exclusions accumulate" {
                 entities {
-                    team(!"red")
-                    team(!"blue")
+                    !team("red")
+                    !team("blue")
                 }.asString() shouldBe "@e[team=!red,team=!blue]"
             }
 
@@ -331,7 +331,7 @@ class EntitySelectorTest :
             "team presence combines with named exclusions" {
                 entities {
                     team(any)
-                    team(!"red")
+                    !team("red")
                 }.asString() shouldBe "@e[team=!,team=!red]"
             }
 
@@ -358,7 +358,7 @@ class EntitySelectorTest :
                 shouldThrow<IllegalStateException> {
                     entities {
                         team("red")
-                        team(!"blue")
+                        !team("blue")
                     }
                 }
                 shouldThrow<IllegalStateException> {
@@ -374,10 +374,19 @@ class EntitySelectorTest :
                     allPlayers { team("") }
                 }
                 shouldThrow<IllegalArgumentException> {
-                    allPlayers { team(!"") }
+                    allPlayers { !team("") }
                 }
                 shouldThrow<IllegalArgumentException> {
                     allPlayers { team("red team") }
+                }
+            }
+
+            "empty tag names are rejected" {
+                shouldThrow<IllegalArgumentException> {
+                    allPlayers { tag("") }
+                }
+                shouldThrow<IllegalArgumentException> {
+                    allPlayers { !tag("") }
                 }
             }
 
@@ -538,12 +547,12 @@ class EntitySelectorTest :
                 shouldThrow<IllegalStateException> {
                     entities {
                         type("zombie")
-                        type(!"skeleton")
+                        !type("skeleton")
                     }
                 }
                 shouldThrow<IllegalStateException> {
                     allPlayers {
-                        gamemode(!survival)
+                        !gamemode(survival)
                         gamemode(creative)
                     }
                 }
@@ -557,11 +566,11 @@ class EntitySelectorTest :
 
                     fun invalidPlayerSelector() {
                         allPlayers {
-                            type(!"zombie")
+                            !type("zombie")
                         }
                     }
                     """.trimIndent(),
-                    "receiver type mismatch",
+                    "Unresolved reference 'type'",
                 )
             }
 
@@ -571,9 +580,68 @@ class EntitySelectorTest :
                     """
                     import io.github.lmliam.kotventure.core.selector.*
 
-                    val excluded = !"zombie"
+                    lateinit var expression: SelectorFilterExpression
+                    val excluded = !expression
                     """.trimIndent(),
+                    "Unresolved reference 'not'",
                 )
+            }
+
+            "presence filters cannot be prefix-negated" {
+                assertDoesNotCompile(
+                    "NegatedPresenceFilterTest.kt",
+                    """
+                    import io.github.lmliam.kotventure.core.selector.*
+
+                    fun invalidPresenceFilters() {
+                        entities {
+                            !tag(any)
+                            !team(none)
+                        }
+                    }
+                    """.trimIndent(),
+                    "receiver type mismatch",
+                )
+            }
+
+            "value-wrapped negation no longer compiles" {
+                assertDoesNotCompile(
+                    "ValueWrappedNegationTest.kt",
+                    """
+                    import io.github.lmliam.kotventure.core.selector.*
+
+                    fun oldNegationSyntax() {
+                        entities {
+                            tag(!"hidden")
+                            type(!"zombie")
+                        }
+                    }
+                    """.trimIndent(),
+                    "Argument type mismatch",
+                )
+            }
+
+            "filter expressions cannot cross selector blocks" {
+                lateinit var expression: SelectorFilterExpression
+                entities {
+                    expression = tag("hidden")
+                }
+
+                shouldThrow<IllegalStateException> {
+                    entities {
+                        !expression
+                    }
+                }
+            }
+
+            "filter expressions cannot be negated twice" {
+                shouldThrow<IllegalStateException> {
+                    entities {
+                        val expression = tag("hidden")
+                        !expression
+                        !expression
+                    }
+                }
             }
 
             "sort with all constant variants" {

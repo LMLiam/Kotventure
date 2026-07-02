@@ -10,51 +10,28 @@ import net.kyori.adventure.key.Key
  */
 @KotventureDslMarker
 public sealed interface SelfEntitySelectorScope : CommonEntitySelectorScope {
-    /** Filters by entity type using an Adventure [Key]. */
-    public fun type(entityType: Key)
+    /**
+     * Filters by entity type using an Adventure [Key]. Prefix the call with `!` to exclude it.
+     *
+     * @sample io.github.lmliam.kotventure.core.selector.negatedTypeArgumentsSample
+     */
+    public fun type(entityType: Key): SelectorFilterExpression
 
     /**
      * Filters by entity type using a string.
      *
      * An already-namespaced id is preserved; a bare id uses the `minecraft` namespace.
-     */
-    public fun type(entityType: String)
-
-    /** Filters by an entity type tag using an Adventure [Key], rendering as `type=#namespace:tag`. */
-    public fun typeTag(entityTypeTag: Key)
-
-    /**
-     * Excludes an entity type tag: `typeTag(!key("minecraft", "raiders"))`. Exclusions accumulate.
+     * Prefix the call with `!` to exclude the type.
      *
      * @sample io.github.lmliam.kotventure.core.selector.negatedTypeArgumentsSample
      */
-    public fun typeTag(entityTypeTag: Excluded<Key>)
+    public fun type(entityType: String): SelectorFilterExpression
 
-    /** Marks a [Key] argument value as excluded: `type(!key("minecraft", "zombie"))`. */
-    public operator fun Key.not(): Excluded<Key> = Excluded(this)
-}
-
-// The negated type overloads live outside the interface: Excluded<Key> and Excluded<String> erase
-// to the same JVM signature, and @JvmName cannot disambiguate overridable members. The casts are
-// safe because the sealed hierarchy's only implementation is EntitySelectorBuilder.
-
-/**
- * Excludes an entity type using an Adventure [Key]: `type(!key("minecraft", "zombie"))`.
- * Exclusions accumulate.
- *
- * @sample io.github.lmliam.kotventure.core.selector.negatedTypeArgumentsSample
- */
-public fun SelfEntitySelectorScope.type(entityType: Excluded<Key>) {
-    (this as EntitySelectorBuilder).excludeType(entityType.value)
-}
-
-/**
- * Excludes an entity type by string, applying the `minecraft` namespace to a bare id:
- * `type(!"zombie")`. Exclusions accumulate.
- *
- * @sample io.github.lmliam.kotventure.core.selector.negatedTypeArgumentsSample
- */
-@JvmName("typeExcludedByString")
-public fun SelfEntitySelectorScope.type(entityType: Excluded<String>) {
-    (this as EntitySelectorBuilder).excludeType(entityType.value)
+    /**
+     * Filters by an entity type tag using an Adventure [Key], rendering as `type=#namespace:tag`.
+     * Prefix the call with `!` to exclude the tag.
+     *
+     * @sample io.github.lmliam.kotventure.core.selector.negatedTypeArgumentsSample
+     */
+    public fun typeTag(entityTypeTag: Key): SelectorFilterExpression
 }
