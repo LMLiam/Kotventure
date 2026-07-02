@@ -10,9 +10,9 @@ internal fun EntitySelectorArgument.render(): String =
         is EntitySelectorArgument.Gamemode -> "gamemode=$negationPrefix${value.value}"
         is EntitySelectorArgument.Name -> "name=$negationPrefix${renderQuotable()}"
         is EntitySelectorArgument.Type -> "type=$negationPrefix${if (isTag) "#" else ""}${key.asString()}"
-        is EntitySelectorArgument.Tag -> "tag=$negationPrefix$value"
-        is EntitySelectorArgument.Team -> "team=$negationPrefix$value"
-        is EntitySelectorArgument.Nbt -> "nbt=$negationPrefix$snbt"
+        is EntitySelectorArgument.Tag -> "tag=$negationPrefix${condition.render()}"
+        is EntitySelectorArgument.Team -> "team=$negationPrefix${condition.render()}"
+        is EntitySelectorArgument.Nbt -> "nbt=$negationPrefix${snbt.value}"
         is EntitySelectorArgument.Scores ->
             scores.joinToString(",", "scores={", "}") { "${it.objective}=${it.range}" }
         is EntitySelectorArgument.Predicate -> "predicate=$negationPrefix${key.asString()}"
@@ -25,19 +25,23 @@ internal fun EntitySelectorArgument.render(): String =
 private val EntitySelectorArgument.Negatable.negationPrefix: String
     get() = if (isNegated) "!" else ""
 
-private fun EntitySelectorArgument.Name.renderQuotable(): String {
-    val selectedQuote = quote ?: if (value.all(Char::isAllowedInUnquotedSelectorToken)) null else '"'
-    return selectedQuote?.let { value.quoteSelectorString(it) } ?: value
-}
+private fun EntitySelectorArgument.Name.renderQuotable(): String =
+    if (value.all(Char::isAllowedInUnquotedSelectorToken)) value else value.quoteSelectorString()
 
-private fun String.quoteSelectorString(quote: Char): String =
+private fun String.quoteSelectorString(): String =
     buildString(length + 2) {
-        append(quote)
+        append('"')
         this@quoteSelectorString.forEach { character ->
-            if (character == '\\' || character == quote) append('\\')
+            if (character == '\\' || character == '"') append('\\')
             append(character)
         }
-        append(quote)
+        append('"')
+    }
+
+private fun SelectorStringCondition.render(): String =
+    when (this) {
+        is SelectorStringCondition.Named -> value
+        is SelectorStringCondition.Presence -> value.value
     }
 
 private fun ParsedAdvancementProgress.render(): String =

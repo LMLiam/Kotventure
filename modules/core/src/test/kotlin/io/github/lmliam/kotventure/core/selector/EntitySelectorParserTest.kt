@@ -39,8 +39,8 @@ class EntitySelectorParserTest :
                 entitySelector(source).asString() shouldBe source
             }
 
-            "preserves quoted selector strings" {
-                entitySelector("@e[name='Boss Mob']").asString() shouldBe "@e[name='Boss Mob']"
+            "renders decoded selector names canonically" {
+                entitySelector("@e[name='Boss Mob']").asString() shouldBe "@e[name=\"Boss Mob\"]"
                 entitySelector("@e[name=\"Boss \\\"Mob\\\"\"]").asString() shouldBe
                     "@e[name=\"Boss \\\"Mob\\\"\"]"
             }
@@ -96,10 +96,77 @@ class EntitySelectorParserTest :
                 negatable.count { it.isNegated } shouldBe 2
             }
 
+            "rejects invalid public argument construction" {
+                shouldThrow<IllegalArgumentException> {
+                    EntitySelectorArgument.Limit(0)
+                }
+                shouldThrow<IllegalArgumentException> {
+                    EntitySelectorArgument.Coordinate(SelectorCoordinate.X, Double.NaN)
+                }
+                shouldThrow<IllegalArgumentException> {
+                    SelectorStringCondition.Named("")
+                }
+                shouldThrow<EntitySelectorParseException> {
+                    SnbtCompoundSource.parse("definitely not SNBT")
+                }
+            }
+
+            "rejects arguments incompatible with the selector head" {
+                shouldThrow<IllegalArgumentException> {
+                    EntitySelector(
+                        EntitySelectorHead.ALL_PLAYERS,
+                        listOf(
+                            EntitySelectorArgument.Type(
+                                key("minecraft", "zombie"),
+                                isTag = false,
+                                isNegated = false,
+                            ),
+                        ),
+                    )
+                }
+                shouldThrow<IllegalArgumentException> {
+                    EntitySelector(
+                        EntitySelectorHead.SELF,
+                        listOf(EntitySelectorArgument.Limit(1)),
+                    )
+                }
+            }
+
+            "models tag and team presence explicitly" {
+                val parsed = entitySelector("@e[tag=,tag=!,team=red,team=!blue]")
+                val tags = parsed.arguments.filterIsInstance<EntitySelectorArgument.Tag>()
+                val teams = parsed.arguments.filterIsInstance<EntitySelectorArgument.Team>()
+
+                tags.map(EntitySelectorArgument.Tag::condition) shouldBe
+                    listOf(
+                        SelectorStringCondition.Presence(SelectorPresence.NONE),
+                        SelectorStringCondition.Presence(SelectorPresence.ANY),
+                    )
+                teams.map(EntitySelectorArgument.Team::condition) shouldBe
+                    listOf(
+                        SelectorStringCondition.Named("red"),
+                        SelectorStringCondition.Named("blue"),
+                    )
+                teams.map(EntitySelectorArgument.Team::isNegated) shouldBe listOf(false, true)
+            }
+
+            "exposes validated SNBT source" {
+                val nbt =
+                    entitySelector("@e[nbt=!{Health:20.0f}]")
+                        .arguments
+                        .filterIsInstance<EntitySelectorArgument.Nbt>()
+                        .single()
+
+                nbt.snbt.value shouldBe "{Health:20.0f}"
+            }
+
             "defensively snapshots every collection-backed model value" {
                 val sourceArguments =
                     mutableListOf<EntitySelectorArgument>(
-                        EntitySelectorArgument.Tag("admin", isNegated = false),
+                        EntitySelectorArgument.Tag(
+                            SelectorStringCondition.Named("admin"),
+                            isNegated = false,
+                        ),
                     )
                 val parsed = EntitySelector(EntitySelectorHead.ENTITIES, sourceArguments)
                 sourceArguments.clear()

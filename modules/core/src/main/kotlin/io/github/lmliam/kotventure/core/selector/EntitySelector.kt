@@ -11,6 +11,7 @@ package io.github.lmliam.kotventure.core.selector
  *
  * @property head selector head
  * @property hasExplicitArgumentList whether this selector renders square brackets
+ * @throws IllegalArgumentException if an argument is incompatible with [head]
  */
 public class EntitySelector(
     public val head: EntitySelectorHead,
@@ -19,6 +20,26 @@ public class EntitySelector(
 ) {
     /** Arguments in source or DSL rendering order. */
     public val arguments: List<EntitySelectorArgument> = arguments.immutableSnapshot()
+
+    init {
+        this.arguments.forEach { argument ->
+            when (argument) {
+                is EntitySelectorArgument.Type ->
+                    require(head.acceptsTypeFilters) {
+                        "Selector ${head.token} does not support 'type'."
+                    }
+                is EntitySelectorArgument.Limit ->
+                    require(head.acceptsResultControls) {
+                        "Selector ${head.token} does not support 'limit'."
+                    }
+                is EntitySelectorArgument.Sort ->
+                    require(head.acceptsResultControls) {
+                        "Selector ${head.token} does not support 'sort'."
+                    }
+                else -> Unit
+            }
+        }
+    }
 
     /** Whether this selector renders an explicit square-bracket argument list. */
     public val hasExplicitArgumentList: Boolean = hasExplicitArgumentList || this.arguments.isNotEmpty()

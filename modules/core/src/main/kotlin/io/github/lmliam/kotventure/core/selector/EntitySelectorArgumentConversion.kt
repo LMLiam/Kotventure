@@ -11,7 +11,7 @@ import net.kyori.adventure.key.Key
 internal fun EntitySelectorBuilder.selectorArguments(): List<EntitySelectorArgument> =
     buildList {
         addAll(typeFilters.arguments(::typeArgument))
-        addAll(nameFilters.arguments { value, negated -> EntitySelectorArgument.Name(value, quote = null, negated) })
+        addAll(nameFilters.arguments { value, negated -> EntitySelectorArgument.Name(value, negated) })
         (OriginAxis.entries + VolumeAxis.entries).forEach { axis ->
             coordinates[axis]?.let { add(EntitySelectorArgument.Coordinate(axis.coordinate, it)) }
         }
@@ -24,11 +24,17 @@ internal fun EntitySelectorBuilder.selectorArguments(): List<EntitySelectorArgum
             add(EntitySelectorArgument.Advancements(advancements.map(::advancementArgument)))
         }
         addAll(gamemodeFilters.arguments { value, negated -> EntitySelectorArgument.Gamemode(value, negated) })
-        addAll(teamFilters.arguments { value, negated -> EntitySelectorArgument.Team(value, negated) })
+        addAll(teamFilters.arguments { value, negated ->
+            stringConditionArgument(value, negated, EntitySelectorArgument::Team)
+        })
         limit?.let { add(EntitySelectorArgument.Limit(it)) }
         sort?.let { add(EntitySelectorArgument.Sort(it)) }
-        addAll(tagFilters.arguments { value, negated -> EntitySelectorArgument.Tag(value, negated) })
-        addAll(nbtFilters.arguments { value, negated -> EntitySelectorArgument.Nbt(renderCompound(value), negated) })
+        addAll(tagFilters.arguments { value, negated ->
+            stringConditionArgument(value, negated, EntitySelectorArgument::Tag)
+        })
+        addAll(nbtFilters.arguments { value, negated ->
+            EntitySelectorArgument.Nbt(SnbtCompoundSource.validated(renderCompound(value)), negated)
+        })
         addAll(predicateFilters.arguments(::predicateArgument))
     }
 
@@ -52,6 +58,22 @@ private fun predicateArgument(
     value: String,
     isNegated: Boolean,
 ): EntitySelectorArgument.Predicate = EntitySelectorArgument.Predicate(Key.key(value), isNegated)
+
+private fun <T : EntitySelectorArgument> stringConditionArgument(
+    value: String,
+    isNegated: Boolean,
+    create: (SelectorStringCondition, Boolean) -> T,
+): T =
+    if (value.isEmpty()) {
+        create(
+            SelectorStringCondition.Presence(
+                if (isNegated) SelectorPresence.ANY else SelectorPresence.NONE,
+            ),
+            false,
+        )
+    } else {
+        create(SelectorStringCondition.Named(value), isNegated)
+    }
 
 private fun scoreArgument(score: Map.Entry<String, SelectorIntRange>): ParsedSelectorScore =
     ParsedSelectorScore(score.key, score.value)

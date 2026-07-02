@@ -15,12 +15,12 @@ internal fun SelectorReader.readNameArgument(): EntitySelectorArgument.Name {
     val next = peek()
     if (next == '"' || next == '\'') {
         val quoted = readQuotedString()
-        return EntitySelectorArgument.Name(quoted.value, quoted.quote, negated)
+        return EntitySelectorArgument.Name(quoted.value, negated)
     }
     val tokenOffset = offset
     val token = readValueToken()
     validateUnquotedToken(token, tokenOffset, description = "name")
-    return EntitySelectorArgument.Name(token, quote = null, isNegated = negated)
+    return EntitySelectorArgument.Name(token, isNegated = negated)
 }
 
 internal fun SelectorReader.readTypeArgument(): EntitySelectorArgument.Type {
@@ -34,7 +34,7 @@ internal fun SelectorReader.readTagArgument(): EntitySelectorArgument.Tag {
     val tokenOffset = offset
     val token = readValueToken()
     validateUnquotedToken(token, tokenOffset)
-    return EntitySelectorArgument.Tag(token, negated)
+    return EntitySelectorArgument.Tag(token.selectorStringCondition(negated), token.isNotEmpty() && negated)
 }
 
 internal fun SelectorReader.readTeamArgument(): EntitySelectorArgument.Team {
@@ -42,17 +42,26 @@ internal fun SelectorReader.readTeamArgument(): EntitySelectorArgument.Team {
     val tokenOffset = offset
     val token = readValueToken()
     validateUnquotedToken(token, tokenOffset)
-    return EntitySelectorArgument.Team(token, negated)
+    return EntitySelectorArgument.Team(token.selectorStringCondition(negated), token.isNotEmpty() && negated)
 }
 
 internal fun SelectorReader.readNbtArgument(): EntitySelectorArgument.Nbt {
     val negated = consume('!')
     val start = offset
     validateSnbtCompound()
-    return EntitySelectorArgument.Nbt(substringFrom(start), negated)
+    return EntitySelectorArgument.Nbt(SnbtCompoundSource.validated(substringFrom(start)), negated)
 }
 
 internal fun SelectorReader.readPredicateArgument(): EntitySelectorArgument.Predicate {
     val negated = consume('!')
     return EntitySelectorArgument.Predicate(readSelectorKey(), negated)
 }
+
+private fun String.selectorStringCondition(isNegated: Boolean): SelectorStringCondition =
+    if (isEmpty()) {
+        SelectorStringCondition.Presence(
+            if (isNegated) SelectorPresence.ANY else SelectorPresence.NONE,
+        )
+    } else {
+        SelectorStringCondition.Named(this)
+    }

@@ -23,7 +23,11 @@ public sealed interface EntitySelectorArgument {
     public data class Coordinate(
         public val coordinate: SelectorCoordinate,
         public val value: Double,
-    ) : EntitySelectorArgument
+    ) : EntitySelectorArgument {
+        init {
+            require(value.isFinite()) { "Selector coordinate must be finite, got: $value" }
+        }
+    }
 
     /**
      * A floating-point selector range.
@@ -43,7 +47,11 @@ public sealed interface EntitySelectorArgument {
      */
     public data class Limit(
         public val value: Int,
-    ) : EntitySelectorArgument
+    ) : EntitySelectorArgument {
+        init {
+            require(value > 0) { "Selector limit must be positive, got: $value" }
+        }
+    }
 
     /**
      * A result sort order.
@@ -75,15 +83,13 @@ public sealed interface EntitySelectorArgument {
     ) : Negatable
 
     /**
-     * An entity-name filter, retaining the original quote style when present.
+     * An entity-name filter.
      *
      * @property value decoded entity name
-     * @property quote original quote delimiter, or `null` for an unquoted name
      * @property isNegated whether the filter excludes this name
      */
     public data class Name(
         public val value: String,
-        public val quote: Char?,
         override val isNegated: Boolean,
     ) : Negatable
 
@@ -101,35 +107,47 @@ public sealed interface EntitySelectorArgument {
     ) : Negatable
 
     /**
-     * A scoreboard-tag filter; an empty value represents a presence condition.
+     * A scoreboard-tag filter.
      *
-     * @property value tag value, or an empty string for a presence condition
-     * @property isNegated whether the condition is negated
+     * @property condition named tag or explicit presence condition
+     * @property isNegated whether a named condition is negated
      */
     public data class Tag(
-        public val value: String,
+        public val condition: SelectorStringCondition,
         override val isNegated: Boolean,
-    ) : Negatable
+    ) : Negatable {
+        init {
+            require(condition is SelectorStringCondition.Named || !isNegated) {
+                "Selector presence conditions cannot be prefix-negated."
+            }
+        }
+    }
 
     /**
-     * A scoreboard-team filter; an empty value represents a presence condition.
+     * A scoreboard-team filter.
      *
-     * @property value team value, or an empty string for a presence condition
-     * @property isNegated whether the condition is negated
+     * @property condition named team or explicit presence condition
+     * @property isNegated whether a named condition is negated
      */
     public data class Team(
-        public val value: String,
+        public val condition: SelectorStringCondition,
         override val isNegated: Boolean,
-    ) : Negatable
+    ) : Negatable {
+        init {
+            require(condition is SelectorStringCondition.Named || !isNegated) {
+                "Selector presence conditions cannot be prefix-negated."
+            }
+        }
+    }
 
     /**
      * A structured NBT filter retained as validated SNBT source.
      *
-     * @property snbt validated compound SNBT source
+     * @property snbt validated compound SNBT
      * @property isNegated whether the filter excludes matching NBT
      */
     public data class Nbt(
-        public val snbt: String,
+        public val snbt: SnbtCompoundSource,
         override val isNegated: Boolean,
     ) : Negatable
 

@@ -3,10 +3,9 @@ package io.github.lmliam.kotventure.core.selector
 import net.kyori.adventure.key.InvalidKeyException
 import net.kyori.adventure.key.Key
 
-/** A decoded quoted string alongside its original delimiter. */
+/** A decoded selector string. */
 internal class QuotedSelectorString(
     val value: String,
-    val quote: Char,
 )
 
 /** Reads until the next selector value delimiter (`,`, `]`, or `}`). */
@@ -88,7 +87,7 @@ internal fun SelectorReader.readQuotedString(): QuotedSelectorString {
         val character = peek() ?: failAt(quoteOffset, "Unterminated quoted string")
         skip()
         when (character) {
-            quote -> return QuotedSelectorString(decoded.toString(), quote)
+            quote -> return QuotedSelectorString(decoded.toString())
             '\\' -> {
                 val escaped = peek() ?: failAt(quoteOffset, "Unterminated quoted string")
                 if (escaped != quote && escaped != '\\') {

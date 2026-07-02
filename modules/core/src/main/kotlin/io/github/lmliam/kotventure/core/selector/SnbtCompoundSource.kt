@@ -1,0 +1,35 @@
+package io.github.lmliam.kotventure.core.selector
+
+/**
+ * Validated compound SNBT source.
+ *
+ * Construct with [parse].
+ *
+ * @property value validated source beginning with `{` and ending with `}`
+ */
+public class SnbtCompoundSource private constructor(
+    public val value: String,
+) {
+    /** Validated compound SNBT construction. */
+    public companion object {
+        /**
+         * Validates [source] as one complete SNBT compound.
+         *
+         * @throws EntitySelectorParseException if [source] is not a compound or has trailing content
+         */
+        public fun parse(source: String): SnbtCompoundSource {
+            val reader = SelectorReader(source)
+            reader.validateSnbtCompound()
+            if (!reader.isAtEnd()) reader.fail("Unexpected trailing SNBT content")
+            return SnbtCompoundSource(source)
+        }
+
+        internal fun validated(source: String): SnbtCompoundSource = SnbtCompoundSource(source)
+    }
+
+    public override fun equals(other: Any?): Boolean = other is SnbtCompoundSource && value == other.value
+
+    public override fun hashCode(): Int = value.hashCode()
+
+    public override fun toString(): String = value
+}
