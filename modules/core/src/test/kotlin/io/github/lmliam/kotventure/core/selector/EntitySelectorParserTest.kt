@@ -14,7 +14,7 @@ class EntitySelectorParserTest :
         {
             "parses and renders all six selector heads" {
                 listOf("@p", "@a", "@r", "@s", "@e", "@n").forEach { source ->
-                    parseSuccess(source).asString() shouldBe source
+                    parseEntitySelector(source).asString() shouldBe source
                 }
             }
 
@@ -35,18 +35,18 @@ class EntitySelectorParserTest :
                         "advancements={minecraft:story/root=true,my_pack:secret={found_item=false}}" +
                         "]"
 
-                parseSuccess(source).asString() shouldBe source
+                parseEntitySelector(source).asString() shouldBe source
             }
 
             "preserves quoted selector strings" {
-                parseSuccess("@e[name='Boss Mob']").asString() shouldBe "@e[name='Boss Mob']"
-                parseSuccess("@e[name=\"Boss \\\"Mob\\\"\"]").asString() shouldBe
+                parseEntitySelector("@e[name='Boss Mob']").asString() shouldBe "@e[name='Boss Mob']"
+                parseEntitySelector("@e[name=\"Boss \\\"Mob\\\"\"]").asString() shouldBe
                     "@e[name=\"Boss \\\"Mob\\\"\"]"
             }
 
             "preserves explicit empty lists and repeated empty-value filters" {
-                parseSuccess("@e[]").asString() shouldBe "@e[]"
-                parseSuccess("@e[tag=,tag=!,team=,team=!]").asString() shouldBe
+                parseEntitySelector("@e[]").asString() shouldBe "@e[]"
+                parseEntitySelector("@e[tag=,tag=!,team=,team=!]").asString() shouldBe
                     "@e[tag=,tag=!,team=,team=!]"
             }
 
@@ -58,7 +58,7 @@ class EntitySelectorParserTest :
                         "Longs:[L;-9223372036854775808L,+9223372036854775807L]" +
                         "}]"
 
-                parseSuccess(source).asString() shouldBe source
+                parseEntitySelector(source).asString() shouldBe source
             }
 
             "preserves Java Edition 26.2 SNBT container forms" {
@@ -67,12 +67,12 @@ class EntitySelectorParserTest :
                     "@e[nbt={Tags:[1b,\"mixed\",]}]",
                     "@e[nbt={Data:[B;+1b,]}]",
                 ).forEach { source ->
-                    parseSuccess(source).asString() shouldBe source
+                    parseEntitySelector(source).asString() shouldBe source
                 }
             }
 
             "exposes an immutable model that can be transformed" {
-                val parsed = parseSuccess("@e[type=minecraft:zombie,name=\"Boss Mob\",tag=!hidden]")
+                val parsed = parseEntitySelector("@e[type=minecraft:zombie,name=\"Boss Mob\",tag=!hidden]")
 
                 parsed.head shouldBe EntitySelectorHead.ENTITIES
                 parsed.arguments shouldHaveSize 3
@@ -85,6 +85,14 @@ class EntitySelectorParserTest :
                     )
 
                 transformed.asString() shouldBe "@e[type=minecraft:zombie,tag=!hidden]"
+            }
+
+            "exposes negation through the shared Negatable interface" {
+                val parsed = parseEntitySelector("@e[type=!minecraft:zombie,tag=boss,nbt=!{},limit=1]")
+                val negatable = parsed.arguments.filterIsInstance<EntitySelectorArgument.Negatable>()
+
+                negatable shouldHaveSize 3
+                negatable.count { it.isNegated } shouldBe 2
             }
 
             "defensively snapshots every collection-backed model value" {
@@ -114,7 +122,7 @@ class EntitySelectorParserTest :
                 scores.scores shouldHaveSize 1
 
                 val structured =
-                    parseSuccess(
+                    parseEntitySelector(
                         "@e[advancements={minecraft:story/root={criterion=true}}]",
                     ).arguments
                         .filterIsInstance<EntitySelectorArgument.Advancements>()
@@ -135,7 +143,7 @@ class EntitySelectorParserTest :
             }
 
             "exposes parsed range bounds without reparsing rendered strings" {
-                val parsed = parseSuccess("@e[distance=..10,level=2..5,scores={kills=-1..}]")
+                val parsed = parseEntitySelector("@e[distance=..10,level=2..5,scores={kills=-1..}]")
                 val distance = parsed.arguments.filterIsInstance<EntitySelectorArgument.Range>().single()
                 val level = parsed.arguments.filterIsInstance<EntitySelectorArgument.Level>().single()
                 val scores = parsed.arguments.filterIsInstance<EntitySelectorArgument.Scores>().single()
@@ -153,7 +161,7 @@ class EntitySelectorParserTest :
             }
 
             "supplies parsed selectors to selector components" {
-                val parsed = parseSuccess("@a[tag=admin]")
+                val parsed = parseEntitySelector("@a[tag=admin]")
 
                 selector(parsed.asEntitySelector())
                     .shouldBeSelectorComponent()
@@ -179,9 +187,10 @@ class EntitySelectorParserTest :
 
             "rejects malformed values in each structured grammar family" {
                 assertParseFailure("@e[x=NaN]", 5, "finite decimal")
+                assertParseFailure("@e[x=1..2]", 5, "finite decimal")
                 assertParseFailure("@e[distance=..]", 12, "at least one bound")
                 assertParseFailure("@e[distance=..-1]", 14, "non-negative")
-                assertParseFailure("@e[x_rotation=1...2]", 16, "more than one")
+                assertParseFailure("@e[x_rotation=1...2]", 17, "more than one")
                 assertParseFailure("@e[level=-1]", 9, "non-negative")
                 assertParseFailure("@e[level=5..2]", 12, "must not exceed")
                 assertParseFailure("@e[limit=0]", 9, "positive")
@@ -219,22 +228,12 @@ class EntitySelectorParserTest :
         },
     )
 
-private fun parseSuccess(source: String): ParsedEntitySelector =
-    when (val result = parseEntitySelector(source)) {
-        is EntitySelectorParseResult.Success -> result.selector
-        is EntitySelectorParseResult.Failure -> error("Expected success, got ${result.error}")
-    }
-
 private fun assertParseFailure(
     source: String,
     offset: Int,
     message: String,
 ) {
-    when (val result = parseEntitySelector(source)) {
-        is EntitySelectorParseResult.Success -> error("Expected failure, got ${result.selector}")
-        is EntitySelectorParseResult.Failure -> {
-            result.error.offset shouldBe offset
-            result.error.message shouldContain message
-        }
-    }
+    val failure = shouldThrow<EntitySelectorParseException> { parseEntitySelector(source) }
+    failure.offset shouldBe offset
+    failure.message shouldContain message
 }

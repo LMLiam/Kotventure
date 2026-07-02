@@ -7,37 +7,25 @@ internal fun EntitySelectorArgument.render(): String =
         is EntitySelectorArgument.Limit -> "limit=$value"
         is EntitySelectorArgument.Sort -> "sort=${value.value}"
         is EntitySelectorArgument.Level -> "level=$range"
-        is EntitySelectorArgument.Gamemode -> "gamemode=${negationPrefix()}${value.value}"
-        is EntitySelectorArgument.Name -> "name=${negationPrefix()}${renderParsedName()}"
-        is EntitySelectorArgument.Type ->
-            "type=${negationPrefix()}${if (isTag) "#" else ""}${key.asString()}"
-        is EntitySelectorArgument.Tag -> "tag=${negationPrefix()}$value"
-        is EntitySelectorArgument.Team -> "team=${negationPrefix()}$value"
-        is EntitySelectorArgument.Nbt -> "nbt=${negationPrefix()}$snbt"
+        is EntitySelectorArgument.Gamemode -> "gamemode=$negationPrefix${value.value}"
+        is EntitySelectorArgument.Name -> "name=$negationPrefix${renderQuotable()}"
+        is EntitySelectorArgument.Type -> "type=$negationPrefix${if (isTag) "#" else ""}${key.asString()}"
+        is EntitySelectorArgument.Tag -> "tag=$negationPrefix$value"
+        is EntitySelectorArgument.Team -> "team=$negationPrefix$value"
+        is EntitySelectorArgument.Nbt -> "nbt=$negationPrefix$snbt"
         is EntitySelectorArgument.Scores ->
             scores.joinToString(",", "scores={", "}") { "${it.objective}=${it.range}" }
-        is EntitySelectorArgument.Predicate -> "predicate=${negationPrefix()}${key.asString()}"
+        is EntitySelectorArgument.Predicate -> "predicate=$negationPrefix${key.asString()}"
         is EntitySelectorArgument.Advancements ->
             advancements.joinToString(",", "advancements={", "}") {
                 "${it.advancement.asString()}=${it.progress.render()}"
             }
     }
 
-private fun EntitySelectorArgument.Gamemode.negationPrefix(): String = if (isNegated) "!" else ""
+private val EntitySelectorArgument.Negatable.negationPrefix: String
+    get() = if (isNegated) "!" else ""
 
-private fun EntitySelectorArgument.Name.negationPrefix(): String = if (isNegated) "!" else ""
-
-private fun EntitySelectorArgument.Type.negationPrefix(): String = if (isNegated) "!" else ""
-
-private fun EntitySelectorArgument.Tag.negationPrefix(): String = if (isNegated) "!" else ""
-
-private fun EntitySelectorArgument.Team.negationPrefix(): String = if (isNegated) "!" else ""
-
-private fun EntitySelectorArgument.Nbt.negationPrefix(): String = if (isNegated) "!" else ""
-
-private fun EntitySelectorArgument.Predicate.negationPrefix(): String = if (isNegated) "!" else ""
-
-private fun EntitySelectorArgument.Name.renderParsedName(): String {
+private fun EntitySelectorArgument.Name.renderQuotable(): String {
     val selectedQuote = quote ?: if (value.all(Char::isAllowedInUnquotedSelectorToken)) null else '"'
     return selectedQuote?.let { value.quoteSelectorString(it) } ?: value
 }

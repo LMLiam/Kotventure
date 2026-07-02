@@ -4,7 +4,7 @@ import io.github.lmliam.kotventure.core.nbt.renderCompound
 
 internal object EntitySelectorRenderer {
     fun render(
-        head: String,
+        head: EntitySelectorHead,
         builder: EntitySelectorBuilder,
     ): EntitySelector {
         val arguments =
@@ -33,7 +33,7 @@ internal object EntitySelectorRenderer {
                 addAll(builder.predicateFilters.rendered { it })
             }
         val suffix = if (arguments.isEmpty()) "" else arguments.joinToString(",", prefix = "[", postfix = "]")
-        return EntitySelector("$head$suffix")
+        return EntitySelector("${head.token}$suffix")
     }
 
     private fun <T> SelectorFilterGroup<T>.rendered(renderValue: (T) -> String): List<String> =

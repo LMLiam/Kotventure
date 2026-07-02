@@ -1,50 +1,42 @@
 package io.github.lmliam.kotventure.core.selector
 
-internal fun parseSelectorArgument(
+internal fun SelectorReader.readArgumentValue(
     head: EntitySelectorHead,
     name: String,
-    value: String,
     nameOffset: Int,
-    valueOffset: Int,
 ): EntitySelectorArgument {
-    validateSelectorCapability(head, name, nameOffset)
+    requireSupportedByHead(head, name, nameOffset)
+    val coordinate = SelectorCoordinate.entries.firstOrNull { it.argumentName == name }
+    if (coordinate != null) return readCoordinateArgument(coordinate)
+    val rangeArgument = SelectorRangeArgument.entries.firstOrNull { it.argumentName == name }
+    if (rangeArgument != null) return readRangeArgument(rangeArgument)
     return when (name) {
-        "x", "y", "z", "dx", "dy", "dz" -> parseCoordinateArgument(name, value, valueOffset)
-        "distance", "x_rotation", "y_rotation" ->
-            parseFloatingRangeArgument(name, value, valueOffset)
-        "level" -> EntitySelectorArgument.Level(parseSelectorIntRange(value, valueOffset, true))
-        "limit" -> parseLimitArgument(value, valueOffset)
-        "sort" -> parseSortArgument(value, valueOffset)
-        "gamemode" -> parseGamemodeArgument(value, valueOffset)
-        "name" -> parseNameArgument(value, valueOffset)
-        "type" -> parseTypeArgument(value, valueOffset)
-        "tag" -> parseTagArgument(value, valueOffset)
-        "team" -> parseTeamArgument(value, valueOffset)
-        "nbt" -> parseNbtArgument(value, valueOffset)
-        "scores" -> parseScoresArgument(value, valueOffset)
-        "predicate" -> parsePredicateArgument(value, valueOffset)
-        "advancements" -> parseAdvancementsArgument(value, valueOffset)
-        else -> fail(nameOffset, "Unsupported selector argument '$name'")
+        "level" -> readLevelArgument()
+        "limit" -> readLimitArgument()
+        "sort" -> readSortArgument()
+        "gamemode" -> readGamemodeArgument()
+        "name" -> readNameArgument()
+        "type" -> readTypeArgument()
+        "tag" -> readTagArgument()
+        "team" -> readTeamArgument()
+        "nbt" -> readNbtArgument()
+        "scores" -> readScoresArgument()
+        "predicate" -> readPredicateArgument()
+        "advancements" -> readAdvancementsArgument()
+        else -> failAt(nameOffset, "Unsupported selector argument '$name'")
     }
 }
 
-private fun validateSelectorCapability(
+private fun SelectorReader.requireSupportedByHead(
     head: EntitySelectorHead,
     name: String,
     nameOffset: Int,
 ) {
-    if (
-        name == "type" &&
-        head in
-        setOf(
-            EntitySelectorHead.NEAREST_PLAYER,
-            EntitySelectorHead.ALL_PLAYERS,
-            EntitySelectorHead.RANDOM_PLAYER,
-        )
-    ) {
-        fail(nameOffset, "Selector ${head.token} does not support 'type'")
-    }
-    if (head == EntitySelectorHead.SELF && (name == "limit" || name == "sort")) {
-        fail(nameOffset, "Selector ${head.token} does not support '$name'")
-    }
+    val supported =
+        when (name) {
+            "type" -> head.acceptsTypeFilters
+            "limit", "sort" -> head.acceptsResultControls
+            else -> true
+        }
+    if (!supported) failAt(nameOffset, "Selector ${head.token} does not support '$name'")
 }
