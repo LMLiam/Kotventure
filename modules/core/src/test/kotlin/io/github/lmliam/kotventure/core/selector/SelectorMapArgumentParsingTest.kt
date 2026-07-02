@@ -12,9 +12,9 @@ class SelectorMapArgumentParsingTest :
             "round trips scores and advancements arguments" {
                 val source =
                     "@e[" +
-                        "scores={kills=5,balance=-10..}," +
-                        "advancements={minecraft:story/root=true,my_pack:secret={found_item=false}}" +
-                        "]"
+                            "scores={kills=5,balance=-10..}," +
+                            "advancements={minecraft:story/root=true,my_pack:secret={found_item=false}}" +
+                            "]"
 
                 source.shouldBeCanonicalSelector()
             }
@@ -27,14 +27,14 @@ class SelectorMapArgumentParsingTest :
 
                 scores.scores shouldBe listOf(SelectorScoreRequirement("kills", exactly(5)))
                 advancements.advancements shouldBe
-                    listOf(
-                        SelectorAdvancementRequirement(
-                            key("my_pack", "secret"),
-                            SelectorAdvancementProgress.Criteria(
-                                listOf(SelectorAdvancementCriterion("found_item", completed = false)),
+                        listOf(
+                            SelectorAdvancementRequirement(
+                                key("my_pack", "secret"),
+                                SelectorAdvancementProgress.Criteria(
+                                    listOf(SelectorAdvancementCriterion("found_item", completed = false)),
+                                ),
                             ),
-                        ),
-                    )
+                        )
             }
 
             "rejects malformed scores entries" {

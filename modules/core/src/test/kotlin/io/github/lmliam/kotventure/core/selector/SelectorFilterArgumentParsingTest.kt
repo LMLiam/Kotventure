@@ -13,12 +13,12 @@ class SelectorFilterArgumentParsingTest :
             "round trips type, name, gamemode, tag, team, and predicate filters" {
                 val source =
                     "@e[" +
-                        "type=!#my_pack:hostile," +
-                        "name=\"Boss Mob\"," +
-                        "gamemode=!creative," +
-                        "tag=!hidden,team=blue," +
-                        "predicate=!my_pack:hidden" +
-                        "]"
+                            "type=!#my_pack:hostile," +
+                            "name=\"Boss Mob\"," +
+                            "gamemode=!creative," +
+                            "tag=!hidden,team=blue," +
+                            "predicate=!my_pack:hidden" +
+                            "]"
 
                 source.shouldBeCanonicalSelector()
             }
@@ -27,14 +27,14 @@ class SelectorFilterArgumentParsingTest :
                 val parsed = entitySelector("@e[type=!#my_pack:hostile,name=\"Boss Mob\",gamemode=!creative]")
 
                 parsed.arguments shouldBe
-                    listOf(
-                        EntitySelectorArgument.Type(
-                            SelectorEntityType.Tag(key("my_pack", "hostile")),
-                            isNegated = true,
-                        ),
-                        EntitySelectorArgument.Name("Boss Mob", isNegated = false),
-                        EntitySelectorArgument.GameMode(GameMode.CREATIVE, isNegated = true),
-                    )
+                        listOf(
+                            EntitySelectorArgument.Type(
+                                SelectorEntityType.Tag(key("my_pack", "hostile")),
+                                isNegated = true,
+                            ),
+                            EntitySelectorArgument.Name("Boss Mob", isNegated = false),
+                            EntitySelectorArgument.GameMode(GameMode.CREATIVE, isNegated = true),
+                        )
             }
 
             "renders decoded selector names canonically" {
