@@ -67,8 +67,7 @@ private fun tagArgument(
 private fun nbtArgument(
     value: NbtCompound,
     isNegated: Boolean,
-): EntitySelectorArgument.Nbt =
-    EntitySelectorArgument.Nbt(SnbtCompoundSource.validated(renderCompound(value)), isNegated)
+): EntitySelectorArgument.Nbt = EntitySelectorArgument.Nbt(SnbtCompoundSource.trusted(renderCompound(value)), isNegated)
 
 private fun <T : EntitySelectorArgument> stringConditionArgument(
     value: String,

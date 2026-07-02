@@ -24,7 +24,10 @@ public class SnbtCompoundSource private constructor(
             return SnbtCompoundSource(source)
         }
 
-        internal fun validated(source: String): SnbtCompoundSource = SnbtCompoundSource(source)
+        /**
+         * Wraps [source] after a caller has already validated or rendered the complete compound.
+         */
+        internal fun trusted(source: String): SnbtCompoundSource = SnbtCompoundSource(source)
     }
 
     public override fun equals(other: Any?): Boolean = other is SnbtCompoundSource && value == other.value

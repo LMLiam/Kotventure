@@ -277,6 +277,7 @@ class EntitySelectorParserTest :
                 assertParseFailure("@e[limit=0]", 9, "positive")
                 assertParseFailure("@e[sort=closest]", 8, "Unsupported selector sort")
                 assertParseFailure("@e[gamemode=!builder]", 13, "Unsupported game mode")
+                assertParseFailure("@e[name=]", 8, "Invalid unquoted selector name")
                 assertParseFailure("@e[name=\"bad\\q\"]", 12, "Invalid quoted-string escape")
                 assertParseFailure("@e[type=#Bad:Key]", 9, "Invalid namespaced key")
                 assertParseFailure("@e[tag=bad value]", 7, "Invalid unquoted selector token")
@@ -301,6 +302,16 @@ class EntitySelectorParserTest :
                 assertParseFailure("@a[type=minecraft:player]", 3, "does not support 'type'")
                 assertParseFailure("@s[limit=1]", 3, "does not support 'limit'")
                 assertParseFailure("@s[sort=nearest]", 3, "does not support 'sort'")
+            }
+
+            "rejects non-quote delimiters in the quoted-string reader" {
+                val failure =
+                    shouldThrow<EntitySelectorParseException> {
+                        SelectorReader("x").readQuotedString()
+                    }
+
+                failure.offset shouldBe 0
+                failure.message shouldContain "Expected a quoted string"
             }
         },
     )

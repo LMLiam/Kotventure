@@ -33,7 +33,7 @@ internal fun SelectorReader.readTagArgument(): EntitySelectorArgument.Tag {
     val negated = consume('!')
     val tokenOffset = offset
     val token = readValueToken()
-    validateUnquotedToken(token, tokenOffset)
+    if (token.isNotEmpty()) validateUnquotedToken(token, tokenOffset)
     return EntitySelectorArgument.Tag(token.selectorStringCondition(negated), token.isNotEmpty() && negated)
 }
 
@@ -41,7 +41,7 @@ internal fun SelectorReader.readTeamArgument(): EntitySelectorArgument.Team {
     val negated = consume('!')
     val tokenOffset = offset
     val token = readValueToken()
-    validateUnquotedToken(token, tokenOffset)
+    if (token.isNotEmpty()) validateUnquotedToken(token, tokenOffset)
     return EntitySelectorArgument.Team(token.selectorStringCondition(negated), token.isNotEmpty() && negated)
 }
 
@@ -49,7 +49,7 @@ internal fun SelectorReader.readNbtArgument(): EntitySelectorArgument.Nbt {
     val negated = consume('!')
     val start = offset
     validateSnbtCompound()
-    return EntitySelectorArgument.Nbt(SnbtCompoundSource.validated(substringFrom(start)), negated)
+    return EntitySelectorArgument.Nbt(SnbtCompoundSource.trusted(substringFrom(start)), negated)
 }
 
 internal fun SelectorReader.readPredicateArgument(): EntitySelectorArgument.Predicate {

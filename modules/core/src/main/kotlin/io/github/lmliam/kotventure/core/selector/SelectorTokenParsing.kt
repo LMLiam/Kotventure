@@ -69,7 +69,7 @@ internal fun SelectorReader.validateUnquotedToken(
     valueOffset: Int,
     description: String = "token",
 ) {
-    if (!value.all(Char::isAllowedInUnquotedSelectorToken)) {
+    if (value.isEmpty() || !value.all(Char::isAllowedInUnquotedSelectorToken)) {
         failAt(valueOffset, "Invalid unquoted selector $description")
     }
 }
@@ -79,7 +79,7 @@ internal fun SelectorReader.validateUnquotedToken(
  */
 internal fun SelectorReader.readQuotedString(): QuotedSelectorString {
     val quoteOffset = offset
-    val quote = peek() ?: fail("Expected a quoted string")
+    val quote = peek()?.takeIf { it == '\'' || it == '"' } ?: fail("Expected a quoted string")
     skip()
     val decoded = StringBuilder()
     while (true) {
