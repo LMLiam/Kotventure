@@ -29,8 +29,7 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     val coordinates: Map<SelectorAxis, Double>
         field = mutableMapOf()
 
-    var isConfiguring: Boolean = false
-        private set
+    private var isConfiguring = false
 
     override val any: SelectorPresence get() = SelectorPresence.ANY
     override val none: SelectorPresence get() = SelectorPresence.NONE
@@ -144,6 +143,9 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
         typeFilters.add(this, entityTypeTag.asTypeTag())
 
     override fun SelectorFilterExpression.not() {
+        check(isConfiguring) {
+            "Selector filter expressions can only be negated while their selector is being configured."
+        }
         (this as SelectorFilterEntry<*>).negate(this@EntitySelectorBuilder)
     }
 

@@ -9,7 +9,7 @@ package io.github.lmliam.kotventure.core.selector
  * negated — is caught by [validate] when the selector block ends.
  */
 internal class SelectorFilterGroup<T>(
-    private val argument: String,
+    val argument: String,
     private val policy: SelectorFilterPolicy,
 ) {
     val entries: List<SelectorFilterEntry<T>>

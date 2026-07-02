@@ -7,8 +7,8 @@ internal object EntitySelectorRenderer {
     ): EntitySelector {
         val arguments =
             buildList {
-                builder.typeFilters.entries.forEach { entry -> add("type=${entry.renderValue { it }}") }
-                builder.nameFilters.entries.forEach { add("name=${it.renderValue(::renderName)}") }
+                addAll(builder.typeFilters.rendered { it })
+                addAll(builder.nameFilters.rendered(::renderName))
                 (OriginAxis.entries + VolumeAxis.entries).forEach { axis ->
                     builder.coordinates[axis]?.let { add("${axis.argument}=${formatSelectorNumber(it)}") }
                 }
@@ -16,20 +16,21 @@ internal object EntitySelectorRenderer {
                 builder.pitch?.let { add("x_rotation=${it.rendered}") }
                 builder.yaw?.let { add("y_rotation=${it.rendered}") }
                 builder.level?.let { add("level=${it.rendered}") }
-                builder.gamemodeFilters.entries.forEach { add("gamemode=${it.renderValue { mode -> mode.value }}") }
-                builder.teamFilters.entries.forEach { entry -> add("team=${entry.renderValue { it }}") }
+                addAll(builder.gamemodeFilters.rendered { it.value })
+                addAll(builder.teamFilters.rendered { it })
                 builder.limit?.let { add("limit=$it") }
                 builder.sort?.let { add("sort=${it.value}") }
-                builder.tagFilters.entries.forEach { entry -> add("tag=${entry.renderValue { it }}") }
+                addAll(builder.tagFilters.rendered { it })
             }
         val suffix = if (arguments.isEmpty()) "" else arguments.joinToString(",", prefix = "[", postfix = "]")
         return EntitySelector("$head$suffix")
     }
 
-    private fun <T> SelectorFilterEntry<T>.renderValue(render: (T) -> String): String {
-        val prefix = if (polarity == SelectorFilterPolarity.NEGATIVE) "!" else ""
-        return "$prefix${render(value)}"
-    }
+    private fun <T> SelectorFilterGroup<T>.rendered(renderValue: (T) -> String): List<String> =
+        entries.map { entry ->
+            val prefix = if (entry.polarity == SelectorFilterPolarity.NEGATIVE) "!" else ""
+            "$argument=$prefix${renderValue(entry.value)}"
+        }
 
     private fun renderName(value: String): String = if (needsQuoting(value)) "\"${escapeQuotes(value)}\"" else value
 

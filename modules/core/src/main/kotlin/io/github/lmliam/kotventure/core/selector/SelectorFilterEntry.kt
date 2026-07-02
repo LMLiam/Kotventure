@@ -11,9 +11,6 @@ internal class SelectorFilterEntry<T>(
 
     fun negate(requester: EntitySelectorBuilder) {
         check(owner === requester) { "Selector filter expressions cannot be reused across selector blocks." }
-        check(owner.isConfiguring) {
-            "Selector filter expressions can only be negated while their selector is being configured."
-        }
         check(polarity == SelectorFilterPolarity.POSITIVE) {
             "Selector filter expression for '$argument' is already negated."
         }
