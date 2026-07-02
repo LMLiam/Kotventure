@@ -71,6 +71,18 @@ internal fun selectorScoreSample() {
     }
 }
 
+internal fun selectorAdvancementsSample() {
+    allPlayers {
+        advancements {
+            key("minecraft", "story/smelt_iron") eq true
+            key("my_pack", "boss") eq {
+                "kill_dragon" eq true
+                "no_deaths" eq false
+            }
+        }
+    }
+}
+
 internal fun selectorTeamSample() {
     allPlayers { team("red") }
     entities { team(none) }

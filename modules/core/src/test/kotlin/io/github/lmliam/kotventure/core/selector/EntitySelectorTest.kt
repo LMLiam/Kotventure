@@ -279,7 +279,7 @@ class EntitySelectorTest :
                     }
 
                 selector.asString() shouldBe
-                    "@e[scores={kills=5,level_up=1..,deaths=..3,balance=-10..-1,progress=-5..}]"
+                        "@e[scores={kills=5,level_up=1..,deaths=..3,balance=-10..-1,progress=-5..}]"
             }
 
             "an exact closed score range collapses to the exact form" {
@@ -316,7 +316,7 @@ class EntitySelectorTest :
 
             "score objectives may use every allowed unquoted-token punctuation class" {
                 entities { scores { "obj_1.kills-total+x" eq exactly(1) } }.asString() shouldBe
-                    "@e[scores={obj_1.kills-total+x=1}]"
+                        "@e[scores={obj_1.kills-total+x=1}]"
             }
 
             "a scores block cannot be negated" {
@@ -348,6 +348,97 @@ class EntitySelectorTest :
                 shouldThrow<IllegalArgumentException> {
                     entities { scores { "kills" eq 5..1 } }
                 }
+            }
+
+            "advancements render completion and criterion conditions in declaration order" {
+                val selector =
+                    allPlayers {
+                        advancements {
+                            key("minecraft", "story/smelt_iron") eq true
+                            key("my_pack", "boss") eq {
+                                "kill_dragon" eq true
+                                "no_deaths" eq false
+                            }
+                            key("my_pack", "secret") eq false
+                        }
+                    }
+
+                selector.asString() shouldBe
+                        "@a[advancements={minecraft:story/smelt_iron=true," +
+                        "my_pack:boss={kill_dragon=true,no_deaths=false},my_pack:secret=false}]"
+            }
+
+            "an empty advancement criterion block renders the valid vanilla form" {
+                allPlayers { advancements { key("my_pack", "boss") eq {} } }.asString() shouldBe
+                        "@a[advancements={my_pack:boss={}}]"
+            }
+
+            "an empty advancements block renders an empty map" {
+                entities { advancements {} }.asString() shouldBe "@e[advancements={}]"
+            }
+
+            "advancements are available on the self scope" {
+                self { advancements { key("minecraft", "story/root") eq true } }.asString() shouldBe
+                        "@s[advancements={minecraft:story/root=true}]"
+            }
+
+            "repeated advancements are rejected" {
+                shouldThrow<IllegalStateException> {
+                    allPlayers {
+                        advancements {
+                            key("my_pack", "boss") eq true
+                            key("my_pack", "boss") eq { "kill_dragon" eq true }
+                        }
+                    }
+                }
+            }
+
+            "a duplicate advancements block is rejected" {
+                shouldThrow<IllegalStateException> {
+                    allPlayers {
+                        advancements { key("my_pack", "boss") eq true }
+                        advancements { key("my_pack", "secret") eq false }
+                    }
+                }
+            }
+
+            "repeated advancement criteria are rejected" {
+                shouldThrow<IllegalStateException> {
+                    allPlayers {
+                        advancements {
+                            key("my_pack", "boss") eq {
+                                "kill_dragon" eq true
+                                "kill_dragon" eq false
+                            }
+                        }
+                    }
+                }
+            }
+
+            "advancement criteria outside vanilla's unquoted-token syntax are rejected" {
+                shouldThrow<IllegalArgumentException> {
+                    allPlayers { advancements { key("my_pack", "boss") eq { "bad name" eq true } } }
+                }
+                shouldThrow<IllegalArgumentException> {
+                    allPlayers { advancements { key("my_pack", "boss") eq { "" eq true } } }
+                }
+            }
+
+            "an advancements block cannot be negated" {
+                assertDoesNotCompile(
+                    "NegatedAdvancementsTest.kt",
+                    """
+                    import io.github.lmliam.kotventure.core.key.key
+                    import io.github.lmliam.kotventure.core.selector.*
+
+                    fun negatedAdvancements() {
+                        entities {
+                            !advancements { key("my_pack", "boss") eq true }
+                        }
+                    }
+                    """.trimIndent(),
+                    "receiver type mismatch",
+                )
             }
 
             "type with Adventure Key" {
@@ -452,7 +543,7 @@ class EntitySelectorTest :
                     }
 
                 selector.asString() shouldBe
-                    "@e[nbt={Health:20.0f,Tags:[\"boss\",\"hostile\"]},nbt=!{Invisible:1b},nbt={}]"
+                        "@e[nbt={Health:20.0f,Tags:[\"boss\",\"hostile\"]},nbt=!{Invisible:1b},nbt={}]"
             }
 
             "NBT filters are available on every selector head" {
@@ -500,8 +591,8 @@ class EntitySelectorTest :
                     }
 
                 selector.asString() shouldBe
-                    "@s[nbt={\"display name\":\"say \\\"hello\\\"\",nested:" +
-                    "{bytes:[B;1b,2b],ints:[I;3,4],longs:[L;5L,6L],rows:[[7,8],[9,10]]}}]"
+                        "@s[nbt={\"display name\":\"say \\\"hello\\\"\",nested:" +
+                        "{bytes:[B;1b,2b],ints:[I;3,4],longs:[L;5L,6L],rows:[[7,8],[9,10]]}}]"
             }
 
             "predicate filters preserve positive and negated keys in call order" {
@@ -513,7 +604,7 @@ class EntitySelectorTest :
                     }
 
                 selector.asString() shouldBe
-                    "@e[predicate=minecraft:is_baby,predicate=!my_pack:hidden,predicate=my_pack:active]"
+                        "@e[predicate=minecraft:is_baby,predicate=!my_pack:hidden,predicate=my_pack:active]"
             }
 
             "identical predicates accumulate rather than collapse" {

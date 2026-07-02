@@ -21,6 +21,9 @@ internal object EntitySelectorRenderer {
                 builder.scores?.let { scores ->
                     add(scores.entries.joinToString(",", "scores={", "}", transform = ::renderScore))
                 }
+                builder.advancements?.let { advancements ->
+                    add(advancements.entries.joinToString(",", "advancements={", "}", transform = ::renderAdvancement))
+                }
                 addAll(builder.gamemodeFilters.rendered { it.value })
                 addAll(builder.teamFilters.rendered { it })
                 builder.limit?.let { add("limit=$it") }
@@ -40,6 +43,16 @@ internal object EntitySelectorRenderer {
         }
 
     private fun renderScore(score: Map.Entry<String, SelectorIntRange>): String = "${score.key}=${score.value.rendered}"
+
+    private fun renderAdvancement(advancement: Map.Entry<String, AdvancementCondition>): String =
+        "${advancement.key}=${renderAdvancementCondition(advancement.value)}"
+
+    private fun renderAdvancementCondition(condition: AdvancementCondition): String =
+        when (condition) {
+            is AdvancementCondition.Completed -> condition.completed.toString()
+            is AdvancementCondition.Criteria ->
+                condition.criteria.entries.joinToString(",", "{", "}") { "${it.key}=${it.value}" }
+        }
 
     private fun renderName(value: String): String = if (needsQuoting(value)) "\"${escapeQuotes(value)}\"" else value
 

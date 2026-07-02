@@ -116,6 +116,7 @@ val msg = component {
             !nbt { "Invisible" eq true }
             scores { "kills" eq atLeast(10) }
             !predicate(key("my_pack", "hidden"))
+            advancements { key("minecraft", "story/smelt_iron") eq true }
         },
     )
     blockNbt(blockPos(1, 64, 1), "Items[0].id")
