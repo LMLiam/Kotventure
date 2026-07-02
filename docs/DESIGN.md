@@ -112,6 +112,8 @@ val msg = component {
             origin(64.y)
             volume(16.dx, 8.dy, 16.dz)
             !tag("hidden")
+            nbt { "Health" eq 20.0f }
+            !nbt { "Invisible" eq true }
         },
     )
     blockNbt(blockPos(1, 64, 1), "Items[0].id")

@@ -1,6 +1,7 @@
 package io.github.lmliam.kotventure.core.selector
 
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
+import io.github.lmliam.kotventure.core.nbt.NbtCompoundScope
 
 /**
  * Arguments shared by every typed entity-selector head.
@@ -144,6 +145,15 @@ public sealed interface CommonEntitySelectorScope {
 
     /** Filters by whether any scoreboard tag is present. */
     public fun tag(presence: SelectorPresence)
+
+    /**
+     * Filters by a structured NBT compound. Prefix the call with `!` to exclude matching NBT.
+     *
+     * Raw SNBT is intentionally unsupported; use [entitySelector] for raw selector interop.
+     *
+     * @sample io.github.lmliam.kotventure.core.selector.selectorNbtSample
+     */
+    public fun nbt(init: NbtCompoundScope.() -> Unit): SelectorFilterExpression
 
     /**
      * Filters by entity name. Prefix the call with `!` to exclude the name.

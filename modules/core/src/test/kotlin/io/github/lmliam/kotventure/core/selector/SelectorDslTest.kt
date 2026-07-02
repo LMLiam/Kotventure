@@ -1,6 +1,7 @@
 package io.github.lmliam.kotventure.core.selector
 
 import io.github.lmliam.kotventure.core.key.key
+import io.github.lmliam.kotventure.core.nbt.list
 import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldBeSelectorComponent
 import io.github.lmliam.kotventure.test.text.shouldContainText
@@ -49,6 +50,20 @@ class SelectorDslTest :
                     ).shouldBeSelectorComponent()
 
                 component shouldHaveSelectorPattern "@e[type=#minecraft:raiders,tag=!hidden]"
+            }
+
+            "builds a selector component with typed NBT filters" {
+                val component =
+                    selector(
+                        entities {
+                            nbt {
+                                "Tags" eq list("boss")
+                            }
+                            !nbt { "Silent" eq true }
+                        },
+                    ).shouldBeSelectorComponent()
+
+                component shouldHaveSelectorPattern "@e[nbt={Tags:[\"boss\"]},nbt=!{Silent:1b}]"
             }
 
             "builds a selector component with a typed origin and volume" {

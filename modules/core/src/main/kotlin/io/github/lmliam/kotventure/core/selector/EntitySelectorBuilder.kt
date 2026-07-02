@@ -1,5 +1,8 @@
 package io.github.lmliam.kotventure.core.selector
 
+import io.github.lmliam.kotventure.core.nbt.NbtCompound
+import io.github.lmliam.kotventure.core.nbt.NbtCompoundBuilder
+import io.github.lmliam.kotventure.core.nbt.NbtCompoundScope
 import net.kyori.adventure.key.Key
 
 /**
@@ -25,6 +28,7 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     val gamemodeFilters = SelectorFilterGroup<GameMode>("gamemode", SelectorFilterPolicy.EXCLUSIVE)
     val teamFilters = SelectorFilterGroup<String>("team", SelectorFilterPolicy.EXCLUSIVE)
     val tagFilters = SelectorFilterGroup<String>("tag", SelectorFilterPolicy.REPEATABLE)
+    val nbtFilters = SelectorFilterGroup<NbtCompound>("nbt", SelectorFilterPolicy.REPEATABLE)
 
     val coordinates: Map<SelectorAxis, Double>
         field = mutableMapOf()
@@ -104,6 +108,9 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
         tagFilters.addFixed(this, "", presence.polarity)
     }
 
+    override fun nbt(init: NbtCompoundScope.() -> Unit): SelectorFilterExpression =
+        nbtFilters.add(this, NbtCompoundBuilder().apply(init).build())
+
     override fun name(name: String): SelectorFilterExpression = nameFilters.add(this, name)
 
     override fun level(range: LevelRange) {
@@ -155,6 +162,7 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
         gamemodeFilters.validate()
         teamFilters.validate()
         tagFilters.validate()
+        nbtFilters.validate()
     }
 
     private fun bindCoordinates(bindings: List<Pair<SelectorAxis, Double>>) {
