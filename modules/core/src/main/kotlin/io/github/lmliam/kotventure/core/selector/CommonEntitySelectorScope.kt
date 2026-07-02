@@ -181,7 +181,8 @@ public sealed interface CommonEntitySelectorScope {
      * `scores { "kills" eq atLeast(10) }`.
      *
      * Objectives render in declaration order. Each objective binds once inside the block, and the
-     * whole argument binds once across the selector.
+     * whole argument binds once across the selector. Vanilla does not support negating `scores`,
+     * so the block is not prefix-negatable.
      *
      * @throws IllegalStateException if `scores` is already set or an objective is repeated
      * @sample io.github.lmliam.kotventure.core.selector.selectorScoreSample

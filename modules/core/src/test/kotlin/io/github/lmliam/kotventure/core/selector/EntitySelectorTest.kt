@@ -255,6 +255,9 @@ class EntitySelectorTest :
                     allPlayers { level(atLeast(-1)) }
                 }
                 shouldThrow<IllegalArgumentException> {
+                    allPlayers { level(atMost(-1)) }
+                }
+                shouldThrow<IllegalArgumentException> {
                     allPlayers { level(-5..5) }
                 }
             }
@@ -309,6 +312,27 @@ class EntitySelectorTest :
                         scores { "deaths" eq exactly(0) }
                     }
                 }
+            }
+
+            "score objectives may use every allowed unquoted-token punctuation class" {
+                entities { scores { "obj_1.kills-total+x" eq exactly(1) } }.asString() shouldBe
+                    "@e[scores={obj_1.kills-total+x=1}]"
+            }
+
+            "a scores block cannot be negated" {
+                assertDoesNotCompile(
+                    "NegatedScoresTest.kt",
+                    """
+                    import io.github.lmliam.kotventure.core.selector.*
+
+                    fun negatedScores() {
+                        entities {
+                            !scores { "kills" eq exactly(5) }
+                        }
+                    }
+                    """.trimIndent(),
+                    "receiver type mismatch",
+                )
             }
 
             "score objectives outside vanilla's unquoted-token syntax are rejected" {
