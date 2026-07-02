@@ -15,6 +15,7 @@ internal fun EntitySelectorArgument.render(): String =
         is EntitySelectorArgument.Nbt -> "nbt=$negationPrefix${snbt.value}"
         is EntitySelectorArgument.Scores ->
             scores.joinToString(",", "scores={", "}") { "${it.objective}=${it.range}" }
+
         is EntitySelectorArgument.Predicate -> "predicate=$negationPrefix${key.asString()}"
         is EntitySelectorArgument.Advancements ->
             advancements.joinToString(",", "advancements={", "}") {

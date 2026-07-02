@@ -22,19 +22,19 @@ class EntitySelectorParserTest :
             "round trips every typed selector argument" {
                 val source =
                     "@e[" +
-                        "type=!#my_pack:hostile," +
-                        "name=\"Boss Mob\"," +
-                        "x=1.5,y=-2,z=3,dx=0,dy=1,dz=-1," +
-                        "distance=..10,x_rotation=170..-170,y_rotation=-45..45," +
-                        "level=1..30,gamemode=!creative,limit=2,sort=nearest," +
-                        "tag=!,tag=!hidden,team=!red,team=blue," +
-                        "nbt={Tags:[\"boss\"],Data:[I;1,2]}," +
-                        "nbt={Health:20.0f}," +
-                        "scores={kills=5,balance=-10..}," +
-                        "predicate=!my_pack:hidden," +
-                        "predicate=my_pack:other," +
-                        "advancements={minecraft:story/root=true,my_pack:secret={found_item=false}}" +
-                        "]"
+                            "type=!#my_pack:hostile," +
+                            "name=\"Boss Mob\"," +
+                            "x=1.5,y=-2,z=3,dx=0,dy=1,dz=-1," +
+                            "distance=..10,x_rotation=170..-170,y_rotation=-45..45," +
+                            "level=1..30,gamemode=!creative,limit=2,sort=nearest," +
+                            "tag=!,tag=!hidden,team=!red,team=blue," +
+                            "nbt={Tags:[\"boss\"],Data:[I;1,2]}," +
+                            "nbt={Health:20.0f}," +
+                            "scores={kills=5,balance=-10..}," +
+                            "predicate=!my_pack:hidden," +
+                            "predicate=my_pack:other," +
+                            "advancements={minecraft:story/root=true,my_pack:secret={found_item=false}}" +
+                            "]"
 
                 entitySelector(source).asString() shouldBe source
             }
@@ -42,22 +42,22 @@ class EntitySelectorParserTest :
             "renders decoded selector names canonically" {
                 entitySelector("@e[name='Boss Mob']").asString() shouldBe "@e[name=\"Boss Mob\"]"
                 entitySelector("@e[name=\"Boss \\\"Mob\\\"\"]").asString() shouldBe
-                    "@e[name=\"Boss \\\"Mob\\\"\"]"
+                        "@e[name=\"Boss \\\"Mob\\\"\"]"
             }
 
             "preserves explicit empty lists and repeated empty-value filters" {
                 entitySelector("@e[]").asString() shouldBe "@e[]"
                 entitySelector("@e[tag=,tag=!,team=,team=!]").asString() shouldBe
-                    "@e[tag=,tag=!,team=,team=!]"
+                        "@e[tag=,tag=!,team=,team=!]"
             }
 
             "accepts typed SNBT array boundaries" {
                 val source =
                     "@e[nbt={" +
-                        "Bytes:[B;-128b,+127b]," +
-                        "Ints:[I;-2147483648,+2147483647]," +
-                        "Longs:[L;-9223372036854775808L,+9223372036854775807L]" +
-                        "}]"
+                            "Bytes:[B;-128b,+127b]," +
+                            "Ints:[I;-2147483648,+2147483647]," +
+                            "Longs:[L;-9223372036854775808L,+9223372036854775807L]" +
+                            "}]"
 
                 entitySelector(source).asString() shouldBe source
             }
@@ -138,15 +138,15 @@ class EntitySelectorParserTest :
                 val teams = parsed.arguments.filterIsInstance<EntitySelectorArgument.Team>()
 
                 tags.map(EntitySelectorArgument.Tag::condition) shouldBe
-                    listOf(
-                        SelectorStringCondition.Presence(SelectorPresence.NONE),
-                        SelectorStringCondition.Presence(SelectorPresence.ANY),
-                    )
+                        listOf(
+                            SelectorStringCondition.Presence(SelectorPresence.NONE),
+                            SelectorStringCondition.Presence(SelectorPresence.ANY),
+                        )
                 teams.map(EntitySelectorArgument.Team::condition) shouldBe
-                    listOf(
-                        SelectorStringCondition.Named("red"),
-                        SelectorStringCondition.Named("blue"),
-                    )
+                        listOf(
+                            SelectorStringCondition.Named("red"),
+                            SelectorStringCondition.Named("blue"),
+                        )
                 teams.map(EntitySelectorArgument.Team::isNegated) shouldBe listOf(false, true)
             }
 
@@ -174,11 +174,11 @@ class EntitySelectorParserTest :
                 parsed.arguments shouldHaveSize 1
                 parsed.hasExplicitArgumentList shouldBe true
                 parsed shouldBe
-                    EntitySelector(
-                        EntitySelectorHead.ENTITIES,
-                        parsed.arguments,
-                        hasExplicitArgumentList = false,
-                    )
+                        EntitySelector(
+                            EntitySelectorHead.ENTITIES,
+                            parsed.arguments,
+                            hasExplicitArgumentList = false,
+                        )
                 shouldThrow<UnsupportedOperationException> {
                     @Suppress("UNCHECKED_CAST")
                     (parsed.arguments as MutableList<EntitySelectorArgument>).clear()

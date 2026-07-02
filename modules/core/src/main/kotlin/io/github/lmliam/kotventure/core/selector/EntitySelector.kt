@@ -28,14 +28,17 @@ public class EntitySelector(
                     require(head.acceptsTypeFilters) {
                         "Selector ${head.token} does not support 'type'."
                     }
+
                 is EntitySelectorArgument.Limit ->
                     require(head.acceptsResultControls) {
                         "Selector ${head.token} does not support 'limit'."
                     }
+
                 is EntitySelectorArgument.Sort ->
                     require(head.acceptsResultControls) {
                         "Selector ${head.token} does not support 'sort'."
                     }
+
                 else -> Unit
             }
         }
@@ -64,9 +67,9 @@ public class EntitySelector(
 
     public override fun equals(other: Any?): Boolean =
         other is EntitySelector &&
-            head == other.head &&
-            arguments == other.arguments &&
-            hasExplicitArgumentList == other.hasExplicitArgumentList
+                head == other.head &&
+                arguments == other.arguments &&
+                hasExplicitArgumentList == other.hasExplicitArgumentList
 
     public override fun hashCode(): Int {
         var result = head.hashCode()

@@ -96,6 +96,7 @@ internal fun SelectorReader.readQuotedString(): QuotedSelectorString {
                 skip()
                 decoded.append(escaped)
             }
+
             else -> decoded.append(character)
         }
     }
