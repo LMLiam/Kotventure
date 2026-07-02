@@ -2,7 +2,6 @@ package io.github.lmliam.kotventure.core.selector
 
 import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.nbt.list
-import io.github.lmliam.kotventure.test.compilation.assertCompiles
 import io.github.lmliam.kotventure.test.compilation.assertDoesNotCompile
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
@@ -356,23 +355,21 @@ class EntitySelectorTest :
                     "@e[nbt={Health:20.0f,Tags:[\"boss\",\"hostile\"]},nbt=!{Invisible:1b},nbt={}]"
             }
 
-            "NBT filters are available on every selector head without a raw overload" {
-                assertCompiles(
-                    "AllSelectorNbtFiltersTest.kt",
-                    """
-                    import io.github.lmliam.kotventure.core.selector.*
+            "NBT filters are available on every selector head" {
+                fun CommonEntitySelectorScope.bothPolarities() {
+                    nbt {}
+                    !nbt {}
+                }
 
-                    fun allNbtFilters() {
-                        nearestPlayer { nbt {}; !nbt {} }
-                        allPlayers { nbt {}; !nbt {} }
-                        randomPlayer { nbt {}; !nbt {} }
-                        self { nbt {}; !nbt {} }
-                        entities { nbt {}; !nbt {} }
-                        nearestEntity { nbt {}; !nbt {} }
-                    }
-                    """.trimIndent(),
-                )
+                nearestPlayer { bothPolarities() }.asString() shouldBe "@p[nbt={},nbt=!{}]"
+                allPlayers { bothPolarities() }.asString() shouldBe "@a[nbt={},nbt=!{}]"
+                randomPlayer { bothPolarities() }.asString() shouldBe "@r[nbt={},nbt=!{}]"
+                self { bothPolarities() }.asString() shouldBe "@s[nbt={},nbt=!{}]"
+                entities { bothPolarities() }.asString() shouldBe "@e[nbt={},nbt=!{}]"
+                nearestEntity { bothPolarities() }.asString() shouldBe "@n[nbt={},nbt=!{}]"
+            }
 
+            "raw SNBT strings do not compile as selector NBT filters" {
                 assertDoesNotCompile(
                     "RawSelectorNbtFilterTest.kt",
                     """
@@ -384,6 +381,7 @@ class EntitySelectorTest :
                         }
                     }
                     """.trimIndent(),
+                    "Argument type mismatch",
                 )
             }
 
