@@ -156,7 +156,10 @@ public sealed interface EntitySelectorArgument {
         scores: Collection<ParsedSelectorScore>,
     ) : EntitySelectorArgument {
         /** Score requirements in source order. */
-        public val scores: List<ParsedSelectorScore> = scores.immutableSnapshot()
+        public val scores: List<ParsedSelectorScore> =
+            buildList(scores.size) {
+                addAll(scores)
+            }
 
         /** Returns a score argument with the supplied requirements. */
         public fun copy(scores: Collection<ParsedSelectorScore> = this.scores): Scores = Scores(scores)
@@ -185,7 +188,9 @@ public sealed interface EntitySelectorArgument {
     ) : EntitySelectorArgument {
         /** Advancement requirements in source order. */
         public val advancements: List<ParsedSelectorAdvancement> =
-            advancements.immutableSnapshot()
+            buildList(advancements.size) {
+                addAll(advancements)
+            }
 
         /** Returns an advancement argument with the supplied requirements. */
         public fun copy(advancements: Collection<ParsedSelectorAdvancement> = this.advancements): Advancements =

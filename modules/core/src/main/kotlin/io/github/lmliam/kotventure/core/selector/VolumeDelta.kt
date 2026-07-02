@@ -7,23 +7,11 @@ package io.github.lmliam.kotventure.core.selector
  * @sample io.github.lmliam.kotventure.core.selector.selectorPositionVolumeSample
  */
 public class VolumeDelta internal constructor(
-    internal val axis: VolumeAxis,
+    internal val coordinate: SelectorCoordinate,
     internal val value: Double,
 )
 
-internal enum class VolumeAxis(
-    override val argument: String,
-) : SelectorAxis {
-    DX("dx"),
-    DY("dy"),
-    DZ("dz"),
-}
-
 internal fun volumeDelta(
-    axis: VolumeAxis,
+    coordinate: SelectorCoordinate,
     value: Number,
-): VolumeDelta {
-    val delta = value.toDouble()
-    require(delta.isFinite()) { "Selector volume ${axis.argument} must be finite, got: $delta" }
-    return VolumeDelta(axis, delta)
-}
+): VolumeDelta = VolumeDelta(coordinate, validatedCoordinateValue("volume", coordinate, value))

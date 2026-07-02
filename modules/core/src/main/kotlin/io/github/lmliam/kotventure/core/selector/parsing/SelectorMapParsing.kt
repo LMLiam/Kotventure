@@ -1,4 +1,10 @@
-package io.github.lmliam.kotventure.core.selector
+package io.github.lmliam.kotventure.core.selector.parsing
+
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument
+import io.github.lmliam.kotventure.core.selector.ParsedAdvancementCriterion
+import io.github.lmliam.kotventure.core.selector.ParsedAdvancementProgress
+import io.github.lmliam.kotventure.core.selector.ParsedSelectorAdvancement
+import io.github.lmliam.kotventure.core.selector.ParsedSelectorScore
 
 internal fun SelectorReader.readScoresArgument(): EntitySelectorArgument.Scores =
     EntitySelectorArgument.Scores(

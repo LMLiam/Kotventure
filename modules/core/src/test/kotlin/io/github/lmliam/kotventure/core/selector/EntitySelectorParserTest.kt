@@ -1,6 +1,8 @@
 package io.github.lmliam.kotventure.core.selector
 
 import io.github.lmliam.kotventure.core.key.key
+import io.github.lmliam.kotventure.core.selector.parsing.SelectorReader
+import io.github.lmliam.kotventure.core.selector.parsing.readQuotedString
 import io.github.lmliam.kotventure.test.text.shouldBeSelectorComponent
 import io.github.lmliam.kotventure.test.text.shouldHaveSelectorPattern
 import io.kotest.assertions.throwables.shouldThrow
@@ -45,8 +47,8 @@ class EntitySelectorParserTest :
                         "@e[name=\"Boss \\\"Mob\\\"\"]"
             }
 
-            "preserves explicit empty lists and repeated empty-value filters" {
-                entitySelector("@e[]").asString() shouldBe "@e[]"
+            "canonicalizes empty lists and preserves repeated empty-value filters" {
+                entitySelector("@e[]").asString() shouldBe "@e"
                 entitySelector("@e[tag=,tag=!,team=,team=!]").asString() shouldBe
                         "@e[tag=,tag=!,team=,team=!]"
             }
@@ -172,12 +174,10 @@ class EntitySelectorParserTest :
                 sourceArguments.clear()
 
                 parsed.arguments shouldHaveSize 1
-                parsed.hasExplicitArgumentList shouldBe true
                 parsed shouldBe
                         EntitySelector(
                             EntitySelectorHead.ENTITIES,
                             parsed.arguments,
-                            hasExplicitArgumentList = false,
                         )
                 shouldThrow<UnsupportedOperationException> {
                     @Suppress("UNCHECKED_CAST")
@@ -252,6 +252,7 @@ class EntitySelectorParserTest :
             "reports malformed and unsupported syntax with source offsets" {
                 assertParseFailure("e", 0, "Expected '@'")
                 assertParseFailure("@q", 1, "Unsupported selector head")
+                assertParseFailure("@entity", 1, "Unsupported selector head")
                 assertParseFailure("@e[unknown=value]", 3, "Unsupported selector argument 'unknown'")
                 assertParseFailure("@e[name=\"Boss]", 8, "Unterminated quoted string")
                 assertParseFailure("@e[distance=10..1]", 16, "must not exceed")

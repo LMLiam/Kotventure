@@ -1,12 +1,8 @@
-package io.github.lmliam.kotventure.core.selector
+package io.github.lmliam.kotventure.core.selector.parsing
 
+import io.github.lmliam.kotventure.core.selector.isAllowedInUnquotedSelectorToken
 import net.kyori.adventure.key.InvalidKeyException
 import net.kyori.adventure.key.Key
-
-/** A decoded selector string. */
-internal class QuotedSelectorString(
-    val value: String,
-)
 
 /** Reads until the next selector value delimiter (`,`, `]`, or `}`). */
 internal fun SelectorReader.readValueToken(): String = readWhile { it != ',' && it != ']' && it != '}' }
@@ -77,7 +73,7 @@ internal fun SelectorReader.validateUnquotedToken(
 /**
  * Reads and decodes a `'`- or `"`-delimited string; only the delimiter and `\` may be escaped.
  */
-internal fun SelectorReader.readQuotedString(): QuotedSelectorString {
+internal fun SelectorReader.readQuotedString(): String {
     val quoteOffset = offset
     val quote = peek()?.takeIf { it == '\'' || it == '"' } ?: fail("Expected a quoted string")
     skip()
@@ -87,7 +83,7 @@ internal fun SelectorReader.readQuotedString(): QuotedSelectorString {
         val character = peek() ?: failAt(quoteOffset, "Unterminated quoted string")
         skip()
         when (character) {
-            quote -> return QuotedSelectorString(decoded.toString())
+            quote -> return decoded.toString()
             '\\' -> {
                 val escaped = peek() ?: failAt(quoteOffset, "Unterminated quoted string")
                 if (escaped != quote && escaped != '\\') {

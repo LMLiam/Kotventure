@@ -31,7 +31,10 @@ public sealed interface ParsedAdvancementProgress {
         criteria: Collection<ParsedAdvancementCriterion>,
     ) : ParsedAdvancementProgress {
         /** Criterion requirements in source order. */
-        public val criteria: List<ParsedAdvancementCriterion> = criteria.immutableSnapshot()
+        public val criteria: List<ParsedAdvancementCriterion> =
+            buildList(criteria.size) {
+                addAll(criteria)
+            }
 
         /** Returns criterion progress with the supplied requirements. */
         public fun copy(criteria: Collection<ParsedAdvancementCriterion> = this.criteria): Criteria = Criteria(criteria)

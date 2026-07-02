@@ -7,23 +7,11 @@ package io.github.lmliam.kotventure.core.selector
  * @sample io.github.lmliam.kotventure.core.selector.selectorPositionVolumeSample
  */
 public class OriginCoordinate internal constructor(
-    internal val axis: OriginAxis,
+    internal val coordinate: SelectorCoordinate,
     internal val value: Double,
 )
 
-internal enum class OriginAxis(
-    override val argument: String,
-) : SelectorAxis {
-    X("x"),
-    Y("y"),
-    Z("z"),
-}
-
 internal fun originCoordinate(
-    axis: OriginAxis,
+    coordinate: SelectorCoordinate,
     value: Number,
-): OriginCoordinate {
-    val coordinate = value.toDouble()
-    require(coordinate.isFinite()) { "Selector origin ${axis.argument} must be finite, got: $coordinate" }
-    return OriginCoordinate(axis, coordinate)
-}
+): OriginCoordinate = OriginCoordinate(coordinate, validatedCoordinateValue("origin", coordinate, value))

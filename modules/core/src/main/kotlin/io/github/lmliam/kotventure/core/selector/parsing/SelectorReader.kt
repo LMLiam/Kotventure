@@ -1,4 +1,6 @@
-package io.github.lmliam.kotventure.core.selector
+package io.github.lmliam.kotventure.core.selector.parsing
+
+import io.github.lmliam.kotventure.core.selector.EntitySelectorParseException
 
 /**
  * A character cursor over entity-selector source text.

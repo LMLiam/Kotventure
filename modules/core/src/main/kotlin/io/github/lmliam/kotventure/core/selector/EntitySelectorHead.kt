@@ -32,3 +32,27 @@ public enum class EntitySelectorHead(
     /** The nearest entity (`@n`). */
     NEAREST_ENTITY("@n"),
 }
+
+internal fun EntitySelectorHead.requireSupportFor(argument: EntitySelectorArgument) {
+    val unsupportedArgument =
+        when (argument) {
+            is EntitySelectorArgument.Type -> "type".takeUnless { acceptsTypeFilters }
+            is EntitySelectorArgument.Limit -> "limit".takeUnless { acceptsResultControls }
+            is EntitySelectorArgument.Sort -> "sort".takeUnless { acceptsResultControls }
+            is EntitySelectorArgument.Advancements,
+            is EntitySelectorArgument.Coordinate,
+            is EntitySelectorArgument.Gamemode,
+            is EntitySelectorArgument.Level,
+            is EntitySelectorArgument.Name,
+            is EntitySelectorArgument.Nbt,
+            is EntitySelectorArgument.Predicate,
+            is EntitySelectorArgument.Range,
+            is EntitySelectorArgument.Scores,
+            is EntitySelectorArgument.Tag,
+            is EntitySelectorArgument.Team,
+            -> null
+        }
+    require(unsupportedArgument == null) {
+        "Selector $token does not support '$unsupportedArgument'."
+    }
+}

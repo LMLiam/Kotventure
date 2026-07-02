@@ -1,4 +1,9 @@
-package io.github.lmliam.kotventure.core.selector
+package io.github.lmliam.kotventure.core.selector.parsing
+
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument
+import io.github.lmliam.kotventure.core.selector.EntitySelectorHead
+import io.github.lmliam.kotventure.core.selector.SelectorCoordinate
+import io.github.lmliam.kotventure.core.selector.SelectorRangeArgument
 
 internal fun SelectorReader.readArgumentValue(
     head: EntitySelectorHead,

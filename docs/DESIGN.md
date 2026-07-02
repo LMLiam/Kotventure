@@ -128,7 +128,6 @@ val msg = component {
 }
 
 val parsedSelector = entitySelector("@e[type=minecraft:zombie,tag=!hidden]")
-selector(parsedSelector)
 
 // ── Reusable styles ────────────────────────────────────────────
 val headerStyle = style {

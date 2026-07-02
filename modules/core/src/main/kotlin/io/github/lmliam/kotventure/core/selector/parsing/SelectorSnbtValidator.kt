@@ -1,4 +1,6 @@
-package io.github.lmliam.kotventure.core.selector
+package io.github.lmliam.kotventure.core.selector.parsing
+
+import io.github.lmliam.kotventure.core.selector.isAllowedInUnquotedSelectorToken
 
 /**
  * Validates one SNBT compound at the cursor, consuming exactly the compound's source.

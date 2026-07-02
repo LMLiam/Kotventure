@@ -700,6 +700,11 @@ class EntitySelectorTest :
                 }.asString() shouldBe "@a[y=80,dx=0,dz=-2]"
             }
 
+            "origin and volume share the selector coordinate model" {
+                originCoordinate(SelectorCoordinate.X, 1).coordinate shouldBe SelectorCoordinate.X
+                volumeDelta(SelectorCoordinate.DZ, 2).coordinate shouldBe SelectorCoordinate.DZ
+            }
+
             "origin and volume compose across disjoint axes" {
                 val selector =
                     entities {

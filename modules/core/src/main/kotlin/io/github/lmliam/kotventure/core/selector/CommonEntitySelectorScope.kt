@@ -60,42 +60,42 @@ public sealed interface CommonEntitySelectorScope {
      *
      * @throws IllegalArgumentException if the value is not finite
      */
-    public val Number.x: OriginCoordinate get() = originCoordinate(OriginAxis.X, this)
+    public val Number.x: OriginCoordinate get() = originCoordinate(SelectorCoordinate.X, this)
 
     /**
      * This number as the origin `y` coordinate.
      *
      * @throws IllegalArgumentException if the value is not finite
      */
-    public val Number.y: OriginCoordinate get() = originCoordinate(OriginAxis.Y, this)
+    public val Number.y: OriginCoordinate get() = originCoordinate(SelectorCoordinate.Y, this)
 
     /**
      * This number as the origin `z` coordinate.
      *
      * @throws IllegalArgumentException if the value is not finite
      */
-    public val Number.z: OriginCoordinate get() = originCoordinate(OriginAxis.Z, this)
+    public val Number.z: OriginCoordinate get() = originCoordinate(SelectorCoordinate.Z, this)
 
     /**
      * This number as the bounding-volume `dx` delta.
      *
      * @throws IllegalArgumentException if the value is not finite
      */
-    public val Number.dx: VolumeDelta get() = volumeDelta(VolumeAxis.DX, this)
+    public val Number.dx: VolumeDelta get() = volumeDelta(SelectorCoordinate.DX, this)
 
     /**
      * This number as the bounding-volume `dy` delta.
      *
      * @throws IllegalArgumentException if the value is not finite
      */
-    public val Number.dy: VolumeDelta get() = volumeDelta(VolumeAxis.DY, this)
+    public val Number.dy: VolumeDelta get() = volumeDelta(SelectorCoordinate.DY, this)
 
     /**
      * This number as the bounding-volume `dz` delta.
      *
      * @throws IllegalArgumentException if the value is not finite
      */
-    public val Number.dz: VolumeDelta get() = volumeDelta(VolumeAxis.DZ, this)
+    public val Number.dz: VolumeDelta get() = volumeDelta(SelectorCoordinate.DZ, this)
 
     /** Filters by distance using a [SelectorRange]. */
     public fun distance(range: SelectorRange)
@@ -149,9 +149,6 @@ public sealed interface CommonEntitySelectorScope {
 
     /**
      * Filters by a structured NBT compound. Prefix the call with `!` to exclude matching NBT.
-     *
-     * Raw SNBT is intentionally unsupported in this typed scope. Validate a complete selector from
-     * string interop with [entitySelector].
      *
      * @sample io.github.lmliam.kotventure.core.selector.selectorNbtSample
      */

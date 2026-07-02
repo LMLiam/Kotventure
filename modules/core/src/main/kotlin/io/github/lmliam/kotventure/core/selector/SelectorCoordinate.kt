@@ -26,3 +26,15 @@ public enum class SelectorCoordinate(
     /** Bounding-volume Z delta. */
     DZ("dz"),
 }
+
+internal fun validatedCoordinateValue(
+    kind: String,
+    coordinate: SelectorCoordinate,
+    value: Number,
+): Double {
+    val coordinateValue = value.toDouble()
+    require(coordinateValue.isFinite()) {
+        "Selector $kind ${coordinate.argumentName} must be finite, got: $coordinateValue"
+    }
+    return coordinateValue
+}

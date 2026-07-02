@@ -1,4 +1,10 @@
-package io.github.lmliam.kotventure.core.selector
+package io.github.lmliam.kotventure.core.selector.parsing
+
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument
+import io.github.lmliam.kotventure.core.selector.GameMode
+import io.github.lmliam.kotventure.core.selector.SelectorPresence
+import io.github.lmliam.kotventure.core.selector.SelectorStringCondition
+import io.github.lmliam.kotventure.core.selector.SnbtCompoundSource
 
 internal fun SelectorReader.readGamemodeArgument(): EntitySelectorArgument.Gamemode {
     val negated = consume('!')
@@ -14,8 +20,7 @@ internal fun SelectorReader.readNameArgument(): EntitySelectorArgument.Name {
     val negated = consume('!')
     val next = peek()
     if (next == '"' || next == '\'') {
-        val quoted = readQuotedString()
-        return EntitySelectorArgument.Name(quoted.value, negated)
+        return EntitySelectorArgument.Name(readQuotedString(), negated)
     }
     val tokenOffset = offset
     val token = readValueToken()
@@ -29,20 +34,20 @@ internal fun SelectorReader.readTypeArgument(): EntitySelectorArgument.Type {
     return EntitySelectorArgument.Type(readSelectorKey(), isTag, negated)
 }
 
-internal fun SelectorReader.readTagArgument(): EntitySelectorArgument.Tag {
-    val negated = consume('!')
-    val tokenOffset = offset
-    val token = readValueToken()
-    if (token.isNotEmpty()) validateUnquotedToken(token, tokenOffset)
-    return EntitySelectorArgument.Tag(token.selectorStringCondition(negated), token.isNotEmpty() && negated)
-}
+internal fun SelectorReader.readTagArgument(): EntitySelectorArgument.Tag =
+    readStringConditionArgument(EntitySelectorArgument::Tag)
 
-internal fun SelectorReader.readTeamArgument(): EntitySelectorArgument.Team {
+internal fun SelectorReader.readTeamArgument(): EntitySelectorArgument.Team =
+    readStringConditionArgument(EntitySelectorArgument::Team)
+
+private fun <T : EntitySelectorArgument> SelectorReader.readStringConditionArgument(
+    create: (SelectorStringCondition, Boolean) -> T,
+): T {
     val negated = consume('!')
     val tokenOffset = offset
     val token = readValueToken()
     if (token.isNotEmpty()) validateUnquotedToken(token, tokenOffset)
-    return EntitySelectorArgument.Team(token.selectorStringCondition(negated), token.isNotEmpty() && negated)
+    return create(token.selectorStringCondition(negated), token.isNotEmpty() && negated)
 }
 
 internal fun SelectorReader.readNbtArgument(): EntitySelectorArgument.Nbt {

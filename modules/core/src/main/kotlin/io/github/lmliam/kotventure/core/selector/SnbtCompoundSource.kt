@@ -1,5 +1,8 @@
 package io.github.lmliam.kotventure.core.selector
 
+import io.github.lmliam.kotventure.core.selector.parsing.SelectorReader
+import io.github.lmliam.kotventure.core.selector.parsing.validateSnbtCompound
+
 /**
  * Validated compound SNBT source.
  *

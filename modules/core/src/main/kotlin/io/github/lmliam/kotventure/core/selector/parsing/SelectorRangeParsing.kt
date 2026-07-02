@@ -1,4 +1,8 @@
-package io.github.lmliam.kotventure.core.selector
+package io.github.lmliam.kotventure.core.selector.parsing
+
+import io.github.lmliam.kotventure.core.selector.SelectorIntRange
+import io.github.lmliam.kotventure.core.selector.SelectorRange
+import io.github.lmliam.kotventure.core.selector.SelectorRangeArgument
 
 internal fun SelectorReader.readDoubleRange(argument: SelectorRangeArgument): SelectorRange {
     val bounds = readRangeBounds { readDoubleBound() }
