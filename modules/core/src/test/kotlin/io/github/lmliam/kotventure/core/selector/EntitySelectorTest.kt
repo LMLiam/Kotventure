@@ -381,6 +381,15 @@ class EntitySelectorTest :
                 }
             }
 
+            "empty tag names are rejected" {
+                shouldThrow<IllegalArgumentException> {
+                    allPlayers { tag("") }
+                }
+                shouldThrow<IllegalArgumentException> {
+                    allPlayers { !tag("") }
+                }
+            }
+
             "origin and volume render full and partial coordinates" {
                 entities {
                     origin(1.5.x, 64.y, (-2).z)
@@ -574,6 +583,7 @@ class EntitySelectorTest :
                     lateinit var expression: SelectorFilterExpression
                     val excluded = !expression
                     """.trimIndent(),
+                    "Unresolved reference 'not'",
                 )
             }
 
@@ -590,6 +600,7 @@ class EntitySelectorTest :
                         }
                     }
                     """.trimIndent(),
+                    "receiver type mismatch",
                 )
             }
 
@@ -606,6 +617,7 @@ class EntitySelectorTest :
                         }
                     }
                     """.trimIndent(),
+                    "Argument type mismatch",
                 )
             }
 

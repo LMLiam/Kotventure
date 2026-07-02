@@ -96,7 +96,10 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
         yaw(closedRange(range.start, range.endInclusive))
     }
 
-    override fun tag(tag: String): SelectorFilterExpression = tagFilters.add(this, tag)
+    override fun tag(tag: String): SelectorFilterExpression {
+        require(tag.isNotEmpty()) { "Tag name must not be empty; use tag(any) or tag(none) to filter by tag presence." }
+        return tagFilters.add(this, tag)
+    }
 
     override fun tag(presence: SelectorPresence) {
         tagFilters.addFixed(this, "", presence.polarity)

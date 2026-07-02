@@ -137,6 +137,7 @@ public sealed interface CommonEntitySelectorScope {
     /**
      * Filters by scoreboard tag. Prefix the call with `!` to exclude the tag.
      *
+     * @throws IllegalArgumentException if the tag name is empty (use `tag(any)` or `tag(none)`)
      * @sample io.github.lmliam.kotventure.core.selector.negatedCommonArgumentsSample
      */
     public fun tag(tag: String): SelectorFilterExpression
