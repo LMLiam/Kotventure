@@ -161,7 +161,7 @@ internal fun negatedTypeArgumentsSample() {
 }
 
 internal fun parsedEntitySelectorSample() {
-    val parsed = parseEntitySelector("@e[type=minecraft:zombie,tag=!hidden]")
+    val parsed = entitySelector("@e[type=minecraft:zombie,tag=!hidden]")
 
-    selector(parsed.asEntitySelector())
+    selector(parsed)
 }

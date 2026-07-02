@@ -48,18 +48,11 @@ public fun entities(init: EntitySelectorScope.() -> Unit = {}): EntitySelector =
 public fun nearestEntity(init: EntitySelectorScope.() -> Unit = {}): EntitySelector =
     buildSelector(EntitySelectorHead.NEAREST_ENTITY, init)
 
-/**
- * Wraps a raw selector string as an [EntitySelector].
- *
- * Use this escape hatch for complex selector syntax not covered by the builder.
- */
-public fun entitySelector(raw: String): EntitySelector = EntitySelector(raw)
-
 private fun buildSelector(
     head: EntitySelectorHead,
     configure: EntitySelectorScope.() -> Unit,
 ): EntitySelector {
     val builder = EntitySelectorBuilder()
     builder.configure(configure)
-    return ParsedEntitySelector(head, builder.selectorArguments()).asEntitySelector()
+    return EntitySelector(head, builder.selectorArguments())
 }

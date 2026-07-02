@@ -15,7 +15,7 @@ class EntitySelectorParserTest :
         {
             "parses and renders all six selector heads" {
                 listOf("@p", "@a", "@r", "@s", "@e", "@n").forEach { source ->
-                    parseEntitySelector(source).asString() shouldBe source
+                    entitySelector(source).asString() shouldBe source
                 }
             }
 
@@ -36,18 +36,18 @@ class EntitySelectorParserTest :
                         "advancements={minecraft:story/root=true,my_pack:secret={found_item=false}}" +
                         "]"
 
-                parseEntitySelector(source).asString() shouldBe source
+                entitySelector(source).asString() shouldBe source
             }
 
             "preserves quoted selector strings" {
-                parseEntitySelector("@e[name='Boss Mob']").asString() shouldBe "@e[name='Boss Mob']"
-                parseEntitySelector("@e[name=\"Boss \\\"Mob\\\"\"]").asString() shouldBe
+                entitySelector("@e[name='Boss Mob']").asString() shouldBe "@e[name='Boss Mob']"
+                entitySelector("@e[name=\"Boss \\\"Mob\\\"\"]").asString() shouldBe
                     "@e[name=\"Boss \\\"Mob\\\"\"]"
             }
 
             "preserves explicit empty lists and repeated empty-value filters" {
-                parseEntitySelector("@e[]").asString() shouldBe "@e[]"
-                parseEntitySelector("@e[tag=,tag=!,team=,team=!]").asString() shouldBe
+                entitySelector("@e[]").asString() shouldBe "@e[]"
+                entitySelector("@e[tag=,tag=!,team=,team=!]").asString() shouldBe
                     "@e[tag=,tag=!,team=,team=!]"
             }
 
@@ -59,7 +59,7 @@ class EntitySelectorParserTest :
                         "Longs:[L;-9223372036854775808L,+9223372036854775807L]" +
                         "}]"
 
-                parseEntitySelector(source).asString() shouldBe source
+                entitySelector(source).asString() shouldBe source
             }
 
             "preserves Java Edition 26.2 SNBT container forms" {
@@ -68,12 +68,12 @@ class EntitySelectorParserTest :
                     "@e[nbt={Tags:[1b,\"mixed\",]}]",
                     "@e[nbt={Data:[B;+1b,]}]",
                 ).forEach { source ->
-                    parseEntitySelector(source).asString() shouldBe source
+                    entitySelector(source).asString() shouldBe source
                 }
             }
 
             "exposes an immutable model that can be transformed" {
-                val parsed = parseEntitySelector("@e[type=minecraft:zombie,name=\"Boss Mob\",tag=!hidden]")
+                val parsed = entitySelector("@e[type=minecraft:zombie,name=\"Boss Mob\",tag=!hidden]")
 
                 parsed.head shouldBe EntitySelectorHead.ENTITIES
                 parsed.arguments shouldHaveSize 3
@@ -89,7 +89,7 @@ class EntitySelectorParserTest :
             }
 
             "exposes negation through the shared Negatable interface" {
-                val parsed = parseEntitySelector("@e[type=!minecraft:zombie,tag=boss,nbt=!{},limit=1]")
+                val parsed = entitySelector("@e[type=!minecraft:zombie,tag=boss,nbt=!{},limit=1]")
                 val negatable = parsed.arguments.filterIsInstance<EntitySelectorArgument.Negatable>()
 
                 negatable shouldHaveSize 3
@@ -101,13 +101,13 @@ class EntitySelectorParserTest :
                     mutableListOf<EntitySelectorArgument>(
                         EntitySelectorArgument.Tag("admin", isNegated = false),
                     )
-                val parsed = ParsedEntitySelector(EntitySelectorHead.ENTITIES, sourceArguments)
+                val parsed = EntitySelector(EntitySelectorHead.ENTITIES, sourceArguments)
                 sourceArguments.clear()
 
                 parsed.arguments shouldHaveSize 1
                 parsed.hasExplicitArgumentList shouldBe true
                 parsed shouldBe
-                    ParsedEntitySelector(
+                    EntitySelector(
                         EntitySelectorHead.ENTITIES,
                         parsed.arguments,
                         hasExplicitArgumentList = false,
@@ -123,7 +123,7 @@ class EntitySelectorParserTest :
                 scores.scores shouldHaveSize 1
 
                 val structured =
-                    parseEntitySelector(
+                    entitySelector(
                         "@e[advancements={minecraft:story/root={criterion=true}}]",
                     ).arguments
                         .filterIsInstance<EntitySelectorArgument.Advancements>()
@@ -144,7 +144,7 @@ class EntitySelectorParserTest :
             }
 
             "exposes parsed range bounds without reparsing rendered strings" {
-                val parsed = parseEntitySelector("@e[distance=..10,level=2..5,scores={kills=-1..}]")
+                val parsed = entitySelector("@e[distance=..10,level=2..5,scores={kills=-1..}]")
                 val distance = parsed.arguments.filterIsInstance<EntitySelectorArgument.Range>().single()
                 val level = parsed.arguments.filterIsInstance<EntitySelectorArgument.Level>().single()
                 val scores = parsed.arguments.filterIsInstance<EntitySelectorArgument.Scores>().single()
@@ -161,26 +161,23 @@ class EntitySelectorParserTest :
                     .range.maximum shouldBe null
             }
 
-            "round trips DSL-built selectors through the shared argument model" {
+            "DSL factories return the shared structured selector model" {
                 val built =
                     entities {
                         !type("zombie")
-                        name("Boss, Mob")
-                        distance(atMost(10.0))
-                        scores { "kills" eq atLeast(5) }
-                        advancements { key("minecraft", "story/root") eq true }
                         tag("boss")
-                        !nbt { "Health" eq 20.0f }
-                        !predicate(key("my_pack", "hidden"))
-                    }.asString()
+                    }
 
-                parseEntitySelector(built).asString() shouldBe built
+                built.head shouldBe EntitySelectorHead.ENTITIES
+                built.arguments shouldHaveSize 2
+                built.arguments.first().shouldBeInstanceOf<EntitySelectorArgument.Type>()
+                built.arguments.last().shouldBeInstanceOf<EntitySelectorArgument.Tag>()
             }
 
-            "supplies parsed selectors to selector components" {
-                val parsed = parseEntitySelector("@a[tag=admin]")
+            "supplies parsed selectors directly to selector components" {
+                val parsed = entitySelector("@a[tag=admin]")
 
-                selector(parsed.asEntitySelector())
+                selector(parsed)
                     .shouldBeSelectorComponent()
                     .shouldHaveSelectorPattern("@a[tag=admin]")
             }
@@ -238,10 +235,6 @@ class EntitySelectorParserTest :
                 assertParseFailure("@s[limit=1]", 3, "does not support 'limit'")
                 assertParseFailure("@s[sort=nearest]", 3, "does not support 'sort'")
             }
-
-            "keeps the raw selector escape hatch unchanged" {
-                entitySelector("@future[unknown=value]").asString() shouldBe "@future[unknown=value]"
-            }
         },
     )
 
@@ -250,7 +243,7 @@ private fun assertParseFailure(
     offset: Int,
     message: String,
 ) {
-    val failure = shouldThrow<EntitySelectorParseException> { parseEntitySelector(source) }
+    val failure = shouldThrow<EntitySelectorParseException> { entitySelector(source) }
     failure.offset shouldBe offset
     failure.message shouldContain message
 }

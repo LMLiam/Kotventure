@@ -949,12 +949,6 @@ class EntitySelectorTest :
                 entities { sort(arbitrary) }.asString() shouldBe "@e[sort=arbitrary]"
             }
 
-            "escape hatch wraps a raw string" {
-                val selector = entitySelector("@e[type=zombie,limit=5,nbt={NoAI:1b}]")
-
-                selector.asString() shouldBe "@e[type=zombie,limit=5,nbt={NoAI:1b}]"
-            }
-
             "toString returns the selector string" {
                 self().toString() shouldBe "@s"
             }

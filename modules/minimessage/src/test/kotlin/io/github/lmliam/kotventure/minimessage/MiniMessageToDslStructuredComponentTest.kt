@@ -395,12 +395,18 @@ class MiniMessageToDslStructuredComponentTest :
                 }
 
                 test("emits entity NBT components from a compiled expected DSL") {
-                    val nbt = component { entityNbt(entitySelector("@e[type=armor_stand]"), nbtPath("Pos")) }
+                    val nbt =
+                        component {
+                            entityNbt(
+                                entitySelector("@e[type=minecraft:armor_stand]"),
+                                nbtPath("Pos"),
+                            )
+                        }
 
                     MiniMessageToDslWriter.write(nbt) shouldBe
                             """
                     component {
-                        entityNbt(entitySelector("@e[type=armor_stand]"), nbtPath("Pos"))
+                        entityNbt(entitySelector("@e[type=minecraft:armor_stand]"), nbtPath("Pos"))
                     }
                     """.trimIndent()
                 }
@@ -438,15 +444,17 @@ class MiniMessageToDslStructuredComponentTest :
 
                 test("round-trips selector with arguments through the full parse-write path") {
                     assertGoldenRoundTrip(
-                        input = "<selector:'@e[type=armor_stand,limit=1]'>",
+                        input = "<selector:'@e[type=minecraft:armor_stand,limit=1]'>",
                         expectedSource =
                             """
                         component {
-                            selector(entitySelector("@e[type=armor_stand,limit=1]"))
+                            selector(entitySelector("@e[type=minecraft:armor_stand,limit=1]"))
                         }
                         """.trimIndent(),
                         expectedComponent =
-                            component { selector(entitySelector("@e[type=armor_stand,limit=1]")) },
+                            component {
+                                selector(entitySelector("@e[type=minecraft:armor_stand,limit=1]"))
+                            },
                     )
                 }
 

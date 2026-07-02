@@ -1,28 +1,26 @@
 package io.github.lmliam.kotventure.core.selector
 
 /**
- * Parses a Java Edition entity selector (a "target selector" in vanilla terms) into an immutable
- * [ParsedEntitySelector].
+ * Validates and parses Java Edition entity-selector source into an immutable [EntitySelector].
  *
- * Parsing is opt-in and grammar-strict: the six selector heads and every argument understood by
- * the selector DSL parse into typed arguments, and any other syntax throws
+ * Parsing is grammar-strict: the six selector heads and every argument understood by the selector
+ * DSL parse into typed arguments, and any other syntax throws
  * [EntitySelectorParseException] instead of being silently normalized. Semantic rules the game
  * applies on top of the grammar — such as rejecting duplicate single-use arguments or tolerating
  * whitespace between arguments — are deliberately out of scope until the vanilla-conformance
- * suite pins them. [entitySelector] remains the lossless, zero-validation escape hatch for
- * unsupported source.
+ * suite pins them.
  *
  * @throws EntitySelectorParseException if [source] is not a parseable entity selector
  * @sample io.github.lmliam.kotventure.core.selector.parsedEntitySelectorSample
  */
-public fun parseEntitySelector(source: String): ParsedEntitySelector {
+public fun entitySelector(source: String): EntitySelector {
     val reader = SelectorReader(source)
     val head = reader.readSelectorHead()
-    if (reader.isAtEnd()) return ParsedEntitySelector(head, emptyList())
+    if (reader.isAtEnd()) return EntitySelector(head, emptyList())
     reader.expect('[', "Expected '[' or the end of the selector")
     val arguments = reader.readSelectorArguments(head)
     if (!reader.isAtEnd()) reader.fail("Unexpected trailing selector content")
-    return ParsedEntitySelector(head, arguments, hasExplicitArgumentList = true)
+    return EntitySelector(head, arguments, hasExplicitArgumentList = true)
 }
 
 private fun SelectorReader.readSelectorHead(): EntitySelectorHead {

@@ -5,7 +5,7 @@ import net.kyori.adventure.key.Key
 
 /**
  * Converts the DSL builder's validated state into the shared typed argument model, in canonical
- * rendering order. [parseEntitySelector] produces the same model from raw source, so both
+ * rendering order. [entitySelector] produces the same model from validated source, so both
  * construction paths render through one renderer.
  */
 internal fun EntitySelectorBuilder.selectorArguments(): List<EntitySelectorArgument> =
