@@ -33,6 +33,21 @@ class SelectorSnbtParsingTest :
                 }
             }
 
+            "accepts trailing commas in every supported SNBT container" {
+                listOf(
+                    "@e[nbt={foo:1b,}]",
+                    "@e[nbt={values:[1b,2b,]}]",
+                    "@e[nbt={values:[I;1,2,]}]",
+                ).forEach { source ->
+                    entitySelector(source).asString() shouldBe source
+                }
+            }
+
+            "stops unquoted SNBT scalars at every container terminator" {
+                entitySelector("@e[nbt={a:1,b:[2],c:{d:3}}]").asString() shouldBe
+                    "@e[nbt={a:1,b:[2],c:{d:3}}]"
+            }
+
             "rejects malformed SNBT structure" {
                 assertParseFailure("@e[nbt={foo}]", 11, "Expected ':'")
                 assertParseFailure("@e[nbt={list:[1 2]}]", 16, "Expected ','")

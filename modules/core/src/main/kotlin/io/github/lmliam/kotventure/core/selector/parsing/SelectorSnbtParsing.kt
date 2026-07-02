@@ -10,19 +10,32 @@ import io.github.lmliam.kotventure.core.selector.isAllowedInUnquotedSelectorToke
  */
 internal fun SelectorReader.validateSnbtCompound() {
     expect('{')
-    skipSnbtWhitespace()
-    if (consume('}')) return
-    while (true) {
+    readSnbtElements('}') {
         validateSnbtCompoundKey()
         skipSnbtWhitespace()
         expect(':')
         skipSnbtWhitespace()
         validateSnbtValue()
+    }
+}
+
+/**
+ * Reads `,`-separated container elements up to and including [closingDelimiter], accepting empty
+ * containers and trailing commas.
+ */
+private inline fun SelectorReader.readSnbtElements(
+    closingDelimiter: Char,
+    readElement: SelectorReader.() -> Unit,
+) {
+    skipSnbtWhitespace()
+    if (consume(closingDelimiter)) return
+    while (true) {
+        readElement()
         skipSnbtWhitespace()
-        if (consume('}')) return
+        if (consume(closingDelimiter)) return
         expect(',')
         skipSnbtWhitespace()
-        if (consume('}')) return
+        if (consume(closingDelimiter)) return
     }
 }
 
@@ -43,34 +56,17 @@ private fun SelectorReader.validateSnbtListOrArray() {
     if (arrayType != null && arrayType in SNBT_TYPED_ARRAY_PREFIXES && peekSecond() == ';') {
         skip()
         skip()
-        validateSnbtTypedArrayValues(arrayType)
+        readSnbtElements(']') { validateSnbtTypedArrayValue(arrayType) }
         return
     }
-    if (consume(']')) return
-    while (true) {
-        validateSnbtValue()
-        skipSnbtWhitespace()
-        if (consume(']')) return
-        expect(',')
-        skipSnbtWhitespace()
-        if (consume(']')) return
-    }
+    readSnbtElements(']') { validateSnbtValue() }
 }
 
-private fun SelectorReader.validateSnbtTypedArrayValues(arrayType: Char) {
-    skipSnbtWhitespace()
-    if (consume(']')) return
-    while (true) {
-        val valueOffset = offset
-        val value = readSnbtUnquotedScalar()
-        if (!isValidSnbtTypedArrayValue(value, arrayType)) {
-            failAt(valueOffset, "Invalid $arrayType array value '$value'")
-        }
-        skipSnbtWhitespace()
-        if (consume(']')) return
-        expect(',')
-        skipSnbtWhitespace()
-        if (consume(']')) return
+private fun SelectorReader.validateSnbtTypedArrayValue(arrayType: Char) {
+    val valueOffset = offset
+    val value = readSnbtUnquotedScalar()
+    if (!isValidSnbtTypedArrayValue(value, arrayType)) {
+        failAt(valueOffset, "Invalid $arrayType array value '$value'")
     }
 }
 
@@ -100,13 +96,15 @@ private fun SelectorReader.readSnbtUnquotedScalar(): String {
     val start = offset
     while (true) {
         val character = peek() ?: break
-        if (character == ',' || character == '}' || character == ']' || character.isWhitespace()) break
+        if (character.isSnbtScalarTerminator()) break
         if (!character.isAllowedInUnquotedSelectorToken()) fail("Invalid unquoted SNBT token")
         skip()
     }
     if (offset == start) fail("Expected SNBT value")
     return substringFrom(start)
 }
+
+private fun Char.isSnbtScalarTerminator(): Boolean = this in ",]}" || isWhitespace()
 
 private fun SelectorReader.skipSnbtWhitespace() {
     while (peek()?.isWhitespace() == true) skip()
