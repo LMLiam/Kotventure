@@ -9,4 +9,5 @@ package io.github.lmliam.kotventure.core.selector
 public class EntitySelectorParseException internal constructor(
     public val offset: Int,
     override val message: String,
-) : IllegalArgumentException(message)
+    cause: Throwable? = null,
+) : IllegalArgumentException(message, cause)

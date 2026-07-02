@@ -26,7 +26,7 @@ private fun EntitySelectorArgument.renderValue(): String =
     }
 
 private val EntitySelectorArgument.Negatable.negationPrefix: String
-    get() = if (isNegated) "!" else ""
+    get() = if (isNegated) SELECTOR_NEGATION_PREFIX.toString() else ""
 
 private fun SelectorEntityType.render(): String =
     when (this) {

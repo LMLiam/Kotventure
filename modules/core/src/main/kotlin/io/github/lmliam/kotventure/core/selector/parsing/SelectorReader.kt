@@ -17,9 +17,8 @@ internal class SelectorReader(
 
     fun isAtEnd(): Boolean = offset == source.length
 
-    fun peek(): Char? = source.getOrNull(offset)
-
-    fun peekSecond(): Char? = source.getOrNull(offset + 1)
+    /** Returns the character [distance] positions ahead of the cursor without consuming it. */
+    fun peek(distance: Int = 0): Char? = source.getOrNull(offset + distance)
 
     fun skip() {
         offset++
@@ -28,6 +27,13 @@ internal class SelectorReader(
     fun consume(expected: Char): Boolean {
         if (peek() != expected) return false
         offset++
+        return true
+    }
+
+    /** Consumes the whole [expected] token if the source continues with it. */
+    fun consume(expected: String): Boolean {
+        if (!source.startsWith(expected, offset)) return false
+        offset += expected.length
         return true
     }
 
@@ -52,5 +58,6 @@ internal class SelectorReader(
     fun failAt(
         offset: Int,
         message: String,
-    ): Nothing = throw EntitySelectorParseException(offset, message)
+        cause: Throwable? = null,
+    ): Nothing = throw EntitySelectorParseException(offset, message, cause)
 }

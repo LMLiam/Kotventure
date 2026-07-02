@@ -1,6 +1,7 @@
 package io.github.lmliam.kotventure.core.selector
 
 import net.kyori.adventure.key.Key
+import io.github.lmliam.kotventure.core.selector.GameMode as SelectorGameMode
 
 /**
  * One immutable, typed Java Edition entity-selector argument.
@@ -9,10 +10,9 @@ public sealed interface EntitySelectorArgument {
     /**
      * An argument that vanilla syntax can prefix-negate with `!`.
      */
-    public sealed interface Negatable : EntitySelectorArgument {
-        /** Whether the argument excludes matching entities instead of requiring them. */
-        public val isNegated: Boolean
-    }
+    public sealed interface Negatable :
+        EntitySelectorArgument,
+        SelectorNegatable
 
     /**
      * A selector coordinate or bounding-volume delta.
@@ -80,7 +80,7 @@ public sealed interface EntitySelectorArgument {
      * @property isNegated whether the filter excludes this game mode
      */
     public data class GameMode(
-        public val value: io.github.lmliam.kotventure.core.selector.GameMode,
+        public val value: SelectorGameMode,
         override val isNegated: Boolean,
     ) : Negatable
 
@@ -184,24 +184,33 @@ public sealed interface EntitySelectorArgument {
 }
 
 /**
- * The vanilla selector-source name of this argument, such as `limit` in `limit=1`. Exhaustive so a
- * new argument cannot be added without declaring its syntax name.
+ * The keyword of this argument, or `null` for coordinates and floating-point ranges (whose names
+ * are owned by [SelectorCoordinate] and [SelectorRangeArgument]). Exhaustive so a new argument
+ * cannot be added without declaring how it is named.
  */
+internal val EntitySelectorArgument.keyword: SelectorArgumentKeyword?
+    get() =
+        when (this) {
+            is EntitySelectorArgument.Coordinate, is EntitySelectorArgument.Range -> null
+            is EntitySelectorArgument.Level -> SelectorArgumentKeyword.LEVEL
+            is EntitySelectorArgument.Limit -> SelectorArgumentKeyword.LIMIT
+            is EntitySelectorArgument.Sort -> SelectorArgumentKeyword.SORT
+            is EntitySelectorArgument.GameMode -> SelectorArgumentKeyword.GAMEMODE
+            is EntitySelectorArgument.Name -> SelectorArgumentKeyword.NAME
+            is EntitySelectorArgument.Type -> SelectorArgumentKeyword.TYPE
+            is EntitySelectorArgument.Tag -> SelectorArgumentKeyword.TAG
+            is EntitySelectorArgument.Team -> SelectorArgumentKeyword.TEAM
+            is EntitySelectorArgument.Nbt -> SelectorArgumentKeyword.NBT
+            is EntitySelectorArgument.Scores -> SelectorArgumentKeyword.SCORES
+            is EntitySelectorArgument.Predicate -> SelectorArgumentKeyword.PREDICATE
+            is EntitySelectorArgument.Advancements -> SelectorArgumentKeyword.ADVANCEMENTS
+        }
+
+/** The vanilla selector-source name of this argument, such as `limit` in `limit=1`. */
 internal val EntitySelectorArgument.argumentName: String
     get() =
         when (this) {
             is EntitySelectorArgument.Coordinate -> coordinate.argumentName
             is EntitySelectorArgument.Range -> argument.argumentName
-            is EntitySelectorArgument.Limit -> "limit"
-            is EntitySelectorArgument.Sort -> "sort"
-            is EntitySelectorArgument.Level -> "level"
-            is EntitySelectorArgument.GameMode -> "gamemode"
-            is EntitySelectorArgument.Name -> "name"
-            is EntitySelectorArgument.Type -> "type"
-            is EntitySelectorArgument.Tag -> "tag"
-            is EntitySelectorArgument.Team -> "team"
-            is EntitySelectorArgument.Nbt -> "nbt"
-            is EntitySelectorArgument.Scores -> "scores"
-            is EntitySelectorArgument.Predicate -> "predicate"
-            is EntitySelectorArgument.Advancements -> "advancements"
+            else -> checkNotNull(keyword) { "Keyword arguments always declare a keyword" }.sourceName
         }

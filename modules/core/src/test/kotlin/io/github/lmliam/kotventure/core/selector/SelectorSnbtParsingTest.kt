@@ -1,26 +1,25 @@
 package io.github.lmliam.kotventure.core.selector
 
+import io.github.lmliam.kotventure.test.selector.shouldBeCanonicalSelector
+import io.github.lmliam.kotventure.test.selector.shouldFailToParseAt
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.shouldBe
 
 class SelectorSnbtParsingTest :
     StringSpec(
         {
             "round trips nested SNBT filters" {
-                val source = "@e[nbt={Tags:[\"boss\"],Data:[I;1,2]},nbt=!{Health:20.0f}]"
-
-                entitySelector(source).asString() shouldBe source
+                "@e[nbt={Tags:[\"boss\"],Data:[I;1,2]},nbt=!{Health:20.0f}]".shouldBeCanonicalSelector()
             }
 
             "accepts typed SNBT array boundaries" {
                 val source =
                     "@e[nbt={" +
-                            "Bytes:[B;-128b,+127b]," +
-                            "Ints:[I;-2147483648,+2147483647]," +
-                            "Longs:[L;-9223372036854775808L,+9223372036854775807L]" +
-                            "}]"
+                        "Bytes:[B;-128b,+127b]," +
+                        "Ints:[I;-2147483648,+2147483647]," +
+                        "Longs:[L;-9223372036854775808L,+9223372036854775807L]" +
+                        "}]"
 
-                entitySelector(source).asString() shouldBe source
+                source.shouldBeCanonicalSelector()
             }
 
             "preserves Java Edition 26.2 SNBT container forms" {
@@ -31,29 +30,24 @@ class SelectorSnbtParsingTest :
                     "@e[nbt={Data:[B;+1b,]}]",
                     "@e[nbt={values:[I;1,2,]}]",
                 ).forEach { source ->
-                    entitySelector(source).asString() shouldBe source
+                    source.shouldBeCanonicalSelector()
                 }
             }
 
             "stops unquoted SNBT scalars at every container terminator" {
-                entitySelector("@e[nbt={a:1,b:[2],c:{d:3}}]").asString() shouldBe
-                        "@e[nbt={a:1,b:[2],c:{d:3}}]"
+                "@e[nbt={a:1,b:[2],c:{d:3}}]".shouldBeCanonicalSelector()
             }
 
             "rejects malformed SNBT structure" {
-                assertParseFailure("@e[nbt={foo}]", 11, "Expected ':'")
-                assertParseFailure("@e[nbt={list:[1 2]}]", 16, "Expected ','")
-                assertParseFailure("@e[nbt={id:minecraft:stone}]", 20, "Invalid unquoted SNBT token")
+                "@e[nbt={foo" shouldFailToParseAt "}]"
+                "@e[nbt={list:[1 " shouldFailToParseAt "2]}]"
+                "@e[nbt={id:minecraft" shouldFailToParseAt ":stone}]"
             }
 
             "rejects typed SNBT array overflow" {
-                listOf(
-                    "@e[nbt={Data:[B;128b]}]" to "128b",
-                    "@e[nbt={Data:[I;2147483648]}]" to "2147483648",
-                    "@e[nbt={Data:[L;9223372036854775808L]}]" to "9223372036854775808L",
-                ).forEach { (source, invalidValue) ->
-                    assertParseFailure(source, source.indexOf(invalidValue), "Invalid")
-                }
+                "@e[nbt={Data:[B;" shouldFailToParseAt "128b]}]"
+                "@e[nbt={Data:[I;" shouldFailToParseAt "2147483648]}]"
+                "@e[nbt={Data:[L;" shouldFailToParseAt "9223372036854775808L]}]"
             }
         },
     )

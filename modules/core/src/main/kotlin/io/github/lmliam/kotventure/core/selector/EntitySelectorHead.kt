@@ -34,18 +34,20 @@ public enum class EntitySelectorHead(
 }
 
 /**
- * The one head-compatibility policy, keyed by selector-source [name] so the parser can reject an
- * unsupported argument before reading its value.
+ * The one head-compatibility policy, keyed by [SelectorArgumentKeyword] so the parser can reject
+ * an unsupported argument before reading its value. Coordinates and floating-point ranges carry
+ * no keyword and are accepted by every head.
  */
-internal fun EntitySelectorHead.supportsArgument(name: String): Boolean =
-    when (name) {
-        "type" -> acceptsTypeFilters
-        "limit", "sort" -> acceptsResultControls
+internal fun EntitySelectorHead.supports(keyword: SelectorArgumentKeyword): Boolean =
+    when (keyword) {
+        SelectorArgumentKeyword.TYPE -> acceptsTypeFilters
+        SelectorArgumentKeyword.LIMIT, SelectorArgumentKeyword.SORT -> acceptsResultControls
         else -> true
     }
 
 internal fun EntitySelectorHead.requireSupportFor(argument: EntitySelectorArgument) {
-    require(supportsArgument(argument.argumentName)) {
-        "Selector $token does not support '${argument.argumentName}'."
+    val keyword = argument.keyword ?: return
+    require(supports(keyword)) {
+        "Selector $token does not support '${keyword.sourceName}'."
     }
 }

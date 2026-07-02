@@ -53,7 +53,7 @@ private fun SelectorReader.validateSnbtListOrArray() {
     expect('[')
     skipSnbtWhitespace()
     val arrayType = peek()
-    if (arrayType != null && arrayType in SNBT_TYPED_ARRAY_PREFIXES && peekSecond() == ';') {
+    if (arrayType != null && arrayType in SNBT_TYPED_ARRAY_PREFIXES && peek(1) == ';') {
         skip()
         skip()
         readSnbtElements(']') { validateSnbtTypedArrayValue(arrayType) }
@@ -70,14 +70,20 @@ private fun SelectorReader.validateSnbtTypedArrayValue(arrayType: Char) {
     }
 }
 
+/**
+ * Typed-array elements are an optionally signed integer, suffixed `b`/`B` for byte arrays and
+ * `l`/`L` for long arrays. `toByteOrNull`/`toIntOrNull`/`toLongOrNull` accept exactly that
+ * unsuffixed language (and reject overflow), so no separate syntax check is needed — the scalar
+ * reader has already restricted the charset.
+ */
 private fun isValidSnbtTypedArrayValue(
     value: String,
     arrayType: Char,
 ): Boolean =
     when (arrayType) {
-        'B' -> SNBT_BYTE.matches(value) && value.dropLast(1).toByteOrNull() != null
-        'I' -> SNBT_INT.matches(value) && value.toIntOrNull() != null
-        'L' -> SNBT_LONG.matches(value) && value.dropLast(1).toLongOrNull() != null
+        'B' -> value.endsWith('b', ignoreCase = true) && value.dropLast(1).toByteOrNull() != null
+        'I' -> value.toIntOrNull() != null
+        'L' -> value.endsWith('l', ignoreCase = true) && value.dropLast(1).toLongOrNull() != null
         else -> false
     }
 
@@ -110,7 +116,4 @@ private fun SelectorReader.skipSnbtWhitespace() {
     while (peek()?.isWhitespace() == true) skip()
 }
 
-private val SNBT_BYTE: Regex = Regex("[+-]?[0-9]+[bB]")
-private val SNBT_INT: Regex = Regex("[+-]?[0-9]+")
-private val SNBT_LONG: Regex = Regex("[+-]?[0-9]+[lL]")
 private val SNBT_TYPED_ARRAY_PREFIXES: Set<Char> = setOf('B', 'I', 'L')

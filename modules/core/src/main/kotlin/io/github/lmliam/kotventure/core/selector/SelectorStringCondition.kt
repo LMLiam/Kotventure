@@ -3,10 +3,7 @@ package io.github.lmliam.kotventure.core.selector
 /**
  * A named or presence-based condition for selector arguments such as `tag` and `team`.
  */
-public sealed interface SelectorStringCondition {
-    /** Whether the condition excludes matching values instead of requiring them. */
-    public val isNegated: Boolean
-
+public sealed interface SelectorStringCondition : SelectorNegatable {
     /**
      * Matches one named value.
      *
@@ -44,7 +41,7 @@ public sealed interface SelectorStringCondition {
          * Maps vanilla's empty-value rule: an empty [value] is a presence test (`tag=` requires
          * none present, `tag=!` requires any present); a non-empty [value] is a named condition.
          */
-        internal fun of(
+        internal operator fun invoke(
             value: String,
             isNegated: Boolean,
         ): SelectorStringCondition =

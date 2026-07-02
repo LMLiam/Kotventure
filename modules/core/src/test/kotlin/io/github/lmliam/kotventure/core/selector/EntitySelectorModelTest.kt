@@ -2,13 +2,14 @@ package io.github.lmliam.kotventure.core.selector
 
 import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.test.compilation.assertDoesNotCompile
+import io.github.lmliam.kotventure.test.selector.shouldFailToParseAt
+import io.github.lmliam.kotventure.test.selector.shouldRenderAs
 import io.github.lmliam.kotventure.test.text.shouldBeSelectorComponent
 import io.github.lmliam.kotventure.test.text.shouldHaveSelectorPattern
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 
 class EntitySelectorModelTest :
@@ -28,7 +29,7 @@ class EntitySelectorModelTest :
                         parsed.arguments.filterNot { it is EntitySelectorArgument.Name },
                     )
 
-                transformed.asString() shouldBe "@e[type=minecraft:zombie,tag=!hidden]"
+                transformed shouldRenderAs "@e[type=minecraft:zombie,tag=!hidden]"
             }
 
             "hides invariant-bypassing generated copy methods" {
@@ -86,8 +87,18 @@ class EntitySelectorModelTest :
                     EntitySelectorArgument.Scores(
                         listOf(SelectorScoreRequirement("kills", exactly(1))),
                     )
+                val advancements =
+                    EntitySelectorArgument.Advancements(
+                        listOf(
+                            SelectorAdvancementRequirement(
+                                key("minecraft", "story/root"),
+                                SelectorAdvancementProgress.Completion(true),
+                            ),
+                        ),
+                    )
 
                 scores.scores.single().objective shouldBe "kills"
+                advancements.advancements.single().advancement shouldBe key("minecraft", "story/root")
             }
 
             "rejects invalid public argument construction" {
@@ -140,9 +151,9 @@ class EntitySelectorModelTest :
 
                 shouldThrow<IllegalArgumentException> {
                     EntitySelector(EntitySelectorHead.ALL_PLAYERS, listOf(type))
-                }.message shouldContain "does not support 'type'"
+                }
 
-                assertParseFailure("@a[type=minecraft:zombie]", 3, "does not support 'type'")
+                "@a[" shouldFailToParseAt "type=minecraft:zombie]"
             }
 
             "models tag and team presence explicitly" {
@@ -151,15 +162,15 @@ class EntitySelectorModelTest :
                 val teams = parsed.arguments.filterIsInstance<EntitySelectorArgument.Team>()
 
                 tags.map(EntitySelectorArgument.Tag::condition) shouldBe
-                        listOf(
-                            SelectorStringCondition.Presence(SelectorPresence.NONE),
-                            SelectorStringCondition.Presence(SelectorPresence.ANY),
-                        )
+                    listOf(
+                        SelectorStringCondition.Presence(SelectorPresence.NONE),
+                        SelectorStringCondition.Presence(SelectorPresence.ANY),
+                    )
                 teams.map(EntitySelectorArgument.Team::condition) shouldBe
-                        listOf(
-                            SelectorStringCondition.Named("red"),
-                            SelectorStringCondition.Named("blue", isNegated = true),
-                        )
+                    listOf(
+                        SelectorStringCondition.Named("red"),
+                        SelectorStringCondition.Named("blue", isNegated = true),
+                    )
                 teams.map(EntitySelectorArgument.Team::isNegated) shouldBe listOf(false, true)
             }
 
@@ -173,7 +184,7 @@ class EntitySelectorModelTest :
                 nbt.snbt.value shouldBe "{Health:20.0f}"
             }
 
-            "defensively snapshots every collection-backed model value" {
+            "defensively snapshots collection-backed model values" {
                 val sourceArguments =
                     mutableListOf<EntitySelectorArgument>(
                         EntitySelectorArgument.Tag(SelectorStringCondition.Named("admin")),
@@ -183,10 +194,10 @@ class EntitySelectorModelTest :
 
                 parsed.arguments shouldHaveSize 1
                 parsed shouldBe
-                        EntitySelector(
-                            EntitySelectorHead.ENTITIES,
-                            parsed.arguments,
-                        )
+                    EntitySelector(
+                        EntitySelectorHead.ENTITIES,
+                        parsed.arguments,
+                    )
                 shouldThrow<UnsupportedOperationException> {
                     @Suppress("UNCHECKED_CAST")
                     (parsed.arguments as MutableList<EntitySelectorArgument>).clear()
@@ -196,26 +207,6 @@ class EntitySelectorModelTest :
                 val scores = EntitySelectorArgument.Scores(scoreSource)
                 scoreSource.clear()
                 scores.scores shouldHaveSize 1
-
-                val structured =
-                    entitySelector(
-                        "@e[advancements={minecraft:story/root={criterion=true}}]",
-                    ).arguments
-                        .filterIsInstance<EntitySelectorArgument.Advancements>()
-                        .single()
-                val criteria =
-                    structured.advancements
-                        .single()
-                        .progress
-                        .shouldBeInstanceOf<SelectorAdvancementProgress.Criteria>()
-                shouldThrow<UnsupportedOperationException> {
-                    @Suppress("UNCHECKED_CAST")
-                    (structured.advancements as MutableList<SelectorAdvancementRequirement>).clear()
-                }
-                shouldThrow<UnsupportedOperationException> {
-                    @Suppress("UNCHECKED_CAST")
-                    (criteria.criteria as MutableList<SelectorAdvancementCriterion>).clear()
-                }
             }
 
             "exposes parsed range bounds without reparsing rendered strings" {

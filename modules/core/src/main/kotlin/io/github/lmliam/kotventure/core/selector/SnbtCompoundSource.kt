@@ -6,12 +6,13 @@ import io.github.lmliam.kotventure.core.selector.parsing.validateSnbtCompound
 /**
  * Validated compound SNBT source.
  *
- * Construct with [parse].
+ * Construct with [parse]. The direct constructor is module-internal: it wraps source a caller has
+ * already validated or rendered as one complete compound.
  *
  * @property value validated source beginning with `{` and ending with `}`
  */
 @JvmInline
-public value class SnbtCompoundSource private constructor(
+public value class SnbtCompoundSource internal constructor(
     public val value: String,
 ) {
     /** Validated compound SNBT construction. */
@@ -27,11 +28,6 @@ public value class SnbtCompoundSource private constructor(
             if (!reader.isAtEnd()) reader.fail("Unexpected trailing SNBT content")
             return SnbtCompoundSource(source)
         }
-
-        /**
-         * Wraps [source] after a caller has already validated or rendered the complete compound.
-         */
-        internal fun trusted(source: String): SnbtCompoundSource = SnbtCompoundSource(source)
     }
 
     public override fun toString(): String = value

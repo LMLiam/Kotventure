@@ -1,5 +1,9 @@
 package io.github.lmliam.kotventure.core.selector
 
+import io.github.lmliam.kotventure.core.key.key
+import io.github.lmliam.kotventure.test.selector.shouldBeCanonicalSelector
+import io.github.lmliam.kotventure.test.selector.shouldFailToParseAt
+import io.github.lmliam.kotventure.test.selector.shouldRenderAs
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
@@ -9,41 +13,53 @@ class SelectorFilterArgumentParsingTest :
             "round trips type, name, gamemode, tag, team, and predicate filters" {
                 val source =
                     "@e[" +
-                            "type=!#my_pack:hostile," +
-                            "name=\"Boss Mob\"," +
-                            "gamemode=!creative," +
-                            "tag=!hidden,team=blue," +
-                            "predicate=!my_pack:hidden" +
-                            "]"
+                        "type=!#my_pack:hostile," +
+                        "name=\"Boss Mob\"," +
+                        "gamemode=!creative," +
+                        "tag=!hidden,team=blue," +
+                        "predicate=!my_pack:hidden" +
+                        "]"
 
-                entitySelector(source).asString() shouldBe source
+                source.shouldBeCanonicalSelector()
+            }
+
+            "exposes parsed filter structure" {
+                val parsed = entitySelector("@e[type=!#my_pack:hostile,name=\"Boss Mob\",gamemode=!creative]")
+
+                parsed.arguments shouldBe
+                    listOf(
+                        EntitySelectorArgument.Type(
+                            SelectorEntityType.Tag(key("my_pack", "hostile")),
+                            isNegated = true,
+                        ),
+                        EntitySelectorArgument.Name("Boss Mob", isNegated = false),
+                        EntitySelectorArgument.GameMode(GameMode.CREATIVE, isNegated = true),
+                    )
             }
 
             "renders decoded selector names canonically" {
-                entitySelector("@e[name='Boss Mob']").asString() shouldBe "@e[name=\"Boss Mob\"]"
-                entitySelector("@e[name=\"Boss \\\"Mob\\\"\"]").asString() shouldBe
-                        "@e[name=\"Boss \\\"Mob\\\"\"]"
+                entitySelector("@e[name='Boss Mob']") shouldRenderAs "@e[name=\"Boss Mob\"]"
+                "@e[name=\"Boss \\\"Mob\\\"\"]".shouldBeCanonicalSelector()
             }
 
             "preserves repeated empty-value filters" {
-                entitySelector("@e[tag=,tag=!,team=,team=!]").asString() shouldBe
-                        "@e[tag=,tag=!,team=,team=!]"
+                "@e[tag=,tag=!,team=,team=!]".shouldBeCanonicalSelector()
             }
 
             "rejects malformed names" {
-                assertParseFailure("@e[name=]", 8, "Invalid unquoted selector name")
-                assertParseFailure("@e[name=\"Boss]", 8, "Unterminated quoted string")
-                assertParseFailure("@e[name=\"bad\\q\"]", 12, "Invalid quoted-string escape")
+                "@e[name=" shouldFailToParseAt "]"
+                "@e[name=" shouldFailToParseAt "\"Boss]"
+                "@e[name=\"bad" shouldFailToParseAt "\\q\"]"
             }
 
             "rejects malformed keys and tokens" {
-                assertParseFailure("@e[type=!!minecraft:zombie]", 9, "Invalid namespaced key")
-                assertParseFailure("@e[type=#Bad:Key]", 9, "Invalid namespaced key")
-                assertParseFailure("@e[tag=bad value]", 7, "Invalid unquoted selector token")
+                "@e[type=!" shouldFailToParseAt "!minecraft:zombie]"
+                "@e[type=#" shouldFailToParseAt "Bad:Key]"
+                "@e[tag=" shouldFailToParseAt "bad value]"
             }
 
             "rejects unsupported game modes" {
-                assertParseFailure("@e[gamemode=!builder]", 13, "Unsupported game mode")
+                "@e[gamemode=!" shouldFailToParseAt "builder]"
             }
         },
     )

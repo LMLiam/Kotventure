@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.core.selector
 
+import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.nbt.NbtCompound
 import io.github.lmliam.kotventure.core.nbt.renderCompound
 import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Advancements
@@ -16,7 +17,6 @@ import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Sort
 import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Tag
 import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Team
 import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Type
-import net.kyori.adventure.key.Key
 
 /**
  * Converts the DSL builder's validated state into the shared typed argument model, in canonical
@@ -34,9 +34,17 @@ internal fun EntitySelectorBuilder.selectorArguments(): List<EntitySelectorArgum
         pitch?.let { add(Range(SelectorRangeArgument.X_ROTATION, it)) }
         yaw?.let { add(Range(SelectorRangeArgument.Y_ROTATION, it)) }
         level?.let { add(Level(it)) }
-        scores?.let { scores -> add(Scores(scores.map(::scoreArgument))) }
+        scores?.let { scores ->
+            add(Scores(scores.map { (objective, range) -> SelectorScoreRequirement(objective, range) }))
+        }
         advancements?.let { advancements ->
-            add(Advancements(advancements.map(::advancementArgument)))
+            add(
+                Advancements(
+                    advancements.map { (advancement, condition) ->
+                        SelectorAdvancementRequirement(advancement, condition.progress())
+                    },
+                ),
+            )
         }
         addAll(gamemodeFilters.arguments(::GameMode))
         addAll(teamFilters.arguments(::teamArgument))
@@ -58,9 +66,9 @@ private fun typeArgument(
 ): Type {
     val target =
         if (value.startsWith("#")) {
-            SelectorEntityType.Tag(Key.key(value.removePrefix("#")))
+            SelectorEntityType.Tag(key(value.removePrefix("#")))
         } else {
-            SelectorEntityType.Direct(Key.key(value))
+            SelectorEntityType.Direct(key(value))
         }
     return Type(target, isNegated)
 }
@@ -68,28 +76,22 @@ private fun typeArgument(
 private fun predicateArgument(
     value: String,
     isNegated: Boolean,
-): Predicate = Predicate(Key.key(value), isNegated)
+): Predicate = Predicate(key(value), isNegated)
 
 private fun teamArgument(
     value: String,
     isNegated: Boolean,
-): Team = Team(SelectorStringCondition.of(value, isNegated))
+): Team = Team(SelectorStringCondition(value, isNegated))
 
 private fun tagArgument(
     value: String,
     isNegated: Boolean,
-): Tag = Tag(SelectorStringCondition.of(value, isNegated))
+): Tag = Tag(SelectorStringCondition(value, isNegated))
 
 private fun nbtArgument(
     value: NbtCompound,
     isNegated: Boolean,
-): Nbt = Nbt(SnbtCompoundSource.trusted(renderCompound(value)), isNegated)
-
-private fun scoreArgument(score: Map.Entry<String, SelectorIntRange>): SelectorScoreRequirement =
-    SelectorScoreRequirement(score.key, score.value)
-
-private fun advancementArgument(advancement: Map.Entry<Key, AdvancementCondition>): SelectorAdvancementRequirement =
-    SelectorAdvancementRequirement(advancement.key, advancement.value.progress())
+): Nbt = Nbt(SnbtCompoundSource(renderCompound(value)), isNegated)
 
 private fun AdvancementCondition.progress(): SelectorAdvancementProgress =
     when (this) {
