@@ -41,7 +41,7 @@
 - Modify: `modules/minimessage/src/test/kotlin/io/github/lmliam/kotventure/minimessage/MiniMessageToDslStructuredComponentTest.kt`
 - Modify: `modules/minimessage/src/test/kotlin/io/github/lmliam/kotventure/minimessage/MiniMessageToDslTextRenderingTest.kt`
 
-- [ ] **Step 1: Write failing model-sharing tests**
+- [x] **Step 1: Write failing model-sharing tests**
 
 Replace the stringify/reparse sharing test with direct structural assertions:
 
@@ -75,7 +75,7 @@ Change the component integration assertion to pass the parsed selector directly:
 Change the defensive-snapshot constructor from `ParsedEntitySelector(...)` to `EntitySelector(...)`. Remove raw
 escape-hatch assertions; existing `entitySelector(...)` call sites now exercise strict construction.
 
-- [ ] **Step 2: Run the focused test and verify RED**
+- [x] **Step 2: Run the focused test and verify RED**
 
 Run:
 
@@ -85,7 +85,7 @@ Run:
 
 Expected: compilation fails because DSL-built `EntitySelector` does not expose `head` or `arguments`, and parsed selectors cannot yet be supplied directly.
 
-- [ ] **Step 3: Implement the common structured selector**
+- [x] **Step 3: Implement the common structured selector**
 
 Replace the value class in `EntitySelector.kt` with the immutable model formerly split into `ParsedEntitySelector`:
 
@@ -147,7 +147,7 @@ argument-bearing selectors, remove `parseEntitySelector`, and remove all escape-
 
 MiniMessage generated source remains `entitySelector(...)`; conversion-time validation is added separately in Task 3.
 
-- [ ] **Step 4: Run core, NBT, and MiniMessage tests and verify GREEN**
+- [x] **Step 4: Run core, NBT, and MiniMessage tests and verify GREEN**
 
 Run:
 
@@ -161,7 +161,7 @@ Run:
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit the consolidated model**
+- [x] **Step 5: Commit the consolidated model**
 
 ```bash
 git add modules/core/src/main/kotlin/io/github/lmliam/kotventure/core/selector \
@@ -184,7 +184,7 @@ git commit -m "refactor(core): unify entity selector model"
 - Modify: `modules/core/src/main/kotlin/io/github/lmliam/kotventure/core/selector/SelectorFilterArgumentParsing.kt`
 - Modify: `modules/core/src/test/kotlin/io/github/lmliam/kotventure/core/selector/EntitySelectorParserTest.kt`
 
-- [ ] **Step 1: Write failing constructor-invariant tests**
+- [x] **Step 1: Write failing constructor-invariant tests**
 
 Add:
 
@@ -254,7 +254,7 @@ Add:
 }
 ```
 
-- [ ] **Step 2: Run the focused test and verify RED**
+- [x] **Step 2: Run the focused test and verify RED**
 
 Run:
 
@@ -264,7 +264,7 @@ Run:
 
 Expected: compilation fails because `SelectorStringCondition`, `SnbtCompoundSource`, and the semantic condition properties do not exist.
 
-- [ ] **Step 3: Implement semantic value types**
+- [x] **Step 3: Implement semantic value types**
 
 Create `SelectorStringCondition.kt`:
 
@@ -304,7 +304,7 @@ public companion object {
 
 Give every public declaration explicit KDoc.
 
-- [ ] **Step 4: Enforce argument and selector invariants**
+- [x] **Step 4: Enforce argument and selector invariants**
 
 Add `init` checks:
 
@@ -349,7 +349,7 @@ public data class Nbt(
 In `EntitySelector.init`, reject `Type` when `head.acceptsTypeFilters` is false and reject `Limit`/`Sort` when
 `head.acceptsResultControls` is false. Include the head token and argument name in each exception.
 
-- [ ] **Step 5: Update builder conversion, parsing, and rendering**
+- [x] **Step 5: Update builder conversion, parsing, and rendering**
 
 Convert filter-group values with:
 
@@ -386,7 +386,7 @@ private fun SelectorStringCondition.render(): String =
     }
 ```
 
-- [ ] **Step 6: Update canonical-round-trip expectations**
+- [x] **Step 6: Update canonical-round-trip expectations**
 
 Change:
 
@@ -397,7 +397,7 @@ entitySelector("@e[name='Boss Mob']").asString() shouldBe "@e[name=\"Boss Mob\"]
 Keep argument order, explicit empty lists, repeated filters, and validated SNBT coverage. Update direct `Tag`, `Team`,
 `Name`, and `Nbt` constructor calls to their new signatures.
 
-- [ ] **Step 7: Run focused tests and verify GREEN**
+- [x] **Step 7: Run focused tests and verify GREEN**
 
 Run:
 
@@ -407,7 +407,7 @@ Run:
 
 Expected: PASS.
 
-- [ ] **Step 8: Commit valid-by-construction arguments**
+- [x] **Step 8: Commit valid-by-construction arguments**
 
 ```bash
 git add modules/core/src/main/kotlin/io/github/lmliam/kotventure/core/selector \
@@ -423,7 +423,7 @@ git commit -m "refactor(core): validate selector model"
 - Modify: `modules/minimessage/src/test/kotlin/io/github/lmliam/kotventure/minimessage/MiniMessageToDslStructuredComponentTest.kt`
 - Modify: `modules/minimessage/src/test/kotlin/io/github/lmliam/kotventure/minimessage/MiniMessageToDslTextRenderingTest.kt`
 
-- [ ] **Step 1: Write failing strict-conversion tests**
+- [x] **Step 1: Write failing strict-conversion tests**
 
 Use canonical namespaced type keys in round-trip fixtures:
 
@@ -450,7 +450,7 @@ test("rejects unsupported entity NBT selector syntax during conversion") {
     }
 }
 ```
-- [ ] **Step 2: Run the MiniMessage test and verify RED**
+- [x] **Step 2: Run the MiniMessage test and verify RED**
 
 Run:
 
@@ -461,7 +461,7 @@ Run:
 Expected: unsupported selector source does not throw because generated-source emission uses the parser call without
 validating the source during conversion.
 
-- [ ] **Step 3: Validate and emit parser calls**
+- [x] **Step 3: Validate and emit parser calls**
 
 Import `entitySelector` and validate before emitting:
 
@@ -474,7 +474,7 @@ val source = escapeKotlinString(pattern)
 Continue emitting `selector(entitySelector("$source"))`. Apply the same validation flow to
 `EntityNBTComponent.selector()` and continue emitting `entityNbt(entitySelector("$source"), ...)`.
 
-- [ ] **Step 4: Run MiniMessage tests and verify GREEN**
+- [x] **Step 4: Run MiniMessage tests and verify GREEN**
 
 Run:
 
@@ -484,7 +484,7 @@ Run:
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit strict conversion**
+- [x] **Step 5: Commit strict conversion**
 
 ```bash
 git add modules/minimessage/src/main/kotlin/io/github/lmliam/kotventure/minimessage/conversion \
@@ -500,7 +500,7 @@ git commit -m "refactor(minimessage): validate selector source"
 - Modify: `modules/core/src/samples/kotlin/io/github/lmliam/kotventure/core/selector/SelectorSamples.kt`
 - Modify any remaining Kotlin files reported by the required source scan.
 
-- [ ] **Step 1: Update canonical examples and contracts**
+- [x] **Step 1: Update canonical examples and contracts**
 
 Change the parser example to:
 
@@ -513,7 +513,7 @@ Document one structured `EntitySelector`, canonical semantic rendering, and stri
 all raw escape-hatch guidance. In selector-scope KDoc, direct dynamic full-selector interop to
 `entitySelector(...)`.
 
-- [ ] **Step 2: Scan for stale API and contract references**
+- [x] **Step 2: Scan for stale API and contract references**
 
 Run:
 
@@ -526,7 +526,7 @@ Run:
 Expected: no stale selector API or unchecked-source references. Any unrelated use of “lossless” must describe its own
 feature accurately.
 
-- [ ] **Step 3: Format and run focused checks**
+- [x] **Step 3: Format and run focused checks**
 
 Run:
 
@@ -538,7 +538,7 @@ Run:
 
 Expected: PASS.
 
-- [ ] **Step 4: Commit documentation**
+- [x] **Step 4: Commit documentation**
 
 ```bash
 git add docs/DESIGN.md \
@@ -552,7 +552,7 @@ git commit -m "docs(core): document strict selectors"
 **Files:**
 - Verify all changed files.
 
-- [ ] **Step 1: Run the complete build**
+- [x] **Step 1: Run the complete build**
 
 Run:
 
@@ -562,7 +562,7 @@ Run:
 
 Expected: BUILD SUCCESSFUL, including tests, explicit API, lint, Spotless, and Kover.
 
-- [ ] **Step 2: Verify the final diff**
+- [x] **Step 2: Verify the final diff**
 
 Run:
 
