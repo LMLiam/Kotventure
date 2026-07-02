@@ -124,6 +124,13 @@ internal fun selectorNbtSample() {
     }
 }
 
+internal fun selectorPredicateSample() {
+    entities {
+        predicate(key("my_pack", "on_fire"))
+        !predicate(key("my_pack", "hidden"))
+    }
+}
+
 internal fun negatedCommonArgumentsSample() {
     allPlayers {
         !name("Bot")

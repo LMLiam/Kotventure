@@ -80,6 +80,18 @@ class SelectorDslTest :
                 component shouldHaveSelectorPattern "@a[scores={kills=10..,deaths=0..5}]"
             }
 
+            "builds a selector component with typed predicate filters" {
+                val component =
+                    selector(
+                        entities {
+                            predicate(key("my_pack", "on_fire"))
+                            !predicate(key("my_pack", "hidden"))
+                        },
+                    ).shouldBeSelectorComponent()
+
+                component shouldHaveSelectorPattern "@e[predicate=my_pack:on_fire,predicate=!my_pack:hidden]"
+            }
+
             "builds a selector component with a typed origin and volume" {
                 val component =
                     selector(

@@ -115,6 +115,7 @@ val msg = component {
             nbt { "Health" eq 20.0f }
             !nbt { "Invisible" eq true }
             scores { "kills" eq atLeast(10) }
+            !predicate(key("my_pack", "hidden"))
         },
     )
     blockNbt(blockPos(1, 64, 1), "Items[0].id")

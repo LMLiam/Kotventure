@@ -504,6 +504,48 @@ class EntitySelectorTest :
                     "{bytes:[B;1b,2b],ints:[I;3,4],longs:[L;5L,6L],rows:[[7,8],[9,10]]}}]"
             }
 
+            "predicate filters preserve positive and negated keys in call order" {
+                val selector =
+                    entities {
+                        predicate(key("minecraft", "is_baby"))
+                        !predicate(key("my_pack", "hidden"))
+                        predicate(key("my_pack", "active"))
+                    }
+
+                selector.asString() shouldBe
+                    "@e[predicate=minecraft:is_baby,predicate=!my_pack:hidden,predicate=my_pack:active]"
+            }
+
+            "identical predicates accumulate rather than collapse" {
+                val selector =
+                    entities {
+                        predicate(key("my_pack", "active"))
+                        predicate(key("my_pack", "active"))
+                    }
+
+                selector.asString() shouldBe "@e[predicate=my_pack:active,predicate=my_pack:active]"
+            }
+
+            "predicates are available on the self scope" {
+                self { !predicate(key("my_pack", "flying")) }.asString() shouldBe "@s[predicate=!my_pack:flying]"
+            }
+
+            "raw predicate strings do not compile" {
+                assertDoesNotCompile(
+                    "RawPredicateTest.kt",
+                    """
+                    import io.github.lmliam.kotventure.core.selector.*
+
+                    fun rawPredicate() {
+                        entities {
+                            predicate("my_pack:active")
+                        }
+                    }
+                    """.trimIndent(),
+                    "Argument type mismatch",
+                )
+            }
+
             "duplicate positive team filters are rejected" {
                 shouldThrow<IllegalStateException> {
                     allPlayers {

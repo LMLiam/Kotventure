@@ -27,6 +27,7 @@ internal object EntitySelectorRenderer {
                 builder.sort?.let { add("sort=${it.value}") }
                 addAll(builder.tagFilters.rendered { it })
                 addAll(builder.nbtFilters.rendered(::renderCompound))
+                addAll(builder.predicateFilters.rendered { it })
             }
         val suffix = if (arguments.isEmpty()) "" else arguments.joinToString(",", prefix = "[", postfix = "]")
         return EntitySelector("$head$suffix")

@@ -29,6 +29,7 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     val teamFilters = SelectorFilterGroup<String>("team", SelectorFilterPolicy.EXCLUSIVE)
     val tagFilters = SelectorFilterGroup<String>("tag", SelectorFilterPolicy.REPEATABLE)
     val nbtFilters = SelectorFilterGroup<NbtCompound>("nbt", SelectorFilterPolicy.REPEATABLE)
+    val predicateFilters = SelectorFilterGroup<String>("predicate", SelectorFilterPolicy.REPEATABLE)
 
     val coordinates: Map<SelectorAxis, Double>
         field = mutableMapOf()
@@ -114,6 +115,8 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     override fun nbt(init: NbtCompoundScope.() -> Unit): SelectorFilterExpression =
         nbtFilters.add(this, NbtCompoundBuilder().apply(init).build())
 
+    override fun predicate(predicate: Key): SelectorFilterExpression = predicateFilters.add(this, predicate.asString())
+
     override fun name(name: String): SelectorFilterExpression = nameFilters.add(this, name)
 
     override fun level(range: SelectorIntRange) {
@@ -171,6 +174,7 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
         teamFilters.validate()
         tagFilters.validate()
         nbtFilters.validate()
+        predicateFilters.validate()
     }
 
     private fun bindCoordinates(bindings: List<Pair<SelectorAxis, Double>>) {
