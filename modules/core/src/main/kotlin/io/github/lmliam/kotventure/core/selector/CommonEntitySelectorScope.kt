@@ -2,6 +2,7 @@ package io.github.lmliam.kotventure.core.selector
 
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import io.github.lmliam.kotventure.core.nbt.NbtCompoundScope
+import net.kyori.adventure.key.Key
 
 /**
  * Arguments shared by every typed entity-selector head.
@@ -154,6 +155,20 @@ public sealed interface CommonEntitySelectorScope {
      * @sample io.github.lmliam.kotventure.core.selector.selectorNbtSample
      */
     public fun nbt(init: NbtCompoundScope.() -> Unit): SelectorFilterExpression
+
+    /**
+     * Filters by a datapack predicate (vanilla `predicate`): `predicate(key("my_pack", "flying"))`.
+     * Prefix the call with `!` to require the predicate to fail; repeated calls accumulate in call
+     * order and must all match.
+     *
+     * There is deliberately no string overload: predicate IDs are datapack-defined, so a default
+     * namespace would usually be wrong. Build IDs with
+     * [key][io.github.lmliam.kotventure.core.key.key]; `entitySelector(...)` remains the raw
+     * interop bridge.
+     *
+     * @sample io.github.lmliam.kotventure.core.selector.selectorPredicateSample
+     */
+    public fun predicate(predicate: Key): SelectorFilterExpression
 
     /**
      * Filters by entity name. Prefix the call with `!` to exclude the name.
