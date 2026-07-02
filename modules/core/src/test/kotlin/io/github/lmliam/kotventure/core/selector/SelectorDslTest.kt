@@ -92,6 +92,21 @@ class SelectorDslTest :
                 component shouldHaveSelectorPattern "@e[predicate=my_pack:on_fire,predicate=!my_pack:hidden]"
             }
 
+            "builds a selector component with typed advancement filters" {
+                val component =
+                    selector(
+                        allPlayers {
+                            advancements {
+                                key("minecraft", "story/smelt_iron") eq true
+                                key("my_pack", "boss") eq { "kill_dragon" eq true }
+                            }
+                        },
+                    ).shouldBeSelectorComponent()
+
+                component shouldHaveSelectorPattern
+                    "@a[advancements={minecraft:story/smelt_iron=true,my_pack:boss={kill_dragon=true}}]"
+            }
+
             "builds a selector component with a typed origin and volume" {
                 val component =
                     selector(

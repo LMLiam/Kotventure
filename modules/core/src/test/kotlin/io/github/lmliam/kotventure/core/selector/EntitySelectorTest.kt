@@ -350,6 +350,97 @@ class EntitySelectorTest :
                 }
             }
 
+            "advancements render completion and criterion conditions in declaration order" {
+                val selector =
+                    allPlayers {
+                        advancements {
+                            key("minecraft", "story/smelt_iron") eq true
+                            key("my_pack", "boss") eq {
+                                "kill_dragon" eq true
+                                "no_deaths" eq false
+                            }
+                            key("my_pack", "secret") eq false
+                        }
+                    }
+
+                selector.asString() shouldBe
+                    "@a[advancements={minecraft:story/smelt_iron=true," +
+                    "my_pack:boss={kill_dragon=true,no_deaths=false},my_pack:secret=false}]"
+            }
+
+            "an empty advancement criterion block renders the valid vanilla form" {
+                allPlayers { advancements { key("my_pack", "boss") eq {} } }.asString() shouldBe
+                    "@a[advancements={my_pack:boss={}}]"
+            }
+
+            "an empty advancements block renders an empty map" {
+                entities { advancements {} }.asString() shouldBe "@e[advancements={}]"
+            }
+
+            "advancements are available on the self scope" {
+                self { advancements { key("minecraft", "story/root") eq true } }.asString() shouldBe
+                    "@s[advancements={minecraft:story/root=true}]"
+            }
+
+            "repeated advancements are rejected" {
+                shouldThrow<IllegalStateException> {
+                    allPlayers {
+                        advancements {
+                            key("my_pack", "boss") eq true
+                            key("my_pack", "boss") eq { "kill_dragon" eq true }
+                        }
+                    }
+                }
+            }
+
+            "a duplicate advancements block is rejected" {
+                shouldThrow<IllegalStateException> {
+                    allPlayers {
+                        advancements { key("my_pack", "boss") eq true }
+                        advancements { key("my_pack", "secret") eq false }
+                    }
+                }
+            }
+
+            "repeated advancement criteria are rejected" {
+                shouldThrow<IllegalStateException> {
+                    allPlayers {
+                        advancements {
+                            key("my_pack", "boss") eq {
+                                "kill_dragon" eq true
+                                "kill_dragon" eq false
+                            }
+                        }
+                    }
+                }
+            }
+
+            "advancement criteria outside vanilla's unquoted-token syntax are rejected" {
+                shouldThrow<IllegalArgumentException> {
+                    allPlayers { advancements { key("my_pack", "boss") eq { "bad name" eq true } } }
+                }
+                shouldThrow<IllegalArgumentException> {
+                    allPlayers { advancements { key("my_pack", "boss") eq { "" eq true } } }
+                }
+            }
+
+            "an advancements block cannot be negated" {
+                assertDoesNotCompile(
+                    "NegatedAdvancementsTest.kt",
+                    """
+                    import io.github.lmliam.kotventure.core.key.key
+                    import io.github.lmliam.kotventure.core.selector.*
+
+                    fun negatedAdvancements() {
+                        entities {
+                            !advancements { key("my_pack", "boss") eq true }
+                        }
+                    }
+                    """.trimIndent(),
+                    "receiver type mismatch",
+                )
+            }
+
             "type with Adventure Key" {
                 val selector = entities { type(key("minecraft", "creeper")) }
 

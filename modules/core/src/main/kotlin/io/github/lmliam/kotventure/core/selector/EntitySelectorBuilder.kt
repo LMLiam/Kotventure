@@ -37,6 +37,9 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     var scores: Map<String, SelectorIntRange>? = null
         private set
 
+    var advancements: Map<String, AdvancementCondition>? = null
+        private set
+
     private var isConfiguring = false
 
     override val any: SelectorPresence get() = SelectorPresence.ANY
@@ -131,6 +134,11 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     override fun scores(init: SelectorScoresScope.() -> Unit) {
         checkUnset("scores", scores)
         scores = SelectorScoresBuilder().apply(init).scores
+    }
+
+    override fun advancements(init: SelectorAdvancementsScope.() -> Unit) {
+        checkUnset("advancements", advancements)
+        advancements = SelectorAdvancementsBuilder().apply(init).advancements
     }
 
     override fun gamemode(mode: GameMode): SelectorFilterExpression = gamemodeFilters.add(this, mode)

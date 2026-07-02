@@ -205,6 +205,20 @@ public sealed interface CommonEntitySelectorScope {
     public fun scores(init: SelectorScoresScope.() -> Unit)
 
     /**
+     * Filters by advancement progress (vanilla `advancements={...}`):
+     * `advancements { key("minecraft", "story/smelt_iron") eq true }`.
+     *
+     * Advancements render in declaration order. Each advancement binds once inside the block, and
+     * the whole argument binds once across the selector. Vanilla does not support negating
+     * `advancements`, so the block is not prefix-negatable — require an incomplete advancement
+     * with `eq false`.
+     *
+     * @throws IllegalStateException if `advancements` is already set or an advancement is repeated
+     * @sample io.github.lmliam.kotventure.core.selector.selectorAdvancementsSample
+     */
+    public fun advancements(init: SelectorAdvancementsScope.() -> Unit)
+
+    /**
      * Filters by game mode. Prefix the call with `!` to exclude the mode.
      *
      * @sample io.github.lmliam.kotventure.core.selector.negatedCommonArgumentsSample
