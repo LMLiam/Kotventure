@@ -12,6 +12,7 @@ public sealed interface SelectorStringCondition {
      *
      * @property value non-empty vanilla unquoted-token value
      * @property isNegated whether the named value is excluded rather than required
+     * @throws IllegalArgumentException if [value] is not a valid unquoted token
      */
     public data class Named(
         public val value: String,

@@ -37,7 +37,7 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     var scores: Map<String, SelectorIntRange>? = null
         private set
 
-    var advancements: Map<String, AdvancementCondition>? = null
+    var advancements: Map<Key, AdvancementCondition>? = null
         private set
 
     private var isConfiguring = false

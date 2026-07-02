@@ -27,16 +27,8 @@ class SelectorSnbtParsingTest :
                 listOf(
                     "@e[nbt={foo:1b,}]",
                     "@e[nbt={Tags:[1b,\"mixed\",]}]",
-                    "@e[nbt={Data:[B;+1b,]}]",
-                ).forEach { source ->
-                    entitySelector(source).asString() shouldBe source
-                }
-            }
-
-            "accepts trailing commas in every supported SNBT container" {
-                listOf(
-                    "@e[nbt={foo:1b,}]",
                     "@e[nbt={values:[1b,2b,]}]",
+                    "@e[nbt={Data:[B;+1b,]}]",
                     "@e[nbt={values:[I;1,2,]}]",
                 ).forEach { source ->
                     entitySelector(source).asString() shouldBe source

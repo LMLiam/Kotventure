@@ -4,7 +4,7 @@ import net.kyori.adventure.key.Key
 
 /** The mutable builder behind one `advancements { ... }` block, keyed in declaration order. */
 internal class SelectorAdvancementsBuilder : SelectorAdvancementsScope {
-    val advancements: Map<String, AdvancementCondition>
+    val advancements: Map<Key, AdvancementCondition>
         field = mutableMapOf()
 
     override infix fun Key.eq(completed: Boolean) {
@@ -19,10 +19,10 @@ internal class SelectorAdvancementsBuilder : SelectorAdvancementsScope {
         advancement: Key,
         condition: AdvancementCondition,
     ) {
-        val id = advancement.asString()
-        check(id !in advancements) {
-            "Selector advancement '$id' is already set; vanilla syntax evaluates one condition per advancement."
+        check(advancement !in advancements) {
+            "Selector advancement '${advancement.asString()}' is already set; " +
+                "vanilla syntax evaluates one condition per advancement."
         }
-        advancements[id] = condition
+        advancements[advancement] = condition
     }
 }

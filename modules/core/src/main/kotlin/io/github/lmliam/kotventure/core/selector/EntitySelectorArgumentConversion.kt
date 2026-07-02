@@ -88,8 +88,8 @@ private fun nbtArgument(
 private fun scoreArgument(score: Map.Entry<String, SelectorIntRange>): SelectorScoreRequirement =
     SelectorScoreRequirement(score.key, score.value)
 
-private fun advancementArgument(advancement: Map.Entry<String, AdvancementCondition>): SelectorAdvancementRequirement =
-    SelectorAdvancementRequirement(Key.key(advancement.key), advancement.value.progress())
+private fun advancementArgument(advancement: Map.Entry<Key, AdvancementCondition>): SelectorAdvancementRequirement =
+    SelectorAdvancementRequirement(advancement.key, advancement.value.progress())
 
 private fun AdvancementCondition.progress(): SelectorAdvancementProgress =
     when (this) {

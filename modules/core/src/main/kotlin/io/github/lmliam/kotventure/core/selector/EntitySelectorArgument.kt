@@ -19,6 +19,7 @@ public sealed interface EntitySelectorArgument {
      *
      * @property coordinate coordinate argument name
      * @property value finite coordinate value
+     * @throws IllegalArgumentException if [value] is NaN or infinite
      */
     public data class Coordinate(
         public val coordinate: SelectorCoordinate,
@@ -44,6 +45,7 @@ public sealed interface EntitySelectorArgument {
      * A result limit.
      *
      * @property value positive maximum result count
+     * @throws IllegalArgumentException if [value] is not positive
      */
     public data class Limit(
         public val value: Int,
