@@ -46,8 +46,11 @@ class SelectorSnbtParsingTest :
 
             "rejects typed SNBT array overflow" {
                 "@e[nbt={Data:[B;" shouldFailToParseAt "128b]}]"
+                "@e[nbt={Data:[B;" shouldFailToParseAt "-129b]}]"
                 "@e[nbt={Data:[I;" shouldFailToParseAt "2147483648]}]"
+                "@e[nbt={Data:[I;" shouldFailToParseAt "-2147483649]}]"
                 "@e[nbt={Data:[L;" shouldFailToParseAt "9223372036854775808L]}]"
+                "@e[nbt={Data:[L;" shouldFailToParseAt "-9223372036854775809L]}]"
             }
         },
     )

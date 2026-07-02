@@ -12,16 +12,17 @@ internal fun SelectorReader.readArgumentValue(
     name: String,
     nameOffset: Int,
 ): EntitySelectorArgument {
-    val coordinate = SelectorCoordinate.entries.firstOrNull { it.argumentName == name }
-    if (coordinate != null) return readCoordinateArgument(coordinate)
-    val rangeArgument = SelectorRangeArgument.entries.firstOrNull { it.argumentName == name }
-    if (rangeArgument != null) return readRangeArgument(rangeArgument)
+    SelectorCoordinate.entries.find { it.argumentName == name }?.let { return readCoordinateArgument(it) }
+    SelectorRangeArgument.entries.find { it.argumentName == name }?.let { return readRangeArgument(it) }
+
     val keyword =
         SelectorArgumentKeyword.fromSourceName(name)
-            ?: failAt(nameOffset, "Unsupported selector argument '$name'")
+        ?: failAt(nameOffset, "Unsupported selector argument '$name'")
+
     if (!head.supports(keyword)) {
         failAt(nameOffset, "Selector ${head.token} does not support '$name'")
     }
+
     return when (keyword) {
         SelectorArgumentKeyword.LEVEL -> readLevelArgument()
         SelectorArgumentKeyword.LIMIT -> readLimitArgument()
