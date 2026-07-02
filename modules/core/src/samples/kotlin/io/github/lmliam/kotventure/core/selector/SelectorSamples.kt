@@ -66,7 +66,7 @@ internal fun selectorTeamSample() {
     entities { team(none) }
     entities {
         team(any)
-        team(!"spectators")
+        !team("spectators")
     }
 }
 
@@ -106,17 +106,17 @@ internal fun selectorPresenceSample() {
 
 internal fun negatedCommonArgumentsSample() {
     allPlayers {
-        name(!"Bot")
-        gamemode(!spectator)
+        !name("Bot")
+        !gamemode(spectator)
         tag("vip")
-        tag(!"muted")
+        !tag("muted")
     }
 }
 
 internal fun negatedTypeArgumentsSample() {
     entities {
-        type(!"zombie")
-        type(!key("minecraft", "skeleton"))
-        typeTag(!key("minecraft", "raiders"))
+        !type("zombie")
+        !type(key("minecraft", "skeleton"))
+        !typeTag(key("minecraft", "raiders"))
     }
 }

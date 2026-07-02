@@ -19,20 +19,19 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
         private set
     var level: LevelRange? = null
         private set
-    var type: SelectorFilter<String>? = null
-        private set
-    var name: SelectorFilter<String>? = null
-        private set
-    var gamemode: SelectorFilter<GameMode>? = null
-        private set
-    var team: SelectorFilter<String>? = null
-        private set
 
-    val tags: List<String>
-        field = mutableListOf()
+    val typeFilters = SelectorFilterGroup<String>("type", SelectorFilterPolicy.EXCLUSIVE)
+    val nameFilters = SelectorFilterGroup<String>("name", SelectorFilterPolicy.EXCLUSIVE)
+    val gamemodeFilters = SelectorFilterGroup<GameMode>("gamemode", SelectorFilterPolicy.EXCLUSIVE)
+    val teamFilters = SelectorFilterGroup<String>("team", SelectorFilterPolicy.EXCLUSIVE)
+    val tagFilters = SelectorFilterGroup<String>("tag", SelectorFilterPolicy.REPEATABLE)
 
     val coordinates: Map<SelectorAxis, Double>
         field = mutableMapOf()
+
+    var isConfiguring: Boolean = false
+        private set
+    private var isConfigured: Boolean = false
 
     override val any: SelectorPresence get() = SelectorPresence.ANY
     override val none: SelectorPresence get() = SelectorPresence.NONE
@@ -46,6 +45,20 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     override val furthest: SelectorSort get() = SelectorSort.FURTHEST
     override val random: SelectorSort get() = SelectorSort.RANDOM
     override val arbitrary: SelectorSort get() = SelectorSort.ARBITRARY
+
+    fun configure(configure: EntitySelectorScope.() -> Unit) {
+        check(!isConfigured) { "An entity selector builder can only be configured once." }
+        isConfiguring = true
+        var completed = false
+        try {
+            configure()
+            completed = true
+        } finally {
+            isConfiguring = false
+            isConfigured = true
+        }
+        if (completed) validateFilters()
+    }
 
     override fun origin(
         first: OriginCoordinate,
@@ -88,25 +101,13 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
         yaw(closedRange(range.start, range.endInclusive))
     }
 
-    override fun tag(tag: String) {
-        tags += tag
-    }
+    override fun tag(tag: String): SelectorFilterExpression = tagFilters.add(this, tag)
 
     override fun tag(presence: SelectorPresence) {
-        tags += presence.value
+        tagFilters.addFixed(this, "", presence.polarity)
     }
 
-    override fun tag(tag: Excluded<String>) {
-        tags += "!${tag.value}"
-    }
-
-    override fun name(name: String) {
-        this.name = this.name.including("name", name)
-    }
-
-    override fun name(name: Excluded<String>) {
-        this.name = this.name.excluding("name", name.value)
-    }
+    override fun name(name: String): SelectorFilterExpression = nameFilters.add(this, name)
 
     override fun level(range: LevelRange) {
         checkUnset("level", level)
@@ -117,28 +118,13 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
         level(closedRange(range))
     }
 
-    override fun gamemode(mode: GameMode) {
-        gamemode = gamemode.including("gamemode", mode)
-    }
+    override fun gamemode(mode: GameMode): SelectorFilterExpression = gamemodeFilters.add(this, mode)
 
-    override fun gamemode(mode: Excluded<GameMode>) {
-        gamemode = gamemode.excluding("gamemode", mode.value)
-    }
-
-    override fun team(team: String) {
-        this.team = this.team.including("team", validTeamName(team, emptyHint = "team(none)"))
-    }
+    override fun team(team: String): SelectorFilterExpression =
+        teamFilters.add(this, validTeamName(team, emptyHint = "team(none)"))
 
     override fun team(presence: SelectorPresence) {
-        team =
-            when (presence) {
-                SelectorPresence.ANY -> team.excluding("team", "")
-                SelectorPresence.NONE -> team.including("team", "")
-            }
-    }
-
-    override fun team(team: Excluded<String>) {
-        this.team = this.team.excluding("team", validTeamName(team.value, emptyHint = "team(any)"))
+        teamFilters.addFixed(this, "", presence.polarity)
     }
 
     override fun limit(n: Int) {
@@ -152,28 +138,27 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
         this.sort = sort
     }
 
-    override fun type(entityType: Key) {
-        type = type.including("type", entityType.asString())
+    override fun type(entityType: Key): SelectorFilterExpression = typeFilters.add(this, entityType.asString())
+
+    override fun type(entityType: String): SelectorFilterExpression =
+        typeFilters.add(this, entityType.withDefaultNamespace())
+
+    override fun typeTag(entityTypeTag: Key): SelectorFilterExpression =
+        typeFilters.add(this, entityTypeTag.asTypeTag())
+
+    override fun SelectorFilterExpression.not() {
+        val entry =
+            this as? SelectorFilterEntry<*>
+                ?: error("Unknown selector filter expression implementation.")
+        entry.negate(this@EntitySelectorBuilder)
     }
 
-    override fun type(entityType: String) {
-        type = type.including("type", entityType.withDefaultNamespace())
-    }
-
-    override fun typeTag(entityTypeTag: Key) {
-        type = type.including("type", entityTypeTag.asTypeTag())
-    }
-
-    override fun typeTag(entityTypeTag: Excluded<Key>) {
-        type = type.excluding("type", entityTypeTag.value.asTypeTag())
-    }
-
-    fun excludeType(entityType: Key) {
-        type = type.excluding("type", entityType.asString())
-    }
-
-    fun excludeType(entityType: String) {
-        type = type.excluding("type", entityType.withDefaultNamespace())
+    private fun validateFilters() {
+        typeFilters.validate()
+        nameFilters.validate()
+        gamemodeFilters.validate()
+        teamFilters.validate()
+        tagFilters.validate()
     }
 
     private fun bindCoordinates(bindings: List<Pair<SelectorAxis, Double>>) {
@@ -203,5 +188,12 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
         return team
     }
 }
+
+private val SelectorPresence.polarity: SelectorFilterPolarity
+    get() =
+        when (this) {
+            SelectorPresence.ANY -> SelectorFilterPolarity.NEGATIVE
+            SelectorPresence.NONE -> SelectorFilterPolarity.POSITIVE
+        }
 
 private fun Key.asTypeTag(): String = "#${asString()}"
