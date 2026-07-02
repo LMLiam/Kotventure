@@ -12,8 +12,10 @@ package io.github.lmliam.kotventure.core.selector
  */
 @ConsistentCopyVisibility
 public data class SelectorRange internal constructor(
-    internal val minimum: Double?,
-    internal val maximum: Double?,
+    /** Inclusive lower bound, or `null` when the range is open below. */
+    public val minimum: Double?,
+    /** Inclusive upper bound, or `null` when the range is open above. */
+    public val maximum: Double?,
 ) {
     internal val rendered: String
         get() =

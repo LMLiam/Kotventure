@@ -127,6 +127,13 @@ val msg = component {
     mini("<gradient:gold:red>Epic</gradient>")
 }
 
+val parsedSelector =
+    when (val result = parseEntitySelector("@e[type=minecraft:zombie,tag=!hidden]")) {
+        is EntitySelectorParseResult.Success -> result.selector
+        is EntitySelectorParseResult.Failure -> error(result.error.message)
+    }
+selector(parsedSelector.asEntitySelector())
+
 // ── Reusable styles ────────────────────────────────────────────
 val headerStyle = style {
     color(GOLD)
@@ -186,6 +193,11 @@ println(component.toAnsi())
 println(component.toMiniMessage())
 println(component.toPlainText())
 ```
+
+Raw selector parsing is deliberately opt-in. `parseEntitySelector(...)` returns either a typed,
+immutable `ParsedEntitySelector` or an offset-bearing failure. Unknown arguments fail explicitly so
+they cannot be silently normalized; `entitySelector(raw)` remains the lossless, zero-validation
+bridge for future or intentionally unsupported syntax.
 
 ## 6. MiniMessage strategy
 
