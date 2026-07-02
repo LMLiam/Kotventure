@@ -127,8 +127,8 @@ val msg = component {
     mini("<gradient:gold:red>Epic</gradient>")
 }
 
-val parsedSelector = parseEntitySelector("@e[type=minecraft:zombie,tag=!hidden]")
-selector(parsedSelector.asEntitySelector())
+val parsedSelector = entitySelector("@e[type=minecraft:zombie,tag=!hidden]")
+selector(parsedSelector)
 
 // ── Reusable styles ────────────────────────────────────────────
 val headerStyle = style {
@@ -190,16 +190,16 @@ println(component.toMiniMessage())
 println(component.toPlainText())
 ```
 
-Raw selector parsing is deliberately opt-in. `parseEntitySelector(...)` returns a typed, immutable
-`ParsedEntitySelector` or throws an offset-bearing `EntitySelectorParseException`, matching the
-fail-fast contract of the rest of the DSL. Unknown arguments fail explicitly so they cannot be
-silently normalized; `entitySelector(raw)` remains the lossless, zero-validation bridge for future
-or intentionally unsupported syntax.
+`entitySelector(...)` validates selector source and returns the same typed, immutable
+`EntitySelector` model produced by the target-specific DSL factories. Invalid or unknown syntax
+throws an offset-bearing `EntitySelectorParseException`, matching the fail-fast contract of the
+rest of the DSL. There is no unchecked selector representation.
 
-Both construction paths share one model: the selector DSL builder and the parser each produce the
-typed `EntitySelectorArgument` list, and a single renderer turns that model back into selector
-source. The DSL scopes are a compile-time front end over the model; the parser is the runtime front
-end for raw strings.
+Both construction paths produce a typed `EntitySelectorArgument` list, and a single renderer turns
+that model back into canonical selector source. The DSL scopes are the compile-time front end over
+the model; `entitySelector(...)` is the strict runtime front end for dynamic strings. Rendering
+preserves selector semantics and represented structure, but may canonicalize quote delimiters,
+escapes, number spelling, and redundant exact ranges.
 
 ## 6. MiniMessage strategy
 

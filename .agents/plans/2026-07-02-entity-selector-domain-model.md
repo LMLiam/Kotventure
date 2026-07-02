@@ -4,7 +4,7 @@
 
 **Goal:** Replace the string-only/parsed selector split with one validated, structured `EntitySelector` model and remove unchecked selector construction.
 
-**Architecture:** Typed DSL factories and `parseEntitySelector` both construct the same immutable `EntitySelector`. Its arguments are valid locally, tag/team presence is explicit, SNBT source is validated, and selector-head compatibility is enforced at construction. Runtime strings enter only through `parseEntitySelector`; MiniMessage conversion validates before emitting parser-based Kotlin source.
+**Architecture:** Typed DSL factories and strict `entitySelector(source)` construction both produce the same immutable `EntitySelector`. Its arguments are valid locally, tag/team presence is explicit, SNBT source is validated, and selector-head compatibility is enforced at construction. Runtime strings enter only through `entitySelector`; MiniMessage conversion validates before emitting strict factory calls.
 
 **Tech Stack:** Kotlin 2.4, Adventure 5.1.1, Kotest, Gradle, ktlint, Spotless
 
@@ -22,7 +22,7 @@
 - Modify `modules/core/src/main/kotlin/io/github/lmliam/kotventure/core/selector/EntitySelectorArgumentConversion.kt`: convert DSL state into valid argument values.
 - Modify `modules/core/src/main/kotlin/io/github/lmliam/kotventure/core/selector/EntitySelectorArgumentRenderer.kt`: render canonical names, explicit conditions, and validated SNBT.
 - Modify `modules/core/src/main/kotlin/io/github/lmliam/kotventure/core/selector/SelectorFilterArgumentParsing.kt`: construct the new semantic values without retaining quote delimiters.
-- Modify MiniMessage conversion files and their tests: validate dynamic selector source and emit `parseEntitySelector(...)`.
+- Modify MiniMessage conversion files and their tests: validate dynamic selector source before emitting `entitySelector(...)`.
 - Modify selector/NBT tests, samples, and `docs/DESIGN.md`: remove raw construction and document canonical strict parsing.
 
 ### Task 1: Consolidate selectors into one structured type
@@ -36,6 +36,10 @@
 - Delete: `modules/core/src/main/kotlin/io/github/lmliam/kotventure/core/selector/ParsedEntitySelector.kt`
 - Modify: `modules/core/src/main/kotlin/io/github/lmliam/kotventure/core/selector/EntitySelectorFactory.kt`
 - Modify: `modules/core/src/main/kotlin/io/github/lmliam/kotventure/core/selector/EntitySelectorParser.kt`
+- Modify: `modules/minimessage/src/main/kotlin/io/github/lmliam/kotventure/minimessage/conversion/MiniMessageToDslStructuredComponents.kt`
+- Modify: `modules/minimessage/src/main/kotlin/io/github/lmliam/kotventure/minimessage/conversion/MiniMessageToDslNbtComponents.kt`
+- Modify: `modules/minimessage/src/test/kotlin/io/github/lmliam/kotventure/minimessage/MiniMessageToDslStructuredComponentTest.kt`
+- Modify: `modules/minimessage/src/test/kotlin/io/github/lmliam/kotventure/minimessage/MiniMessageToDslTextRenderingTest.kt`
 
 - [ ] **Step 1: Write failing model-sharing tests**
 
@@ -60,7 +64,7 @@ Change the component integration assertion to pass the parsed selector directly:
 
 ```kotlin
 "supplies parsed selectors directly to selector components" {
-    val parsed = parseEntitySelector("@a[tag=admin]")
+    val parsed = entitySelector("@a[tag=admin]")
 
     selector(parsed)
         .shouldBeSelectorComponent()
@@ -68,7 +72,8 @@ Change the component integration assertion to pass the parsed selector directly:
 }
 ```
 
-Change the defensive-snapshot constructor from `ParsedEntitySelector(...)` to `EntitySelector(...)`. Remove raw escape-hatch tests and replace remaining valid raw call sites with `parseEntitySelector(...)`.
+Change the defensive-snapshot constructor from `ParsedEntitySelector(...)` to `EntitySelector(...)`. Remove raw
+escape-hatch assertions; existing `entitySelector(...)` call sites now exercise strict construction.
 
 - [ ] **Step 2: Run the focused test and verify RED**
 
@@ -128,23 +133,30 @@ public class EntitySelector(
 }
 ```
 
-Retain explicit public KDoc and update it to describe construction through typed factories or `parseEntitySelector`.
+Retain explicit public KDoc and update it to describe construction through typed factories or `entitySelector`.
 Delete `ParsedEntitySelector.kt`.
 
-In `EntitySelectorFactory.kt`, remove `entitySelector(raw)` and return:
+In `EntitySelectorFactory.kt`, remove the raw `entitySelector` implementation and return:
 
 ```kotlin
 return EntitySelector(head, builder.selectorArguments())
 ```
 
-In `EntitySelectorParser.kt`, return `EntitySelector` for both empty and argument-bearing selectors and remove all `ParsedEntitySelector`/escape-hatch KDoc.
+In `EntitySelectorParser.kt`, expose strict `entitySelector(source)`, return `EntitySelector` for both empty and
+argument-bearing selectors, remove `parseEntitySelector`, and remove all escape-hatch KDoc.
 
-- [ ] **Step 4: Run core selector and NBT tests and verify GREEN**
+MiniMessage generated source remains `entitySelector(...)`; conversion-time validation is added separately in Task 3.
+
+- [ ] **Step 4: Run core, NBT, and MiniMessage tests and verify GREEN**
 
 Run:
 
 ```bash
-/Users/liam/Library/Application\ Support/Headroom/headroom/bin/rtk ./gradlew :core:test --tests '*EntitySelectorParserTest' --tests '*EntitySelectorTest' --tests '*SelectorDslTest' --tests '*EntityNbtDslTest'
+/Users/liam/Library/Application\ Support/Headroom/headroom/bin/rtk ./gradlew \
+  :core:test --tests '*EntitySelectorParserTest' --tests '*EntitySelectorTest' \
+  --tests '*SelectorDslTest' --tests '*EntityNbtDslTest' \
+  :minimessage:test --tests '*MiniMessageToDslStructuredComponentTest' \
+  --tests '*MiniMessageToDslTextRenderingTest'
 ```
 
 Expected: PASS.
@@ -154,7 +166,9 @@ Expected: PASS.
 ```bash
 git add modules/core/src/main/kotlin/io/github/lmliam/kotventure/core/selector \
   modules/core/src/test/kotlin/io/github/lmliam/kotventure/core/selector \
-  modules/core/src/test/kotlin/io/github/lmliam/kotventure/core/nbt/EntityNbtDslTest.kt
+  modules/core/src/test/kotlin/io/github/lmliam/kotventure/core/nbt/EntityNbtDslTest.kt \
+  modules/minimessage/src/main/kotlin/io/github/lmliam/kotventure/minimessage/conversion \
+  modules/minimessage/src/test/kotlin/io/github/lmliam/kotventure/minimessage
 git commit -m "refactor(core): unify entity selector model"
 ```
 
@@ -212,7 +226,7 @@ Add:
 }
 
 "models tag and team presence explicitly" {
-    val parsed = parseEntitySelector("@e[tag=,tag=!,team=red,team=!blue]")
+    val parsed = entitySelector("@e[tag=,tag=!,team=red,team=!blue]")
     val tags = parsed.arguments.filterIsInstance<EntitySelectorArgument.Tag>()
     val teams = parsed.arguments.filterIsInstance<EntitySelectorArgument.Team>()
 
@@ -231,7 +245,7 @@ Add:
 
 "exposes validated SNBT source" {
     val nbt =
-        parseEntitySelector("@e[nbt=!{Health:20.0f}]")
+        entitySelector("@e[nbt=!{Health:20.0f}]")
             .arguments
             .filterIsInstance<EntitySelectorArgument.Nbt>()
             .single()
@@ -377,7 +391,7 @@ private fun SelectorStringCondition.render(): String =
 Change:
 
 ```kotlin
-parseEntitySelector("@e[name='Boss Mob']").asString() shouldBe "@e[name=\"Boss Mob\"]"
+entitySelector("@e[name='Boss Mob']").asString() shouldBe "@e[name=\"Boss Mob\"]"
 ```
 
 Keep argument order, explicit empty lists, repeated filters, and validated SNBT coverage. Update direct `Tag`, `Team`,
@@ -411,8 +425,7 @@ git commit -m "refactor(core): validate selector model"
 
 - [ ] **Step 1: Write failing strict-conversion tests**
 
-Replace generated `entitySelector(...)` source with `parseEntitySelector(...)`. Use canonical namespaced type keys in
-round-trip fixtures:
+Use canonical namespaced type keys in round-trip fixtures:
 
 ```kotlin
 input = "<selector:'@e[type=minecraft:armor_stand,limit=1]'>"
@@ -445,21 +458,21 @@ Run:
 /Users/liam/Library/Application\ Support/Headroom/headroom/bin/rtk ./gradlew :minimessage:test --tests '*MiniMessageToDslStructuredComponentTest'
 ```
 
-Expected: source assertions fail because conversion still emits the removed unchecked factory, and unsupported source
-does not throw.
+Expected: unsupported selector source does not throw because generated-source emission uses the parser call without
+validating the source during conversion.
 
 - [ ] **Step 3: Validate and emit parser calls**
 
-Import `parseEntitySelector` and validate before emitting:
+Import `entitySelector` and validate before emitting:
 
 ```kotlin
 val pattern = component.pattern()
-parseEntitySelector(pattern)
+entitySelector(pattern)
 val source = escapeKotlinString(pattern)
 ```
 
-Emit `selector(parseEntitySelector("$source"))`. Apply the same flow to `EntityNBTComponent.selector()` and emit
-`entityNbt(parseEntitySelector("$source"), ...)`.
+Continue emitting `selector(entitySelector("$source"))`. Apply the same validation flow to
+`EntityNBTComponent.selector()` and continue emitting `entityNbt(entitySelector("$source"), ...)`.
 
 - [ ] **Step 4: Run MiniMessage tests and verify GREEN**
 
@@ -492,13 +505,13 @@ git commit -m "refactor(minimessage): validate selector source"
 Change the parser example to:
 
 ```kotlin
-val parsedSelector = parseEntitySelector("@e[type=minecraft:zombie,tag=!hidden]")
+val parsedSelector = entitySelector("@e[type=minecraft:zombie,tag=!hidden]")
 selector(parsedSelector)
 ```
 
 Document one structured `EntitySelector`, canonical semantic rendering, and strict failure for unknown syntax. Remove
 all raw escape-hatch guidance. In selector-scope KDoc, direct dynamic full-selector interop to
-`parseEntitySelector(...)`.
+`entitySelector(...)`.
 
 - [ ] **Step 2: Scan for stale API and contract references**
 

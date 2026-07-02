@@ -150,7 +150,8 @@ public sealed interface CommonEntitySelectorScope {
     /**
      * Filters by a structured NBT compound. Prefix the call with `!` to exclude matching NBT.
      *
-     * Raw SNBT is intentionally unsupported; use [entitySelector] for raw selector interop.
+     * Raw SNBT is intentionally unsupported in this typed scope. Validate a complete selector from
+     * string interop with [entitySelector].
      *
      * @sample io.github.lmliam.kotventure.core.selector.selectorNbtSample
      */
@@ -163,8 +164,8 @@ public sealed interface CommonEntitySelectorScope {
      *
      * There is deliberately no string overload: predicate IDs are datapack-defined, so a default
      * namespace would usually be wrong. Build IDs with
-     * [key][io.github.lmliam.kotventure.core.key.key]; `entitySelector(...)` remains the raw
-     * interop bridge.
+     * [key][io.github.lmliam.kotventure.core.key.key]. Validate complete selector source from
+     * string interop with [entitySelector].
      *
      * @sample io.github.lmliam.kotventure.core.selector.selectorPredicateSample
      */

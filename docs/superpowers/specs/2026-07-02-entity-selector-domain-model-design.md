@@ -26,9 +26,9 @@ public class EntitySelector(
 }
 ```
 
-Every typed selector factory and `parseEntitySelector` returns `EntitySelector` directly. The selector and NBT
-component DSLs continue accepting `EntitySelector`. The former string-wrapping `entitySelector(raw)` factory is
-removed; dynamic source must pass through `parseEntitySelector(source)`.
+Every typed selector factory and the strict `entitySelector(source)` factory returns `EntitySelector` directly. The
+selector and NBT component DSLs continue accepting `EntitySelector`. `entitySelector` validates and parses its input;
+there is no unchecked string-wrapping operation.
 
 ```text
 typed DSL ─┐
@@ -77,7 +77,7 @@ Numeric lexemes, redundant exact ranges, escape spelling, namespace spelling, an
 `Name` therefore stores the decoded value and negation only; it does not expose an original quote delimiter. The
 renderer quotes and escapes a name only when required.
 
-MiniMessage-to-DSL conversion validates selector patterns immediately and emits `parseEntitySelector(source)` for
+MiniMessage-to-DSL conversion validates selector patterns immediately and emits `entitySelector(source)` for
 dynamic Adventure selector and entity-NBT components. Valid non-canonical source may render canonically after
 conversion. Unknown or unsupported syntax fails conversion with `EntitySelectorParseException`; it is not carried
 through unchecked.
@@ -89,8 +89,8 @@ This is a deliberate pre-release API correction on the feature branch:
 - The string-only `EntitySelector` value class becomes the structured model.
 - `ParsedEntitySelector` and `ParsedEntitySelector.asEntitySelector()` are removed.
 - Typed selector factories continue returning `EntitySelector`, now without discarding structure.
-- `parseEntitySelector` returns `EntitySelector`.
-- `entitySelector(raw)` is removed; `parseEntitySelector(raw)` is the sole dynamic-source bridge.
+- `entitySelector(source)` becomes strict and returns the structured `EntitySelector`.
+- `parseEntitySelector` is removed so there is one dynamic-source entry point.
 - Existing component entry points continue accepting `EntitySelector`.
 
 Documentation and samples show structured selectors being passed directly to component DSL entry points.
