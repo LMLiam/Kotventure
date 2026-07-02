@@ -10,7 +10,8 @@ import io.github.lmliam.kotventure.core.selector.parsing.validateSnbtCompound
  *
  * @property value validated source beginning with `{` and ending with `}`
  */
-public class SnbtCompoundSource private constructor(
+@JvmInline
+public value class SnbtCompoundSource private constructor(
     public val value: String,
 ) {
     /** Validated compound SNBT construction. */
@@ -32,10 +33,6 @@ public class SnbtCompoundSource private constructor(
          */
         internal fun trusted(source: String): SnbtCompoundSource = SnbtCompoundSource(source)
     }
-
-    public override fun equals(other: Any?): Boolean = other is SnbtCompoundSource && value == other.value
-
-    public override fun hashCode(): Int = value.hashCode()
 
     public override fun toString(): String = value
 }

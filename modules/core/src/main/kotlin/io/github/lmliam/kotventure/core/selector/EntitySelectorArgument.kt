@@ -139,24 +139,19 @@ public sealed interface EntitySelectorArgument {
         override val isNegated: Boolean,
     ) : Negatable
 
-    /** An immutable collection of scoreboard objective ranges. */
-    public class Scores(
-        scores: Collection<SelectorScoreRequirement>,
+    /**
+     * An immutable collection of scoreboard objective ranges.
+     *
+     * @property scores score requirements in source order
+     */
+    @ConsistentCopyVisibility
+    public data class Scores private constructor(
+        public val scores: List<SelectorScoreRequirement>,
     ) : EntitySelectorArgument {
-        /** Score requirements in source order. */
-        public val scores: List<SelectorScoreRequirement> =
-            buildList(scores.size) {
-                addAll(scores)
-            }
-
-        /** Returns a score argument with the supplied requirements. */
-        public fun copy(scores: Collection<SelectorScoreRequirement> = this.scores): Scores = Scores(scores)
-
-        public override fun equals(other: Any?): Boolean = other is Scores && scores == other.scores
-
-        public override fun hashCode(): Int = scores.hashCode()
-
-        public override fun toString(): String = "Scores(scores=$scores)"
+        /** Builds a scores argument from a defensive snapshot of [scores]. */
+        public constructor(scores: Collection<SelectorScoreRequirement>) : this(
+            buildList(scores.size) { addAll(scores) },
+        )
     }
 
     /**
@@ -170,24 +165,18 @@ public sealed interface EntitySelectorArgument {
         override val isNegated: Boolean,
     ) : Negatable
 
-    /** An immutable collection of advancement requirements. */
-    public class Advancements(
-        advancements: Collection<SelectorAdvancementRequirement>,
+    /**
+     * An immutable collection of advancement requirements.
+     *
+     * @property advancements advancement requirements in source order
+     */
+    @ConsistentCopyVisibility
+    public data class Advancements private constructor(
+        public val advancements: List<SelectorAdvancementRequirement>,
     ) : EntitySelectorArgument {
-        /** Advancement requirements in source order. */
-        public val advancements: List<SelectorAdvancementRequirement> =
-            buildList(advancements.size) {
-                addAll(advancements)
-            }
-
-        /** Returns an advancement argument with the supplied requirements. */
-        public fun copy(advancements: Collection<SelectorAdvancementRequirement> = this.advancements): Advancements =
-            Advancements(advancements)
-
-        public override fun equals(other: Any?): Boolean = other is Advancements && advancements == other.advancements
-
-        public override fun hashCode(): Int = advancements.hashCode()
-
-        public override fun toString(): String = "Advancements(advancements=$advancements)"
+        /** Builds an advancements argument from a defensive snapshot of [advancements]. */
+        public constructor(advancements: Collection<SelectorAdvancementRequirement>) : this(
+            buildList(advancements.size) { addAll(advancements) },
+        )
     }
 }

@@ -1,6 +1,7 @@
 package io.github.lmliam.kotventure.core.selector
 
 import io.github.lmliam.kotventure.core.key.key
+import io.github.lmliam.kotventure.test.compilation.assertDoesNotCompile
 import io.github.lmliam.kotventure.test.text.shouldBeSelectorComponent
 import io.github.lmliam.kotventure.test.text.shouldHaveSelectorPattern
 import io.kotest.assertions.throwables.shouldThrow
@@ -21,11 +22,27 @@ class EntitySelectorModelTest :
                 parsed.arguments[1].shouldBeInstanceOf<EntitySelectorArgument.Name>()
                 parsed.arguments[2].shouldBeInstanceOf<EntitySelectorArgument.Tag>()
                 val transformed =
-                    parsed.copy(
-                        arguments = parsed.arguments.filterNot { it is EntitySelectorArgument.Name },
+                    EntitySelector(
+                        parsed.head,
+                        parsed.arguments.filterNot { it is EntitySelectorArgument.Name },
                     )
 
                 transformed.asString() shouldBe "@e[type=minecraft:zombie,tag=!hidden]"
+            }
+
+            "hides invariant-bypassing generated copy methods" {
+                assertDoesNotCompile(
+                    "SelectorCopyVisibilityTest.kt",
+                    """
+                    import io.github.lmliam.kotventure.core.selector.EntitySelector
+                    import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument
+
+                    fun invalid(selector: EntitySelector) {
+                        selector.copy(arguments = mutableListOf<EntitySelectorArgument>())
+                    }
+                    """.trimIndent(),
+                    "Cannot access",
+                )
             }
 
             "exposes negation through the shared Negatable interface" {

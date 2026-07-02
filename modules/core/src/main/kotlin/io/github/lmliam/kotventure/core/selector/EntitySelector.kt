@@ -8,27 +8,26 @@ package io.github.lmliam.kotventure.core.selector
  * [entitySelector].
  *
  * @property head selector head
+ * @property arguments arguments in source or DSL rendering order
  * @throws IllegalArgumentException if an argument is incompatible with [head]
  */
-public class EntitySelector(
+@ConsistentCopyVisibility
+public data class EntitySelector private constructor(
     public val head: EntitySelectorHead,
-    arguments: Collection<EntitySelectorArgument>,
+    public val arguments: List<EntitySelectorArgument>,
 ) {
-    /** Arguments in source or DSL rendering order. */
-    public val arguments: List<EntitySelectorArgument> =
-        buildList(arguments.size) {
-            addAll(arguments)
-        }
+    /** Builds a selector from a defensive snapshot of [arguments]. */
+    public constructor(
+        head: EntitySelectorHead,
+        arguments: Collection<EntitySelectorArgument>,
+    ) : this(
+        head,
+        buildList(arguments.size) { addAll(arguments) },
+    )
 
     init {
-        this.arguments.forEach(head::requireSupportFor)
+        arguments.forEach(head::requireSupportFor)
     }
-
-    /** Returns a selector with the supplied immutable state. */
-    public fun copy(
-        head: EntitySelectorHead = this.head,
-        arguments: Collection<EntitySelectorArgument> = this.arguments,
-    ): EntitySelector = EntitySelector(head, arguments)
 
     /** Renders this selector as canonical selector source. */
     public fun asString(): String =
@@ -37,13 +36,6 @@ public class EntitySelector(
         } else {
             head.token + arguments.joinToString(",", "[", "]", transform = EntitySelectorArgument::render)
         }
-
-    public override fun equals(other: Any?): Boolean =
-        other is EntitySelector &&
-                head == other.head &&
-                arguments == other.arguments
-
-    public override fun hashCode(): Int = 31 * head.hashCode() + arguments.hashCode()
 
     public override fun toString(): String = asString()
 }

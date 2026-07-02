@@ -26,25 +26,19 @@ public sealed interface SelectorAdvancementProgress {
         public val completed: Boolean,
     ) : SelectorAdvancementProgress
 
-    /** Criterion-level completion. */
-    public class Criteria(
-        criteria: Collection<SelectorAdvancementCriterion>,
+    /**
+     * Criterion-level completion.
+     *
+     * @property criteria criterion requirements in source order
+     */
+    @ConsistentCopyVisibility
+    public data class Criteria private constructor(
+        public val criteria: List<SelectorAdvancementCriterion>,
     ) : SelectorAdvancementProgress {
-        /** Criterion requirements in source order. */
-        public val criteria: List<SelectorAdvancementCriterion> =
-            buildList(criteria.size) {
-                addAll(criteria)
-            }
-
-        /** Returns criterion progress with the supplied requirements. */
-        public fun copy(criteria: Collection<SelectorAdvancementCriterion> = this.criteria): Criteria =
-            Criteria(criteria)
-
-        public override fun equals(other: Any?): Boolean = other is Criteria && criteria == other.criteria
-
-        public override fun hashCode(): Int = criteria.hashCode()
-
-        public override fun toString(): String = "Criteria(criteria=$criteria)"
+        /** Builds criterion progress from a defensive snapshot of [criteria]. */
+        public constructor(criteria: Collection<SelectorAdvancementCriterion>) : this(
+            buildList(criteria.size) { addAll(criteria) },
+        )
     }
 }
 
