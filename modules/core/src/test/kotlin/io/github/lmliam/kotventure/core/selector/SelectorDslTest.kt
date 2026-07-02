@@ -104,7 +104,7 @@ class SelectorDslTest :
                     ).shouldBeSelectorComponent()
 
                 component shouldHaveSelectorPattern
-                    "@a[advancements={minecraft:story/smelt_iron=true,my_pack:boss={kill_dragon=true}}]"
+                        "@a[advancements={minecraft:story/smelt_iron=true,my_pack:boss={kill_dragon=true}}]"
             }
 
             "builds a selector component with a typed origin and volume" {
