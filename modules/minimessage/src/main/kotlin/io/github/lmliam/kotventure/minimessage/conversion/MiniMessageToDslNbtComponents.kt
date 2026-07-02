@@ -12,8 +12,7 @@ internal fun KotlinSourceBuilder.appendBlockNbt(component: BlockNBTComponent) {
 }
 
 internal fun KotlinSourceBuilder.appendEntityNbt(component: EntityNBTComponent) {
-    val selector = component.selector()
-    entitySelector(selector)
+    val selector = entitySelector(component.selector()).asString()
     appendNbt("entityNbt", "entitySelector(\"${escapeKotlinString(selector)}\")", component)
 }
 

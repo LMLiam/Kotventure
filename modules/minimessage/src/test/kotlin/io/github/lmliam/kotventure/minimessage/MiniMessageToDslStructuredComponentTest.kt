@@ -144,6 +144,17 @@ class MiniMessageToDslStructuredComponentTest :
                     }
                 }
 
+                test("canonicalizes validated selector source during conversion") {
+                    val component = Component.selector("@e[name='Boss Mob']")
+
+                    MiniMessageToDslWriter.write(component) shouldBe
+                            """
+                        component {
+                            selector(entitySelector("@e[name=\"Boss Mob\"]"))
+                        }
+                        """.trimIndent()
+                }
+
                 test("round-trips argument-free translatable components against compiled expected DSL") {
                     assertGoldenRoundTrip(
                         input = "<lang:death.fell.accident.ladder>",
@@ -426,6 +437,17 @@ class MiniMessageToDslStructuredComponentTest :
                     shouldThrow<EntitySelectorParseException> {
                         MiniMessageToDslWriter.write(component)
                     }
+                }
+
+                test("canonicalizes validated entity NBT selector source during conversion") {
+                    val component = Component.entityNBT("Health", "@e[name='Boss Mob']")
+
+                    MiniMessageToDslWriter.write(component) shouldBe
+                            """
+                    component {
+                        entityNbt(entitySelector("@e[name=\"Boss Mob\"]"), nbtPath("Health"))
+                    }
+                    """.trimIndent()
                 }
 
                 test("emits storage NBT components carrying interpretation") {
