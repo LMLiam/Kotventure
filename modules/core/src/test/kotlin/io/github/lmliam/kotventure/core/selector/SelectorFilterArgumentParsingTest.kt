@@ -9,12 +9,12 @@ class SelectorFilterArgumentParsingTest :
             "round trips type, name, gamemode, tag, team, and predicate filters" {
                 val source =
                     "@e[" +
-                        "type=!#my_pack:hostile," +
-                        "name=\"Boss Mob\"," +
-                        "gamemode=!creative," +
-                        "tag=!hidden,team=blue," +
-                        "predicate=!my_pack:hidden" +
-                        "]"
+                            "type=!#my_pack:hostile," +
+                            "name=\"Boss Mob\"," +
+                            "gamemode=!creative," +
+                            "tag=!hidden,team=blue," +
+                            "predicate=!my_pack:hidden" +
+                            "]"
 
                 entitySelector(source).asString() shouldBe source
             }
@@ -22,12 +22,12 @@ class SelectorFilterArgumentParsingTest :
             "renders decoded selector names canonically" {
                 entitySelector("@e[name='Boss Mob']").asString() shouldBe "@e[name=\"Boss Mob\"]"
                 entitySelector("@e[name=\"Boss \\\"Mob\\\"\"]").asString() shouldBe
-                    "@e[name=\"Boss \\\"Mob\\\"\"]"
+                        "@e[name=\"Boss \\\"Mob\\\"\"]"
             }
 
             "preserves repeated empty-value filters" {
                 entitySelector("@e[tag=,tag=!,team=,team=!]").asString() shouldBe
-                    "@e[tag=,tag=!,team=,team=!]"
+                        "@e[tag=,tag=!,team=,team=!]"
             }
 
             "rejects malformed names" {

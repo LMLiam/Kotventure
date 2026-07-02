@@ -9,9 +9,9 @@ class SelectorMapArgumentParsingTest :
             "round trips scores and advancements arguments" {
                 val source =
                     "@e[" +
-                        "scores={kills=5,balance=-10..}," +
-                        "advancements={minecraft:story/root=true,my_pack:secret={found_item=false}}" +
-                        "]"
+                            "scores={kills=5,balance=-10..}," +
+                            "advancements={minecraft:story/root=true,my_pack:secret={found_item=false}}" +
+                            "]"
 
                 entitySelector(source).asString() shouldBe source
             }

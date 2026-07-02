@@ -158,9 +158,9 @@ class MiniMessageToDslStructuredComponentTest :
 
                 test("emits the same canonical selector literal for selector and entity NBT components") {
                     MiniMessageToDslWriter.write(Component.selector("@e[type=zombie]")) shouldContain
-                        """entitySelector("@e[type=minecraft:zombie]")"""
+                            """entitySelector("@e[type=minecraft:zombie]")"""
                     MiniMessageToDslWriter.write(Component.entityNBT("Health", "@e[type=zombie]")) shouldContain
-                        """entitySelector("@e[type=minecraft:zombie]")"""
+                            """entitySelector("@e[type=minecraft:zombie]")"""
                 }
 
                 test("round-trips argument-free translatable components against compiled expected DSL") {

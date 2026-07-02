@@ -151,15 +151,15 @@ class EntitySelectorModelTest :
                 val teams = parsed.arguments.filterIsInstance<EntitySelectorArgument.Team>()
 
                 tags.map(EntitySelectorArgument.Tag::condition) shouldBe
-                    listOf(
-                        SelectorStringCondition.Presence(SelectorPresence.NONE),
-                        SelectorStringCondition.Presence(SelectorPresence.ANY),
-                    )
+                        listOf(
+                            SelectorStringCondition.Presence(SelectorPresence.NONE),
+                            SelectorStringCondition.Presence(SelectorPresence.ANY),
+                        )
                 teams.map(EntitySelectorArgument.Team::condition) shouldBe
-                    listOf(
-                        SelectorStringCondition.Named("red"),
-                        SelectorStringCondition.Named("blue", isNegated = true),
-                    )
+                        listOf(
+                            SelectorStringCondition.Named("red"),
+                            SelectorStringCondition.Named("blue", isNegated = true),
+                        )
                 teams.map(EntitySelectorArgument.Team::isNegated) shouldBe listOf(false, true)
             }
 
@@ -183,10 +183,10 @@ class EntitySelectorModelTest :
 
                 parsed.arguments shouldHaveSize 1
                 parsed shouldBe
-                    EntitySelector(
-                        EntitySelectorHead.ENTITIES,
-                        parsed.arguments,
-                    )
+                        EntitySelector(
+                            EntitySelectorHead.ENTITIES,
+                            parsed.arguments,
+                        )
                 shouldThrow<UnsupportedOperationException> {
                     @Suppress("UNCHECKED_CAST")
                     (parsed.arguments as MutableList<EntitySelectorArgument>).clear()

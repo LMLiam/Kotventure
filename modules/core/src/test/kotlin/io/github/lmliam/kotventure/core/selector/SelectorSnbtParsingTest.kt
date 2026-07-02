@@ -15,10 +15,10 @@ class SelectorSnbtParsingTest :
             "accepts typed SNBT array boundaries" {
                 val source =
                     "@e[nbt={" +
-                        "Bytes:[B;-128b,+127b]," +
-                        "Ints:[I;-2147483648,+2147483647]," +
-                        "Longs:[L;-9223372036854775808L,+9223372036854775807L]" +
-                        "}]"
+                            "Bytes:[B;-128b,+127b]," +
+                            "Ints:[I;-2147483648,+2147483647]," +
+                            "Longs:[L;-9223372036854775808L,+9223372036854775807L]" +
+                            "}]"
 
                 entitySelector(source).asString() shouldBe source
             }
@@ -37,7 +37,7 @@ class SelectorSnbtParsingTest :
 
             "stops unquoted SNBT scalars at every container terminator" {
                 entitySelector("@e[nbt={a:1,b:[2],c:{d:3}}]").asString() shouldBe
-                    "@e[nbt={a:1,b:[2],c:{d:3}}]"
+                        "@e[nbt={a:1,b:[2],c:{d:3}}]"
             }
 
             "rejects malformed SNBT structure" {

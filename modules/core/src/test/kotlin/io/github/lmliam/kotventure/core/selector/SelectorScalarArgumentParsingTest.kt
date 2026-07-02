@@ -9,10 +9,10 @@ class SelectorScalarArgumentParsingTest :
             "round trips coordinate, range, and result-control arguments" {
                 val source =
                     "@e[" +
-                        "x=1.5,y=-2,z=3,dx=0,dy=1,dz=-1," +
-                        "distance=..10,x_rotation=170..-170,y_rotation=-45..45," +
-                        "level=1..30,limit=2,sort=nearest" +
-                        "]"
+                            "x=1.5,y=-2,z=3,dx=0,dy=1,dz=-1," +
+                            "distance=..10,x_rotation=170..-170,y_rotation=-45..45," +
+                            "level=1..30,limit=2,sort=nearest" +
+                            "]"
 
                 entitySelector(source).asString() shouldBe source
             }

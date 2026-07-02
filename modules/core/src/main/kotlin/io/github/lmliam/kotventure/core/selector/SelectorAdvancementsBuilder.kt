@@ -21,7 +21,7 @@ internal class SelectorAdvancementsBuilder : SelectorAdvancementsScope {
     ) {
         check(advancement !in advancements) {
             "Selector advancement '${advancement.asString()}' is already set; " +
-                "vanilla syntax evaluates one condition per advancement."
+                    "vanilla syntax evaluates one condition per advancement."
         }
         advancements[advancement] = condition
     }
