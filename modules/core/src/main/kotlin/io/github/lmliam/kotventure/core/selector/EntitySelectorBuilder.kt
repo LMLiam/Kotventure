@@ -20,7 +20,7 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
         private set
     var sort: SelectorSort? = null
         private set
-    var level: LevelRange? = null
+    var level: SelectorIntRange? = null
         private set
 
     val typeFilters = SelectorFilterGroup<String>("type", SelectorFilterPolicy.EXCLUSIVE)
@@ -32,6 +32,9 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
 
     val coordinates: Map<SelectorAxis, Double>
         field = mutableMapOf()
+
+    var scores: Map<String, SelectorIntRange>? = null
+        private set
 
     private var isConfiguring = false
 
@@ -113,13 +116,18 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
 
     override fun name(name: String): SelectorFilterExpression = nameFilters.add(this, name)
 
-    override fun level(range: LevelRange) {
+    override fun level(range: SelectorIntRange) {
         checkUnset("level", level)
-        level = range
+        level = range.requireNonNegative("level")
     }
 
     override fun level(range: IntRange) {
         level(closedRange(range))
+    }
+
+    override fun scores(init: SelectorScoresScope.() -> Unit) {
+        checkUnset("scores", scores)
+        scores = SelectorScoresBuilder().apply(init).scores
     }
 
     override fun gamemode(mode: GameMode): SelectorFilterExpression = gamemodeFilters.add(this, mode)

@@ -66,6 +66,20 @@ class SelectorDslTest :
                 component shouldHaveSelectorPattern "@e[nbt={Tags:[\"boss\"]},nbt=!{Silent:1b}]"
             }
 
+            "builds a selector component with typed score filters" {
+                val component =
+                    selector(
+                        allPlayers {
+                            scores {
+                                "kills" eq atLeast(10)
+                                "deaths" eq 0..5
+                            }
+                        },
+                    ).shouldBeSelectorComponent()
+
+                component shouldHaveSelectorPattern "@a[scores={kills=10..,deaths=0..5}]"
+            }
+
             "builds a selector component with a typed origin and volume" {
                 val component =
                     selector(

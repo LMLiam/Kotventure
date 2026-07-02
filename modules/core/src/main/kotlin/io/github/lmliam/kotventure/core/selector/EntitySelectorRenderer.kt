@@ -18,6 +18,9 @@ internal object EntitySelectorRenderer {
                 builder.pitch?.let { add("x_rotation=${it.rendered}") }
                 builder.yaw?.let { add("y_rotation=${it.rendered}") }
                 builder.level?.let { add("level=${it.rendered}") }
+                builder.scores?.let { scores ->
+                    add(scores.entries.joinToString(",", "scores={", "}", transform = ::renderScore))
+                }
                 addAll(builder.gamemodeFilters.rendered { it.value })
                 addAll(builder.teamFilters.rendered { it })
                 builder.limit?.let { add("limit=$it") }
@@ -34,6 +37,8 @@ internal object EntitySelectorRenderer {
             val prefix = if (entry.polarity == SelectorFilterPolarity.NEGATIVE) "!" else ""
             "$argument=$prefix${renderValue(entry.value)}"
         }
+
+    private fun renderScore(score: Map.Entry<String, SelectorIntRange>): String = "${score.key}=${score.value.rendered}"
 
     private fun renderName(value: String): String = if (needsQuoting(value)) "\"${escapeQuotes(value)}\"" else value
 
