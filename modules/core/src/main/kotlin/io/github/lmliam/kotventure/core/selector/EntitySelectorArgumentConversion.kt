@@ -2,21 +2,21 @@ package io.github.lmliam.kotventure.core.selector
 
 import io.github.lmliam.kotventure.core.nbt.NbtCompound
 import io.github.lmliam.kotventure.core.nbt.renderCompound
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Advancements
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Coordinate
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.GameMode
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Level
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Limit
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Name
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Nbt
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Predicate
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Range
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Scores
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Sort
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Tag
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Team
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Type
 import net.kyori.adventure.key.Key
-import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Advancements as AdvancementsArgument
-import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Coordinate as CoordinateArgument
-import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.GameMode as GameModeArgument
-import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Level as LevelArgument
-import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Limit as LimitArgument
-import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Name as NameArgument
-import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Nbt as NbtArgument
-import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Predicate as PredicateArgument
-import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Range as RangeArgument
-import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Scores as ScoresArgument
-import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Sort as SortArgument
-import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Tag as TagArgument
-import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Team as TeamArgument
-import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Type as TypeArgument
 
 /**
  * Converts the DSL builder's validated state into the shared typed argument model, in canonical
@@ -26,22 +26,22 @@ import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Type as 
 internal fun EntitySelectorBuilder.selectorArguments(): List<EntitySelectorArgument> =
     buildList {
         addAll(typeFilters.arguments(::typeArgument))
-        addAll(nameFilters.arguments(::NameArgument))
+        addAll(nameFilters.arguments(::Name))
         SelectorCoordinate.entries.forEach { coordinate ->
-            coordinates[coordinate]?.let { add(CoordinateArgument(coordinate, it)) }
+            coordinates[coordinate]?.let { add(Coordinate(coordinate, it)) }
         }
-        distance?.let { add(RangeArgument(SelectorRangeArgument.DISTANCE, it)) }
-        pitch?.let { add(RangeArgument(SelectorRangeArgument.X_ROTATION, it)) }
-        yaw?.let { add(RangeArgument(SelectorRangeArgument.Y_ROTATION, it)) }
-        level?.let { add(LevelArgument(it)) }
-        scores?.let { scores -> add(ScoresArgument(scores.map(::scoreArgument))) }
+        distance?.let { add(Range(SelectorRangeArgument.DISTANCE, it)) }
+        pitch?.let { add(Range(SelectorRangeArgument.X_ROTATION, it)) }
+        yaw?.let { add(Range(SelectorRangeArgument.Y_ROTATION, it)) }
+        level?.let { add(Level(it)) }
+        scores?.let { scores -> add(Scores(scores.map(::scoreArgument))) }
         advancements?.let { advancements ->
-            add(AdvancementsArgument(advancements.map(::advancementArgument)))
+            add(Advancements(advancements.map(::advancementArgument)))
         }
-        addAll(gamemodeFilters.arguments(::GameModeArgument))
+        addAll(gamemodeFilters.arguments(::GameMode))
         addAll(teamFilters.arguments(::teamArgument))
-        limit?.let { add(LimitArgument(it)) }
-        sort?.let { add(SortArgument(it)) }
+        limit?.let { add(Limit(it)) }
+        sort?.let { add(Sort(it)) }
         addAll(tagFilters.arguments(::tagArgument))
         addAll(nbtFilters.arguments(::nbtArgument))
         addAll(predicateFilters.arguments(::predicateArgument))
@@ -55,35 +55,35 @@ private fun <T> SelectorFilterGroup<T>.arguments(
 private fun typeArgument(
     value: String,
     isNegated: Boolean,
-): TypeArgument {
+): Type {
     val target =
         if (value.startsWith("#")) {
             SelectorEntityType.Tag(Key.key(value.removePrefix("#")))
         } else {
             SelectorEntityType.Direct(Key.key(value))
         }
-    return TypeArgument(target, isNegated)
+    return Type(target, isNegated)
 }
 
 private fun predicateArgument(
     value: String,
     isNegated: Boolean,
-): PredicateArgument = PredicateArgument(Key.key(value), isNegated)
+): Predicate = Predicate(Key.key(value), isNegated)
 
 private fun teamArgument(
     value: String,
     isNegated: Boolean,
-): TeamArgument = TeamArgument(SelectorStringCondition.of(value, isNegated))
+): Team = Team(SelectorStringCondition.of(value, isNegated))
 
 private fun tagArgument(
     value: String,
     isNegated: Boolean,
-): TagArgument = TagArgument(SelectorStringCondition.of(value, isNegated))
+): Tag = Tag(SelectorStringCondition.of(value, isNegated))
 
 private fun nbtArgument(
     value: NbtCompound,
     isNegated: Boolean,
-): NbtArgument = NbtArgument(SnbtCompoundSource.trusted(renderCompound(value)), isNegated)
+): Nbt = Nbt(SnbtCompoundSource.trusted(renderCompound(value)), isNegated)
 
 private fun scoreArgument(score: Map.Entry<String, SelectorIntRange>): SelectorScoreRequirement =
     SelectorScoreRequirement(score.key, score.value)

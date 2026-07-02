@@ -1,5 +1,7 @@
 package io.github.lmliam.kotventure.minimessage.conversion
 
+import io.github.lmliam.kotventure.core.selector.EntitySelectorParseException
+import io.github.lmliam.kotventure.core.selector.entitySelector
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.ShadowColor
@@ -62,6 +64,16 @@ internal fun shadowColorLiteral(color: ShadowColor): String {
 /** Renders [key] as a `key("namespace", "value")` call. */
 internal fun keyLiteral(key: Key): String =
     "key(\"${escapeKotlinString(key.namespace())}\", \"${escapeKotlinString(key.value())}\")"
+
+/**
+ * Validates raw selector [source] and renders it as the canonical `entitySelector("...")` call.
+ *
+ * @throws EntitySelectorParseException if [source] is not valid selector syntax
+ */
+internal fun entitySelectorLiteral(source: String): String {
+    val canonicalSource = entitySelector(source).asString()
+    return "entitySelector(\"${escapeKotlinString(canonicalSource)}\")"
+}
 
 /**
  * Renders [contents] as the object-contents expression that reconstructs it, using the single-argument `sprite` form

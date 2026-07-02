@@ -24,6 +24,7 @@ import io.github.lmliam.kotventure.minimessage.conversion.MiniMessageToDslWriter
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TranslationArgument
@@ -153,6 +154,13 @@ class MiniMessageToDslStructuredComponentTest :
                             selector(entitySelector("@e[name=\"Boss Mob\"]"))
                         }
                         """.trimIndent()
+                }
+
+                test("emits the same canonical selector literal for selector and entity NBT components") {
+                    MiniMessageToDslWriter.write(Component.selector("@e[type=zombie]")) shouldContain
+                        """entitySelector("@e[type=minecraft:zombie]")"""
+                    MiniMessageToDslWriter.write(Component.entityNBT("Health", "@e[type=zombie]")) shouldContain
+                        """entitySelector("@e[type=minecraft:zombie]")"""
                 }
 
                 test("round-trips argument-free translatable components against compiled expected DSL") {
