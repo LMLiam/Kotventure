@@ -7,7 +7,7 @@ import io.github.lmliam.kotventure.core.selector.parsing.readArgumentValue
  * Parses Java Edition entity-selector source into an [EntitySelector].
  *
  * @throws EntitySelectorParseException if [source] is not valid selector syntax
- * @sample io.github.lmliam.kotventure.core.selector.parsedEntitySelectorSample
+ * @sample io.github.lmliam.kotventure.core.selector.entitySelectorSample
  */
 public fun entitySelector(source: String): EntitySelector {
     val reader = SelectorReader(source)

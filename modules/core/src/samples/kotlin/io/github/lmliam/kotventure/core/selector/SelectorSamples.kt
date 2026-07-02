@@ -160,8 +160,13 @@ internal fun negatedTypeArgumentsSample() {
     }
 }
 
-internal fun parsedEntitySelectorSample() {
-    val parsed = entitySelector("@e[type=minecraft:zombie,tag=!hidden]")
+internal fun entitySelectorSample() {
+    val boss = entitySelector("@e[type=minecraft:zombie,tag=!hidden]")
+    val untagged =
+        EntitySelector(
+            boss.head,
+            boss.arguments.filterNot { it is EntitySelectorArgument.Tag },
+        )
 
-    selector(parsed)
+    selector(untagged)
 }
