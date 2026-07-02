@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.core.selector
 
+import io.github.lmliam.kotventure.core.nbt.NbtCompound
 import io.github.lmliam.kotventure.core.nbt.renderCompound
 import net.kyori.adventure.key.Key
 
@@ -24,17 +25,11 @@ internal fun EntitySelectorBuilder.selectorArguments(): List<EntitySelectorArgum
             add(EntitySelectorArgument.Advancements(advancements.map(::advancementArgument)))
         }
         addAll(gamemodeFilters.arguments { value, negated -> EntitySelectorArgument.Gamemode(value, negated) })
-        addAll(teamFilters.arguments { value, negated ->
-            stringConditionArgument(value, negated, EntitySelectorArgument::Team)
-        })
+        addAll(teamFilters.arguments(::teamArgument))
         limit?.let { add(EntitySelectorArgument.Limit(it)) }
         sort?.let { add(EntitySelectorArgument.Sort(it)) }
-        addAll(tagFilters.arguments { value, negated ->
-            stringConditionArgument(value, negated, EntitySelectorArgument::Tag)
-        })
-        addAll(nbtFilters.arguments { value, negated ->
-            EntitySelectorArgument.Nbt(SnbtCompoundSource.validated(renderCompound(value)), negated)
-        })
+        addAll(tagFilters.arguments(::tagArgument))
+        addAll(nbtFilters.arguments(::nbtArgument))
         addAll(predicateFilters.arguments(::predicateArgument))
     }
 
@@ -58,6 +53,22 @@ private fun predicateArgument(
     value: String,
     isNegated: Boolean,
 ): EntitySelectorArgument.Predicate = EntitySelectorArgument.Predicate(Key.key(value), isNegated)
+
+private fun teamArgument(
+    value: String,
+    isNegated: Boolean,
+): EntitySelectorArgument.Team = stringConditionArgument(value, isNegated, EntitySelectorArgument::Team)
+
+private fun tagArgument(
+    value: String,
+    isNegated: Boolean,
+): EntitySelectorArgument.Tag = stringConditionArgument(value, isNegated, EntitySelectorArgument::Tag)
+
+private fun nbtArgument(
+    value: NbtCompound,
+    isNegated: Boolean,
+): EntitySelectorArgument.Nbt =
+    EntitySelectorArgument.Nbt(SnbtCompoundSource.validated(renderCompound(value)), isNegated)
 
 private fun <T : EntitySelectorArgument> stringConditionArgument(
     value: String,

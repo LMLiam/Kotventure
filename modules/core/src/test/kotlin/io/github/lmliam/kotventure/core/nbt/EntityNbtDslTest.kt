@@ -2,8 +2,8 @@ package io.github.lmliam.kotventure.core.nbt
 
 import io.github.lmliam.kotventure.core.selector.allPlayers
 import io.github.lmliam.kotventure.core.selector.entities
-import io.github.lmliam.kotventure.core.selector.nearestPlayer
 import io.github.lmliam.kotventure.core.selector.entitySelector
+import io.github.lmliam.kotventure.core.selector.nearestPlayer
 import io.github.lmliam.kotventure.core.selector.randomPlayer
 import io.github.lmliam.kotventure.core.selector.self
 import io.github.lmliam.kotventure.test.text.childAt
