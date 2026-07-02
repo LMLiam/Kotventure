@@ -31,7 +31,6 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
 
     var isConfiguring: Boolean = false
         private set
-    private var isConfigured: Boolean = false
 
     override val any: SelectorPresence get() = SelectorPresence.ANY
     override val none: SelectorPresence get() = SelectorPresence.NONE
@@ -47,17 +46,13 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     override val arbitrary: SelectorSort get() = SelectorSort.ARBITRARY
 
     fun configure(configure: EntitySelectorScope.() -> Unit) {
-        check(!isConfigured) { "An entity selector builder can only be configured once." }
         isConfiguring = true
-        var completed = false
         try {
             configure()
-            completed = true
         } finally {
             isConfiguring = false
-            isConfigured = true
         }
-        if (completed) validateFilters()
+        validateFilters()
     }
 
     override fun origin(
@@ -120,8 +115,7 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
 
     override fun gamemode(mode: GameMode): SelectorFilterExpression = gamemodeFilters.add(this, mode)
 
-    override fun team(team: String): SelectorFilterExpression =
-        teamFilters.add(this, validTeamName(team, emptyHint = "team(none)"))
+    override fun team(team: String): SelectorFilterExpression = teamFilters.add(this, validTeamName(team))
 
     override fun team(presence: SelectorPresence) {
         teamFilters.addFixed(this, "", presence.polarity)
@@ -147,10 +141,7 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
         typeFilters.add(this, entityTypeTag.asTypeTag())
 
     override fun SelectorFilterExpression.not() {
-        val entry =
-            this as? SelectorFilterEntry<*>
-                ?: error("Unknown selector filter expression implementation.")
-        entry.negate(this@EntitySelectorBuilder)
+        (this as SelectorFilterEntry<*>).negate(this@EntitySelectorBuilder)
     }
 
     private fun validateFilters() {
@@ -177,11 +168,10 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
         check(current == null) { "Selector argument '$argument' is already set; vanilla syntax allows it only once." }
     }
 
-    private fun validTeamName(
-        team: String,
-        emptyHint: String,
-    ): String {
-        require(team.isNotEmpty()) { "Team name must not be empty; use $emptyHint to filter by team presence." }
+    private fun validTeamName(team: String): String {
+        require(
+            team.isNotEmpty(),
+        ) { "Team name must not be empty; use team(none) or team(any) to filter by team presence." }
         require(team.all { it.isAllowedInUnquotedSelectorToken() }) {
             "Team name '$team' contains characters outside vanilla's unquoted-token syntax."
         }
