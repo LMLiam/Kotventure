@@ -1,7 +1,8 @@
 package io.github.lmliam.kotventure.core.selector
 
 /**
- * Parses a Java Edition entity selector into an immutable [ParsedEntitySelector].
+ * Parses a Java Edition entity selector (a "target selector" in vanilla terms) into an immutable
+ * [ParsedEntitySelector].
  *
  * Parsing is opt-in and grammar-strict: the six selector heads and every argument understood by
  * the selector DSL parse into typed arguments, and any other syntax throws

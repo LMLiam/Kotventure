@@ -196,6 +196,11 @@ fail-fast contract of the rest of the DSL. Unknown arguments fail explicitly so 
 silently normalized; `entitySelector(raw)` remains the lossless, zero-validation bridge for future
 or intentionally unsupported syntax.
 
+Both construction paths share one model: the selector DSL builder and the parser each produce the
+typed `EntitySelectorArgument` list, and a single renderer turns that model back into selector
+source. The DSL scopes are a compile-time front end over the model; the parser is the runtime front
+end for raw strings.
+
 ## 6. MiniMessage strategy
 
 Three layers, shipped incrementally:

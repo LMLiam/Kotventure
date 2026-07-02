@@ -163,7 +163,7 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     override fun type(entityType: Key): SelectorFilterExpression = typeFilters.add(this, entityType.asString())
 
     override fun type(entityType: String): SelectorFilterExpression =
-        typeFilters.add(this, entityType.withDefaultNamespace())
+        typeFilters.add(this, entityType.requireEntityTypeKey())
 
     override fun typeTag(entityTypeTag: Key): SelectorFilterExpression =
         typeFilters.add(this, entityTypeTag.asTypeTag())

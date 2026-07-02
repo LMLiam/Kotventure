@@ -971,6 +971,12 @@ class EntitySelectorTest :
                 selector.asString() shouldBe "@e[type=mymod:custom_entity]"
             }
 
+            "type with an invalid key is rejected" {
+                shouldThrow<IllegalArgumentException> {
+                    entities { type("Bad Key") }
+                }
+            }
+
             "name with special characters is quoted" {
                 val selector = nearestPlayer { name("Player, [Admin]") }
 

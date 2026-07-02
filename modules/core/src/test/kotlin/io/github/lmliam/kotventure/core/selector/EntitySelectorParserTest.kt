@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.core.selector
 
+import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.test.text.shouldBeSelectorComponent
 import io.github.lmliam.kotventure.test.text.shouldHaveSelectorPattern
 import io.kotest.assertions.throwables.shouldThrow
@@ -158,6 +159,22 @@ class EntitySelectorParserTest :
                 scores.scores
                     .single()
                     .range.maximum shouldBe null
+            }
+
+            "round trips DSL-built selectors through the shared argument model" {
+                val built =
+                    entities {
+                        !type("zombie")
+                        name("Boss, Mob")
+                        distance(atMost(10.0))
+                        scores { "kills" eq atLeast(5) }
+                        advancements { key("minecraft", "story/root") eq true }
+                        tag("boss")
+                        !nbt { "Health" eq 20.0f }
+                        !predicate(key("my_pack", "hidden"))
+                    }.asString()
+
+                parseEntitySelector(built).asString() shouldBe built
             }
 
             "supplies parsed selectors to selector components" {

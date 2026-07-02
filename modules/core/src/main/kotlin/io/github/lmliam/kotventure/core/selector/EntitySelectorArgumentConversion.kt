@@ -1,0 +1,69 @@
+package io.github.lmliam.kotventure.core.selector
+
+import io.github.lmliam.kotventure.core.nbt.renderCompound
+import net.kyori.adventure.key.Key
+
+/**
+ * Converts the DSL builder's validated state into the shared typed argument model, in canonical
+ * rendering order. [parseEntitySelector] produces the same model from raw source, so both
+ * construction paths render through one renderer.
+ */
+internal fun EntitySelectorBuilder.selectorArguments(): List<EntitySelectorArgument> =
+    buildList {
+        addAll(typeFilters.arguments(::typeArgument))
+        addAll(nameFilters.arguments { value, negated -> EntitySelectorArgument.Name(value, quote = null, negated) })
+        (OriginAxis.entries + VolumeAxis.entries).forEach { axis ->
+            coordinates[axis]?.let { add(EntitySelectorArgument.Coordinate(axis.coordinate, it)) }
+        }
+        distance?.let { add(EntitySelectorArgument.Range(SelectorRangeArgument.DISTANCE, it)) }
+        pitch?.let { add(EntitySelectorArgument.Range(SelectorRangeArgument.X_ROTATION, it)) }
+        yaw?.let { add(EntitySelectorArgument.Range(SelectorRangeArgument.Y_ROTATION, it)) }
+        level?.let { add(EntitySelectorArgument.Level(it)) }
+        scores?.let { scores -> add(EntitySelectorArgument.Scores(scores.map(::scoreArgument))) }
+        advancements?.let { advancements ->
+            add(EntitySelectorArgument.Advancements(advancements.map(::advancementArgument)))
+        }
+        addAll(gamemodeFilters.arguments { value, negated -> EntitySelectorArgument.Gamemode(value, negated) })
+        addAll(teamFilters.arguments { value, negated -> EntitySelectorArgument.Team(value, negated) })
+        limit?.let { add(EntitySelectorArgument.Limit(it)) }
+        sort?.let { add(EntitySelectorArgument.Sort(it)) }
+        addAll(tagFilters.arguments { value, negated -> EntitySelectorArgument.Tag(value, negated) })
+        addAll(nbtFilters.arguments { value, negated -> EntitySelectorArgument.Nbt(renderCompound(value), negated) })
+        addAll(predicateFilters.arguments(::predicateArgument))
+    }
+
+private fun <T> SelectorFilterGroup<T>.arguments(
+    toArgument: (value: T, isNegated: Boolean) -> EntitySelectorArgument,
+): List<EntitySelectorArgument> =
+    entries.map { entry -> toArgument(entry.value, entry.polarity == SelectorFilterPolarity.NEGATIVE) }
+
+private val SelectorAxis.coordinate: SelectorCoordinate
+    get() = SelectorCoordinate.entries.first { it.argumentName == argument }
+
+private fun typeArgument(
+    value: String,
+    isNegated: Boolean,
+): EntitySelectorArgument.Type {
+    val isTag = value.startsWith("#")
+    return EntitySelectorArgument.Type(Key.key(value.removePrefix("#")), isTag, isNegated)
+}
+
+private fun predicateArgument(
+    value: String,
+    isNegated: Boolean,
+): EntitySelectorArgument.Predicate = EntitySelectorArgument.Predicate(Key.key(value), isNegated)
+
+private fun scoreArgument(score: Map.Entry<String, SelectorIntRange>): ParsedSelectorScore =
+    ParsedSelectorScore(score.key, score.value)
+
+private fun advancementArgument(advancement: Map.Entry<String, AdvancementCondition>): ParsedSelectorAdvancement =
+    ParsedSelectorAdvancement(Key.key(advancement.key), advancement.value.progress())
+
+private fun AdvancementCondition.progress(): ParsedAdvancementProgress =
+    when (this) {
+        is AdvancementCondition.Completed -> ParsedAdvancementProgress.Completion(completed)
+        is AdvancementCondition.Criteria ->
+            ParsedAdvancementProgress.Criteria(
+                criteria.map { (name, completed) -> ParsedAdvancementCriterion(name, completed) },
+            )
+    }

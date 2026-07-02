@@ -61,5 +61,5 @@ private fun buildSelector(
 ): EntitySelector {
     val builder = EntitySelectorBuilder()
     builder.configure(configure)
-    return EntitySelectorRenderer.render(head, builder)
+    return ParsedEntitySelector(head, builder.selectorArguments()).asEntitySelector()
 }
