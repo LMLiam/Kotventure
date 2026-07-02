@@ -7,7 +7,8 @@ package io.github.lmliam.kotventure.core.selector
  * closed range, pass a native Kotlin range to the consuming argument directly, e.g.
  * `distance(0.5..10.0)`. Validation that differs by argument — such as `distance` rejecting
  * negative or descending bounds while rotations accept both — is applied by the consuming
- * argument. Integer-valued `level` uses the distinct [LevelRange] instead.
+ * argument. Integer-valued arguments such as `level` and `scores` use the distinct
+ * [SelectorIntRange] instead.
  */
 @ConsistentCopyVisibility
 public data class SelectorRange internal constructor(

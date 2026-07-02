@@ -162,11 +162,32 @@ public sealed interface CommonEntitySelectorScope {
      */
     public fun name(name: String): SelectorFilterExpression
 
-    /** Filters by experience level using a [LevelRange]. */
-    public fun level(range: LevelRange)
+    /**
+     * Filters by experience level using a [SelectorIntRange]: `level(atLeast(30))`.
+     *
+     * @throws IllegalArgumentException if a bound is negative
+     */
+    public fun level(range: SelectorIntRange)
 
-    /** Filters by experience level using a Kotlin [IntRange]. */
+    /**
+     * Filters by experience level using a Kotlin [IntRange]: `level(5..30)`.
+     *
+     * @throws IllegalArgumentException if the range is descending or a bound is negative
+     */
     public fun level(range: IntRange)
+
+    /**
+     * Filters by scoreboard objective values (vanilla `scores={...}`):
+     * `scores { "kills" eq atLeast(10) }`.
+     *
+     * Objectives render in declaration order. Each objective binds once inside the block, and the
+     * whole argument binds once across the selector. Vanilla does not support negating `scores`,
+     * so the block is not prefix-negatable.
+     *
+     * @throws IllegalStateException if `scores` is already set or an objective is repeated
+     * @sample io.github.lmliam.kotventure.core.selector.selectorScoreSample
+     */
+    public fun scores(init: SelectorScoresScope.() -> Unit)
 
     /**
      * Filters by game mode. Prefix the call with `!` to exclude the mode.

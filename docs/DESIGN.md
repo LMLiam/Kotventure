@@ -114,6 +114,7 @@ val msg = component {
             !tag("hidden")
             nbt { "Health" eq 20.0f }
             !nbt { "Invisible" eq true }
+            scores { "kills" eq atLeast(10) }
         },
     )
     blockNbt(blockPos(1, 64, 1), "Items[0].id")

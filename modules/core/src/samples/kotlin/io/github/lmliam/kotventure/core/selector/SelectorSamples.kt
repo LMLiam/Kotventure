@@ -62,6 +62,15 @@ internal fun selectorRotationSample() {
     }
 }
 
+internal fun selectorScoreSample() {
+    allPlayers {
+        scores {
+            "kills" eq atLeast(10)
+            "deaths" eq 0..5
+        }
+    }
+}
+
 internal fun selectorTeamSample() {
     allPlayers { team("red") }
     entities { team(none) }
