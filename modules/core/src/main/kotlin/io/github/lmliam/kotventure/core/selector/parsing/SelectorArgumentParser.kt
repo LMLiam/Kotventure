@@ -4,13 +4,16 @@ import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument
 import io.github.lmliam.kotventure.core.selector.EntitySelectorHead
 import io.github.lmliam.kotventure.core.selector.SelectorCoordinate
 import io.github.lmliam.kotventure.core.selector.SelectorRangeArgument
+import io.github.lmliam.kotventure.core.selector.supportsArgument
 
 internal fun SelectorReader.readArgumentValue(
     head: EntitySelectorHead,
     name: String,
     nameOffset: Int,
 ): EntitySelectorArgument {
-    requireSupportedByHead(head, name, nameOffset)
+    if (!head.supportsArgument(name)) {
+        failAt(nameOffset, "Selector ${head.token} does not support '$name'")
+    }
     val coordinate = SelectorCoordinate.entries.firstOrNull { it.argumentName == name }
     if (coordinate != null) return readCoordinateArgument(coordinate)
     val rangeArgument = SelectorRangeArgument.entries.firstOrNull { it.argumentName == name }
@@ -30,18 +33,4 @@ internal fun SelectorReader.readArgumentValue(
         "advancements" -> readAdvancementsArgument()
         else -> failAt(nameOffset, "Unsupported selector argument '$name'")
     }
-}
-
-private fun SelectorReader.requireSupportedByHead(
-    head: EntitySelectorHead,
-    name: String,
-    nameOffset: Int,
-) {
-    val supported =
-        when (name) {
-            "type" -> head.acceptsTypeFilters
-            "limit", "sort" -> head.acceptsResultControls
-            else -> true
-        }
-    if (!supported) failAt(nameOffset, "Selector ${head.token} does not support '$name'")
 }

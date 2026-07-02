@@ -33,26 +33,19 @@ public enum class EntitySelectorHead(
     NEAREST_ENTITY("@n"),
 }
 
+/**
+ * The one head-compatibility policy, keyed by selector-source [name] so the parser can reject an
+ * unsupported argument before reading its value.
+ */
+internal fun EntitySelectorHead.supportsArgument(name: String): Boolean =
+    when (name) {
+        "type" -> acceptsTypeFilters
+        "limit", "sort" -> acceptsResultControls
+        else -> true
+    }
+
 internal fun EntitySelectorHead.requireSupportFor(argument: EntitySelectorArgument) {
-    val unsupportedArgument =
-        when (argument) {
-            is EntitySelectorArgument.Type -> "type".takeUnless { acceptsTypeFilters }
-            is EntitySelectorArgument.Limit -> "limit".takeUnless { acceptsResultControls }
-            is EntitySelectorArgument.Sort -> "sort".takeUnless { acceptsResultControls }
-            is EntitySelectorArgument.Advancements,
-            is EntitySelectorArgument.Coordinate,
-            is EntitySelectorArgument.GameMode,
-            is EntitySelectorArgument.Level,
-            is EntitySelectorArgument.Name,
-            is EntitySelectorArgument.Nbt,
-            is EntitySelectorArgument.Predicate,
-            is EntitySelectorArgument.Range,
-            is EntitySelectorArgument.Scores,
-            is EntitySelectorArgument.Tag,
-            is EntitySelectorArgument.Team,
-            -> null
-        }
-    require(unsupportedArgument == null) {
-        "Selector $token does not support '$unsupportedArgument'."
+    require(supportsArgument(argument.argumentName)) {
+        "Selector $token does not support '${argument.argumentName}'."
     }
 }

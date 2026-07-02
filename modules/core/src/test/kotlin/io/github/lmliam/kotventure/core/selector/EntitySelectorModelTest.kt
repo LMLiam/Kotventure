@@ -8,6 +8,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 
 class EntitySelectorModelTest :
@@ -128,6 +129,20 @@ class EntitySelectorModelTest :
                         listOf(EntitySelectorArgument.Limit(1)),
                     )
                 }
+            }
+
+            "uses the same head compatibility policy for parsing and construction" {
+                val type =
+                    EntitySelectorArgument.Type(
+                        SelectorEntityType.Direct(key("minecraft", "zombie")),
+                        isNegated = false,
+                    )
+
+                shouldThrow<IllegalArgumentException> {
+                    EntitySelector(EntitySelectorHead.ALL_PLAYERS, listOf(type))
+                }.message shouldContain "does not support 'type'"
+
+                assertParseFailure("@a[type=minecraft:zombie]", 3, "does not support 'type'")
             }
 
             "models tag and team presence explicitly" {

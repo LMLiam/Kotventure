@@ -1,24 +1,26 @@
 package io.github.lmliam.kotventure.core.selector
 
-internal fun EntitySelectorArgument.render(): String =
-    when (this) {
-        is EntitySelectorArgument.Coordinate -> "${coordinate.argumentName}=${formatSelectorNumber(value)}"
-        is EntitySelectorArgument.Range -> "${argument.argumentName}=$range"
-        is EntitySelectorArgument.Limit -> "limit=$value"
-        is EntitySelectorArgument.Sort -> "sort=${value.value}"
-        is EntitySelectorArgument.Level -> "level=$range"
-        is EntitySelectorArgument.GameMode -> "gamemode=$negationPrefix${value.value}"
-        is EntitySelectorArgument.Name -> "name=$negationPrefix${renderQuotable()}"
-        is EntitySelectorArgument.Type -> "type=$negationPrefix${target.render()}"
-        is EntitySelectorArgument.Tag -> "tag=$negationPrefix${condition.render()}"
-        is EntitySelectorArgument.Team -> "team=$negationPrefix${condition.render()}"
-        is EntitySelectorArgument.Nbt -> "nbt=$negationPrefix${snbt.value}"
-        is EntitySelectorArgument.Scores ->
-            scores.joinToString(",", "scores={", "}") { "${it.objective}=${it.range}" }
+internal fun EntitySelectorArgument.render(): String = "$argumentName=${renderValue()}"
 
-        is EntitySelectorArgument.Predicate -> "predicate=$negationPrefix${key.asString()}"
+private fun EntitySelectorArgument.renderValue(): String =
+    when (this) {
+        is EntitySelectorArgument.Coordinate -> formatSelectorNumber(value)
+        is EntitySelectorArgument.Range -> range.toString()
+        is EntitySelectorArgument.Limit -> value.toString()
+        is EntitySelectorArgument.Sort -> value.value
+        is EntitySelectorArgument.Level -> range.toString()
+        is EntitySelectorArgument.GameMode -> "$negationPrefix${value.value}"
+        is EntitySelectorArgument.Name -> "$negationPrefix${renderQuotable()}"
+        is EntitySelectorArgument.Type -> "$negationPrefix${target.render()}"
+        is EntitySelectorArgument.Tag -> "$negationPrefix${condition.render()}"
+        is EntitySelectorArgument.Team -> "$negationPrefix${condition.render()}"
+        is EntitySelectorArgument.Nbt -> "$negationPrefix${snbt.value}"
+        is EntitySelectorArgument.Scores ->
+            scores.joinToString(",", "{", "}") { "${it.objective}=${it.range}" }
+
+        is EntitySelectorArgument.Predicate -> "$negationPrefix${key.asString()}"
         is EntitySelectorArgument.Advancements ->
-            advancements.joinToString(",", "advancements={", "}") {
+            advancements.joinToString(",", "{", "}") {
                 "${it.advancement.asString()}=${it.progress.render()}"
             }
     }

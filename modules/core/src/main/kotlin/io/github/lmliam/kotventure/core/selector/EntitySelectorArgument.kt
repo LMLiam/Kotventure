@@ -180,3 +180,26 @@ public sealed interface EntitySelectorArgument {
         )
     }
 }
+
+/**
+ * The vanilla selector-source name of this argument, such as `limit` in `limit=1`. Exhaustive so a
+ * new argument cannot be added without declaring its syntax name.
+ */
+internal val EntitySelectorArgument.argumentName: String
+    get() =
+        when (this) {
+            is EntitySelectorArgument.Coordinate -> coordinate.argumentName
+            is EntitySelectorArgument.Range -> argument.argumentName
+            is EntitySelectorArgument.Limit -> "limit"
+            is EntitySelectorArgument.Sort -> "sort"
+            is EntitySelectorArgument.Level -> "level"
+            is EntitySelectorArgument.GameMode -> "gamemode"
+            is EntitySelectorArgument.Name -> "name"
+            is EntitySelectorArgument.Type -> "type"
+            is EntitySelectorArgument.Tag -> "tag"
+            is EntitySelectorArgument.Team -> "team"
+            is EntitySelectorArgument.Nbt -> "nbt"
+            is EntitySelectorArgument.Scores -> "scores"
+            is EntitySelectorArgument.Predicate -> "predicate"
+            is EntitySelectorArgument.Advancements -> "advancements"
+        }
