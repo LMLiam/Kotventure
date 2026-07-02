@@ -45,8 +45,12 @@ internal fun parseSelectorIntRange(
     val bounds = splitSelectorRange(value, valueOffset)
     val minimum = bounds.first.takeIf(String::isNotEmpty)?.let { parseSelectorInt(it, valueOffset) }
     val maximum =
-        bounds.second?.takeIf(String::isNotEmpty)?.let {
-            parseSelectorInt(it, valueOffset + value.indexOf("..") + 2)
+        when (val upperBound = bounds.second) {
+            null -> minimum
+            else ->
+                upperBound.takeIf(String::isNotEmpty)?.let {
+                    parseSelectorInt(it, valueOffset + value.indexOf("..") + 2)
+                }
         }
     if (nonNegative && (minimum ?: 0) < 0) {
         fail(valueOffset, "Level bounds must be non-negative")
@@ -203,8 +207,12 @@ private fun parseSelectorRange(
     val bounds = splitSelectorRange(value, valueOffset)
     val minimum = bounds.first.takeIf(String::isNotEmpty)?.let { parseSelectorDouble(it, valueOffset) }
     val maximum =
-        bounds.second?.takeIf(String::isNotEmpty)?.let {
-            parseSelectorDouble(it, valueOffset + value.indexOf("..") + 2)
+        when (val upperBound = bounds.second) {
+            null -> minimum
+            else ->
+                upperBound.takeIf(String::isNotEmpty)?.let {
+                    parseSelectorDouble(it, valueOffset + value.indexOf("..") + 2)
+                }
         }
     return SelectorRange(minimum, maximum)
 }
