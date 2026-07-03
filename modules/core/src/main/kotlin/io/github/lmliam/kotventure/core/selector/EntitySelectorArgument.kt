@@ -5,14 +5,22 @@ import io.github.lmliam.kotventure.core.selector.GameMode as SelectorGameMode
 
 /**
  * One immutable, typed Java Edition entity-selector argument.
+ *
+ * Arguments form a closed hierarchy: simple values (Coordinate, Range, Level, Limit, Sort),
+ * negatable filters (GameMode, Name, Type, Tag, Team, Nbt, Predicate), and compound collections
+ * (Scores, Advancements).
  */
 public sealed interface EntitySelectorArgument {
     /**
      * An argument that vanilla syntax can prefix-negate with `!`.
+     *
+     * Subtypes carry an [isNegated] flag that models the leading `!` operator.
      */
     public sealed interface Negatable :
         EntitySelectorArgument,
         SelectorNegatable
+
+    //region Simple value arguments
 
     /**
      * A selector coordinate or bounding-volume delta.
@@ -73,6 +81,9 @@ public sealed interface EntitySelectorArgument {
         public val range: SelectorIntRange,
     ) : EntitySelectorArgument
 
+    //endregion
+    //region Negatable filter arguments
+
     /**
      * A game-mode filter.
      *
@@ -107,8 +118,10 @@ public sealed interface EntitySelectorArgument {
     ) : Negatable
 
     /**
-     * A scoreboard-tag filter. Negation lives inside [condition]; presence conditions carry their
-     * polarity and are never additionally negated.
+     * A scoreboard-tag filter.
+     *
+     * Negation lives inside [condition]; presence conditions carry their polarity and are never
+     * additionally negated.
      *
      * @property condition named tag or explicit presence condition
      */
@@ -119,8 +132,10 @@ public sealed interface EntitySelectorArgument {
     }
 
     /**
-     * A scoreboard-team filter. Negation lives inside [condition]; presence conditions carry their
-     * polarity and are never additionally negated.
+     * A scoreboard-team filter.
+     *
+     * Negation lives inside [condition]; presence conditions carry their polarity and are never
+     * additionally negated.
      *
      * @property condition named team or explicit presence condition
      */
@@ -142,21 +157,6 @@ public sealed interface EntitySelectorArgument {
     ) : Negatable
 
     /**
-     * An immutable collection of scoreboard objective ranges.
-     *
-     * @property scores score requirements in source order
-     */
-    @ConsistentCopyVisibility
-    public data class Scores private constructor(
-        public val scores: List<SelectorScoreRequirement>,
-    ) : EntitySelectorArgument {
-        /** Builds a scores argument from a defensive snapshot of [scores]. */
-        public constructor(scores: Collection<SelectorScoreRequirement>) : this(
-            buildList(scores.size) { addAll(scores) },
-        )
-    }
-
-    /**
      * A datapack predicate filter.
      *
      * @property key datapack predicate key
@@ -167,6 +167,21 @@ public sealed interface EntitySelectorArgument {
         override val isNegated: Boolean,
     ) : Negatable
 
+    //endregion
+    //region Compound collection arguments
+
+    /**
+     * An immutable collection of scoreboard objective ranges.
+     *
+     * @property scores score requirements in source order
+     */
+    @ConsistentCopyVisibility
+    public data class Scores private constructor(
+        public val scores: List<SelectorScoreRequirement>,
+    ) : EntitySelectorArgument {
+        public constructor(scores: Collection<SelectorScoreRequirement>) : this(scores.toList())
+    }
+
     /**
      * An immutable collection of advancement requirements.
      *
@@ -176,17 +191,21 @@ public sealed interface EntitySelectorArgument {
     public data class Advancements private constructor(
         public val advancements: List<SelectorAdvancementRequirement>,
     ) : EntitySelectorArgument {
-        /** Builds an advancements argument from a defensive snapshot of [advancements]. */
-        public constructor(advancements: Collection<SelectorAdvancementRequirement>) : this(
-            buildList(advancements.size) { addAll(advancements) },
-        )
+        /** Builds an advancements argument from a defensive immutable snapshot of [advancements]. */
+        public constructor(advancements: Collection<SelectorAdvancementRequirement>) : this(advancements.toList())
     }
+
+    //endregion
 }
+
+//region Extension properties - exhaustive keyword and name mapping
 
 /**
  * The keyword of this argument, or `null` for coordinates and floating-point ranges (whose names
- * are owned by [SelectorCoordinate] and [SelectorRangeArgument]). Exhaustive so a new argument
- * cannot be added without declaring how it is named.
+ * are owned by [SelectorCoordinate] and [SelectorRangeArgument]).
+ *
+ * Exhaustive: a new argument subtype cannot be added without updating this mapping. This ensures
+ * that rendering and parsing stay in sync.
  */
 internal val EntitySelectorArgument.keyword: SelectorArgumentKeyword?
     get() =
@@ -206,7 +225,12 @@ internal val EntitySelectorArgument.keyword: SelectorArgumentKeyword?
             is EntitySelectorArgument.Advancements -> SelectorArgumentKeyword.ADVANCEMENTS
         }
 
-/** The vanilla selector-source name of this argument, such as `limit` in `limit=1`. */
+/**
+ * The vanilla selector-source name of this argument, such as `limit` in `limit=1`.
+ *
+ * Coordinates and ranges are named by their own argument types; keyword arguments resolve their
+ * names from the [keyword] property.
+ */
 internal val EntitySelectorArgument.argumentName: String
     get() =
         when (this) {
@@ -214,3 +238,5 @@ internal val EntitySelectorArgument.argumentName: String
             is EntitySelectorArgument.Range -> argument.argumentName
             else -> checkNotNull(keyword) { "Keyword arguments always declare a keyword" }.sourceName
         }
+
+//endregion

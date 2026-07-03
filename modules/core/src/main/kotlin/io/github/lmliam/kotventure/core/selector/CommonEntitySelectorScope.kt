@@ -11,6 +11,8 @@ import net.kyori.adventure.key.Key
  */
 @KotventureDslMarker
 public sealed interface CommonEntitySelectorScope {
+    //region Singleton values
+
     /** Requires at least one scoreboard tag. */
     public val any: SelectorPresence
 
@@ -29,10 +31,14 @@ public sealed interface CommonEntitySelectorScope {
     /** Spectator mode. */
     public val spectator: GameMode
 
+    //endregion
+    //region Origin and volume
+
     /**
      * Sets selector origin coordinates (vanilla `x`, `y`, `z`): `origin(12.5.x, 64.y)`.
      *
-     * Each coordinate binds once across the whole selector.
+     * Each coordinate binds once across the whole selector. Additional coordinates override
+     * previous ones.
      *
      * @throws IllegalStateException if a supplied coordinate is already set
      * @sample io.github.lmliam.kotventure.core.selector.selectorPositionVolumeSample
@@ -45,7 +51,7 @@ public sealed interface CommonEntitySelectorScope {
     /**
      * Sets selector bounding-volume deltas (vanilla `dx`, `dy`, `dz`): `volume(16.dx, 8.dy)`.
      *
-     * Each delta binds once across the whole selector.
+     * Each delta binds once across the whole selector. Additional deltas override previous ones.
      *
      * @throws IllegalStateException if a supplied delta is already set
      * @sample io.github.lmliam.kotventure.core.selector.selectorPositionVolumeSample
@@ -54,6 +60,9 @@ public sealed interface CommonEntitySelectorScope {
         first: VolumeDelta,
         vararg rest: VolumeDelta,
     )
+
+    //endregion
+    //region Coordinate extension properties
 
     /**
      * This number as the origin `x` coordinate.
@@ -76,6 +85,9 @@ public sealed interface CommonEntitySelectorScope {
      */
     public val Number.z: OriginCoordinate get() = originCoordinate(SelectorCoordinate.Z, this)
 
+    //endregion
+    //region Volume delta extension properties
+
     /**
      * This number as the bounding-volume `dx` delta.
      *
@@ -97,6 +109,9 @@ public sealed interface CommonEntitySelectorScope {
      */
     public val Number.dz: VolumeDelta get() = volumeDelta(SelectorCoordinate.DZ, this)
 
+    //endregion
+    //region Range filters
+
     /** Filters by distance using a [SelectorRange]. */
     public fun distance(range: SelectorRange)
 
@@ -105,7 +120,9 @@ public sealed interface CommonEntitySelectorScope {
 
     /**
      * Filters by vertical look angle in degrees — vanilla `x_rotation` — using a [SelectorRange]:
-     * `pitch(atMost(-45.0))`. `-90` looks straight up, `0` level, `90` straight down.
+     * `pitch(atMost(-45.0))`.
+     *
+     * Angle mapping: `-90°` = looking straight up; `0°` = level; `90°` = looking straight down.
      *
      * @sample io.github.lmliam.kotventure.core.selector.selectorRotationSample
      */
@@ -115,13 +132,17 @@ public sealed interface CommonEntitySelectorScope {
      * Filters by vertical look angle in degrees — vanilla `x_rotation` — using a Kotlin range:
      * `pitch(-90.0..-45.0)`.
      *
+     * Angle mapping: `-90°` = looking straight up; `0°` = level; `90°` = looking straight down.
+     *
      * @sample io.github.lmliam.kotventure.core.selector.selectorRotationSample
      */
     public fun pitch(range: ClosedFloatingPointRange<Double>)
 
     /**
      * Filters by horizontal look angle in degrees — vanilla `y_rotation` — using a [SelectorRange]:
-     * `yaw(atLeast(90.0))`. `-180` faces due north, `-90` east, `0` south, `90` west.
+     * `yaw(atLeast(90.0))`.
+     *
+     * Angle mapping: `-180°` = north; `-90°` = east; `0°` = south; `90°` = west.
      *
      * @sample io.github.lmliam.kotventure.core.selector.selectorRotationSample
      */
@@ -129,17 +150,23 @@ public sealed interface CommonEntitySelectorScope {
 
     /**
      * Filters by horizontal look angle in degrees — vanilla `y_rotation` — using a Kotlin range:
-     * `yaw(0.0..90.0)`. A descending range such as `yaw(170.0..-170.0)` wraps around ±180, matching
-     * vanilla semantics.
+     * `yaw(0.0..90.0)`.
+     *
+     * Angle mapping: `-180°` = north; `-90°` = east; `0°` = south; `90°` = west.
+     *
+     * Descending ranges like `yaw(170.0..-170.0)` wrap around ±180°, matching vanilla semantics.
      *
      * @sample io.github.lmliam.kotventure.core.selector.selectorRotationSample
      */
     public fun yaw(range: ClosedFloatingPointRange<Double>)
 
+    //endregion
+    //region String-based filters
+
     /**
      * Filters by scoreboard tag. Prefix the call with `!` to exclude the tag.
      *
-     * @throws IllegalArgumentException if the tag name is empty (use `tag(any)` or `tag(none)`)
+     * @throws IllegalArgumentException if the tag name is empty (use `tag(any)` or `tag(none)` instead)
      * @sample io.github.lmliam.kotventure.core.selector.negatedCommonArgumentsSample
      */
     public fun tag(tag: String): SelectorFilterExpression
@@ -156,8 +183,9 @@ public sealed interface CommonEntitySelectorScope {
 
     /**
      * Filters by a datapack predicate (vanilla `predicate`): `predicate(key("my_pack", "flying"))`.
-     * Prefix the call with `!` to require the predicate to fail; repeated calls accumulate in call
-     * order and must all match.
+     *
+     * Prefix the call with `!` to require the predicate to fail. Repeated calls accumulate in
+     * declaration order and must all match.
      *
      * There is deliberately no string overload: predicate IDs are datapack-defined, so a default
      * namespace would usually be wrong. Build IDs with
@@ -175,6 +203,9 @@ public sealed interface CommonEntitySelectorScope {
      */
     public fun name(name: String): SelectorFilterExpression
 
+    //endregion
+    //region Level filters
+
     /**
      * Filters by experience level using a [SelectorIntRange]: `level(atLeast(30))`.
      *
@@ -189,11 +220,14 @@ public sealed interface CommonEntitySelectorScope {
      */
     public fun level(range: IntRange)
 
+    //endregion
+    //region Compound filters
+
     /**
      * Filters by scoreboard objective values (vanilla `scores={...}`):
      * `scores { "kills" eq atLeast(10) }`.
      *
-     * Objectives render in declaration order. Each objective binds once inside the block, and the
+     * Objectives render in declaration order. Each objective binds once inside the block; the
      * whole argument binds once across the selector. Vanilla does not support negating `scores`,
      * so the block is not prefix-negatable.
      *
@@ -206,8 +240,8 @@ public sealed interface CommonEntitySelectorScope {
      * Filters by advancement progress (vanilla `advancements={...}`):
      * `advancements { key("minecraft", "story/smelt_iron") eq true }`.
      *
-     * Advancements render in declaration order. Each advancement binds once inside the block, and
-     * the whole argument binds once across the selector. Vanilla does not support negating
+     * Advancements render in declaration order. Each advancement binds once inside the block; the
+     * whole argument binds once across the selector. Vanilla does not support negating
      * `advancements`, so the block is not prefix-negatable — require an incomplete advancement
      * with `eq false`.
      *
@@ -215,6 +249,9 @@ public sealed interface CommonEntitySelectorScope {
      * @sample io.github.lmliam.kotventure.core.selector.selectorAdvancementsSample
      */
     public fun advancements(init: SelectorAdvancementsScope.() -> Unit)
+
+    //endregion
+    //region Mode and team filters
 
     /**
      * Filters by game mode. Prefix the call with `!` to exclude the mode.
@@ -225,6 +262,7 @@ public sealed interface CommonEntitySelectorScope {
 
     /**
      * Filters by team membership: `team("red")`. Prefix the call with `!` to exclude the team.
+     *
      * A selector has at most one positive team.
      *
      * @throws IllegalArgumentException if the team name is empty (use `team(none)`) or contains
@@ -235,12 +273,15 @@ public sealed interface CommonEntitySelectorScope {
     public fun team(team: String): SelectorFilterExpression
 
     /**
-     * Filters by team presence: `team(any)` matches entities on any team (vanilla `team=!`),
+     * Filters by team presence: `team(any)` matches entities on any team (vanilla `team=!`);
      * `team(none)` matches teamless entities (vanilla `team=`).
      *
      * @sample io.github.lmliam.kotventure.core.selector.selectorTeamSample
      */
     public fun team(presence: SelectorPresence)
+
+    //endregion
+    //region Negation operator
 
     /**
      * Negates a filter expression created by this selector: `!tag("muted")`.
@@ -250,4 +291,6 @@ public sealed interface CommonEntitySelectorScope {
      * @sample io.github.lmliam.kotventure.core.selector.negatedCommonArgumentsSample
      */
     public operator fun SelectorFilterExpression.not(): Unit
+
+    //endregion
 }

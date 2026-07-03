@@ -17,7 +17,7 @@ internal fun SelectorReader.readArgumentValue(
 
     val keyword =
         SelectorArgumentKeyword.fromSourceName(name)
-        ?: failAt(nameOffset, "Unsupported selector argument '$name'")
+            ?: failAt(nameOffset, "Unsupported selector argument '$name'")
 
     if (!head.supports(keyword)) {
         failAt(nameOffset, "Selector ${head.token} does not support '$name'")

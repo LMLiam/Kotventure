@@ -42,6 +42,7 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
 
     private var isConfiguring = false
 
+    // Scope sugar: provided as overridable getters for subclass extensibility
     override val any: SelectorPresence get() = SelectorPresence.ANY
     override val none: SelectorPresence get() = SelectorPresence.NONE
 
@@ -67,14 +68,14 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
 
     override fun origin(
         first: OriginCoordinate,
-        vararg rest: OriginCoordinate,
+        vararg rest: OriginCoordinate
     ) {
         bindCoordinates((listOf(first) + rest).map { it.coordinate to it.value })
     }
 
     override fun volume(
         first: VolumeDelta,
-        vararg rest: VolumeDelta,
+        vararg rest: VolumeDelta
     ) {
         bindCoordinates((listOf(first) + rest).map { it.coordinate to it.value })
     }

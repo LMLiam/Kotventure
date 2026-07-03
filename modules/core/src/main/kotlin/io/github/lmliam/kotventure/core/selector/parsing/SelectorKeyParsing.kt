@@ -12,11 +12,13 @@ internal fun SelectorReader.readSelectorKey(): Key {
 internal fun SelectorReader.parseSelectorKey(
     value: String,
     valueOffset: Int,
-): Key {
-    if (value.isEmpty()) failAt(valueOffset, "Expected a namespaced key")
-    return try {
+): Key =
+    if (value.isEmpty()) {
+        failAt(valueOffset, "Expected a namespaced key")
+    } else {
+        try {
         key(value)
     } catch (exception: InvalidKeyException) {
         failAt(valueOffset, "Invalid namespaced key '$value'", exception)
     }
-}
+    }

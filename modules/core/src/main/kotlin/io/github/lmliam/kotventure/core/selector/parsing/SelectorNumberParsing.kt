@@ -1,8 +1,10 @@
 package io.github.lmliam.kotventure.core.selector.parsing
 
+import io.github.lmliam.kotventure.core.selector.parsing.isAsciiDigit
+
 internal fun SelectorReader.readSelectorBoolean(): Boolean {
     val start = offset
-    return when (readValueToken()) {
+    return when (val token = readValueToken()) {
         "true" -> true
         "false" -> false
         else -> failAt(start, "Expected 'true' or 'false'")
@@ -37,8 +39,9 @@ internal fun SelectorReader.parseSelectorDouble(
 }
 
 /**
- * Vanilla integers are an optional `-` followed by ASCII digits. `toIntOrNull` alone is looser:
- * it also accepts a leading `+` and non-ASCII digit characters.
+ * Vanilla integers: optional '-' then ASCII digits.
+ *
+ * `toIntOrNull` is intentionally looser (accepts '+' and non-ASCII digits), so we validate here.
  */
 private fun String.isSelectorInteger(): Boolean {
     val digits = removePrefix("-")
@@ -46,13 +49,15 @@ private fun String.isSelectorInteger(): Boolean {
 }
 
 /**
- * Vanilla decimals are an optional `-`, ASCII digits, and at most one `.` (`3`, `-2.5`, `.5`,
- * `1.`). `toDoubleOrNull` alone is looser: it also accepts exponents, hex forms, `Infinity`,
- * and `NaN`.
+ * Vanilla decimals: optional '-', ASCII digits, and at most one '.'.
+ * Examples allowed: "3", "-2.5", ".5", "1."
+ *
+ * We split on the first '.' and ensure the concatenated digits are all ASCII digits and non-empty.
  */
 private fun String.isSelectorDecimal(): Boolean {
-    val digits = removePrefix("-").replaceFirst(".", "")
-    return digits.isNotEmpty() && digits.all(Char::isAsciiDigit)
+    val withoutSign = removePrefix("-")
+    val concatenated = withoutSign.split('.', limit = 2).joinToString("")
+    return concatenated.isNotEmpty() && concatenated.all(Char::isAsciiDigit)
 }
 
 private fun Char.isAsciiDigit(): Boolean = this in '0'..'9'

@@ -1,7 +1,7 @@
 package io.github.lmliam.kotventure.core.selector.parsing
 
 /** The vanilla range separator, as in `level=1..30`. */
-private const val RANGE_SEPARATOR: String = ".."
+private const val RANGE_SEPARATOR = ".."
 
 /**
  * The bounds of one parsed range, carrying each bound's source offset so validation failures
@@ -18,12 +18,8 @@ internal class SelectorRangeBounds<T : Comparable<T>>(
         argument: String,
         zero: T,
     ) {
-        if (minimum != null && minimum < zero) {
-            reader.failAt(minimumOffset, "'$argument' bounds must be non-negative")
-        }
-        if (maximum != null && maximum < zero) {
-            reader.failAt(maximumOffset, "'$argument' bounds must be non-negative")
-        }
+        if (minimum != null && minimum < zero) reader.failAt(minimumOffset, "'$argument' bounds must be non-negative")
+        if (maximum != null && maximum < zero) reader.failAt(maximumOffset, "'$argument' bounds must be non-negative")
     }
 
     fun requireOrdered(argument: String) {
@@ -38,16 +34,21 @@ internal fun <T : Comparable<T>> SelectorReader.readRangeBounds(
 ): SelectorRangeBounds<T> {
     val minimumOffset = offset
     val minimum = readBound()
+
     if (!consume(RANGE_SEPARATOR)) {
-        if (minimum == null) failAt(minimumOffset, "Expected a range")
+        minimum ?: failAt(minimumOffset, "Expected a range")
         return SelectorRangeBounds(this, minimum, minimumOffset, minimum, minimumOffset)
     }
+
     if (peek() == '.') fail("Range contains more than one '$RANGE_SEPARATOR' separator")
+
     val maximumOffset = offset
     val maximum = readBound()
+
     if (minimum == null && maximum == null) {
         failAt(minimumOffset, "Range must contain at least one bound")
     }
+
     return SelectorRangeBounds(this, minimum, minimumOffset, maximum, maximumOffset)
 }
 
@@ -55,10 +56,12 @@ internal fun <T : Comparable<T>> SelectorReader.readRangeBounds(
 internal fun SelectorReader.readRangeBoundToken(): String {
     val start = offset
     while (true) {
-        val character = peek() ?: break
-        if (character == ',' || character == ']' || character == '}') break
-        if (character == '.' && peek(1) == '.') break
-        skip()
+        val ch = peek() ?: break
+        when (ch) {
+            ',', ']', '}' -> break
+            '.' if peek(1) == '.' -> break
+            else -> skip()
+        }
     }
     return substringFrom(start)
 }

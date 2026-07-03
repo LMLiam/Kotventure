@@ -25,10 +25,9 @@ internal fun SelectorReader.readAdvancementsArgument(): EntitySelectorArgument.A
     )
 
 private fun SelectorReader.readAdvancementProgress(): SelectorAdvancementProgress =
-    if (peek() == '{') {
-        SelectorAdvancementProgress.Criteria(readAdvancementCriteria())
-    } else {
-        SelectorAdvancementProgress.Completion(readSelectorBoolean())
+    when (peek()) {
+        '{' -> SelectorAdvancementProgress.Criteria(readAdvancementCriteria())
+        else -> SelectorAdvancementProgress.Completion(readSelectorBoolean())
     }
 
 private fun SelectorReader.readAdvancementCriteria(): List<SelectorAdvancementCriterion> =
@@ -43,17 +42,20 @@ private fun <T> SelectorReader.readSelectorMap(
 ): List<T> {
     expect('{')
     if (consume('}')) return emptyList()
-    val entries = mutableListOf<T>()
-    while (true) {
-        val keyOffset = offset
-        val key = readWhile { it != '=' && it != ',' && it != '}' }
-        if (key.isEmpty()) failAt(keyOffset, "Expected $entryName")
-        expect('=')
-        entries += readEntry(key, keyOffset)
-        when {
-            consume('}') -> return entries
-            consume(',') -> if (peek() == '}') fail("Expected $entryName")
-            else -> fail("Expected ',' or '}'")
+
+    return buildList {
+        while (true) {
+            val keyOffset = offset
+            val key = readWhile { it != '=' && it != ',' && it != '}' }
+            if (key.isEmpty()) failAt(keyOffset, "Expected $entryName")
+            expect('=')
+            add(readEntry(key, keyOffset))
+
+            when {
+                consume('}') -> break
+                consume(',') -> if (peek() == '}') fail("Expected $entryName")
+                else -> fail("Expected ',' or '}'")
+            }
         }
     }
 }

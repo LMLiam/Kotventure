@@ -7,29 +7,35 @@ package io.github.lmliam.kotventure.core.selector
  * Construct through a typed target factory such as [entities], or validate selector source with
  * [entitySelector].
  *
- * @property head selector head
- * @property arguments arguments in source or DSL rendering order
- * @throws IllegalArgumentException if an argument is incompatible with [head]
+ * @property head selector head (determines which arguments are valid)
+ * @property arguments arguments in source or DSL rendering order (immutable list)
+ * @throws IllegalArgumentException if any argument is incompatible with [head]
  */
 @ConsistentCopyVisibility
 public data class EntitySelector private constructor(
     public val head: EntitySelectorHead,
     public val arguments: List<EntitySelectorArgument>,
 ) {
-    /** Builds a selector from a defensive snapshot of [arguments]. */
+    /**
+     * Builds a selector from a defensive immutable snapshot of [arguments].
+     *
+     * The provided collection is copied to prevent external mutation.
+     */
     public constructor(
         head: EntitySelectorHead,
         arguments: Collection<EntitySelectorArgument>,
-    ) : this(
-        head,
-        buildList(arguments.size) { addAll(arguments) },
-    )
+    ) : this(head, arguments.toList())
 
     init {
+        // Validate that each argument is supported by this selector head
         arguments.forEach(head::requireSupportFor)
     }
 
-    /** Renders this selector as canonical selector source. */
+    /**
+     * Renders this selector as canonical entity-selector source text.
+     *
+     * Produces `@<head>` for empty arguments, or `@<head>[arg1,arg2,...]` for non-empty.
+     */
     public fun asString(): String =
         if (arguments.isEmpty()) {
             head.token
