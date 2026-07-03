@@ -37,7 +37,8 @@ public enum class EntitySelectorHead(
             SelectorArgumentKeyword.TYPE -> supportsTypeFilters
             SelectorArgumentKeyword.LIMIT,
             SelectorArgumentKeyword.SORT,
-            -> supportsLimitAndSort
+                -> supportsLimitAndSort
+
             else -> true
         }
 

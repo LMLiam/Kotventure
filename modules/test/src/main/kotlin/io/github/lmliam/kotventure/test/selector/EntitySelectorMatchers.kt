@@ -42,8 +42,8 @@ public fun String.shouldBeCanonicalSelector(): EntitySelector = entitySelector(t
 public infix fun String.shouldFailToParseAt(remainder: String): EntitySelectorParseException {
     val parseFailure =
         shouldThrow<EntitySelectorParseException> {
-        entitySelector(this + remainder)
-    }
+            entitySelector(this + remainder)
+        }
 
     parseFailure.offset shouldBe length
     return parseFailure
