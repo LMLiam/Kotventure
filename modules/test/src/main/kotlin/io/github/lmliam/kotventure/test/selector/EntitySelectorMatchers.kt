@@ -39,7 +39,7 @@ public fun String.shouldBeCanonicalSelector(): EntitySelector = entitySelector(t
 /**
  * Asserts that parsing this string followed by [remainder] fails exactly at their boundary.
  */
-public infix fun String.shouldFailToParseAs(remainder: String): EntitySelectorParseException {
+public infix fun String.shouldFailToParseAt(remainder: String): EntitySelectorParseException {
     val parseFailure =
         shouldThrow<EntitySelectorParseException> {
         entitySelector(this + remainder)
