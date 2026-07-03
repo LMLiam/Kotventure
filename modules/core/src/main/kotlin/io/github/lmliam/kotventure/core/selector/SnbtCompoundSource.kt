@@ -15,19 +15,19 @@ import io.github.lmliam.kotventure.core.selector.parsing.validateSnbtCompound
 public value class SnbtCompoundSource internal constructor(
     public val value: String,
 ) {
-    /** Validated compound SNBT construction. */
+    /** Factory for validated compound SNBT source. */
     public companion object {
         /**
          * Validates [source] as one complete SNBT compound.
          *
          * @throws EntitySelectorParseException if [source] is not a compound or has trailing content
          */
-        public fun parse(source: String): SnbtCompoundSource {
-            val reader = SelectorReader(source)
-            reader.validateSnbtCompound()
-            if (!reader.isAtEnd()) reader.fail("Unexpected trailing SNBT content")
-            return SnbtCompoundSource(source)
-        }
+        public fun parse(source: String): SnbtCompoundSource =
+            SelectorReader(source).run {
+                validateSnbtCompound()
+                if (!isAtEnd()) fail("Unexpected trailing SNBT content")
+                SnbtCompoundSource(source)
+            }
     }
 
     public override fun toString(): String = value

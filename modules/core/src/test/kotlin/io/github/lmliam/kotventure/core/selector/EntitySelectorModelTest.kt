@@ -16,20 +16,24 @@ class EntitySelectorModelTest :
     StringSpec(
         {
             "exposes an immutable model that can be transformed" {
-                val parsed = entitySelector("@e[type=minecraft:zombie,name=\"Boss Mob\",tag=!hidden]")
+                val parsed =
+                    entitySelector("""@e[type=minecraft:zombie,name="Boss Mob",tag=!hidden]""")
 
                 parsed.head shouldBe EntitySelectorHead.ENTITIES
-                parsed.arguments shouldHaveSize 3
-                parsed.arguments.first().shouldBeInstanceOf<EntitySelectorArgument.Type>()
-                parsed.arguments[1].shouldBeInstanceOf<EntitySelectorArgument.Name>()
-                parsed.arguments[2].shouldBeInstanceOf<EntitySelectorArgument.Tag>()
-                val transformed =
-                    EntitySelector(
-                        parsed.head,
-                        parsed.arguments.filterNot { it is EntitySelectorArgument.Name },
-                    )
+                parsed.arguments shouldBe
+                        listOf(
+                            EntitySelectorArgument.Type(
+                                SelectorEntityType.Direct(key("minecraft", "zombie")),
+                                isNegated = false,
+                            ),
+                            EntitySelectorArgument.Name("Boss Mob", isNegated = false),
+                            EntitySelectorArgument.Tag(SelectorStringCondition.Named("hidden", isNegated = true)),
+                        )
 
-                transformed shouldRenderAs "@e[type=minecraft:zombie,tag=!hidden]"
+                EntitySelector(
+                    parsed.head,
+                    parsed.arguments.filterNot { it is EntitySelectorArgument.Name },
+                ) shouldRenderAs "@e[type=minecraft:zombie,tag=!hidden]"
             }
 
             "hides invariant-bypassing generated copy methods" {
@@ -48,8 +52,10 @@ class EntitySelectorModelTest :
             }
 
             "exposes negation through the shared Negatable interface" {
-                val parsed = entitySelector("@e[type=!minecraft:zombie,tag=boss,nbt=!{},limit=1]")
-                val negatable = parsed.arguments.filterIsInstance<EntitySelectorArgument.Negatable>()
+                val negatable =
+                    entitySelector("@e[type=!minecraft:zombie,tag=boss,nbt=!{},limit=1]")
+                        .arguments
+                        .filterIsInstance<EntitySelectorArgument.Negatable>()
 
                 negatable shouldHaveSize 3
                 negatable.count { it.isNegated } shouldBe 2
@@ -158,20 +164,17 @@ class EntitySelectorModelTest :
 
             "models tag and team presence explicitly" {
                 val parsed = entitySelector("@e[tag=,tag=!,team=red,team=!blue]")
-                val tags = parsed.arguments.filterIsInstance<EntitySelectorArgument.Tag>()
-                val teams = parsed.arguments.filterIsInstance<EntitySelectorArgument.Team>()
 
-                tags.map(EntitySelectorArgument.Tag::condition) shouldBe
+                parsed.arguments.filterIsInstance<EntitySelectorArgument.Tag>() shouldBe
                         listOf(
-                            SelectorStringCondition.Presence(SelectorPresence.NONE),
-                            SelectorStringCondition.Presence(SelectorPresence.ANY),
+                            EntitySelectorArgument.Tag(SelectorStringCondition.Presence(SelectorPresence.NONE)),
+                            EntitySelectorArgument.Tag(SelectorStringCondition.Presence(SelectorPresence.ANY)),
                         )
-                teams.map(EntitySelectorArgument.Team::condition) shouldBe
+                parsed.arguments.filterIsInstance<EntitySelectorArgument.Team>() shouldBe
                         listOf(
-                            SelectorStringCondition.Named("red"),
-                            SelectorStringCondition.Named("blue", isNegated = true),
+                            EntitySelectorArgument.Team(SelectorStringCondition.Named("red")),
+                            EntitySelectorArgument.Team(SelectorStringCondition.Named("blue", isNegated = true)),
                         )
-                teams.map(EntitySelectorArgument.Team::isNegated) shouldBe listOf(false, true)
             }
 
             "exposes validated SNBT source" {
@@ -186,18 +189,17 @@ class EntitySelectorModelTest :
 
             "defensively snapshots collection-backed model values" {
                 val sourceArguments =
-                    mutableListOf<EntitySelectorArgument>(
+                    mutableListOf(
                         EntitySelectorArgument.Tag(SelectorStringCondition.Named("admin")),
                     )
                 val parsed = EntitySelector(EntitySelectorHead.ENTITIES, sourceArguments)
                 sourceArguments.clear()
 
-                parsed.arguments shouldHaveSize 1
-                parsed shouldBe
-                        EntitySelector(
-                            EntitySelectorHead.ENTITIES,
-                            parsed.arguments,
+                parsed.arguments shouldBe
+                        listOf(
+                            EntitySelectorArgument.Tag(SelectorStringCondition.Named("admin")),
                         )
+
                 shouldThrow<UnsupportedOperationException> {
                     @Suppress("UNCHECKED_CAST")
                     (parsed.arguments as MutableList<EntitySelectorArgument>).clear()

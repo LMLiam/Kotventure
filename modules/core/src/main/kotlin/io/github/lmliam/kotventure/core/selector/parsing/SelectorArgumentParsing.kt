@@ -5,7 +5,6 @@ import io.github.lmliam.kotventure.core.selector.EntitySelectorHead
 import io.github.lmliam.kotventure.core.selector.SelectorArgumentKeyword
 import io.github.lmliam.kotventure.core.selector.SelectorCoordinate
 import io.github.lmliam.kotventure.core.selector.SelectorRangeArgument
-import io.github.lmliam.kotventure.core.selector.supports
 
 internal fun SelectorReader.readArgumentValue(
     head: EntitySelectorHead,

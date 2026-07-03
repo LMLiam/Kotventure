@@ -16,20 +16,22 @@ class EntitySelectorParserTest :
 
             "round trips every typed selector argument" {
                 val source =
-                    "@e[" +
-                            "type=!#my_pack:hostile," +
-                            "name=\"Boss Mob\"," +
-                            "x=1.5,y=-2,z=3,dx=0,dy=1,dz=-1," +
-                            "distance=..10,x_rotation=170..-170,y_rotation=-45..45," +
-                            "level=1..30,gamemode=!creative,limit=2,sort=nearest," +
-                            "tag=!,tag=!hidden,team=!red,team=blue," +
-                            "nbt={Tags:[\"boss\"],Data:[I;1,2]}," +
-                            "nbt={Health:20.0f}," +
-                            "scores={kills=5,balance=-10..}," +
-                            "predicate=!my_pack:hidden," +
-                            "predicate=my_pack:other," +
-                            "advancements={minecraft:story/root=true,my_pack:secret={found_item=false}}" +
-                            "]"
+                    buildString {
+                        append("@e[")
+                        append("type=!#my_pack:hostile,")
+                        append("name=\"Boss Mob\",")
+                        append("x=1.5,y=-2,z=3,dx=0,dy=1,dz=-1,")
+                        append("distance=..10,x_rotation=170..-170,y_rotation=-45..45,")
+                        append("level=1..30,gamemode=!creative,limit=2,sort=nearest,")
+                        append("tag=!,tag=!hidden,team=!red,team=blue,")
+                        append("nbt={Tags:[\"boss\"],Data:[I;1,2]},")
+                        append("nbt={Health:20.0f},")
+                        append("scores={kills=5,balance=-10..},")
+                        append("predicate=!my_pack:hidden,")
+                        append("predicate=my_pack:other,")
+                        append("advancements={minecraft:story/root=true,my_pack:secret={found_item=false}}")
+                        append(']')
+                    }
 
                 source.shouldBeCanonicalSelector()
             }

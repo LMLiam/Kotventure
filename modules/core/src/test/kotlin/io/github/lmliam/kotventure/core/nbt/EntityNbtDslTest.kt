@@ -80,9 +80,9 @@ class EntityNbtDslTest :
                 val component =
                     entityNbt(nearestPlayer(), nbtPath("CustomName")) {
                         interpret(true)
-                    }
+                    }.shouldBeEntityNbtComponent()
 
-                component.shouldBeEntityNbtComponent().shouldInterpret()
+                component.shouldInterpret()
             }
 
             "sets a component separator" {
@@ -92,9 +92,9 @@ class EntityNbtDslTest :
                 val component =
                     entityNbt(allPlayers(), path) {
                         separator(separator)
-                    }
+                    }.shouldBeEntityNbtComponent()
 
-                component.shouldBeEntityNbtComponent() shouldHaveNbtSeparator separator
+                component shouldHaveNbtSeparator separator
             }
 
             "sets an inline text separator" {
@@ -104,9 +104,9 @@ class EntityNbtDslTest :
                             content(" | ")
                             color(NamedTextColor.GRAY)
                         }
-                    }
+                    }.shouldBeEntityNbtComponent()
 
-                val separator = checkNotNull(component.shouldBeEntityNbtComponent().separator())
+                val separator = checkNotNull(component.separator())
 
                 separator shouldHaveColor NamedTextColor.GRAY
                 separator shouldContainText " | "

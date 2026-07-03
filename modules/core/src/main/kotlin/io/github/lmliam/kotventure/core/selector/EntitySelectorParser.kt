@@ -2,6 +2,8 @@ package io.github.lmliam.kotventure.core.selector
 
 import io.github.lmliam.kotventure.core.selector.parsing.SelectorReader
 import io.github.lmliam.kotventure.core.selector.parsing.readArgumentValue
+import io.github.lmliam.kotventure.core.selector.readSelectorArgument
+import io.github.lmliam.kotventure.core.selector.readSelectorArguments
 
 /**
  * Parses Java Edition entity-selector source into an [EntitySelector].
@@ -9,13 +11,15 @@ import io.github.lmliam.kotventure.core.selector.parsing.readArgumentValue
  * @throws EntitySelectorParseException if [source] is not valid selector syntax
  * @sample io.github.lmliam.kotventure.core.selector.entitySelectorSample
  */
-public fun entitySelector(source: String): EntitySelector {
-    val reader = SelectorReader(source)
-    val head = reader.readSelectorHead()
-    if (reader.isAtEnd()) return EntitySelector(head, emptyList())
-    reader.expect('[', "Expected '[' or the end of the selector")
-    val arguments = reader.readSelectorArguments(head)
-    if (!reader.isAtEnd()) reader.fail("Unexpected trailing selector content")
+public fun entitySelector(source: String): EntitySelector = SelectorReader(source).readEntitySelector()
+
+private fun SelectorReader.readEntitySelector(): EntitySelector {
+    val head = readSelectorHead()
+    if (isAtEnd()) return EntitySelector(head, emptyList())
+
+    expect('[', "Expected '[' or the end of the selector")
+    val arguments = readSelectorArguments(head)
+    if (!isAtEnd()) fail("Unexpected trailing selector content")
     return EntitySelector(head, arguments)
 }
 
@@ -29,13 +33,15 @@ private fun SelectorReader.readSelectorHead(): EntitySelectorHead {
 
 private fun SelectorReader.readSelectorArguments(head: EntitySelectorHead): List<EntitySelectorArgument> {
     if (consume(']')) return emptyList()
-    val arguments = mutableListOf<EntitySelectorArgument>()
-    while (true) {
-        arguments += readSelectorArgument(head)
-        when {
-            consume(']') -> return arguments
-            consume(',') -> if (peek() == ']') fail("Expected selector argument")
-            else -> fail("Expected ']' or another selector argument")
+
+    return buildList {
+        while (true) {
+            add(readSelectorArgument(head))
+            when {
+                consume(']') -> return@buildList
+                consume(',') -> if (peek() == ']') fail("Expected selector argument")
+                else -> fail("Expected ']' or another selector argument")
+            }
         }
     }
 }
