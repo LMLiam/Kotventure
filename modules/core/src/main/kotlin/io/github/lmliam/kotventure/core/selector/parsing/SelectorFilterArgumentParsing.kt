@@ -36,10 +36,7 @@ internal fun SelectorReader.readNameArgument(): EntitySelectorArgument.Name =
 internal fun SelectorReader.readTypeArgument(): EntitySelectorArgument.Type =
     withNegation { negated ->
         val target =
-            if (consume(
-                    '#',
-                )
-            ) {
+            if (consume('#')) {
                     SelectorEntityType.Tag(readSelectorKey())
                 } else {
                     SelectorEntityType.Direct(readSelectorKey())
