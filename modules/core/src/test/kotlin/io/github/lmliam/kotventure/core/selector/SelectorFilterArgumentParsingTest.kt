@@ -11,22 +11,14 @@ class SelectorFilterArgumentParsingTest :
     StringSpec(
         {
             "round trips type, name, gamemode, tag, team, and predicate filters" {
-                val source =
-                    "@e[" +
-                            "type=!#my_pack:hostile," +
-                            "name=\"Boss Mob\"," +
-                            "gamemode=!creative," +
-                            "tag=!hidden,team=blue," +
-                            "predicate=!my_pack:hidden" +
-                            "]"
-
-                source.shouldBeCanonicalSelector()
+                """@e[type=!#my_pack:hostile,name="Boss Mob",gamemode=!creative,tag=!hidden,team=blue,predicate=!my_pack:hidden]"""
+                    .shouldBeCanonicalSelector()
             }
 
             "exposes parsed filter structure" {
-                val parsed = entitySelector("@e[type=!#my_pack:hostile,name=\"Boss Mob\",gamemode=!creative]")
-
-                parsed.arguments shouldBe
+                entitySelector(
+                    """@e[type=!#my_pack:hostile,name="Boss Mob",gamemode=!creative]""",
+                ).arguments shouldBe
                         listOf(
                             EntitySelectorArgument.Type(
                                 SelectorEntityType.Tag(key("my_pack", "hostile")),
@@ -38,12 +30,12 @@ class SelectorFilterArgumentParsingTest :
             }
 
             "renders decoded selector names canonically" {
-                entitySelector("@e[name='Boss Mob']") shouldRenderAs "@e[name=\"Boss Mob\"]"
-                "@e[name=\"Boss \\\"Mob\\\"\"]".shouldBeCanonicalSelector()
+                entitySelector("""@e[name='Boss Mob']""") shouldRenderAs """@e[name="Boss Mob"]"""
+                """@e[name="Boss \"Mob\""]""".shouldBeCanonicalSelector()
             }
 
             "preserves repeated empty-value filters" {
-                "@e[tag=,tag=!,team=,team=!]".shouldBeCanonicalSelector()
+                """@e[tag=,tag=!,team=,team=!]""".shouldBeCanonicalSelector()
             }
 
             "rejects malformed names" {

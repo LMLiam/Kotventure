@@ -10,23 +10,28 @@ class SelectorMapArgumentParsingTest :
     StringSpec(
         {
             "round trips scores and advancements arguments" {
-                val source =
-                    "@e[" +
-                            "scores={kills=5,balance=-10..}," +
-                            "advancements={minecraft:story/root=true,my_pack:secret={found_item=false}}" +
-                            "]"
-
-                source.shouldBeCanonicalSelector()
+                """@e[scores={kills=5,balance=-10..},advancements={minecraft:story/root=true,my_pack:secret={found_item=false}}]"""
+                    .shouldBeCanonicalSelector()
             }
 
             "exposes parsed scores and advancement structure" {
-                val parsed = entitySelector("@e[scores={kills=5},advancements={my_pack:secret={found_item=false}}]")
-                val scores = parsed.arguments.filterIsInstance<EntitySelectorArgument.Scores>().single()
-                val advancements =
-                    parsed.arguments.filterIsInstance<EntitySelectorArgument.Advancements>().single()
+                val parsed =
+                    entitySelector(
+                        """
+                        @e[scores={kills=5},advancements={my_pack:secret={found_item=false}}]
+                        """.trimIndent(),
+                    )
 
-                scores.scores shouldBe listOf(SelectorScoreRequirement("kills", exactly(5)))
-                advancements.advancements shouldBe
+                parsed.arguments
+                    .filterIsInstance<EntitySelectorArgument.Scores>()
+                    .single()
+                    .scores shouldBe
+                        listOf(SelectorScoreRequirement("kills", exactly(5)))
+
+                parsed.arguments
+                    .filterIsInstance<EntitySelectorArgument.Advancements>()
+                    .single()
+                    .advancements shouldBe
                         listOf(
                             SelectorAdvancementRequirement(
                                 key("my_pack", "secret"),

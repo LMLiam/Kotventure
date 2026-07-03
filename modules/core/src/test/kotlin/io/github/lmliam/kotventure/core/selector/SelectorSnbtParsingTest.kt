@@ -8,34 +8,30 @@ class SelectorSnbtParsingTest :
     StringSpec(
         {
             "round trips nested SNBT filters" {
-                "@e[nbt={Tags:[\"boss\"],Data:[I;1,2]},nbt=!{Health:20.0f}]".shouldBeCanonicalSelector()
+                """@e[nbt={Tags:["boss"],Data:[I;1,2]},nbt=!{Health:20.0f}]"""
+                    .shouldBeCanonicalSelector()
             }
 
             "accepts typed SNBT array boundaries" {
-                val source =
-                    "@e[nbt={" +
-                            "Bytes:[B;-128b,+127b]," +
-                            "Ints:[I;-2147483648,+2147483647]," +
-                            "Longs:[L;-9223372036854775808L,+9223372036854775807L]" +
-                            "}]"
-
-                source.shouldBeCanonicalSelector()
+                """
+                @e[nbt={Bytes:[B;-128b,+127b],Ints:[I;-2147483648,+2147483647],Longs:[L;-9223372036854775808L,+9223372036854775807L]}]
+                """.trimIndent().shouldBeCanonicalSelector()
             }
 
             "preserves Java Edition 26.2 SNBT container forms" {
                 listOf(
-                    "@e[nbt={foo:1b,}]",
-                    "@e[nbt={Tags:[1b,\"mixed\",]}]",
-                    "@e[nbt={values:[1b,2b,]}]",
-                    "@e[nbt={Data:[B;+1b,]}]",
-                    "@e[nbt={values:[I;1,2,]}]",
+                    """@e[nbt={foo:1b,}]""",
+                    """@e[nbt={Tags:[1b,"mixed",]}]""",
+                    """@e[nbt={values:[1b,2b,]}]""",
+                    """@e[nbt={Data:[B;+1b,]}]""",
+                    """@e[nbt={values:[I;1,2,]}]""",
                 ).forEach { source ->
                     source.shouldBeCanonicalSelector()
                 }
             }
 
             "stops unquoted SNBT scalars at every container terminator" {
-                "@e[nbt={a:1,b:[2],c:{d:3}}]".shouldBeCanonicalSelector()
+                """@e[nbt={a:1,b:[2],c:{d:3}}]""".shouldBeCanonicalSelector()
             }
 
             "rejects malformed SNBT structure" {

@@ -9,20 +9,12 @@ class SelectorScalarArgumentParsingTest :
     StringSpec(
         {
             "round trips coordinate, range, and result-control arguments" {
-                val source =
-                    "@e[" +
-                            "x=1.5,y=-2,z=3,dx=0,dy=1,dz=-1," +
-                            "distance=..10,x_rotation=170..-170,y_rotation=-45..45," +
-                            "level=1..30,limit=2,sort=nearest" +
-                            "]"
-
-                source.shouldBeCanonicalSelector()
+                """@e[x=1.5,y=-2,z=3,dx=0,dy=1,dz=-1,distance=..10,x_rotation=170..-170,y_rotation=-45..45,level=1..30,limit=2,sort=nearest]"""
+                    .shouldBeCanonicalSelector()
             }
 
             "exposes parsed scalar structure" {
-                val parsed = entitySelector("@e[x=1.5,limit=2,sort=nearest]")
-
-                parsed.arguments shouldBe
+                entitySelector("@e[x=1.5,limit=2,sort=nearest]").arguments shouldBe
                         listOf(
                             EntitySelectorArgument.Coordinate(SelectorCoordinate.X, 1.5),
                             EntitySelectorArgument.Limit(2),
