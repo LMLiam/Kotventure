@@ -110,7 +110,7 @@ private fun SelectorReader.validateSnbtCompoundKey() {
         null -> fail("Expected SNBT compound key")
         else ->
             readWhile(Char::isAllowedInUnquotedSelectorToken)
-            .let { if (it.isEmpty()) fail("Expected SNBT compound key") }
+                .let { if (it.isEmpty()) fail("Expected SNBT compound key") }
     }
 }
 

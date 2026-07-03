@@ -39,7 +39,7 @@ internal fun SelectorReader.readQuotedString(): String {
     val quoteOffset = offset
     val quote =
         peek()?.takeIf { it == '\'' || it == '"' }
-        ?: error("readQuotedString requires the cursor to be on a quote")
+            ?: error("readQuotedString requires the cursor to be on a quote")
     skip()
 
     return buildString {

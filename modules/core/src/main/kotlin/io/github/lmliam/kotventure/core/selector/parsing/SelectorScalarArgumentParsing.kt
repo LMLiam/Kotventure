@@ -35,7 +35,7 @@ internal fun SelectorReader.readSortArgument(): EntitySelectorArgument.Sort {
     val token = readValueToken()
     val sort =
         SelectorSort.entries.firstOrNull { it.value == token }
-        ?: failAt(start, "Unsupported selector sort '$token'")
+            ?: failAt(start, "Unsupported selector sort '$token'")
     return EntitySelectorArgument.Sort(sort)
 }
 

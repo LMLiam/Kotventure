@@ -30,6 +30,7 @@ private fun EntitySelectorArgument.renderValue(): String =
         is EntitySelectorArgument.Nbt -> "$negationPrefix${snbt.value}"
         is EntitySelectorArgument.Scores ->
             scores.joinToString(",", "{", "}") { (objective, range) -> "$objective=$range" }
+
         is EntitySelectorArgument.Predicate -> "$negationPrefix${key.asString()}"
         is EntitySelectorArgument.Advancements ->
             advancements.joinToString(",", "{", "}") { (advancement, progress) ->

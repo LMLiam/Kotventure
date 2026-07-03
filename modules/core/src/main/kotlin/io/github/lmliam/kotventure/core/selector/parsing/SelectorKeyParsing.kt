@@ -17,8 +17,8 @@ internal fun SelectorReader.parseSelectorKey(
         failAt(valueOffset, "Expected a namespaced key")
     } else {
         try {
-        key(value)
-    } catch (exception: InvalidKeyException) {
-        failAt(valueOffset, "Invalid namespaced key '$value'", exception)
-    }
+            key(value)
+        } catch (exception: InvalidKeyException) {
+            failAt(valueOffset, "Invalid namespaced key '$value'", exception)
+        }
     }

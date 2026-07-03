@@ -90,10 +90,10 @@ private fun typeArgument(
 ): Type {
     val target =
         if (value.isEntityTypeTag()) {
-        SelectorEntityType.Tag(key(value.removePrefix("#")))
-    } else {
-        SelectorEntityType.Direct(key(value))
-    }
+            SelectorEntityType.Tag(key(value.removePrefix("#")))
+        } else {
+            SelectorEntityType.Direct(key(value))
+        }
     return Type(target, isNegated)
 }
 
