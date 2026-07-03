@@ -14,8 +14,8 @@ import io.kotest.matchers.shouldBe
  * `and`/`or` or negate with `shouldNot`.
  */
 public fun renderAs(expected: String): Matcher<EntitySelector> =
-    Matcher { value ->
-        val actual = value.asString()
+    Matcher { selector ->
+        val actual = selector.asString()
         MatcherResult(
             actual == expected,
             { "Expected selector to render as <$expected>, but was <$actual>." },
@@ -37,15 +37,14 @@ public infix fun EntitySelector.shouldRenderAs(expected: String): EntitySelector
 public fun String.shouldBeCanonicalSelector(): EntitySelector = entitySelector(this) shouldRenderAs this
 
 /**
- * Asserts that parsing this string followed by [remainder] fails exactly at their boundary — the
- * reported offset is where [remainder] starts, so no numeric offset appears at the call site:
- *
- * ```kotlin
- * "@e[limit=" shouldFailToParseAt "0]"
- * ```
+ * Asserts that parsing this string followed by [remainder] fails exactly at their boundary.
  */
-public infix fun String.shouldFailToParseAt(remainder: String): EntitySelectorParseException {
-    val failure = shouldThrow<EntitySelectorParseException> { entitySelector(this + remainder) }
-    failure.offset shouldBe length
-    return failure
+public infix fun String.shouldFailToParseAs(remainder: String): EntitySelectorParseException {
+    val parseFailure =
+        shouldThrow<EntitySelectorParseException> {
+        entitySelector(this + remainder)
+    }
+
+    parseFailure.offset shouldBe length
+    return parseFailure
 }
