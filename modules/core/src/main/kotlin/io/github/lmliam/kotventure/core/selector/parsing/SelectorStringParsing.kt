@@ -33,7 +33,8 @@ internal fun SelectorReader.validateUnquotedToken(
  * be consumed and the string returned without delimiters.
  *
  * @return the decoded string (without delimiters)
- * @throws EntitySelectorParseException if the string is unterminated or contains invalid escapes
+ * @throws io.github.lmliam.kotventure.core.selector.EntitySelectorParseException if the string is
+ * unterminated or contains invalid escapes
  */
 internal fun SelectorReader.readQuotedString(): String {
     val quoteOffset = offset
