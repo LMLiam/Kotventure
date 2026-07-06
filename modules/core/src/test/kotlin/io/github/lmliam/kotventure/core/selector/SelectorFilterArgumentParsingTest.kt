@@ -16,7 +16,7 @@ class SelectorFilterArgumentParsingTest :
             }
 
             "exposes parsed filter structure" {
-                entitySelector(
+                parseSelector(
                     """@e[type=!#my_pack:hostile,name="Boss Mob",gamemode=!creative]""",
                 ).arguments shouldBe
                         listOf(
@@ -30,7 +30,7 @@ class SelectorFilterArgumentParsingTest :
             }
 
             "renders decoded selector names canonically" {
-                entitySelector("""@e[name='Boss Mob']""") shouldRenderAs """@e[name="Boss Mob"]"""
+                parseSelector("""@e[name='Boss Mob']""") shouldRenderAs """@e[name="Boss Mob"]"""
                 """@e[name="Boss \"Mob\""]""".shouldBeCanonicalSelector()
             }
 

@@ -5,8 +5,6 @@ import net.kyori.adventure.text.ScoreComponent
 import net.kyori.adventure.text.SelectorComponent
 import net.kyori.adventure.text.TranslatableComponent
 
-private fun quoted(value: String): String = "\"${escapeKotlinString(value)}\""
-
 internal fun KotlinSourceBuilder.appendTranslatable(component: TranslatableComponent) {
     val fallback = component.fallback()
     val arguments = component.arguments()
@@ -38,7 +36,7 @@ internal fun KotlinSourceBuilder.appendSelector(component: SelectorComponent) {
     val separator = component.separator()
 
     appendStructured(
-        header = "selector(${entitySelectorLiteral(component.pattern())})",
+        header = "selector(${parseSelectorLiteral(component.pattern())})",
         component = component,
         hasExtraBody = separator != null,
     ) {

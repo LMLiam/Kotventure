@@ -5,7 +5,7 @@ package io.github.lmliam.kotventure.core.selector
  * `@e[type=minecraft:armor_stand,limit=1]`.
  *
  * Construct through a typed target factory such as [entities], or validate selector source with
- * [entitySelector].
+ * [parseSelector].
  *
  * @property head selector head (determines which arguments are valid)
  * @property arguments arguments in source or DSL rendering order (immutable list)

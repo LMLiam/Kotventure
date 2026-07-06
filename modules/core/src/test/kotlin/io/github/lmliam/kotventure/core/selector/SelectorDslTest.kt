@@ -120,7 +120,7 @@ class SelectorDslTest :
             }
 
             "builds a selector component from parsed source" {
-                val component = selector(entitySelector("@e[distance=..10]")).shouldBeSelectorComponent()
+                val component = selector(parseSelector("@e[distance=..10]")).shouldBeSelectorComponent()
 
                 component shouldHaveSelectorPattern "@e[distance=..10]"
             }

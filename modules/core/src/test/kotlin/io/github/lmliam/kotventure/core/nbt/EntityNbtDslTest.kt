@@ -2,8 +2,8 @@ package io.github.lmliam.kotventure.core.nbt
 
 import io.github.lmliam.kotventure.core.selector.allPlayers
 import io.github.lmliam.kotventure.core.selector.entities
-import io.github.lmliam.kotventure.core.selector.entitySelector
 import io.github.lmliam.kotventure.core.selector.nearestPlayer
+import io.github.lmliam.kotventure.core.selector.parseSelector
 import io.github.lmliam.kotventure.core.selector.randomPlayer
 import io.github.lmliam.kotventure.core.selector.self
 import io.github.lmliam.kotventure.test.text.childAt
@@ -41,7 +41,7 @@ class EntityNbtDslTest :
             "accepts a parsed selector and path" {
                 val component =
                     entityNbt(
-                        entitySelector("@e[type=minecraft:zombie,limit=1]"),
+                        parseSelector("@e[type=minecraft:zombie,limit=1]"),
                         nbtPath("CustomName"),
                     ).shouldBeEntityNbtComponent()
 

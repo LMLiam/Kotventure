@@ -17,7 +17,7 @@ class EntitySelectorModelTest :
         {
             "exposes an immutable model that can be transformed" {
                 val parsed =
-                    entitySelector("""@e[type=minecraft:zombie,name="Boss Mob",tag=!hidden]""")
+                    parseSelector("""@e[type=minecraft:zombie,name="Boss Mob",tag=!hidden]""")
 
                 parsed.head shouldBe EntitySelectorHead.ENTITIES
                 parsed.arguments shouldBe
@@ -53,7 +53,7 @@ class EntitySelectorModelTest :
 
             "exposes negation through the shared Negatable interface" {
                 val negatable =
-                    entitySelector("@e[type=!minecraft:zombie,tag=boss,nbt=!{},limit=1]")
+                    parseSelector("@e[type=!minecraft:zombie,tag=boss,nbt=!{},limit=1]")
                         .arguments
                         .filterIsInstance<EntitySelectorArgument.Negatable>()
 
@@ -63,12 +63,12 @@ class EntitySelectorModelTest :
 
             "represents direct entity types and type tags without a boolean flag" {
                 val direct =
-                    entitySelector("@e[type=minecraft:zombie]")
+                    parseSelector("@e[type=minecraft:zombie]")
                         .arguments
                         .filterIsInstance<EntitySelectorArgument.Type>()
                         .single()
                 val tag =
-                    entitySelector("@e[type=#minecraft:raiders]")
+                    parseSelector("@e[type=#minecraft:raiders]")
                         .arguments
                         .filterIsInstance<EntitySelectorArgument.Type>()
                         .single()
@@ -79,7 +79,7 @@ class EntitySelectorModelTest :
 
             "stores named string-filter negation inside the condition" {
                 val tag =
-                    entitySelector("@e[tag=!hidden]")
+                    parseSelector("@e[tag=!hidden]")
                         .arguments
                         .filterIsInstance<EntitySelectorArgument.Tag>()
                         .single()
@@ -163,7 +163,7 @@ class EntitySelectorModelTest :
             }
 
             "models tag and team presence explicitly" {
-                val parsed = entitySelector("@e[tag=,tag=!,team=red,team=!blue]")
+                val parsed = parseSelector("@e[tag=,tag=!,team=red,team=!blue]")
 
                 parsed.arguments.filterIsInstance<EntitySelectorArgument.Tag>() shouldBe
                         listOf(
@@ -179,7 +179,7 @@ class EntitySelectorModelTest :
 
             "exposes validated SNBT source" {
                 val nbt =
-                    entitySelector("@e[nbt=!{Health:20.0f}]")
+                    parseSelector("@e[nbt=!{Health:20.0f}]")
                         .arguments
                         .filterIsInstance<EntitySelectorArgument.Nbt>()
                         .single()
@@ -212,7 +212,7 @@ class EntitySelectorModelTest :
             }
 
             "exposes parsed range bounds without reparsing rendered strings" {
-                val parsed = entitySelector("@e[distance=..10,level=2..5,scores={kills=-1..}]")
+                val parsed = parseSelector("@e[distance=..10,level=2..5,scores={kills=-1..}]")
                 val distance = parsed.arguments.filterIsInstance<EntitySelectorArgument.Range>().single()
                 val level = parsed.arguments.filterIsInstance<EntitySelectorArgument.Level>().single()
                 val scores = parsed.arguments.filterIsInstance<EntitySelectorArgument.Scores>().single()
@@ -243,7 +243,7 @@ class EntitySelectorModelTest :
             }
 
             "supplies parsed selectors directly to selector components" {
-                val parsed = entitySelector("@a[tag=admin]")
+                val parsed = parseSelector("@a[tag=admin]")
 
                 selector(parsed)
                     .shouldBeSelectorComponent()

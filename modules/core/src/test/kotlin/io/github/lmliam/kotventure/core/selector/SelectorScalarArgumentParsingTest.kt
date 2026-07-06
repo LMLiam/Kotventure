@@ -14,7 +14,7 @@ class SelectorScalarArgumentParsingTest :
             }
 
             "exposes parsed scalar structure" {
-                entitySelector("@e[x=1.5,limit=2,sort=nearest]").arguments shouldBe
+                parseSelector("@e[x=1.5,limit=2,sort=nearest]").arguments shouldBe
                         listOf(
                             EntitySelectorArgument.Coordinate(SelectorCoordinate.X, 1.5),
                             EntitySelectorArgument.Limit(2),

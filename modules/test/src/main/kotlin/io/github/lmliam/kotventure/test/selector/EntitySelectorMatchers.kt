@@ -2,7 +2,7 @@ package io.github.lmliam.kotventure.test.selector
 
 import io.github.lmliam.kotventure.core.selector.EntitySelector
 import io.github.lmliam.kotventure.core.selector.EntitySelectorParseException
-import io.github.lmliam.kotventure.core.selector.entitySelector
+import io.github.lmliam.kotventure.core.selector.parseSelector
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.Matcher
 import io.kotest.matchers.MatcherResult
@@ -34,7 +34,7 @@ public infix fun EntitySelector.shouldRenderAs(expected: String): EntitySelector
 /**
  * Asserts that this string parses as an entity selector and renders back to itself unchanged.
  */
-public fun String.shouldBeCanonicalSelector(): EntitySelector = entitySelector(this) shouldRenderAs this
+public fun String.shouldBeCanonicalSelector(): EntitySelector = parseSelector(this) shouldRenderAs this
 
 /**
  * Asserts that parsing this string followed by [remainder] fails exactly at their boundary.
@@ -42,7 +42,7 @@ public fun String.shouldBeCanonicalSelector(): EntitySelector = entitySelector(t
 public infix fun String.shouldFailToParseAt(remainder: String): EntitySelectorParseException {
     val parseFailure =
         shouldThrow<EntitySelectorParseException> {
-            entitySelector(this + remainder)
+            parseSelector(this + remainder)
         }
 
     parseFailure.offset shouldBe length

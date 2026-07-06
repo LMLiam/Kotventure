@@ -1,7 +1,7 @@
 package io.github.lmliam.kotventure.minimessage.conversion
 
 import io.github.lmliam.kotventure.core.selector.EntitySelectorParseException
-import io.github.lmliam.kotventure.core.selector.entitySelector
+import io.github.lmliam.kotventure.core.selector.parseSelector
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.ShadowColor
@@ -31,7 +31,8 @@ private val NAMED_COLOR_LITERALS: Map<NamedTextColor, String> =
         NamedTextColor.WHITE to "white",
     )
 
-private fun quoted(value: String): String = "\"${escapeKotlinString(value)}\""
+/** Renders [value] as a double-quoted Kotlin string literal with its contents escaped. */
+internal fun quoted(value: String): String = "\"${escapeKotlinString(value)}\""
 
 /**
  * Renders [color] as the Kotventure colour-DSL expression that reconstructs it: a named-colour property
@@ -68,12 +69,11 @@ internal fun shadowColorLiteral(color: ShadowColor): String {
 internal fun keyLiteral(key: Key): String = "key(${quoted(key.namespace())}, ${quoted(key.value())})"
 
 /**
- * Validates raw selector [source] and renders it as the canonical `entitySelector("...")` call.
+ * Validates raw selector [source] and renders it as the canonical `parseSelector("...")` call.
  *
  * @throws EntitySelectorParseException if [source] is not valid selector syntax
  */
-internal fun entitySelectorLiteral(source: String): String =
-    "entitySelector(${quoted(entitySelector(source).toString())})"
+internal fun parseSelectorLiteral(source: String): String = "parseSelector(${quoted(parseSelector(source).toString())})"
 
 /**
  * Renders [contents] as the object-contents expression that reconstructs it, using the single-argument `sprite` form

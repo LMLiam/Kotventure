@@ -37,7 +37,7 @@ class EntitySelectorParserTest :
             }
 
             "canonicalizes empty argument lists" {
-                entitySelector("@e[]") shouldRenderAs "@e"
+                parseSelector("@e[]") shouldRenderAs "@e"
             }
 
             "reports malformed heads, delimiters, and unsupported arguments at their source offset" {

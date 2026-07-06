@@ -127,7 +127,7 @@ val msg = component {
     mini("<gradient:gold:red>Epic</gradient>")
 }
 
-val parsedSelector = entitySelector("@e[type=minecraft:zombie,tag=!hidden]")
+val parsedSelector = parseSelector("@e[type=minecraft:zombie,tag=!hidden]")
 
 // ── Reusable styles ────────────────────────────────────────────
 val headerStyle = style {
@@ -189,7 +189,7 @@ println(component.toMiniMessage())
 println(component.toPlainText())
 ```
 
-`entitySelector(...)` is the single dynamic-string bridge into the selector DSL: it validates
+`parseSelector(...)` is the single dynamic-string bridge into the selector DSL: it validates
 selector source and returns the same typed, immutable `EntitySelector` model produced by the
 target-specific DSL factories. Invalid or unknown syntax throws an `EntitySelectorParseException`
 carrying the zero-based, selector-relative offset of the first failure, matching the fail-fast
@@ -197,7 +197,7 @@ contract of the rest of the DSL. There is no unchecked selector representation.
 
 Both construction paths produce a typed `EntitySelectorArgument` list, and a single renderer turns
 that model back into canonical selector source. The DSL scopes are the compile-time front end over
-the model; `entitySelector(...)` is the strict runtime front end for dynamic strings. The model is
+the model; `parseSelector(...)` is the strict runtime front end for dynamic strings. The model is
 semantic, not lexical: argument order and repetition are retained, while quote choice, escapes,
 omitted `minecraft:` namespaces, number spelling, redundant exact ranges (`5..5` renders as `5`),
 and empty argument brackets re-render canonically. Duplicate-argument and cross-argument vanilla

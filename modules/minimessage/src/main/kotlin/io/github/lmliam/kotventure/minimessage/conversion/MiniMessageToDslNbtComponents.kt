@@ -6,8 +6,6 @@ import net.kyori.adventure.text.NBTComponent
 import net.kyori.adventure.text.ObjectComponent
 import net.kyori.adventure.text.StorageNBTComponent
 
-private fun quoted(value: String): String = "\"${escapeKotlinString(value)}\""
-
 internal fun KotlinSourceBuilder.appendBlockNbt(component: BlockNBTComponent) =
     appendNbt(
         functionName = "blockNbt",
@@ -18,7 +16,7 @@ internal fun KotlinSourceBuilder.appendBlockNbt(component: BlockNBTComponent) =
 internal fun KotlinSourceBuilder.appendEntityNbt(component: EntityNBTComponent) =
     appendNbt(
         functionName = "entityNbt",
-        sourceExpression = entitySelectorLiteral(component.selector()),
+        sourceExpression = parseSelectorLiteral(component.selector()),
         component = component,
     )
 

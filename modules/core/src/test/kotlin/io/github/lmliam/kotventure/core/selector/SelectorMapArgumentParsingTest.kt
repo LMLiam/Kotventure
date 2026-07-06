@@ -16,7 +16,7 @@ class SelectorMapArgumentParsingTest :
 
             "exposes parsed scores and advancement structure" {
                 val parsed =
-                    entitySelector(
+                    parseSelector(
                         """
                         @e[scores={kills=5},advancements={my_pack:secret={found_item=false}}]
                         """.trimIndent(),
