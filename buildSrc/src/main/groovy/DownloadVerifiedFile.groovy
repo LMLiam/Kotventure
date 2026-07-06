@@ -43,14 +43,14 @@ abstract class DownloadVerifiedFile extends DefaultTask {
                 def actualSha1 = sha1(temporary)
                 if (actualSha1 != expectedSha1.get()) {
                     throw new GradleException(
-                        "Checksum mismatch for ${sourceUrl.get()}: " +
-                            "expected ${expectedSha1.get()}, got $actualSha1",
+                            "Checksum mismatch for ${sourceUrl.get()}: " +
+                                    "expected ${expectedSha1.get()}, got $actualSha1",
                     )
                 }
                 Files.move(
-                    temporary.toPath(),
-                    target.toPath(),
-                    StandardCopyOption.REPLACE_EXISTING,
+                        temporary.toPath(),
+                        target.toPath(),
+                        StandardCopyOption.REPLACE_EXISTING,
                 )
                 return
             } catch (Exception failure) {

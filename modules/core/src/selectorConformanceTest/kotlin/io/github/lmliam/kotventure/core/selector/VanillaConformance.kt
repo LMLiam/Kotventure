@@ -13,7 +13,7 @@ internal fun EntitySelector.shouldBeAcceptedByVanilla() {
     vanillaRejection(source)?.let { failure ->
         throw AssertionError(
             "Minecraft Java Edition $minecraftVersion rejected selector " +
-                "`$source` at offset ${failure.offset}: ${failure.message}",
+                    "`$source` at offset ${failure.offset}: ${failure.message}",
             failure.cause,
         )
     }
