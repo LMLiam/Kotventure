@@ -1,7 +1,8 @@
-# Vanilla selector conformance
+# Vanilla conformance
 
-Kotventure validates the selector DSL against the real Java Edition selector parser in a dedicated,
-test-only source set.
+Kotventure validates DSL output against the real Java Edition implementation in a dedicated,
+test-only source set. The selector suite is the first conformance suite; future oracles join the
+same source set, task, and workflow.
 
 ## Pinned baseline
 
@@ -13,20 +14,21 @@ test-only source set.
 | Required Java version | 25 |
 
 The checksum and matching official download URL are declared together in
-[`gradle/selector-conformance.gradle`](../gradle/selector-conformance.gradle). The task downloads the
+[`gradle/vanilla-conformance.gradle`](../gradle/vanilla-conformance.gradle). The task downloads the
 bundle directly from Mojang, verifies the manifest checksum before use, and extracts the unobfuscated
-server plus its bundled libraries under `modules/core/build/selector-conformance/26.2/`.
+server plus its bundled libraries under `modules/core/build/vanilla-conformance/26.2/`.
 
 No Minecraft class appears in `main`, the normal `test` source set, a public signature, a published
 POM, or Gradle module metadata.
 
-## Running the suite
+## Running the suites
 
 ```bash
-./gradlew :core:selectorConformanceTest
+./gradlew :core:vanillaConformanceTest
 ```
 
-The task bootstraps `net.minecraft.commands.arguments.selector.EntitySelectorParser`, then checks:
+The selector suite bootstraps `net.minecraft.commands.arguments.selector.EntitySelectorParser`,
+then checks:
 
 - all six selector heads and every argument emitted by the typed DSL;
 - head-specific receiver output, repeated filters, empty presence values, quoting, ranges, maps,
@@ -45,9 +47,9 @@ requests, a weekly schedule, and manual dispatch.
 
 1. Find the new release in Mojang's official version manifest and open its version JSON.
 2. Update `targetMinecraftVersion` and `serverBundleSha1` in
-   `gradle/selector-conformance.gradle`. The download URL is derived from that checksum.
+   `gradle/vanilla-conformance.gradle`. The download URL is derived from that checksum.
 3. Confirm the version JSON's required Java major matches the repository toolchain.
-4. Re-run `./gradlew :core:selectorConformanceTest --rerun-tasks`; update the test adapter only if
+4. Re-run `./gradlew :core:vanillaConformanceTest --rerun-tasks`; update the test adapter only if
    Mojang changed the named parser API.
 5. Audit the valid and invalid matrices against release grammar changes, then run
    `./gradlew build`.

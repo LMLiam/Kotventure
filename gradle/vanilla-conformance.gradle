@@ -2,7 +2,7 @@ final String targetMinecraftVersion = '26.2'
 final String serverBundleSha1 = '823e2250d24b3ddac457a60c92a6a941943fcd6a'
 final String serverBundleUrl = "https://piston-data.mojang.com/v1/objects/${serverBundleSha1}/server.jar"
 
-def fixtureDirectory = layout.buildDirectory.dir("selector-conformance/${targetMinecraftVersion}")
+def fixtureDirectory = layout.buildDirectory.dir("vanilla-conformance/${targetMinecraftVersion}")
 def serverBundle = fixtureDirectory.map { it.file("server-${targetMinecraftVersion}-bundle.jar") }
 def extractedClasspath = fixtureDirectory.map { it.dir('classpath') }
 
@@ -27,15 +27,15 @@ def extractMinecraftServer = tasks.register('extractMinecraftServer', Sync) {
 }
 
 sourceSets {
-    selectorConformanceTest {
-        kotlin.srcDir 'src/selectorConformanceTest/kotlin'
-        resources.srcDir 'src/selectorConformanceTest/resources'
+    vanillaConformanceTest {
+        kotlin.srcDir 'src/vanillaConformanceTest/kotlin'
+        resources.srcDir 'src/vanillaConformanceTest/resources'
     }
 }
 
 configurations {
-    selectorConformanceTestImplementation.extendsFrom testImplementation
-    selectorConformanceTestRuntimeOnly.extendsFrom testRuntimeOnly
+    vanillaConformanceTestImplementation.extendsFrom testImplementation
+    vanillaConformanceTestRuntimeOnly.extendsFrom testRuntimeOnly
 }
 
 def vanillaServerClasspath = objects
@@ -44,15 +44,15 @@ def vanillaServerClasspath = objects
         .builtBy(extractMinecraftServer)
 
 dependencies {
-    selectorConformanceTestImplementation sourceSets.main.output
-    selectorConformanceTestImplementation vanillaServerClasspath
+    vanillaConformanceTestImplementation sourceSets.main.output
+    vanillaConformanceTestImplementation vanillaServerClasspath
 }
 
-tasks.register('selectorConformanceTest', Test) {
+tasks.register('vanillaConformanceTest', Test) {
     group = 'verification'
     description = "Validates selector DSL output with Minecraft Java Edition ${targetMinecraftVersion}."
-    testClassesDirs = sourceSets.selectorConformanceTest.output.classesDirs
-    classpath = sourceSets.selectorConformanceTest.runtimeClasspath
+    testClassesDirs = sourceSets.vanillaConformanceTest.output.classesDirs
+    classpath = sourceSets.vanillaConformanceTest.runtimeClasspath
     useJUnitPlatform()
     systemProperty 'kotventure.conformance.minecraftVersion', targetMinecraftVersion
     workingDir temporaryDir

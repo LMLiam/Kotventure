@@ -204,7 +204,7 @@ and empty argument brackets re-render canonically. Duplicate-argument and cross-
 semantics are pinned separately by the vanilla-conformance suite (#205).
 
 Selector rendering is also checked independently against the checksum-pinned Java Edition parser;
-see [Vanilla selector conformance](selector-conformance.md) for the isolated test setup and baseline
+see [Vanilla conformance](vanilla-conformance.md) for the isolated test setup and baseline
 update process.
 
 ## 6. MiniMessage strategy

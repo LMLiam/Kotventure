@@ -17,7 +17,7 @@ class VanillaSelectorConformanceTest :
         ).forEach { it.shouldBeAcceptedByVanilla() }
     }
 
-    "accepts every canoncial argument emitted by the typed DSL" {
+    "accepts every canonical argument emitted by the typed DSL" {
         val canonical =
             entities {
             typeTag(key("minecraft", "raiders"))

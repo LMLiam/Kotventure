@@ -17,7 +17,7 @@ internal fun EntitySelector.shouldBeAcceptedByVanilla() {
     val source = asString()
     vanillaRejection(source)?.let { failure ->
         val base =
-            "Minecraft Java Edition $minecraftVersion rejected selector `$source`" +
+            "Minecraft Java Edition $minecraftVersion rejected selector `$source` " +
                 "at offset ${failure.offset}: ${failure.message}"
         val message =
             failure.cause?.let { cause ->
@@ -40,7 +40,7 @@ private val minecraftVersion: String =
     requireNotNull(
     System.getProperty("kotventure.conformance.minecraftVersion"),
 ) {
-    "Run the suite through the selectorConformanceTest Gradle task"
+    "Run the suite through the vanillaConformanceTest Gradle task"
 }
 
 /** Ensure Minecraft/Brigadier parser bootstrapping runs once on first use. */
