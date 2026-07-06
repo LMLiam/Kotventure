@@ -23,6 +23,9 @@ public fun mini(input: String): Component = parseMiniMessage(input)
  * reproduces those children rather than a `gradient` call — a lossy-but-faithful expansion: the rendering is exact, but
  * the `<gradient>` markup itself is not reconstructed.
  *
+ * Selector patterns parse through the strict `core` parser and emit the typed selector factories and arguments
+ * (canonicalized, like every selector conversion); invalid patterns fail with the parser's offset-bearing exception.
+ *
  * @throws IllegalArgumentException when [input] resolves to a shape with no DSL surface, such as a player head with no
  * single skin source, profile properties, or unsupported click or data-component payloads.
  */

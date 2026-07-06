@@ -21,6 +21,31 @@ internal fun KotlinSourceBuilder.appendStructured(
     }
 }
 
+/**
+ * Emits a structured-component call whose arguments are multi-line expressions: `$opener` on its own
+ * line, each argument indented and comma-separated, then either `)` or a `) { ... }` body carrying
+ * [body], the component's style, and its children.
+ */
+internal fun KotlinSourceBuilder.appendStructuredArguments(
+    opener: String,
+    arguments: List<KotlinSourceBuilder.() -> Unit>,
+    component: Component,
+    hasExtraBody: Boolean = false,
+    body: KotlinSourceBuilder.() -> Unit = {},
+) {
+    openArguments(opener, arguments.map { { it() } })
+    if (!hasExtraBody && !hasDslOutput(component.style()) && component.children().isEmpty()) {
+        line(")")
+        return
+    }
+
+    block(")") {
+        body()
+        appendStyle(component.style())
+        component.children().forEach { appendComponent(it) }
+    }
+}
+
 internal fun KotlinSourceBuilder.appendComponentArgument(
     label: String,
     component: Component,

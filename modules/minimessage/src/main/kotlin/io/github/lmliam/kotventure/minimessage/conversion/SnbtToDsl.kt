@@ -24,9 +24,8 @@ import java.io.IOException
  * Keys are emitted in alphabetical order so the output is deterministic and JDK-independent (NBT
  * compounds are unordered, so reordering is semantically transparent).
  *
- * Returns `null` when the SNBT is malformed, has trailing content, or contains a construct the typed
- * DSL cannot express (an empty `TAG_List`, which carries no element type), signalling the caller to
- * fall back to `nbt("raw")`.
+ * Returns `null` when the SNBT is malformed, has trailing content, or contains a tag type the typed
+ * DSL cannot express, signalling the caller to fall back to `nbt("raw")`.
  */
 internal fun snbtToDslBody(snbt: String): String? {
     val compound =
@@ -64,10 +63,8 @@ private fun renderValue(tag: BinaryTag): String? =
         else -> null // Any other tag has no typed DSL form yet → raw fallback.
     }
 
-// An empty list carries no element type, so there's nothing to infer `list`'s type argument from →
-// raw fallback. Scalars, arrays, and nested lists all render through renderValue.
 private fun renderListLiteral(list: ListBinaryTag): String? {
-    val first = list.firstOrNull() ?: return null
+    val first = list.firstOrNull() ?: return "list()"
     if (first is CompoundBinaryTag) return renderCompoundElementList(list)
     val elements = list.map { renderValue(it) ?: return null }
     return "list(${elements.joinToString(", ")})"

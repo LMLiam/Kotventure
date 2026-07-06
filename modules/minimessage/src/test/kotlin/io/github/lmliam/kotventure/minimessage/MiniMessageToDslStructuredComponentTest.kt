@@ -15,7 +15,8 @@ import io.github.lmliam.kotventure.core.objectcomponent.display
 import io.github.lmliam.kotventure.core.objectcomponent.sprite
 import io.github.lmliam.kotventure.core.score.score
 import io.github.lmliam.kotventure.core.selector.EntitySelectorParseException
-import io.github.lmliam.kotventure.core.selector.parseSelector
+import io.github.lmliam.kotventure.core.selector.entities
+import io.github.lmliam.kotventure.core.selector.nearestPlayer
 import io.github.lmliam.kotventure.core.selector.selector
 import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.core.translatable.translatable
@@ -108,10 +109,12 @@ class MiniMessageToDslStructuredComponentTest :
                         expectedSource =
                             """
                         component {
-                            selector(parseSelector("@p"))
+                            selector(
+                                nearestPlayer()
+                            )
                         }
                         """.trimIndent(),
-                        expectedComponent = component { selector(parseSelector("@p")) },
+                        expectedComponent = component { selector(nearestPlayer()) },
                     )
                 }
 
@@ -121,7 +124,9 @@ class MiniMessageToDslStructuredComponentTest :
                         expectedSource =
                             """
                         component {
-                            selector(parseSelector("@e")) {
+                            selector(
+                                entities()
+                            ) {
                                 separator {
                                     text(", ")
                                 }
@@ -130,7 +135,7 @@ class MiniMessageToDslStructuredComponentTest :
                         """.trimIndent(),
                         expectedComponent =
                             component {
-                                selector(parseSelector("@e")) {
+                                selector(entities()) {
                                     separator { text(", ") }
                                 }
                             },
@@ -151,16 +156,20 @@ class MiniMessageToDslStructuredComponentTest :
                     MiniMessageToDslWriter.write(component) shouldBe
                             """
                         component {
-                            selector(parseSelector("@e[name=\"Boss Mob\"]"))
+                            selector(
+                                entities {
+                                    name("Boss Mob")
+                                }
+                            )
                         }
                         """.trimIndent()
                 }
 
-                test("emits the same canonical selector literal for selector and entity NBT components") {
+                test("emits the same typed selector for selector and entity NBT components") {
                     MiniMessageToDslWriter.write(Component.selector("@e[type=zombie]")) shouldContain
-                            """parseSelector("@e[type=minecraft:zombie]")"""
+                            """type(key("minecraft", "zombie"))"""
                     MiniMessageToDslWriter.write(Component.entityNBT("Health", "@e[type=zombie]")) shouldContain
-                            """parseSelector("@e[type=minecraft:zombie]")"""
+                            """type(key("minecraft", "zombie"))"""
                 }
 
                 test("round-trips argument-free translatable components against compiled expected DSL") {
@@ -426,7 +435,7 @@ class MiniMessageToDslStructuredComponentTest :
                     val nbt =
                         component {
                             entityNbt(
-                                parseSelector("@e[type=minecraft:armor_stand]"),
+                                entities { type(key("minecraft", "armor_stand")) },
                                 nbtPath("Pos"),
                             )
                         }
@@ -434,7 +443,12 @@ class MiniMessageToDslStructuredComponentTest :
                     MiniMessageToDslWriter.write(nbt) shouldBe
                             """
                     component {
-                        entityNbt(parseSelector("@e[type=minecraft:armor_stand]"), nbtPath("Pos"))
+                        entityNbt(
+                            entities {
+                                type(key("minecraft", "armor_stand"))
+                            },
+                            nbtPath("Pos")
+                        )
                     }
                     """.trimIndent()
                 }
@@ -453,7 +467,12 @@ class MiniMessageToDslStructuredComponentTest :
                     MiniMessageToDslWriter.write(component) shouldBe
                             """
                     component {
-                        entityNbt(parseSelector("@e[name=\"Boss Mob\"]"), nbtPath("Health"))
+                        entityNbt(
+                            entities {
+                                name("Boss Mob")
+                            },
+                            nbtPath("Health")
+                        )
                     }
                     """.trimIndent()
                 }
@@ -495,12 +514,22 @@ class MiniMessageToDslStructuredComponentTest :
                         expectedSource =
                             """
                         component {
-                            selector(parseSelector("@e[type=minecraft:armor_stand,limit=1]"))
+                            selector(
+                                entities {
+                                    type(key("minecraft", "armor_stand"))
+                                    limit(1)
+                                }
+                            )
                         }
                         """.trimIndent(),
                         expectedComponent =
                             component {
-                                selector(parseSelector("@e[type=minecraft:armor_stand,limit=1]"))
+                                selector(
+                                    entities {
+                                        type(key("minecraft", "armor_stand"))
+                                        limit(1)
+                                    },
+                                )
                             },
                     )
                 }
