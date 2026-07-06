@@ -340,7 +340,7 @@ class MiniMessageToDslTextRenderingTest :
                     MiniMessageToDslWriter.write(selector) shouldBe
                             """
                         component {
-                            selector(entitySelector("@e")) {
+                            selector(parseSelector("@e")) {
                                 separator {
                                     text(", ") {
                                         shadow(hex("#112233"))

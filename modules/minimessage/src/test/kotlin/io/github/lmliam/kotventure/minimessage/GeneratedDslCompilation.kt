@@ -30,7 +30,7 @@ internal fun compileGeneratedDsl(source: String): Component {
         import io.github.lmliam.kotventure.core.objectcomponent.sprite
         import io.github.lmliam.kotventure.core.objectcomponent.head
         import io.github.lmliam.kotventure.core.score.score
-        import io.github.lmliam.kotventure.core.selector.entitySelector
+        import io.github.lmliam.kotventure.core.selector.parseSelector
         import io.github.lmliam.kotventure.core.selector.selector
         import io.github.lmliam.kotventure.core.text.text
         import io.github.lmliam.kotventure.core.translatable.translatable

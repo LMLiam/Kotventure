@@ -2,8 +2,8 @@ package io.github.lmliam.kotventure.core.nbt
 
 import io.github.lmliam.kotventure.core.selector.allPlayers
 import io.github.lmliam.kotventure.core.selector.entities
-import io.github.lmliam.kotventure.core.selector.entitySelector
 import io.github.lmliam.kotventure.core.selector.nearestPlayer
+import io.github.lmliam.kotventure.core.selector.parseSelector
 import io.github.lmliam.kotventure.core.selector.randomPlayer
 import io.github.lmliam.kotventure.core.selector.self
 import io.github.lmliam.kotventure.test.text.childAt
@@ -38,14 +38,14 @@ class EntityNbtDslTest :
                 component.shouldNotHaveNbtSeparator()
             }
 
-            "accepts selector and path from escape hatches" {
+            "accepts a parsed selector and path" {
                 val component =
                     entityNbt(
-                        entitySelector("@e[type=zombie,limit=1]"),
+                        parseSelector("@e[type=minecraft:zombie,limit=1]"),
                         nbtPath("CustomName"),
                     ).shouldBeEntityNbtComponent()
 
-                component shouldHaveEntitySelector "@e[type=zombie,limit=1]"
+                component shouldHaveEntitySelector "@e[type=minecraft:zombie,limit=1]"
                 component shouldHaveNbtPath "CustomName"
             }
 
@@ -80,9 +80,9 @@ class EntityNbtDslTest :
                 val component =
                     entityNbt(nearestPlayer(), nbtPath("CustomName")) {
                         interpret(true)
-                    }
+                    }.shouldBeEntityNbtComponent()
 
-                component.shouldBeEntityNbtComponent().shouldInterpret()
+                component.shouldInterpret()
             }
 
             "sets a component separator" {
@@ -92,9 +92,9 @@ class EntityNbtDslTest :
                 val component =
                     entityNbt(allPlayers(), path) {
                         separator(separator)
-                    }
+                    }.shouldBeEntityNbtComponent()
 
-                component.shouldBeEntityNbtComponent() shouldHaveNbtSeparator separator
+                component shouldHaveNbtSeparator separator
             }
 
             "sets an inline text separator" {
@@ -104,9 +104,9 @@ class EntityNbtDslTest :
                             content(" | ")
                             color(NamedTextColor.GRAY)
                         }
-                    }
+                    }.shouldBeEntityNbtComponent()
 
-                val separator = checkNotNull(component.shouldBeEntityNbtComponent().separator())
+                val separator = checkNotNull(component.separator())
 
                 separator shouldHaveColor NamedTextColor.GRAY
                 separator shouldContainText " | "

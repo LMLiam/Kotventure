@@ -31,17 +31,18 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     val nbtFilters = SelectorFilterGroup<NbtCompound>("nbt", SelectorFilterPolicy.REPEATABLE)
     val predicateFilters = SelectorFilterGroup<String>("predicate", SelectorFilterPolicy.REPEATABLE)
 
-    val coordinates: Map<SelectorAxis, Double>
+    val coordinates: Map<SelectorCoordinate, Double>
         field = mutableMapOf()
 
     var scores: Map<String, SelectorIntRange>? = null
         private set
 
-    var advancements: Map<String, AdvancementCondition>? = null
+    var advancements: Map<Key, AdvancementCondition>? = null
         private set
 
     private var isConfiguring = false
 
+    // Scope sugar: provided as overridable getters for subclass extensibility
     override val any: SelectorPresence get() = SelectorPresence.ANY
     override val none: SelectorPresence get() = SelectorPresence.NONE
 
@@ -69,14 +70,14 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
         first: OriginCoordinate,
         vararg rest: OriginCoordinate,
     ) {
-        bindCoordinates((listOf(first) + rest).map { it.axis to it.value })
+        bindCoordinates((listOf(first) + rest).map { it.coordinate to it.value })
     }
 
     override fun volume(
         first: VolumeDelta,
         vararg rest: VolumeDelta,
     ) {
-        bindCoordinates((listOf(first) + rest).map { it.axis to it.value })
+        bindCoordinates((listOf(first) + rest).map { it.coordinate to it.value })
     }
 
     override fun distance(range: SelectorRange) {
@@ -163,7 +164,7 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     override fun type(entityType: Key): SelectorFilterExpression = typeFilters.add(this, entityType.asString())
 
     override fun type(entityType: String): SelectorFilterExpression =
-        typeFilters.add(this, entityType.withDefaultNamespace())
+        typeFilters.add(this, entityType.requireEntityTypeKey())
 
     override fun typeTag(entityTypeTag: Key): SelectorFilterExpression =
         typeFilters.add(this, entityTypeTag.asTypeTag())
@@ -185,11 +186,11 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
         predicateFilters.validate()
     }
 
-    private fun bindCoordinates(bindings: List<Pair<SelectorAxis, Double>>) {
-        val staged = mutableMapOf<SelectorAxis, Double>()
-        bindings.forEach { (axis, value) ->
-            checkUnset(axis.argument, coordinates[axis] ?: staged[axis])
-            staged[axis] = value
+    private fun bindCoordinates(bindings: List<Pair<SelectorCoordinate, Double>>) {
+        val staged = mutableMapOf<SelectorCoordinate, Double>()
+        bindings.forEach { (coordinate, value) ->
+            checkUnset(coordinate.argumentName, coordinates[coordinate] ?: staged[coordinate])
+            staged[coordinate] = value
         }
         coordinates += staged
     }

@@ -4,7 +4,9 @@ import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.nbt.list
 
 internal fun selectorSample() {
-    val nearby = selector(entities { distance(atMost(10.0)) }) { separator { content(", ") } }
+    selector(entities { distance(atMost(10.0)) }) {
+        separator { content(", ") }
+    }
 }
 
 internal fun nearestPlayerSample() {
@@ -158,4 +160,9 @@ internal fun negatedTypeArgumentsSample() {
         !type(key("minecraft", "skeleton"))
         !typeTag(key("minecraft", "raiders"))
     }
+}
+
+internal fun parseSelectorSample() {
+    val parsedSelector = parseSelector("@e[type=minecraft:zombie,tag=!hidden]")
+    selector(parsedSelector)
 }

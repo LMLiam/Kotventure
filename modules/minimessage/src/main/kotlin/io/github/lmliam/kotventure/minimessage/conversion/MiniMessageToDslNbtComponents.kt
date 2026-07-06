@@ -6,29 +6,41 @@ import net.kyori.adventure.text.NBTComponent
 import net.kyori.adventure.text.ObjectComponent
 import net.kyori.adventure.text.StorageNBTComponent
 
-internal fun KotlinSourceBuilder.appendBlockNbt(component: BlockNBTComponent) {
-    appendNbt("blockNbt", "blockPos(\"${escapeKotlinString(component.pos().asString())}\")", component)
-}
+internal fun KotlinSourceBuilder.appendBlockNbt(component: BlockNBTComponent) =
+    appendNbt(
+        functionName = "blockNbt",
+        sourceExpression = "blockPos(${quoted(component.pos().asString())})",
+        component = component,
+    )
 
-internal fun KotlinSourceBuilder.appendEntityNbt(component: EntityNBTComponent) {
-    appendNbt("entityNbt", "entitySelector(\"${escapeKotlinString(component.selector())}\")", component)
-}
+internal fun KotlinSourceBuilder.appendEntityNbt(component: EntityNBTComponent) =
+    appendNbt(
+        functionName = "entityNbt",
+        sourceExpression = parseSelectorLiteral(component.selector()),
+        component = component,
+    )
 
-internal fun KotlinSourceBuilder.appendStorageNbt(component: StorageNBTComponent) {
-    appendNbt("storageNbt", keyLiteral(component.storage()), component)
-}
+internal fun KotlinSourceBuilder.appendStorageNbt(component: StorageNBTComponent) =
+    appendNbt(
+        functionName = "storageNbt",
+        sourceExpression = keyLiteral(component.storage()),
+        component = component,
+    )
 
 private fun KotlinSourceBuilder.appendNbt(
-    function: String,
-    source: String,
+    functionName: String,
+    sourceExpression: String,
     component: NBTComponent<*>,
 ) {
     val interpret = component.interpret()
     val separator = component.separator()
+    val hasExtraBody = interpret || separator != null
+    val nbtPath = quoted(component.nbtPath())
+
     appendStructured(
-        header = "$function($source, nbtPath(\"${escapeKotlinString(component.nbtPath())}\"))",
+        header = "$functionName($sourceExpression, nbtPath($nbtPath))",
         component = component,
-        hasExtraBody = interpret || separator != null,
+        hasExtraBody = hasExtraBody,
     ) {
         if (interpret) line("interpret(true)")
         separator?.let { appendComponentArgument("separator", it) }
@@ -37,6 +49,7 @@ private fun KotlinSourceBuilder.appendNbt(
 
 internal fun KotlinSourceBuilder.appendObject(component: ObjectComponent) {
     val fallback = component.fallback()
+
     appendStructured(
         header = "display(${objectContentsLiteral(component.contents())})",
         component = component,
