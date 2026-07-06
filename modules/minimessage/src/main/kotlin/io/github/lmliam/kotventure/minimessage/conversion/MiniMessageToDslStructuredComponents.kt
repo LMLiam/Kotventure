@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.minimessage.conversion
 
+import io.github.lmliam.kotventure.core.selector.parseSelector
 import net.kyori.adventure.text.KeybindComponent
 import net.kyori.adventure.text.ScoreComponent
 import net.kyori.adventure.text.SelectorComponent
@@ -33,10 +34,12 @@ internal fun KotlinSourceBuilder.appendScore(component: ScoreComponent) {
 }
 
 internal fun KotlinSourceBuilder.appendSelector(component: SelectorComponent) {
+    val selector = parseSelector(component.pattern())
     val separator = component.separator()
 
-    appendStructured(
-        header = "selector(${parseSelectorLiteral(component.pattern())})",
+    appendStructuredArguments(
+        opener = "selector(",
+        arguments = listOf({ appendEntitySelector(selector) }),
         component = component,
         hasExtraBody = separator != null,
     ) {

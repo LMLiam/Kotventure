@@ -218,6 +218,8 @@ Three layers, shipped incrementally:
    ** (Gradle plugin over resource bundles).
 
 A **MiniMessage ⇄ DSL converter** round‑trips between markup strings and DSL/Kotlin, aiding migration and learning.
+Selector patterns convert through the strict `core` parser and emit the typed selector factories and arguments,
+canonicalized; invalid patterns fail with the parser's offset-bearing exception.
 
 ## 7. Testing strategy
 

@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.minimessage.conversion
 
+import io.github.lmliam.kotventure.core.selector.parseSelector
 import net.kyori.adventure.text.BlockNBTComponent
 import net.kyori.adventure.text.EntityNBTComponent
 import net.kyori.adventure.text.NBTComponent
@@ -13,12 +14,23 @@ internal fun KotlinSourceBuilder.appendBlockNbt(component: BlockNBTComponent) =
         component = component,
     )
 
-internal fun KotlinSourceBuilder.appendEntityNbt(component: EntityNBTComponent) =
-    appendNbt(
-        functionName = "entityNbt",
-        sourceExpression = parseSelectorLiteral(component.selector()),
+internal fun KotlinSourceBuilder.appendEntityNbt(component: EntityNBTComponent) {
+    val selector = parseSelector(component.selector())
+
+    appendStructuredArguments(
+        opener = "entityNbt(",
+        arguments =
+            listOf(
+                { appendEntitySelector(selector) },
+                { line("nbtPath(${quoted(component.nbtPath())})") },
+            ),
         component = component,
-    )
+        hasExtraBody = component.interpret() || component.separator() != null,
+    ) {
+        if (component.interpret()) line("interpret(true)")
+        component.separator()?.let { appendComponentArgument("separator", it) }
+    }
+}
 
 internal fun KotlinSourceBuilder.appendStorageNbt(component: StorageNBTComponent) =
     appendNbt(
