@@ -69,7 +69,7 @@ private fun EntitySelectorArgument.Name.renderQuotable(): String =
 private fun String.quoteSelectorString(): String =
     buildString(length + 2) {
         append('"')
-        forEach { character ->
+        this@quoteSelectorString.forEach { character ->
             if (character.needsEscape()) append('\\')
             append(character)
         }
