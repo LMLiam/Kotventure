@@ -20,8 +20,6 @@ public sealed interface EntitySelectorArgument {
         EntitySelectorArgument,
         SelectorNegatable
 
-    //region Simple value arguments
-
     /**
      * A selector coordinate or bounding-volume delta.
      *
@@ -80,9 +78,6 @@ public sealed interface EntitySelectorArgument {
     public data class Level(
         public val range: SelectorIntRange,
     ) : EntitySelectorArgument
-
-    //endregion
-    //region Negatable filter arguments
 
     /**
      * A game-mode filter.
@@ -167,9 +162,6 @@ public sealed interface EntitySelectorArgument {
         override val isNegated: Boolean,
     ) : Negatable
 
-    //endregion
-    //region Compound collection arguments
-
     /**
      * An immutable collection of scoreboard objective ranges.
      *
@@ -194,49 +186,4 @@ public sealed interface EntitySelectorArgument {
         /** Builds an advancements argument from a defensive immutable snapshot of [advancements]. */
         public constructor(advancements: Collection<SelectorAdvancementRequirement>) : this(advancements.toList())
     }
-
-    //endregion
 }
-
-//region Extension properties - exhaustive keyword and name mapping
-
-/**
- * The keyword of this argument, or `null` for coordinates and floating-point ranges (whose names
- * are owned by [SelectorCoordinate] and [SelectorRangeArgument]).
- *
- * Exhaustive: a new argument subtype cannot be added without updating this mapping. This ensures
- * that rendering and parsing stay in sync.
- */
-internal val EntitySelectorArgument.keyword: SelectorArgumentKeyword?
-    get() =
-        when (this) {
-            is EntitySelectorArgument.Coordinate, is EntitySelectorArgument.Range -> null
-            is EntitySelectorArgument.Level -> SelectorArgumentKeyword.LEVEL
-            is EntitySelectorArgument.Limit -> SelectorArgumentKeyword.LIMIT
-            is EntitySelectorArgument.Sort -> SelectorArgumentKeyword.SORT
-            is EntitySelectorArgument.GameMode -> SelectorArgumentKeyword.GAMEMODE
-            is EntitySelectorArgument.Name -> SelectorArgumentKeyword.NAME
-            is EntitySelectorArgument.Type -> SelectorArgumentKeyword.TYPE
-            is EntitySelectorArgument.Tag -> SelectorArgumentKeyword.TAG
-            is EntitySelectorArgument.Team -> SelectorArgumentKeyword.TEAM
-            is EntitySelectorArgument.Nbt -> SelectorArgumentKeyword.NBT
-            is EntitySelectorArgument.Scores -> SelectorArgumentKeyword.SCORES
-            is EntitySelectorArgument.Predicate -> SelectorArgumentKeyword.PREDICATE
-            is EntitySelectorArgument.Advancements -> SelectorArgumentKeyword.ADVANCEMENTS
-        }
-
-/**
- * The vanilla selector-source name of this argument, such as `limit` in `limit=1`.
- *
- * Coordinates and ranges are named by their own argument types; keyword arguments resolve their
- * names from the [keyword] property.
- */
-internal val EntitySelectorArgument.argumentName: String
-    get() =
-        when (this) {
-            is EntitySelectorArgument.Coordinate -> coordinate.argumentName
-            is EntitySelectorArgument.Range -> argument.argumentName
-            else -> checkNotNull(keyword) { "Keyword arguments always declare a keyword" }.sourceName
-        }
-
-//endregion

@@ -11,8 +11,6 @@ import net.kyori.adventure.key.Key
  */
 @KotventureDslMarker
 public sealed interface CommonEntitySelectorScope {
-    //region Singleton values
-
     /** Requires at least one scoreboard tag. */
     public val any: SelectorPresence
 
@@ -30,9 +28,6 @@ public sealed interface CommonEntitySelectorScope {
 
     /** Spectator mode. */
     public val spectator: GameMode
-
-    //endregion
-    //region Origin and volume
 
     /**
      * Sets selector origin coordinates (vanilla `x`, `y`, `z`): `origin(12.5.x, 64.y)`.
@@ -61,9 +56,6 @@ public sealed interface CommonEntitySelectorScope {
         vararg rest: VolumeDelta,
     )
 
-    //endregion
-    //region Coordinate extension properties
-
     /**
      * This number as the origin `x` coordinate.
      *
@@ -85,9 +77,6 @@ public sealed interface CommonEntitySelectorScope {
      */
     public val Number.z: OriginCoordinate get() = originCoordinate(SelectorCoordinate.Z, this)
 
-    //endregion
-    //region Volume delta extension properties
-
     /**
      * This number as the bounding-volume `dx` delta.
      *
@@ -108,9 +97,6 @@ public sealed interface CommonEntitySelectorScope {
      * @throws IllegalArgumentException if the value is not finite
      */
     public val Number.dz: VolumeDelta get() = volumeDelta(SelectorCoordinate.DZ, this)
-
-    //endregion
-    //region Range filters
 
     /** Filters by distance using a [SelectorRange]. */
     public fun distance(range: SelectorRange)
@@ -160,9 +146,6 @@ public sealed interface CommonEntitySelectorScope {
      */
     public fun yaw(range: ClosedFloatingPointRange<Double>)
 
-    //endregion
-    //region String-based filters
-
     /**
      * Filters by scoreboard tag. Prefix the call with `!` to exclude the tag.
      *
@@ -190,7 +173,7 @@ public sealed interface CommonEntitySelectorScope {
      * There is deliberately no string overload: predicate IDs are datapack-defined, so a default
      * namespace would usually be wrong. Build IDs with
      * [key][io.github.lmliam.kotventure.core.key.key]. Validate complete selector source from
-     * string interop with [entitySelector].
+     * string interop with [parseSelector].
      *
      * @sample io.github.lmliam.kotventure.core.selector.selectorPredicateSample
      */
@@ -202,9 +185,6 @@ public sealed interface CommonEntitySelectorScope {
      * @sample io.github.lmliam.kotventure.core.selector.negatedCommonArgumentsSample
      */
     public fun name(name: String): SelectorFilterExpression
-
-    //endregion
-    //region Level filters
 
     /**
      * Filters by experience level using a [SelectorIntRange]: `level(atLeast(30))`.
@@ -219,9 +199,6 @@ public sealed interface CommonEntitySelectorScope {
      * @throws IllegalArgumentException if the range is descending or a bound is negative
      */
     public fun level(range: IntRange)
-
-    //endregion
-    //region Compound filters
 
     /**
      * Filters by scoreboard objective values (vanilla `scores={...}`):
@@ -250,9 +227,6 @@ public sealed interface CommonEntitySelectorScope {
      */
     public fun advancements(init: SelectorAdvancementsScope.() -> Unit)
 
-    //endregion
-    //region Mode and team filters
-
     /**
      * Filters by game mode. Prefix the call with `!` to exclude the mode.
      *
@@ -280,9 +254,6 @@ public sealed interface CommonEntitySelectorScope {
      */
     public fun team(presence: SelectorPresence)
 
-    //endregion
-    //region Negation operator
-
     /**
      * Negates a filter expression created by this selector: `!tag("muted")`.
      *
@@ -291,6 +262,4 @@ public sealed interface CommonEntitySelectorScope {
      * @sample io.github.lmliam.kotventure.core.selector.negatedCommonArgumentsSample
      */
     public operator fun SelectorFilterExpression.not(): Unit
-
-    //endregion
 }

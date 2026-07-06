@@ -23,7 +23,7 @@ import java.util.Map.entry
  * Converts the DSL builder's validated state into the shared typed argument model, in canonical
  * rendering order.
  *
- * [entitySelector] produces the same model from validated source, so both construction paths
+ * [parseSelector] produces the same model from validated source, so both construction paths
  * render through one renderer. This ensures DSL and string-parsed selectors produce identical
  * output.
  */
@@ -59,8 +59,6 @@ internal fun EntitySelectorBuilder.selectorArguments(): List<EntitySelectorArgum
         addAll(predicateFilters.arguments(::predicateArgument))
     }
 
-//region Filter group conversion
-
 /**
  * Generic helper to convert a filter group's entries into typed arguments.
  *
@@ -75,9 +73,6 @@ private fun <T> SelectorFilterGroup<T>.arguments(
     entries.map {
         toArgument(it.value, it.polarity == SelectorFilterPolarity.NEGATIVE)
     }
-
-//endregion
-//region Individual argument converters
 
 /**
  * Convert a type or type-tag string into a [Type] argument.
@@ -131,9 +126,6 @@ private fun nbtArgument(
     isNegated: Boolean,
 ): Nbt = Nbt(SnbtCompoundSource(renderCompound(value)), isNegated)
 
-//endregion
-//region Advancement progress conversion
-
 /**
  * Convert an [AdvancementCondition] into the corresponding [SelectorAdvancementProgress].
  *
@@ -148,12 +140,7 @@ private fun AdvancementCondition.progress(): SelectorAdvancementProgress =
             )
     }
 
-//endregion
-//region Helper extensions
-
 /**
  * Check if this string represents an entity-type tag (starts with `#`).
  */
 private fun String.isEntityTypeTag(): Boolean = startsWith("#")
-
-//endregion
