@@ -6,6 +6,41 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any release.
 
+## [0.5.0](https://github.com/LMLiam/Kotventure/compare/0.4.1...0.5.0) (2026-07-06)
+
+
+### ✨ Features
+
+* **core:** add a string-literal text overload in component scope ([#183](https://github.com/LMLiam/Kotventure/issues/183)) ([880bd08](https://github.com/LMLiam/Kotventure/commit/880bd08e5d87934f811eaac8832d6a5045f7684a))
+* **core:** add selector advancement filters ([#214](https://github.com/LMLiam/Kotventure/issues/214)) ([b5cbf8f](https://github.com/LMLiam/Kotventure/commit/b5cbf8f0dcb70fed187e85f0b07d9bea1b94896d))
+* **core:** add selector NBT filters ([#211](https://github.com/LMLiam/Kotventure/issues/211)) ([4f122c9](https://github.com/LMLiam/Kotventure/commit/4f122c9da3e22801f378372af34fa2ff94cba87d))
+* **core:** add selector negation, type-tag and presence filters ([#207](https://github.com/LMLiam/Kotventure/issues/207)) ([4b51230](https://github.com/LMLiam/Kotventure/commit/4b5123073cf244937debe9cead3d07e946290de7))
+* **core:** add selector position and volume arguments ([#208](https://github.com/LMLiam/Kotventure/issues/208)) ([8de0c1b](https://github.com/LMLiam/Kotventure/commit/8de0c1b2f7d22629e76e6d9839a0c9cc0d50fce2))
+* **core:** add selector predicate filters ([#213](https://github.com/LMLiam/Kotventure/issues/213)) ([928df8d](https://github.com/LMLiam/Kotventure/commit/928df8d4db2b09128acc6d0e1820fb44c3636eff))
+* **core:** add selector rotation arguments ([#209](https://github.com/LMLiam/Kotventure/issues/209)) ([f712ab1](https://github.com/LMLiam/Kotventure/commit/f712ab14abb6e82c5ee4fa25eb8caa885ddfa5b5))
+* **core:** add selector score filters ([#212](https://github.com/LMLiam/Kotventure/issues/212)) ([d69e624](https://github.com/LMLiam/Kotventure/commit/d69e624c2b9c484a4c3064c0f454cab7541ba071))
+* **core:** add selector team filters ([#210](https://github.com/LMLiam/Kotventure/issues/210)) ([c7393d4](https://github.com/LMLiam/Kotventure/commit/c7393d40972eb691bd28389b01954b7e5b46161f))
+* **core:** complete entity selector factory coverage ([#206](https://github.com/LMLiam/Kotventure/issues/206)) ([7e10dcb](https://github.com/LMLiam/Kotventure/commit/7e10dcb27cd0624164594274376172b7214f6254))
+* **core:** homogeneous NBT TAG_List DSL via listOf ([#191](https://github.com/LMLiam/Kotventure/issues/191)) ([3771fa2](https://github.com/LMLiam/Kotventure/commit/3771fa25a90172d65f11aa8acab11387d3474966))
+* **core:** improve NBT path and entity selector ergonomics ([#180](https://github.com/LMLiam/Kotventure/issues/180)) ([2b3872d](https://github.com/LMLiam/Kotventure/commit/2b3872dd5e9de8df4ca0b999112ca241fcb94909))
+* **core:** item hover data-component DSL block ([#192](https://github.com/LMLiam/Kotventure/issues/192)) ([40b04d3](https://github.com/LMLiam/Kotventure/commit/40b04d3e7a5f4f86e39c3c57ad799c16fddb6f97))
+* **core:** parse raw entity selectors into the typed DSL model ([#215](https://github.com/LMLiam/Kotventure/issues/215)) ([336776b](https://github.com/LMLiam/Kotventure/commit/336776b37106f86281716f713b5d2dd7fbb282b2))
+* **minimessage:** emit pure DSL for shadow, data-component, and UUID literals ([#184](https://github.com/LMLiam/Kotventure/issues/184)) ([3df05ea](https://github.com/LMLiam/Kotventure/commit/3df05ea4c35c679397133bb65ef8c964d5e55158))
+* **minimessage:** emit typed selectors from the converter ([#217](https://github.com/LMLiam/Kotventure/issues/217)) ([9175ec6](https://github.com/LMLiam/Kotventure/commit/9175ec607a6aa3dbd26f1cd027bc05796b306bd8))
+
+
+### 🔧 Refactors
+
+* **core:** make selector filters prefix-negatable ([#222](https://github.com/LMLiam/Kotventure/issues/222)) ([d19dda4](https://github.com/LMLiam/Kotventure/commit/d19dda4d380bcb1cb65b36fe60ee7dc29ae15133))
+* **core:** widen component inputs to ComponentLike ([#177](https://github.com/LMLiam/Kotventure/issues/177)) ([7c11816](https://github.com/LMLiam/Kotventure/commit/7c118167e2761102c1ce2dd4b4ce386894e1a492))
+
+
+### 📝 Documentation
+
+* **agents:** sync operating guide with working agreements ([#219](https://github.com/LMLiam/Kotventure/issues/219)) ([169c24f](https://github.com/LMLiam/Kotventure/commit/169c24f360a76d591a993b20317897d7f16ef583))
+* **core:** convert KDoc symbol references to resolvable links ([#179](https://github.com/LMLiam/Kotventure/issues/179)) ([535149a](https://github.com/LMLiam/Kotventure/commit/535149a7de6716b29ccf95aea57886f830f1fba0))
+* **core:** render KDoc examples via [@sample](https://github.com/sample) ([#182](https://github.com/LMLiam/Kotventure/issues/182)) ([67ed880](https://github.com/LMLiam/Kotventure/commit/67ed880624b4836d8ae17dc6f3a08b4464be194f))
+
 ## [0.4.1](https://github.com/LMLiam/Kotventure/compare/0.4.0...0.4.1) (2026-06-25)
 
 
