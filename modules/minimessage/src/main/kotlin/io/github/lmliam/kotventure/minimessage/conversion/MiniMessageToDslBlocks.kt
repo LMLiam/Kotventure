@@ -30,7 +30,7 @@ internal fun KotlinSourceBuilder.appendStructured(
  * Emits a structured-component call with multi-line arguments.
  *
  * The `opener` appears on its own line, each argument is emitted indented and comma-separated
- * (via [openArguments]), and then either a single closing `)` or a `) { ... }` body that carries
+ * , and then either a single closing `)` or a `) { ... }` body that carries
  * [body], the component's style, and its children.
  *
  * This overload accepts a List of argument-emitting lambdas to remain compatible with existing callers.
