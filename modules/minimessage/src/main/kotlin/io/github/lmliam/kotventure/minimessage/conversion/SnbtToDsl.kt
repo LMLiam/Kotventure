@@ -33,11 +33,11 @@ private val tagStringIO = TagStringIO.tagStringIO()
 internal fun snbtToDslBody(snbt: String): String? {
     val compound =
         try {
-        tagStringIO.asCompound(snbt)
-    } catch (_: Exception) {
-        // Catches IOException and underlying parser exceptions (e.g., IllegalStateException)
-        return null
-    }
+            tagStringIO.asCompound(snbt)
+        } catch (_: Exception) {
+            // Catches IOException and underlying parser exceptions (e.g., IllegalStateException)
+            return null
+        }
     return renderCompoundBody(compound)
 }
 
@@ -53,25 +53,30 @@ private fun renderCompoundBody(compound: CompoundBinaryTag): String? =
 
 private fun renderTag(tag: BinaryTag): String? =
     when (tag) {
-    is ByteBinaryTag -> renderByteLiteral(tag.value())
-    is ShortBinaryTag -> renderShortLiteral(tag.value())
-    is IntBinaryTag -> renderIntLiteral(tag.value())
-    is LongBinaryTag -> renderLongLiteral(tag.value())
-    is FloatBinaryTag -> "${tag.value()}f"
-    is DoubleBinaryTag -> tag.value().toString()
-    is StringBinaryTag -> "\"${escapeKotlinString(tag.value())}\""
-    is ByteArrayBinaryTag ->
-        tag.value().joinToString(", ", prefix = "byteArrayOf(", postfix = ")")
-    is IntArrayBinaryTag ->
-        tag.value().joinToString(", ", prefix = "intArrayOf(", postfix = ")") { renderIntLiteral(it) }
-    is LongArrayBinaryTag ->
-        tag.value().joinToString(", ", prefix = "longArrayOf(", postfix = ")") { renderLongLiteral(it) }
-    is CompoundBinaryTag ->
-        renderCompoundBody(tag)?.toCompoundLiteral()
-    is ListBinaryTag ->
-        renderListLiteral(tag)
-    else -> null // No typed DSL representation; fall back to raw SNBT.
-}
+        is ByteBinaryTag -> renderByteLiteral(tag.value())
+        is ShortBinaryTag -> renderShortLiteral(tag.value())
+        is IntBinaryTag -> renderIntLiteral(tag.value())
+        is LongBinaryTag -> renderLongLiteral(tag.value())
+        is FloatBinaryTag -> "${tag.value()}f"
+        is DoubleBinaryTag -> tag.value().toString()
+        is StringBinaryTag -> "\"${escapeKotlinString(tag.value())}\""
+        is ByteArrayBinaryTag ->
+            tag.value().joinToString(", ", prefix = "byteArrayOf(", postfix = ")")
+
+        is IntArrayBinaryTag ->
+            tag.value().joinToString(", ", prefix = "intArrayOf(", postfix = ")") { renderIntLiteral(it) }
+
+        is LongArrayBinaryTag ->
+            tag.value().joinToString(", ", prefix = "longArrayOf(", postfix = ")") { renderLongLiteral(it) }
+
+        is CompoundBinaryTag ->
+            renderCompoundBody(tag)?.toCompoundLiteral()
+
+        is ListBinaryTag ->
+            renderListLiteral(tag)
+
+        else -> null // No typed DSL representation; fall back to raw SNBT.
+    }
 
 private fun renderListLiteral(list: ListBinaryTag): String? {
     if (list.size() == 0) return "list()"

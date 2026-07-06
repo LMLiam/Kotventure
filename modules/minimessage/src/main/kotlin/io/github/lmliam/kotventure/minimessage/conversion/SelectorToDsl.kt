@@ -30,13 +30,13 @@ internal fun KotlinSourceBuilder.appendEntitySelector(selector: EntitySelector) 
 private val EntitySelectorHead.factoryName: String
     get() =
         when (this) {
-        EntitySelectorHead.NEAREST_PLAYER -> "nearestPlayer"
-        EntitySelectorHead.ALL_PLAYERS -> "allPlayers"
-        EntitySelectorHead.RANDOM_PLAYER -> "randomPlayer"
-        EntitySelectorHead.SELF -> "self"
-        EntitySelectorHead.ENTITIES -> "entities"
-        EntitySelectorHead.NEAREST_ENTITY -> "nearestEntity"
-    }
+            EntitySelectorHead.NEAREST_PLAYER -> "nearestPlayer"
+            EntitySelectorHead.ALL_PLAYERS -> "allPlayers"
+            EntitySelectorHead.RANDOM_PLAYER -> "randomPlayer"
+            EntitySelectorHead.SELF -> "self"
+            EntitySelectorHead.ENTITIES -> "entities"
+            EntitySelectorHead.NEAREST_ENTITY -> "nearestEntity"
+        }
 
 /**
  * Emit selector arguments preserving model order. Coordinates are emitted as grouped calls the
@@ -91,9 +91,9 @@ private fun KotlinSourceBuilder.emitCoordinateGroupIfFirstSeen(
 
     val coordinates =
         arguments
-        .filterIsInstance<EntitySelectorArgument.Coordinate>()
-        .filter { it.coordinate.groupFunction == groupFunction }
-        .joinToString(", ") { "${it.value.toCoordinateLiteral()}.${it.coordinate.argumentName}" }
+            .filterIsInstance<EntitySelectorArgument.Coordinate>()
+            .filter { it.coordinate.groupFunction == groupFunction }
+            .joinToString(", ") { "${it.value.toCoordinateLiteral()}.${it.coordinate.argumentName}" }
 
     line("$groupFunction($coordinates)")
 }
@@ -101,24 +101,24 @@ private fun KotlinSourceBuilder.emitCoordinateGroupIfFirstSeen(
 private val SelectorCoordinate.groupFunction: String
     get() =
         when (this) {
-        SelectorCoordinate.X, SelectorCoordinate.Y, SelectorCoordinate.Z -> "origin"
-        SelectorCoordinate.DX, SelectorCoordinate.DY, SelectorCoordinate.DZ -> "volume"
-    }
+            SelectorCoordinate.X, SelectorCoordinate.Y, SelectorCoordinate.Z -> "origin"
+            SelectorCoordinate.DX, SelectorCoordinate.DY, SelectorCoordinate.DZ -> "volume"
+        }
 
 private val SelectorRangeArgument.dslFunction: String
     get() =
         when (this) {
-        SelectorRangeArgument.DISTANCE -> "distance"
-        SelectorRangeArgument.X_ROTATION -> "pitch"
-        SelectorRangeArgument.Y_ROTATION -> "yaw"
-    }
+            SelectorRangeArgument.DISTANCE -> "distance"
+            SelectorRangeArgument.X_ROTATION -> "pitch"
+            SelectorRangeArgument.Y_ROTATION -> "yaw"
+        }
 
 private val SelectorEntityType.dslFunction: String
     get() =
         when (this) {
-        is SelectorEntityType.Direct -> "type"
-        is SelectorEntityType.Tag -> "typeTag"
-    }
+            is SelectorEntityType.Direct -> "type"
+            is SelectorEntityType.Tag -> "typeTag"
+        }
 
 private val EntitySelectorArgument.Negatable.negation: String
     get() = if (isNegated) "!" else ""
@@ -140,7 +140,7 @@ private fun KotlinSourceBuilder.appendStringCondition(
 private fun KotlinSourceBuilder.appendNbtFilter(argument: EntitySelectorArgument.Nbt) {
     val body =
         snbtToDslBody(argument.snbt.value)
-        ?: conversionError("miniToDsl cannot represent selector SNBT ${argument.snbt.value}")
+            ?: conversionError("miniToDsl cannot represent selector SNBT ${argument.snbt.value}")
     val call = if (body.isEmpty()) "nbt { }" else "nbt { $body }"
     line("${argument.negation}$call")
 }
@@ -194,11 +194,11 @@ private fun <T> rangeDslArgument(
     render: (T) -> String,
 ): String =
     when {
-    minimum != null && minimum == maximum -> "exactly(${render(minimum)})"
-    minimum != null && maximum != null -> "${render(minimum)}..${render(maximum)}"
-    minimum != null -> "atLeast(${render(minimum)})"
-    else -> "atMost(${render(checkNotNull(maximum))})"
-}
+        minimum != null && minimum == maximum -> "exactly(${render(minimum)})"
+        minimum != null && maximum != null -> "${render(minimum)}..${render(maximum)}"
+        minimum != null -> "atLeast(${render(minimum)})"
+        else -> "atMost(${render(checkNotNull(maximum))})"
+    }
 
 private fun Double.toCoordinateLiteral(): String {
     val literal = toString()

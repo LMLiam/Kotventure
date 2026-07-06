@@ -49,22 +49,22 @@ internal fun buildNbtCompound(block: NbtCompoundScope.() -> Unit): NbtValue.Comp
 
 private fun Any?.toNbtValue(): NbtValue =
     when (this) {
-    is String -> NbtValue.StringValue(this)
-    is Boolean -> NbtValue.ByteValue(if (this) 1.toByte() else 0.toByte())
-    is Byte -> NbtValue.ByteValue(this)
-    is Short -> NbtValue.ShortValue(this)
-    is Int -> NbtValue.IntValue(this)
-    is Long -> NbtValue.LongValue(this)
-    is Float -> NbtValue.FloatValue(this)
-    is Double -> NbtValue.DoubleValue(this)
-    is ByteArray -> NbtValue.ByteArrayValue(copyOf())
-    is IntArray -> NbtValue.IntArrayValue(copyOf())
-    is LongArray -> NbtValue.LongArrayValue(copyOf())
-    is NbtList -> NbtValue.ListValue(elements)
-    null -> throw IllegalArgumentException("NBT list elements cannot be null.")
-    else -> throw IllegalArgumentException(
-        "NBT list elements must be a scalar (String, Boolean, Byte, Short, Int, Long, Float, Double), " +
-        "an array (ByteArray, IntArray, LongArray), a nested list, or a compound block. " +
-        "Got: ${this::class.qualifiedName ?: this::class}.",
-    )
-}
+        is String -> NbtValue.StringValue(this)
+        is Boolean -> NbtValue.ByteValue(if (this) 1.toByte() else 0.toByte())
+        is Byte -> NbtValue.ByteValue(this)
+        is Short -> NbtValue.ShortValue(this)
+        is Int -> NbtValue.IntValue(this)
+        is Long -> NbtValue.LongValue(this)
+        is Float -> NbtValue.FloatValue(this)
+        is Double -> NbtValue.DoubleValue(this)
+        is ByteArray -> NbtValue.ByteArrayValue(copyOf())
+        is IntArray -> NbtValue.IntArrayValue(copyOf())
+        is LongArray -> NbtValue.LongArrayValue(copyOf())
+        is NbtList -> NbtValue.ListValue(elements)
+        null -> throw IllegalArgumentException("NBT list elements cannot be null.")
+        else -> throw IllegalArgumentException(
+            "NBT list elements must be a scalar (String, Boolean, Byte, Short, Int, Long, Float, Double), " +
+                    "an array (ByteArray, IntArray, LongArray), a nested list, or a compound block. " +
+                    "Got: ${this::class.qualifiedName ?: this::class}.",
+        )
+    }
