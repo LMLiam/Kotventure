@@ -55,17 +55,6 @@ internal fun KotlinSourceBuilder.appendStructuredArguments(
 }
 
 /**
- * Ergonomic overload that accepts vararg argument lambdas.
- */
-internal fun KotlinSourceBuilder.appendStructuredArguments(
-    opener: String,
-    vararg arguments: KotlinSourceBuilder.() -> Unit,
-    component: Component,
-    hasExtraBody: Boolean = false,
-    body: KotlinSourceBuilder.() -> Unit = {},
-) = appendStructuredArguments(opener, arguments.toList(), component, hasExtraBody, body)
-
-/**
  * Emit a labelled component argument block, e.g. `label { ... }`.
  */
 internal fun KotlinSourceBuilder.appendComponentArgument(
