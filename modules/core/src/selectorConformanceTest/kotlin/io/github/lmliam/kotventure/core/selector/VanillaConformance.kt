@@ -2,62 +2,83 @@ package io.github.lmliam.kotventure.core.selector
 
 import com.mojang.brigadier.StringReader
 import com.mojang.brigadier.exceptions.CommandSyntaxException
+import io.kotest.assertions.fail
 import net.minecraft.SharedConstants
 import net.minecraft.commands.arguments.selector.EntitySelectorParser
 import net.minecraft.commands.arguments.selector.options.EntitySelectorOptions
 import net.minecraft.server.Bootstrap
 
-/** Asserts that the vanilla parser accepts this selector's rendered source. */
+/**
+ * Test helpers asserting vanilla Minecraft selector parse behaviour.
+ *
+ * These helpers are intentionally small and throw test failures via Kotest's [fail].
+ */
 internal fun EntitySelector.shouldBeAcceptedByVanilla() {
     val source = asString()
     vanillaRejection(source)?.let { failure ->
-        throw AssertionError(
-            "Minecraft Java Edition $minecraftVersion rejected selector " +
-                    "`$source` at offset ${failure.offset}: ${failure.message}",
-            failure.cause,
-        )
+        val base =
+            "Minecraft Java Edition $minecraftVersion rejected selector `$source`" +
+                "at offset ${failure.offset}: ${failure.message}"
+        val message =
+            failure.cause?.let { cause ->
+            "$base (cause: ${cause::class.simpleName}: ${cause.message})"
+        } ?: base
+        fail(message)
     }
 }
 
 /** Asserts that the vanilla parser rejects this selector source. */
-internal fun String.shouldBeRejectedByVanilla() {
+internal fun String.shouldBeRejectedByVanilla() =
     if (vanillaRejection(this) == null) {
-        throw AssertionError(
-            "Minecraft Java Edition $minecraftVersion accepted intentionally invalid selector `$this`",
-        )
+        fail("Minecraft Java Edition $minecraftVersion accepted intentionally invalid selector `$this`")
+    } else {
+        Unit
     }
+
+/** Minecraft version used in assertion messages; must be provided by the test runner. */
+private val minecraftVersion: String =
+    requireNotNull(
+    System.getProperty("kotventure.conformance.minecraftVersion"),
+) {
+    "Run the suite through the selectorConformanceTest Gradle task"
 }
 
-private val minecraftVersion: String =
-    checkNotNull(System.getProperty("kotventure.conformance.minecraftVersion")) {
-        "Run the suite through the selectorConformanceTest Gradle task"
-    }
-
+/** Ensure Minecraft/Brigadier parser bootstrapping runs once on first use. */
 private val vanillaParserBootstrap: Unit by lazy {
     SharedConstants.tryDetectVersion()
     Bootstrap.bootStrap()
     EntitySelectorOptions.bootStrap()
 }
 
+/**
+ * Returns a [VanillaRejection] describing why the vanilla parser rejected [source],
+ * or `null` when the parser accepts the source.
+ */
 private fun vanillaRejection(source: String): VanillaRejection? {
     vanillaParserBootstrap
     val reader = StringReader(source)
-    try {
+
+    val parseFailure =
+        runCatching {
         EntitySelectorParser(reader, true).parse()
-    } catch (failure: CommandSyntaxException) {
-        return VanillaRejection(
-            offset = failure.cursor,
-            message = failure.rawMessage.string,
-            cause = failure,
+    }.exceptionOrNull() as? CommandSyntaxException
+
+    return when {
+        parseFailure != null ->
+            VanillaRejection(
+            offset = parseFailure.cursor,
+            message = parseFailure.rawMessage.string,
+            cause = parseFailure,
         )
-    }
-    if (reader.canRead()) {
-        return VanillaRejection(
+
+        reader.canRead() ->
+            VanillaRejection(
             offset = reader.cursor,
             message = "Unexpected trailing selector input",
         )
+
+        else -> null
     }
-    return null
 }
 
 private data class VanillaRejection(

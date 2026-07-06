@@ -1,16 +1,14 @@
-def targetMinecraftVersion = '26.2'
-def serverBundleSha1 = '823e2250d24b3ddac457a60c92a6a941943fcd6a'
-def serverBundleUrl =
-    'https://piston-data.mojang.com/v1/objects/' +
-        serverBundleSha1 +
-        '/server.jar'
-def fixtureDirectory = layout.buildDirectory.dir("selector-conformance/$targetMinecraftVersion")
-def serverBundle = fixtureDirectory.map { it.file("server-$targetMinecraftVersion-bundle.jar") }
+final String targetMinecraftVersion = '26.2'
+final String serverBundleSha1 = '823e2250d24b3ddac457a60c92a6a941943fcd6a'
+final String serverBundleUrl = "https://piston-data.mojang.com/v1/objects/${serverBundleSha1}/server.jar"
+
+def fixtureDirectory = layout.buildDirectory.dir("selector-conformance/${targetMinecraftVersion}")
+def serverBundle = fixtureDirectory.map { it.file("server-${targetMinecraftVersion}-bundle.jar") }
 def extractedClasspath = fixtureDirectory.map { it.dir('classpath') }
 
 def downloadMinecraftServer = tasks.register('downloadMinecraftServer', DownloadVerifiedFile) {
     group = 'verification'
-    description = "Downloads the checksum-pinned Minecraft Java Edition $targetMinecraftVersion server bundle."
+    description = "Downloads checksum-pinned Minecraft Java Edition ${targetMinecraftVersion} server bundle."
     sourceUrl.set(serverBundleUrl)
     expectedSha1.set(serverBundleSha1)
     destination.set(serverBundle)
@@ -18,11 +16,11 @@ def downloadMinecraftServer = tasks.register('downloadMinecraftServer', Download
 
 def extractMinecraftServer = tasks.register('extractMinecraftServer', Sync) {
     group = 'verification'
-    description = "Extracts the Minecraft $targetMinecraftVersion server and its bundled libraries."
+    description = "Extracts Minecraft ${targetMinecraftVersion} server and bundled libraries."
     dependsOn downloadMinecraftServer
 
     from({ zipTree(serverBundle.get().asFile) }) {
-        include "META-INF/versions/$targetMinecraftVersion/server-${targetMinecraftVersion}.jar"
+        include "META-INF/versions/${targetMinecraftVersion}/server-${targetMinecraftVersion}.jar"
         include 'META-INF/libraries/**/*.jar'
     }
     into extractedClasspath
@@ -40,8 +38,7 @@ configurations {
     selectorConformanceTestRuntimeOnly.extendsFrom testRuntimeOnly
 }
 
-def vanillaServerClasspath =
-    objects
+def vanillaServerClasspath = objects
         .fileCollection()
         .from(extractedClasspath.map { it.asFileTree })
         .builtBy(extractMinecraftServer)
@@ -53,7 +50,7 @@ dependencies {
 
 tasks.register('selectorConformanceTest', Test) {
     group = 'verification'
-    description = "Validates selector DSL output with Minecraft Java Edition $targetMinecraftVersion."
+    description = "Validates selector DSL output with Minecraft Java Edition ${targetMinecraftVersion}."
     testClassesDirs = sourceSets.selectorConformanceTest.output.classesDirs
     classpath = sourceSets.selectorConformanceTest.runtimeClasspath
     useJUnitPlatform()
