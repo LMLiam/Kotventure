@@ -15,6 +15,7 @@ import io.github.lmliam.kotventure.test.text.shouldHaveKeybind
 import io.github.lmliam.kotventure.test.text.shouldHaveObjectContents
 import io.github.lmliam.kotventure.test.text.shouldHaveObjectFallback
 import io.github.lmliam.kotventure.test.text.shouldNotHaveObjectFallback
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import net.kyori.adventure.text.Component
@@ -118,25 +119,22 @@ class ObjectComponentDslTest :
                 fallback.childAt(0) shouldHaveColor NamedTextColor.GRAY
             }
 
-            "uses the last configured fallback" {
+            "rejects a second fallback in one block" {
                 val contents = sprite(key("minecraft", "block/stone"))
-                val fallback = Component.text("[stone]")
 
-                val component =
+                shouldThrow<IllegalStateException> {
                     display(contents) {
                         fallback(Component.text("[old]"))
-                        fallback(fallback)
-                    }.shouldBeObjectComponent()
-
-                component shouldHaveObjectFallback fallback
+                        fallback(Component.text("[stone]"))
+                    }
+                }
             }
 
-            "clears fallback when null is provided" {
+            "accepts a null fallback" {
                 val contents = sprite(key("minecraft", "block/stone"))
 
                 val component =
                     display(contents) {
-                        fallback(Component.text("[stone]"))
                         fallback(null)
                     }.shouldBeObjectComponent()
 

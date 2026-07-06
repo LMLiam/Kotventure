@@ -12,6 +12,8 @@ import net.kyori.adventure.text.ComponentLike
 public interface TranslatableScope : ComponentScope {
     /**
      * Applies fallback text for clients that cannot resolve the translation key.
+     *
+     * @throws IllegalStateException when the fallback is already set in this block.
      */
     public fun fallback(fallback: String)
 

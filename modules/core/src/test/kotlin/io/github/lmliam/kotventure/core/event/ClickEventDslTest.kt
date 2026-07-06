@@ -163,11 +163,6 @@ class ClickEventDslTest :
                             click(manualEvent)
                         }
                     }
-                val clearedComponent =
-                    component {
-                        click(manualEvent)
-                        click(null)
-                    }
                 val clearedStyle =
                     component {
                         click(manualEvent)
@@ -178,8 +173,24 @@ class ClickEventDslTest :
 
                 component shouldHaveClickEvent manualEvent
                 styledComponent shouldHaveClickEvent manualEvent
-                clearedComponent.shouldNotHaveClickEvent()
                 clearedStyle.shouldNotHaveClickEvent()
+            }
+
+            "rejects a second click event in one block" {
+                val manualEvent = ClickEvent.openUrl("https://example.org")
+
+                shouldThrow<IllegalStateException> {
+                    component {
+                        click(manualEvent)
+                        click(null)
+                    }
+                }
+                shouldThrow<IllegalStateException> {
+                    style {
+                        click(manualEvent)
+                        click(manualEvent)
+                    }
+                }
             }
 
             "propagates invalid change page validation errors" {

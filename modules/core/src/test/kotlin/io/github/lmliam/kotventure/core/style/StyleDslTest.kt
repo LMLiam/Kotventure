@@ -13,6 +13,7 @@ import io.github.lmliam.kotventure.test.text.shouldNotHaveColor
 import io.github.lmliam.kotventure.test.text.shouldNotHaveFont
 import io.github.lmliam.kotventure.test.text.shouldNotHaveInsertion
 import io.github.lmliam.kotventure.test.text.shouldNotHaveShadowColor
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
@@ -192,9 +193,7 @@ class StyleDslTest :
                 val component =
                     component {
                         style(base)
-                        style {
-                            shadow(null)
-                        }
+                        shadow(null)
                     }
 
                 component.shouldNotHaveShadowColor()
@@ -212,16 +211,56 @@ class StyleDslTest :
                 val component =
                     component {
                         style(base)
-                        style {
-                            color(null)
-                            font(null)
-                            insertion(null)
-                        }
+                        color(null)
+                        font(null)
+                        insertion(null)
                     }
 
                 component.shouldNotHaveColor()
                 component.shouldNotHaveFont()
                 component.shouldNotHaveInsertion()
+            }
+
+            "rejects assigning a singleton style attribute twice in one block" {
+                shouldThrow<IllegalStateException> {
+                    style {
+                        color(NamedTextColor.RED)
+                        color(null)
+                    }
+                }
+                shouldThrow<IllegalStateException> {
+                    style {
+                        shadow(null)
+                        shadow(null)
+                    }
+                }
+                shouldThrow<IllegalStateException> {
+                    style {
+                        font(Key.key("minecraft", "uniform"))
+                        font(null)
+                    }
+                }
+                shouldThrow<IllegalStateException> {
+                    style {
+                        insertion("/help")
+                        insertion("/warp")
+                    }
+                }
+            }
+
+            "rejects setting the same decoration twice in one block" {
+                shouldThrow<IllegalStateException> {
+                    style {
+                        bold()
+                        bold(false)
+                    }
+                }
+                shouldThrow<IllegalStateException> {
+                    style {
+                        italic(State.TRUE)
+                        italic(null)
+                    }
+                }
             }
         },
     )

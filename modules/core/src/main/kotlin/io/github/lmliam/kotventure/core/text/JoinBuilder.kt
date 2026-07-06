@@ -1,10 +1,12 @@
 package io.github.lmliam.kotventure.core.text
 
+import io.github.lmliam.kotventure.core.dsl.SingleAssignmentGuard
 import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.JoinConfiguration
 
 internal class JoinBuilder : JoinScope {
     private val builder = JoinConfiguration.builder()
+    private val singleAssignments = SingleAssignmentGuard()
 
     override fun separator(
         value: String,
@@ -12,6 +14,7 @@ internal class JoinBuilder : JoinScope {
     ) = separator(text(value, init))
 
     override fun <T : ComponentLike> separator(component: T) {
+        singleAssignments.assign("separator")
         builder.separator(component.asComponent())
     }
 
@@ -21,6 +24,7 @@ internal class JoinBuilder : JoinScope {
     ) = lastSeparator(text(value, init))
 
     override fun <T : ComponentLike> lastSeparator(component: T) {
+        singleAssignments.assign("lastSeparator")
         builder.lastSeparator(component.asComponent())
     }
 
@@ -30,6 +34,7 @@ internal class JoinBuilder : JoinScope {
     ) = prefix(text(value, init))
 
     override fun <T : ComponentLike> prefix(component: T) {
+        singleAssignments.assign("prefix")
         builder.prefix(component.asComponent())
     }
 
@@ -39,6 +44,7 @@ internal class JoinBuilder : JoinScope {
     ) = suffix(text(value, init))
 
     override fun <T : ComponentLike> suffix(component: T) {
+        singleAssignments.assign("suffix")
         builder.suffix(component.asComponent())
     }
 

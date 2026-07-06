@@ -7,7 +7,10 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
  *
  * A compound is a set of `key eq value` assertions; the value's Kotlin type selects the SNBT
  * literal form (e.g. a [Byte] renders as `1b`, a [Long] as `1L`). Nest a compound with the lambda
- * overload of [eq]:
+ * overload of [eq].
+ *
+ * Each key may be assigned once per compound: every overload of [eq] throws [IllegalStateException] when the
+ * key is already set, instead of silently overwriting the first value.
  *
  * @sample io.github.lmliam.kotventure.core.nbt.nbtCompoundScopeSample
  */

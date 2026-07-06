@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.core.nbt
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
@@ -141,16 +142,15 @@ class NbtPathTest :
                 path.asString() shouldBe "Data[{text:\"line1\\nline2\\ttab\"}]"
             }
 
-            "duplicate predicate keys use last-write-wins" {
-                val path =
+            "rejects duplicate predicate keys" {
+                shouldThrow<IllegalStateException> {
                     nbtPath("Items")[
                         matching {
                             "id" eq "minecraft:stone"
                             "id" eq "minecraft:diamond"
                         },
                     ]
-
-                path.asString() shouldBe "Items[{id:\"minecraft:diamond\"}]"
+                }
             }
 
             "predicate eq with Byte primitive" {

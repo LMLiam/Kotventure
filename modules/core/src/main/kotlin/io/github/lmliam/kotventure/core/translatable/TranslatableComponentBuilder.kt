@@ -17,6 +17,7 @@ internal class TranslatableComponentBuilder(
     private val arguments = mutableListOf<TranslationArgument>()
 
     override fun fallback(fallback: String) {
+        singleAssignments.assign("fallback")
         builder.fallback(fallback)
     }
 

@@ -57,9 +57,6 @@ class GradientDslTest :
                         text("abc") {
                             gradient(NamedTextColor.RED, NamedTextColor.GOLD, NamedTextColor.AQUA)
                         }
-                        text("") {
-                            gradient(NamedTextColor.RED, NamedTextColor.BLUE)
-                        }
                         text("<")
                     }
 
@@ -75,6 +72,23 @@ class GradientDslTest :
                 message.childAt(1).childAt(2) shouldContainText "c"
                 message.childAt(1).childAt(2) shouldHaveColor NamedTextColor.AQUA
                 message.childAt(2) shouldContainText "<"
+            }
+
+            "rejects a gradient on empty text content" {
+                shouldThrow<IllegalStateException> {
+                    text {
+                        gradient(NamedTextColor.RED, NamedTextColor.BLUE)
+                    }
+                }
+            }
+
+            "rejects a second gradient in one text block" {
+                shouldThrow<IllegalStateException> {
+                    text("abc") {
+                        gradient(NamedTextColor.RED, NamedTextColor.BLUE)
+                        gradient(NamedTextColor.GOLD, NamedTextColor.AQUA)
+                    }
+                }
             }
 
             "rejects gradients with fewer than two stops" {

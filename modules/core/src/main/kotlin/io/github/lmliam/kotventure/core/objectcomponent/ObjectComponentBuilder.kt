@@ -13,10 +13,11 @@ internal class ObjectComponentBuilder(
 ) : ComponentBuilder<ObjectComponent, ObjectComponent.Builder>(Component.`object`().contents(contents)),
     ObjectScope {
     override fun fallback(fallback: ComponentLike?) {
+        singleAssignments.assign("fallback")
         builder.fallback(fallback)
     }
 
     override fun fallback(init: ComponentScope.() -> Unit) {
-        builder.fallback(component(init))
+        fallback(component(init))
     }
 }

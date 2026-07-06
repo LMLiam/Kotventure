@@ -9,6 +9,7 @@ import io.github.lmliam.kotventure.test.text.shouldHaveDecoration
 import io.github.lmliam.kotventure.test.text.shouldHaveFallback
 import io.github.lmliam.kotventure.test.text.shouldHaveTranslationKey
 import io.github.lmliam.kotventure.test.text.shouldNotHaveFallback
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import net.kyori.adventure.text.Component
@@ -35,6 +36,15 @@ class TranslatableDslTest :
 
                 component shouldHaveTranslationKey "missing.key"
                 component shouldHaveFallback "Missing translation"
+            }
+
+            "rejects a second fallback in one block" {
+                shouldThrow<IllegalStateException> {
+                    translatable("missing.key") {
+                        fallback("First")
+                        fallback("Second")
+                    }
+                }
             }
 
             "adds a component argument" {

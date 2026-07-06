@@ -5,56 +5,63 @@ internal class NbtCompoundBuilder : NbtCompoundScope {
 
     fun build(): NbtCompound = NbtCompound(entries.map { (key, value) -> NbtCompoundEntry(key, value) })
 
+    private fun put(
+        key: String,
+        value: NbtValue,
+    ) {
+        check(key !in entries) { "NBT key '$key' is already set; a compound key can only be assigned once." }
+        entries[key] = value
+    }
+
     override infix fun String.eq(value: String) {
-        entries[this] = NbtValue.StringValue(value)
+        put(this, NbtValue.StringValue(value))
     }
 
     override infix fun String.eq(value: Boolean) {
-        entries[this] = NbtValue.ByteValue(if (value) 1 else 0)
+        put(this, NbtValue.ByteValue(if (value) 1 else 0))
     }
 
     override infix fun String.eq(value: Byte) {
-        entries[this] = NbtValue.ByteValue(value)
+        put(this, NbtValue.ByteValue(value))
     }
 
     override infix fun String.eq(value: Short) {
-        entries[this] = NbtValue.ShortValue(value)
+        put(this, NbtValue.ShortValue(value))
     }
 
     override infix fun String.eq(value: Int) {
-        entries[this] = NbtValue.IntValue(value)
+        put(this, NbtValue.IntValue(value))
     }
 
     override infix fun String.eq(value: Long) {
-        entries[this] = NbtValue.LongValue(value)
+        put(this, NbtValue.LongValue(value))
     }
 
     override infix fun String.eq(value: Float) {
-        entries[this] = NbtValue.FloatValue(value)
+        put(this, NbtValue.FloatValue(value))
     }
 
     override infix fun String.eq(value: Double) {
-        entries[this] = NbtValue.DoubleValue(value)
+        put(this, NbtValue.DoubleValue(value))
     }
 
     override infix fun String.eq(init: NbtCompoundScope.() -> Unit) {
-        val nested = NbtCompoundBuilder().apply(init).build()
-        entries[this] = NbtValue.CompoundValue(nested)
+        put(this, NbtValue.CompoundValue(NbtCompoundBuilder().apply(init).build()))
     }
 
     override infix fun String.eq(values: ByteArray) {
-        entries[this] = NbtValue.ByteArrayValue(values.copyOf())
+        put(this, NbtValue.ByteArrayValue(values.copyOf()))
     }
 
     override infix fun String.eq(values: IntArray) {
-        entries[this] = NbtValue.IntArrayValue(values.copyOf())
+        put(this, NbtValue.IntArrayValue(values.copyOf()))
     }
 
     override infix fun String.eq(values: LongArray) {
-        entries[this] = NbtValue.LongArrayValue(values.copyOf())
+        put(this, NbtValue.LongArrayValue(values.copyOf()))
     }
 
     override infix fun String.eq(value: NbtList) {
-        entries[this] = NbtValue.ListValue(value.elements)
+        put(this, NbtValue.ListValue(value.elements))
     }
 }

@@ -12,6 +12,7 @@ import io.github.lmliam.kotventure.test.text.shouldHaveNbtSeparator
 import io.github.lmliam.kotventure.test.text.shouldInterpret
 import io.github.lmliam.kotventure.test.text.shouldNotHaveNbtSeparator
 import io.github.lmliam.kotventure.test.text.shouldNotInterpret
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import net.kyori.adventure.text.BlockNBTComponent
@@ -103,6 +104,26 @@ class BlockNbtDslTest :
 
                 separator shouldHaveColor NamedTextColor.GRAY
                 separator shouldContainText " | "
+            }
+
+            "rejects setting interpret twice in one block" {
+                shouldThrow<IllegalStateException> {
+                    blockNbt(BlockNBTComponent.Pos.fromString("1 2 3"), nbtPath("CustomName")) {
+                        interpret(true)
+                        interpret(false)
+                    }
+                }
+            }
+
+            "rejects setting the separator twice in one block" {
+                shouldThrow<IllegalStateException> {
+                    blockNbt(BlockNBTComponent.Pos.fromString("1 2 3"), nbtPath("Items[].id")) {
+                        separator(Component.text(", "))
+                        separator {
+                            content(" | ")
+                        }
+                    }
+                }
             }
         },
     )

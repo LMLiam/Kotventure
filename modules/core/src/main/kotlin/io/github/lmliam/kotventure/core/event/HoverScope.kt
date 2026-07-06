@@ -11,6 +11,8 @@ import net.kyori.adventure.text.event.HoverEventSource
 public interface HoverScope {
     /**
      * Applies [source] as the hover event, or clears the hover event when [source] is null.
+     *
+     * @throws IllegalStateException when the hover event is already set in this block.
      */
     public fun hover(source: HoverEventSource<*>?)
 

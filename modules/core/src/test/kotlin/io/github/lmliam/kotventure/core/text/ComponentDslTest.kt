@@ -37,6 +37,7 @@ import io.github.lmliam.kotventure.test.text.shouldHaveStorageKey
 import io.github.lmliam.kotventure.test.text.shouldHaveStyle
 import io.github.lmliam.kotventure.test.text.shouldHaveTranslationKey
 import io.github.lmliam.kotventure.test.text.shouldNotHaveDecoration
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import net.kyori.adventure.key.Key
@@ -423,6 +424,53 @@ class ComponentDslTest :
                 component shouldHaveChildCount 1
                 component.childAt(0) shouldContainText "child"
                 component.childAt(0) shouldHaveDecoration TextDecoration.BOLD
+            }
+
+            "rejects assigning a singleton component attribute twice in one block" {
+                shouldThrow<IllegalStateException> {
+                    component {
+                        color(NamedTextColor.RED)
+                        color(NamedTextColor.BLUE)
+                    }
+                }
+                shouldThrow<IllegalStateException> {
+                    component {
+                        shadow(null)
+                        shadow(null)
+                    }
+                }
+                shouldThrow<IllegalStateException> {
+                    component {
+                        font(Key.key("minecraft", "uniform"))
+                        font(null)
+                    }
+                }
+                shouldThrow<IllegalStateException> {
+                    component {
+                        insertion("/help")
+                        insertion("/warp")
+                    }
+                }
+            }
+
+            "rejects applying a style twice in one block" {
+                shouldThrow<IllegalStateException> {
+                    component {
+                        style(Style.style(NamedTextColor.RED))
+                        style {
+                            bold()
+                        }
+                    }
+                }
+            }
+
+            "rejects setting the same decoration twice in one component block" {
+                shouldThrow<IllegalStateException> {
+                    component {
+                        bold()
+                        bold(false)
+                    }
+                }
             }
         },
     )

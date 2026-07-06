@@ -10,6 +10,8 @@ import net.kyori.adventure.text.event.ClickEvent
 public interface ClickScope {
     /**
      * Applies [event] as the click event, or clears the click event when [event] is null.
+     *
+     * @throws IllegalStateException when the click event is already set in this block.
      */
     public fun click(event: ClickEvent<*>?)
 

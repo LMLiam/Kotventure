@@ -17,6 +17,10 @@ import net.kyori.adventure.text.format.TextDecoration.State
  * it (`bold(false)`, `bold(null)`), and an explicit [State] setter — so styles can both set and unset
  * attributes when composed.
  *
+ * Every attribute is a singleton slot: assigning it twice within one block (including once with `null`) throws
+ * [IllegalStateException] instead of silently overwriting the first value. Each decoration is its own slot, so
+ * `bold()` then `italic()` is fine while `bold()` twice is rejected.
+ *
  * @sample io.github.lmliam.kotventure.core.style.styleScopeSample
  */
 @KotventureDslMarker
@@ -25,11 +29,15 @@ public interface StyleScope :
     HoverScope {
     /**
      * Applies [color] to the style being configured, or clears the color when [color] is null.
+     *
+     * @throws IllegalStateException when the color is already set in this block.
      */
     public fun color(color: TextColor?)
 
     /**
      * Applies [color] as the shadow color of the style being configured, or clears it when [color] is null.
+     *
+     * @throws IllegalStateException when the shadow color is already set in this block.
      */
     public fun shadow(color: ShadowColor?)
 
@@ -46,11 +54,15 @@ public interface StyleScope :
 
     /**
      * Applies [font] to the style being configured, or clears the font when [font] is null.
+     *
+     * @throws IllegalStateException when the font is already set in this block.
      */
     public fun font(font: Key?)
 
     /**
      * Applies [insertion] as shift-click insertion text, or clears it when [insertion] is null.
+     *
+     * @throws IllegalStateException when the insertion is already set in this block.
      */
     public fun insertion(insertion: String?)
 
@@ -63,6 +75,8 @@ public interface StyleScope :
 
     /**
      * Sets [decoration] to [State.TRUE], [State.FALSE], or [State.NOT_SET] from [flag].
+     *
+     * @throws IllegalStateException when [decoration] is already set in this block.
      */
     public fun decoration(
         decoration: TextDecoration,
@@ -71,6 +85,8 @@ public interface StyleScope :
 
     /**
      * Sets [decoration] to [state].
+     *
+     * @throws IllegalStateException when [decoration] is already set in this block.
      */
     public fun decoration(
         decoration: TextDecoration,

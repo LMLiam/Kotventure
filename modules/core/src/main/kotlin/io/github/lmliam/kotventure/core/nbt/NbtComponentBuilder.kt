@@ -12,14 +12,16 @@ internal class NbtComponentBuilder<C : NBTComponent<C>, B : NBTComponentBuilder<
 ) : ComponentBuilder<C, B>(builder),
     NbtScope {
     override fun interpret(interpret: Boolean) {
+        singleAssignments.assign("interpret")
         builder.interpret(interpret)
     }
 
     override fun separator(separator: ComponentLike) {
+        singleAssignments.assign("separator")
         builder.separator(separator)
     }
 
     override fun separator(init: TextScope.() -> Unit) {
-        builder.separator(buildTextComponent(init))
+        separator(buildTextComponent(init))
     }
 }

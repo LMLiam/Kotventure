@@ -14,10 +14,12 @@ internal class TextBuilder :
     private var gradient: ColorGradient? = null
 
     override fun content(value: String) {
+        singleAssignments.assign("content")
         builder.content(value)
     }
 
     override fun gradient(gradient: ColorGradient) {
+        singleAssignments.assign("gradient")
         this.gradient = gradient
     }
 
@@ -29,9 +31,7 @@ internal class TextBuilder :
         val component = builder.build()
         val gradient = gradient ?: return component
         val content = component.content()
-        if (content.isEmpty()) {
-            return component
-        }
+        check(content.isNotEmpty()) { "'gradient' is set but 'content' is empty; a gradient needs text to color." }
 
         val builder = Component.text().style(component.style())
         gradientComponent(content, gradient).children().forEach { child -> builder.append(child) }
