@@ -4,6 +4,7 @@ import io.github.lmliam.kotventure.core.color.aqua
 import io.github.lmliam.kotventure.core.color.gold
 import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.key.key
+import io.github.lmliam.kotventure.core.nbt.list
 import io.github.lmliam.kotventure.core.nbt.nbt
 import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.core.uuid.uuid
@@ -420,7 +421,7 @@ class MiniMessageToDslEventRenderingTest :
                     )
                 }
 
-                test("falls back to raw nbt for data components the DSL can't model losslessly") {
+                test("emits an empty NBT list as list()") {
                     assertGoldenRoundTrip(
                         expectedSource =
                             """
@@ -428,7 +429,7 @@ class MiniMessageToDslEventRenderingTest :
                             text("Loot data") {
                                 hover {
                                     item(key("minecraft", "diamond_sword")) {
-                                        component(key("minecraft", "custom_data"), nbt("{items:[]}"))
+                                        component(key("minecraft", "custom_data")) { "items" eq list() }
                                     }
                                 }
                             }
@@ -439,7 +440,7 @@ class MiniMessageToDslEventRenderingTest :
                                 text("Loot data") {
                                     hover {
                                         item(key("minecraft", "diamond_sword")) {
-                                            component(key("minecraft", "custom_data"), nbt("{items:[]}"))
+                                            component(key("minecraft", "custom_data")) { "items" eq list() }
                                         }
                                     }
                                 }

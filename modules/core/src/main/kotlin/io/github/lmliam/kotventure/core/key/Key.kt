@@ -12,3 +12,11 @@ public fun key(
     namespace: String,
     value: String,
 ): Key = Key.key(namespace, value)
+
+/**
+ * Builds an Adventure [Key] from a combined `namespace:value` string, defaulting the namespace to
+ * `minecraft` when omitted.
+ *
+ * @throws InvalidKeyException when [key] is not valid for an Adventure key.
+ */
+public fun key(key: String): Key = Key.key(key)

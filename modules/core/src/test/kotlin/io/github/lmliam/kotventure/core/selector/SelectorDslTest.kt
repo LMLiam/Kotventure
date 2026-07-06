@@ -119,8 +119,8 @@ class SelectorDslTest :
                 component shouldHaveSelectorPattern "@n[x=10,z=-4,dx=0,dy=2]"
             }
 
-            "builds a selector component with the escape hatch" {
-                val component = selector(entitySelector("@e[distance=..10]")).shouldBeSelectorComponent()
+            "builds a selector component from parsed source" {
+                val component = selector(parseSelector("@e[distance=..10]")).shouldBeSelectorComponent()
 
                 component shouldHaveSelectorPattern "@e[distance=..10]"
             }

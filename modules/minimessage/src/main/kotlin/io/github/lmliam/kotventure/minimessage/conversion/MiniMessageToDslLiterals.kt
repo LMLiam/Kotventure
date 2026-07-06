@@ -9,18 +9,7 @@ import net.kyori.adventure.text.`object`.PlayerHeadObjectContents
 import net.kyori.adventure.text.`object`.SpriteObjectContents
 import java.util.Locale
 
-/**
- * Renders [color] as the Kotventure colour-DSL expression that reconstructs it: a named-colour property
- * (`gold`, `darkBlue`, …) for the sixteen named colours, otherwise a `hex("#RRGGBB")` call.
- */
-internal fun colorLiteral(color: TextColor): String =
-    if (color is NamedTextColor) {
-        namedColorLiterals.getValue(color)
-    } else {
-        "hex(\"${color.asHexString().uppercase(Locale.ROOT)}\")"
-    }
-
-private val namedColorLiterals: Map<NamedTextColor, String> =
+private val NAMED_COLOR_LITERALS: Map<NamedTextColor, String> =
     mapOf(
         NamedTextColor.BLACK to "black",
         NamedTextColor.DARK_BLUE to "darkBlue",
@@ -40,6 +29,19 @@ private val namedColorLiterals: Map<NamedTextColor, String> =
         NamedTextColor.WHITE to "white",
     )
 
+/** Renders [value] as a double-quoted Kotlin string literal with its contents escaped. */
+internal fun quoted(value: String): String = "\"${escapeKotlinString(value)}\""
+
+/**
+ * Renders [color] as the Kotventure colour-DSL expression that reconstructs it: a named-colour property
+ * (`gold`, `darkBlue`, ...) for the sixteen named colours, otherwise a `hex("#RRGGBB")` call.
+ */
+internal fun colorLiteral(color: TextColor): String =
+    when (color) {
+        is NamedTextColor -> NAMED_COLOR_LITERALS.getValue(color)
+        else -> "hex(${quoted(color.asHexString().uppercase(Locale.ROOT))})"
+    }
+
 /**
  * Renders [color] as the DSL expression that reconstructs it by composing
  * [hex][io.github.lmliam.kotventure.core.color.hex] and the
@@ -49,19 +51,20 @@ private val namedColorLiterals: Map<NamedTextColor, String> =
  * otherwise just `hex("#RRGGBB")`. The call site wraps this in `shadow(...)`.
  */
 internal fun shadowColorLiteral(color: ShadowColor): String {
-    val rgb = color.value() and 0x00FFFFFF
-    val alpha = (color.value() ushr 24) and 0xFF
-    val hexColor = "#%06X".format(rgb)
+    val argb = color.value()
+    val rgb = argb and 0x00FFFFFF
+    val alpha = argb ushr 24
+    val hexLiteral = "hex(${quoted("#%06X".format(Locale.ROOT, rgb))})"
+
     return if (alpha == 0xFF) {
-        "hex(\"$hexColor\")"
+        hexLiteral
     } else {
-        "hex(\"$hexColor\"), alpha = 0x%02X".format(alpha)
+        "$hexLiteral, alpha = 0x%02X".format(Locale.ROOT, alpha)
     }
 }
 
 /** Renders [key] as a `key("namespace", "value")` call. */
-internal fun keyLiteral(key: Key): String =
-    "key(\"${escapeKotlinString(key.namespace())}\", \"${escapeKotlinString(key.value())}\")"
+internal fun keyLiteral(key: Key): String = "key(${quoted(key.namespace())}, ${quoted(key.value())})"
 
 /**
  * Renders [contents] as the object-contents expression that reconstructs it, using the single-argument `sprite` form
@@ -69,38 +72,48 @@ internal fun keyLiteral(key: Key): String =
  */
 internal fun objectContentsLiteral(contents: ObjectContents): String =
     when (contents) {
-        is SpriteObjectContents ->
-            if (contents.atlas() == SpriteObjectContents.DEFAULT_ATLAS) {
-                "sprite(${keyLiteral(contents.sprite())})"
+        is SpriteObjectContents -> {
+            val atlas = contents.atlas()
+            val sprite = keyLiteral(contents.sprite())
+
+            if (atlas == SpriteObjectContents.DEFAULT_ATLAS) {
+                "sprite($sprite)"
             } else {
-                "sprite(${keyLiteral(contents.atlas())}, ${keyLiteral(contents.sprite())})"
+                "sprite(${keyLiteral(atlas)}, $sprite)"
             }
+        }
 
         is PlayerHeadObjectContents -> playerHeadLiteral(contents)
     }
 
 /**
- * Renders [contents] as the `head(...)` call that reconstructs it. The `<head>` tag sets exactly one skin source — a
- * name, a UUID, or a texture key — plus the hat flag. Profile properties and multiple skin sources are not producible
- * by the tag and have no DSL surface, so they are rejected rather than silently dropped.
+ * Renders [contents] as the `head(...)` call that reconstructs it. The `<head>` tag sets exactly one skin source -
+ * a name, a UUID, or a texture key - plus the hat flag. Profile properties and multiple skin sources are not
+ * producible by the tag and have no DSL surface, so they are rejected rather than silently dropped.
  */
 private fun playerHeadLiteral(contents: PlayerHeadObjectContents): String {
     if (contents.profileProperties().isNotEmpty()) {
         conversionError("miniToDsl cannot represent player-head profile properties: the <head> tag does not set them.")
     }
-    val skinSources =
+
+    val skinSource =
         listOfNotNull(
-            contents.name()?.let { "\"${escapeKotlinString(it)}\"" },
-            contents.id()?.let { "uuid(\"$it\")" },
-            contents.texture()?.let { keyLiteral(it) },
-        )
-    if (skinSources.size != 1) {
-        conversionError(
-            "miniToDsl cannot represent a player head without exactly one skin source (a name, UUID, or texture).",
-        )
+            contents.name()?.let(::quoted),
+            contents.id()?.let { "uuid(${quoted(it.toString())})" },
+            contents.texture()?.let(::keyLiteral),
+        ).singleOrNull()
+            ?: conversionError(
+                "miniToDsl cannot represent a player head without exactly one skin source (a name, UUID, or texture).",
+            )
+
+    return buildString {
+        append("head(")
+        append(skinSource)
+        if (!contents.hat()) {
+            append(", hat = false")
+        }
+        append(")")
     }
-    val hat = if (contents.hat()) null else "hat = ${contents.hat()}"
-    return "head(${(skinSources + listOfNotNull(hat)).joinToString(", ")})"
 }
 
 /** Escapes [value] for embedding inside a double-quoted Kotlin string literal. */

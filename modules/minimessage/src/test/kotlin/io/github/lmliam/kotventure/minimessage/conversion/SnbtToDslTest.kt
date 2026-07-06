@@ -162,8 +162,8 @@ class SnbtToDslTest :
                         "\"tag\" eq { \"lore\" eq list(\"a\", \"b\") }"
             }
 
-            "returns null for an empty list" {
-                snbtToDslBody("{items:[]}").shouldBeNull()
+            "renders an empty list as list()" {
+                snbtToDslBody("{items:[]}") shouldBe "\"items\" eq list()"
             }
 
             "parses quoted keys" {

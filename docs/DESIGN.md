@@ -130,6 +130,8 @@ val msg = component {
     mini("<gradient:gold:red>Epic</gradient>")
 }
 
+val parsedSelector = parseSelector("@e[type=minecraft:zombie,tag=!hidden]")
+
 // ── Reusable styles ────────────────────────────────────────────
 val headerStyle = style {
     color(GOLD)
@@ -190,6 +192,24 @@ println(component.toMiniMessage())
 println(component.toPlainText())
 ```
 
+`parseSelector(...)` is the single dynamic-string bridge into the selector DSL: it validates
+selector source and returns the same typed, immutable `EntitySelector` model produced by the
+target-specific DSL factories. Invalid or unknown syntax throws an `EntitySelectorParseException`
+carrying the zero-based, selector-relative offset of the first failure, matching the fail-fast
+contract of the rest of the DSL. There is no unchecked selector representation.
+
+Both construction paths produce a typed `EntitySelectorArgument` list, and a single renderer turns
+that model back into canonical selector source. The DSL scopes are the compile-time front end over
+the model; `parseSelector(...)` is the strict runtime front end for dynamic strings. The model is
+semantic, not lexical: argument order and repetition are retained, while quote choice, escapes,
+omitted `minecraft:` namespaces, number spelling, redundant exact ranges (`5..5` renders as `5`),
+and empty argument brackets re-render canonically. Duplicate-argument and cross-argument vanilla
+semantics are pinned separately by the vanilla-conformance suite (#205).
+
+Selector rendering is also checked independently against the checksum-pinned Java Edition parser;
+see [Vanilla conformance](vanilla-conformance.md) for the isolated test setup and baseline
+update process.
+
 ## 6. MiniMessage strategy
 
 Three layers, shipped incrementally:
@@ -201,6 +221,8 @@ Three layers, shipped incrementally:
    ** (Gradle plugin over resource bundles).
 
 A **MiniMessage ⇄ DSL converter** round‑trips between markup strings and DSL/Kotlin, aiding migration and learning.
+Selector patterns convert through the strict `core` parser and emit the typed selector factories and arguments,
+canonicalized; invalid patterns fail with the parser's offset-bearing exception.
 
 ## 7. Testing strategy
 

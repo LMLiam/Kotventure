@@ -32,7 +32,8 @@ public sealed interface CommonEntitySelectorScope {
     /**
      * Sets selector origin coordinates (vanilla `x`, `y`, `z`): `origin(12.5.x, 64.y)`.
      *
-     * Each coordinate binds once across the whole selector.
+     * Each coordinate binds once across the whole selector. Additional coordinates override
+     * previous ones.
      *
      * @throws IllegalStateException if a supplied coordinate is already set
      * @sample io.github.lmliam.kotventure.core.selector.selectorPositionVolumeSample
@@ -45,7 +46,7 @@ public sealed interface CommonEntitySelectorScope {
     /**
      * Sets selector bounding-volume deltas (vanilla `dx`, `dy`, `dz`): `volume(16.dx, 8.dy)`.
      *
-     * Each delta binds once across the whole selector.
+     * Each delta binds once across the whole selector. Additional deltas override previous ones.
      *
      * @throws IllegalStateException if a supplied delta is already set
      * @sample io.github.lmliam.kotventure.core.selector.selectorPositionVolumeSample
@@ -60,42 +61,42 @@ public sealed interface CommonEntitySelectorScope {
      *
      * @throws IllegalArgumentException if the value is not finite
      */
-    public val Number.x: OriginCoordinate get() = originCoordinate(OriginAxis.X, this)
+    public val Number.x: OriginCoordinate get() = originCoordinate(SelectorCoordinate.X, this)
 
     /**
      * This number as the origin `y` coordinate.
      *
      * @throws IllegalArgumentException if the value is not finite
      */
-    public val Number.y: OriginCoordinate get() = originCoordinate(OriginAxis.Y, this)
+    public val Number.y: OriginCoordinate get() = originCoordinate(SelectorCoordinate.Y, this)
 
     /**
      * This number as the origin `z` coordinate.
      *
      * @throws IllegalArgumentException if the value is not finite
      */
-    public val Number.z: OriginCoordinate get() = originCoordinate(OriginAxis.Z, this)
+    public val Number.z: OriginCoordinate get() = originCoordinate(SelectorCoordinate.Z, this)
 
     /**
      * This number as the bounding-volume `dx` delta.
      *
      * @throws IllegalArgumentException if the value is not finite
      */
-    public val Number.dx: VolumeDelta get() = volumeDelta(VolumeAxis.DX, this)
+    public val Number.dx: VolumeDelta get() = volumeDelta(SelectorCoordinate.DX, this)
 
     /**
      * This number as the bounding-volume `dy` delta.
      *
      * @throws IllegalArgumentException if the value is not finite
      */
-    public val Number.dy: VolumeDelta get() = volumeDelta(VolumeAxis.DY, this)
+    public val Number.dy: VolumeDelta get() = volumeDelta(SelectorCoordinate.DY, this)
 
     /**
      * This number as the bounding-volume `dz` delta.
      *
      * @throws IllegalArgumentException if the value is not finite
      */
-    public val Number.dz: VolumeDelta get() = volumeDelta(VolumeAxis.DZ, this)
+    public val Number.dz: VolumeDelta get() = volumeDelta(SelectorCoordinate.DZ, this)
 
     /** Filters by distance using a [SelectorRange]. */
     public fun distance(range: SelectorRange)
@@ -105,7 +106,9 @@ public sealed interface CommonEntitySelectorScope {
 
     /**
      * Filters by vertical look angle in degrees — vanilla `x_rotation` — using a [SelectorRange]:
-     * `pitch(atMost(-45.0))`. `-90` looks straight up, `0` level, `90` straight down.
+     * `pitch(atMost(-45.0))`.
+     *
+     * Angle mapping: `-90°` = looking straight up; `0°` = level; `90°` = looking straight down.
      *
      * @sample io.github.lmliam.kotventure.core.selector.selectorRotationSample
      */
@@ -115,13 +118,17 @@ public sealed interface CommonEntitySelectorScope {
      * Filters by vertical look angle in degrees — vanilla `x_rotation` — using a Kotlin range:
      * `pitch(-90.0..-45.0)`.
      *
+     * Angle mapping: `-90°` = looking straight up; `0°` = level; `90°` = looking straight down.
+     *
      * @sample io.github.lmliam.kotventure.core.selector.selectorRotationSample
      */
     public fun pitch(range: ClosedFloatingPointRange<Double>)
 
     /**
      * Filters by horizontal look angle in degrees — vanilla `y_rotation` — using a [SelectorRange]:
-     * `yaw(atLeast(90.0))`. `-180` faces due north, `-90` east, `0` south, `90` west.
+     * `yaw(atLeast(90.0))`.
+     *
+     * Angle mapping: `-180°` = north; `-90°` = east; `0°` = south; `90°` = west.
      *
      * @sample io.github.lmliam.kotventure.core.selector.selectorRotationSample
      */
@@ -129,8 +136,11 @@ public sealed interface CommonEntitySelectorScope {
 
     /**
      * Filters by horizontal look angle in degrees — vanilla `y_rotation` — using a Kotlin range:
-     * `yaw(0.0..90.0)`. A descending range such as `yaw(170.0..-170.0)` wraps around ±180, matching
-     * vanilla semantics.
+     * `yaw(0.0..90.0)`.
+     *
+     * Angle mapping: `-180°` = north; `-90°` = east; `0°` = south; `90°` = west.
+     *
+     * Descending ranges like `yaw(170.0..-170.0)` wrap around ±180°, matching vanilla semantics.
      *
      * @sample io.github.lmliam.kotventure.core.selector.selectorRotationSample
      */
@@ -139,7 +149,7 @@ public sealed interface CommonEntitySelectorScope {
     /**
      * Filters by scoreboard tag. Prefix the call with `!` to exclude the tag.
      *
-     * @throws IllegalArgumentException if the tag name is empty (use `tag(any)` or `tag(none)`)
+     * @throws IllegalArgumentException if the tag name is empty (use `tag(any)` or `tag(none)` instead)
      * @sample io.github.lmliam.kotventure.core.selector.negatedCommonArgumentsSample
      */
     public fun tag(tag: String): SelectorFilterExpression
@@ -150,21 +160,20 @@ public sealed interface CommonEntitySelectorScope {
     /**
      * Filters by a structured NBT compound. Prefix the call with `!` to exclude matching NBT.
      *
-     * Raw SNBT is intentionally unsupported; use [entitySelector] for raw selector interop.
-     *
      * @sample io.github.lmliam.kotventure.core.selector.selectorNbtSample
      */
     public fun nbt(init: NbtCompoundScope.() -> Unit): SelectorFilterExpression
 
     /**
      * Filters by a datapack predicate (vanilla `predicate`): `predicate(key("my_pack", "flying"))`.
-     * Prefix the call with `!` to require the predicate to fail; repeated calls accumulate in call
-     * order and must all match.
+     *
+     * Prefix the call with `!` to require the predicate to fail. Repeated calls accumulate in
+     * declaration order and must all match.
      *
      * There is deliberately no string overload: predicate IDs are datapack-defined, so a default
      * namespace would usually be wrong. Build IDs with
-     * [key][io.github.lmliam.kotventure.core.key.key]; `entitySelector(...)` remains the raw
-     * interop bridge.
+     * [key][io.github.lmliam.kotventure.core.key.key]. Validate complete selector source from
+     * string interop with [parseSelector].
      *
      * @sample io.github.lmliam.kotventure.core.selector.selectorPredicateSample
      */
@@ -195,7 +204,7 @@ public sealed interface CommonEntitySelectorScope {
      * Filters by scoreboard objective values (vanilla `scores={...}`):
      * `scores { "kills" eq atLeast(10) }`.
      *
-     * Objectives render in declaration order. Each objective binds once inside the block, and the
+     * Objectives render in declaration order. Each objective binds once inside the block; the
      * whole argument binds once across the selector. Vanilla does not support negating `scores`,
      * so the block is not prefix-negatable.
      *
@@ -208,8 +217,8 @@ public sealed interface CommonEntitySelectorScope {
      * Filters by advancement progress (vanilla `advancements={...}`):
      * `advancements { key("minecraft", "story/smelt_iron") eq true }`.
      *
-     * Advancements render in declaration order. Each advancement binds once inside the block, and
-     * the whole argument binds once across the selector. Vanilla does not support negating
+     * Advancements render in declaration order. Each advancement binds once inside the block; the
+     * whole argument binds once across the selector. Vanilla does not support negating
      * `advancements`, so the block is not prefix-negatable — require an incomplete advancement
      * with `eq false`.
      *
@@ -227,6 +236,7 @@ public sealed interface CommonEntitySelectorScope {
 
     /**
      * Filters by team membership: `team("red")`. Prefix the call with `!` to exclude the team.
+     *
      * A selector has at most one positive team.
      *
      * @throws IllegalArgumentException if the team name is empty (use `team(none)`) or contains
@@ -237,7 +247,7 @@ public sealed interface CommonEntitySelectorScope {
     public fun team(team: String): SelectorFilterExpression
 
     /**
-     * Filters by team presence: `team(any)` matches entities on any team (vanilla `team=!`),
+     * Filters by team presence: `team(any)` matches entities on any team (vanilla `team=!`);
      * `team(none)` matches teamless entities (vanilla `team=`).
      *
      * @sample io.github.lmliam.kotventure.core.selector.selectorTeamSample

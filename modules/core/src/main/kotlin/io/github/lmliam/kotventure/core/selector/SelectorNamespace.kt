@@ -1,3 +1,14 @@
 package io.github.lmliam.kotventure.core.selector
 
-internal fun String.withDefaultNamespace(): String = if (":" in this) this else "minecraft:$this"
+import io.github.lmliam.kotventure.core.key.key
+import net.kyori.adventure.key.InvalidKeyException
+
+internal fun String.requireEntityTypeKey(): String =
+    try {
+        key(this).asString()
+    } catch (exception: InvalidKeyException) {
+        throw IllegalArgumentException(
+            "Entity type '$this' is not a valid namespaced key.",
+            exception,
+        )
+    }

@@ -9,8 +9,8 @@ import io.github.lmliam.kotventure.core.nbt.nbtPath
 import io.github.lmliam.kotventure.core.nbt.storageNbt
 import io.github.lmliam.kotventure.core.score.score
 import io.github.lmliam.kotventure.core.selector.allPlayers
-import io.github.lmliam.kotventure.core.selector.entitySelector
 import io.github.lmliam.kotventure.core.selector.nearestPlayer
+import io.github.lmliam.kotventure.core.selector.parseSelector
 import io.github.lmliam.kotventure.core.selector.selector
 import io.github.lmliam.kotventure.core.translatable.translatable
 import io.github.lmliam.kotventure.test.compilation.assertDoesNotCompile

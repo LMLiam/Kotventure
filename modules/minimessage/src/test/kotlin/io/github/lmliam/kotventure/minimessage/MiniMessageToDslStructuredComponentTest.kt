@@ -14,7 +14,9 @@ import io.github.lmliam.kotventure.core.nbt.storageNbt
 import io.github.lmliam.kotventure.core.objectcomponent.display
 import io.github.lmliam.kotventure.core.objectcomponent.sprite
 import io.github.lmliam.kotventure.core.score.score
-import io.github.lmliam.kotventure.core.selector.entitySelector
+import io.github.lmliam.kotventure.core.selector.EntitySelectorParseException
+import io.github.lmliam.kotventure.core.selector.entities
+import io.github.lmliam.kotventure.core.selector.nearestPlayer
 import io.github.lmliam.kotventure.core.selector.selector
 import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.core.translatable.translatable
@@ -23,6 +25,7 @@ import io.github.lmliam.kotventure.minimessage.conversion.MiniMessageToDslWriter
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TranslationArgument
@@ -106,10 +109,12 @@ class MiniMessageToDslStructuredComponentTest :
                         expectedSource =
                             """
                         component {
-                            selector(entitySelector("@p"))
+                            selector(
+                                nearestPlayer()
+                            )
                         }
                         """.trimIndent(),
-                        expectedComponent = component { selector(entitySelector("@p")) },
+                        expectedComponent = component { selector(nearestPlayer()) },
                     )
                 }
 
@@ -119,7 +124,9 @@ class MiniMessageToDslStructuredComponentTest :
                         expectedSource =
                             """
                         component {
-                            selector(entitySelector("@e")) {
+                            selector(
+                                entities()
+                            ) {
                                 separator {
                                     text(", ")
                                 }
@@ -128,11 +135,41 @@ class MiniMessageToDslStructuredComponentTest :
                         """.trimIndent(),
                         expectedComponent =
                             component {
-                                selector(entitySelector("@e")) {
+                                selector(entities()) {
                                     separator { text(", ") }
                                 }
                             },
                     )
+                }
+
+                test("rejects unsupported selector syntax during conversion") {
+                    val component = Component.selector("@future[unknown=value]")
+
+                    shouldThrow<EntitySelectorParseException> {
+                        MiniMessageToDslWriter.write(component)
+                    }
+                }
+
+                test("canonicalizes validated selector source during conversion") {
+                    val component = Component.selector("@e[name='Boss Mob']")
+
+                    MiniMessageToDslWriter.write(component) shouldBe
+                            """
+                        component {
+                            selector(
+                                entities {
+                                    name("Boss Mob")
+                                }
+                            )
+                        }
+                        """.trimIndent()
+                }
+
+                test("emits the same typed selector for selector and entity NBT components") {
+                    MiniMessageToDslWriter.write(Component.selector("@e[type=zombie]")) shouldContain
+                            """type(key("minecraft", "zombie"))"""
+                    MiniMessageToDslWriter.write(Component.entityNBT("Health", "@e[type=zombie]")) shouldContain
+                            """type(key("minecraft", "zombie"))"""
                 }
 
                 test("round-trips argument-free translatable components against compiled expected DSL") {
@@ -395,12 +432,47 @@ class MiniMessageToDslStructuredComponentTest :
                 }
 
                 test("emits entity NBT components from a compiled expected DSL") {
-                    val nbt = component { entityNbt(entitySelector("@e[type=armor_stand]"), nbtPath("Pos")) }
+                    val nbt =
+                        component {
+                            entityNbt(
+                                entities { type(key("minecraft", "armor_stand")) },
+                                nbtPath("Pos"),
+                            )
+                        }
 
                     MiniMessageToDslWriter.write(nbt) shouldBe
                             """
                     component {
-                        entityNbt(entitySelector("@e[type=armor_stand]"), nbtPath("Pos"))
+                        entityNbt(
+                            entities {
+                                type(key("minecraft", "armor_stand"))
+                            },
+                            nbtPath("Pos")
+                        )
+                    }
+                    """.trimIndent()
+                }
+
+                test("rejects unsupported entity NBT selector syntax during conversion") {
+                    val component = Component.entityNBT("Health", "@future[unknown=value]")
+
+                    shouldThrow<EntitySelectorParseException> {
+                        MiniMessageToDslWriter.write(component)
+                    }
+                }
+
+                test("canonicalizes validated entity NBT selector source during conversion") {
+                    val component = Component.entityNBT("Health", "@e[name='Boss Mob']")
+
+                    MiniMessageToDslWriter.write(component) shouldBe
+                            """
+                    component {
+                        entityNbt(
+                            entities {
+                                name("Boss Mob")
+                            },
+                            nbtPath("Health")
+                        )
                     }
                     """.trimIndent()
                 }
@@ -438,15 +510,27 @@ class MiniMessageToDslStructuredComponentTest :
 
                 test("round-trips selector with arguments through the full parse-write path") {
                     assertGoldenRoundTrip(
-                        input = "<selector:'@e[type=armor_stand,limit=1]'>",
+                        input = "<selector:'@e[type=minecraft:armor_stand,limit=1]'>",
                         expectedSource =
                             """
                         component {
-                            selector(entitySelector("@e[type=armor_stand,limit=1]"))
+                            selector(
+                                entities {
+                                    type(key("minecraft", "armor_stand"))
+                                    limit(1)
+                                }
+                            )
                         }
                         """.trimIndent(),
                         expectedComponent =
-                            component { selector(entitySelector("@e[type=armor_stand,limit=1]")) },
+                            component {
+                                selector(
+                                    entities {
+                                        type(key("minecraft", "armor_stand"))
+                                        limit(1)
+                                    },
+                                )
+                            },
                     )
                 }
 
