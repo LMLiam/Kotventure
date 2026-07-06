@@ -18,11 +18,11 @@ internal fun EntitySelector.shouldBeAcceptedByVanilla() {
     vanillaRejection(source)?.let { failure ->
         val base =
             "Minecraft Java Edition $minecraftVersion rejected selector `$source` " +
-                "at offset ${failure.offset}: ${failure.message}"
+                    "at offset ${failure.offset}: ${failure.message}"
         val message =
             failure.cause?.let { cause ->
-            "$base (cause: ${cause::class.simpleName}: ${cause.message})"
-        } ?: base
+                "$base (cause: ${cause::class.simpleName}: ${cause.message})"
+            } ?: base
         fail(message)
     }
 }
@@ -38,10 +38,10 @@ internal fun String.shouldBeRejectedByVanilla() =
 /** Minecraft version used in assertion messages; must be provided by the test runner. */
 private val minecraftVersion: String =
     requireNotNull(
-    System.getProperty("kotventure.conformance.minecraftVersion"),
-) {
-    "Run the suite through the vanillaConformanceTest Gradle task"
-}
+        System.getProperty("kotventure.conformance.minecraftVersion"),
+    ) {
+        "Run the suite through the vanillaConformanceTest Gradle task"
+    }
 
 /** Ensure Minecraft/Brigadier parser bootstrapping runs once on first use. */
 private val vanillaParserBootstrap: Unit by lazy {
@@ -60,22 +60,22 @@ private fun vanillaRejection(source: String): VanillaRejection? {
 
     val parseFailure =
         runCatching {
-        EntitySelectorParser(reader, true).parse()
-    }.exceptionOrNull() as? CommandSyntaxException
+            EntitySelectorParser(reader, true).parse()
+        }.exceptionOrNull() as? CommandSyntaxException
 
     return when {
         parseFailure != null ->
             VanillaRejection(
-            offset = parseFailure.cursor,
-            message = parseFailure.rawMessage.string,
-            cause = parseFailure,
-        )
+                offset = parseFailure.cursor,
+                message = parseFailure.rawMessage.string,
+                cause = parseFailure,
+            )
 
         reader.canRead() ->
             VanillaRejection(
-            offset = reader.cursor,
-            message = "Unexpected trailing selector input",
-        )
+                offset = reader.cursor,
+                message = "Unexpected trailing selector input",
+            )
 
         else -> null
     }

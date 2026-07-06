@@ -59,7 +59,8 @@ abstract class DownloadVerifiedFile extends DefaultTask {
             // ensure clean temporary file
             try {
                 Files.deleteIfExists(temporary)
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
 
             try {
                 logger.lifecycle("Downloading ${src} (attempt $attempt)...")
@@ -98,7 +99,10 @@ abstract class DownloadVerifiedFile extends DefaultTask {
             } catch (Exception e) {
                 lastFailure = e
                 logger.warn("Download attempt $attempt failed: ${e.class.simpleName}: ${e.message}")
-                try { Files.deleteIfExists(temporary) } catch (Exception ignored) {}
+                try {
+                    Files.deleteIfExists(temporary)
+                } catch (Exception ignored) {
+                }
                 if (attempt < ATTEMPTS) {
                     // simple backoff
                     sleep(attempt * 1000L)
