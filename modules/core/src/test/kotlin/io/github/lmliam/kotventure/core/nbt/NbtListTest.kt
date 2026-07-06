@@ -7,6 +7,10 @@ import io.kotest.matchers.shouldBe
 class NbtListTest :
     StringSpec(
         {
+            "builds an empty list" {
+                nbt { "Items" eq list() }.string() shouldBe "{Items:[]}"
+            }
+
             "builds a list of strings" {
                 nbt { "pages" eq list("a", "b") }.string() shouldBe "{pages:[\"a\",\"b\"]}"
             }

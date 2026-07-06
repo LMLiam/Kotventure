@@ -19,6 +19,14 @@ package io.github.lmliam.kotventure.core.nbt
 public inline fun <reified T> NbtCompoundScope.list(vararg values: T): NbtList = nbtList(values.asList())
 
 /**
+ * Builds an empty NBT list (`TAG_List` with no elements): `"Items" eq list()`.
+ *
+ * @sample io.github.lmliam.kotventure.core.nbt.nbtListSample
+ */
+@Suppress("UnusedReceiverParameter")
+public fun NbtCompoundScope.list(): NbtList = NbtList(emptyList())
+
+/**
  * Builds a homogeneous NBT list (`TAG_List`) of the compounds built by [compounds].
  *
  * @sample io.github.lmliam.kotventure.core.nbt.nbtListSample

@@ -62,6 +62,7 @@ internal fun nbtSample() {
 internal fun nbtListSample() {
     nbt {
         "pages" eq list("Once", "upon", "a", "time")
+        "Items" eq list()
         "Lore" eq
                 list(
                     { "text" eq "Line 1" },
