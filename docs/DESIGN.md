@@ -203,6 +203,10 @@ omitted `minecraft:` namespaces, number spelling, redundant exact ranges (`5..5`
 and empty argument brackets re-render canonically. Duplicate-argument and cross-argument vanilla
 semantics are pinned separately by the vanilla-conformance suite (#205).
 
+Selector rendering is also checked independently against the checksum-pinned Java Edition parser;
+see [Vanilla conformance](vanilla-conformance.md) for the isolated test setup and baseline
+update process.
+
 ## 6. MiniMessage strategy
 
 Three layers, shipped incrementally:
