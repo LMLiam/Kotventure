@@ -3,6 +3,7 @@ package io.github.lmliam.kotventure.core.nbt
 import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.selector.self
 
+@Suppress("unused") // samples exist for documentation generation
 internal fun nbtPathSample() {
     nbtPath("Items")[0]["tag"]["display"]["Name"]
     nbtPath("Inventory")[all]["id"]
@@ -46,7 +47,9 @@ internal fun nbtCompoundScopeSample() {
     matching {
         "id" eq "minecraft:diamond"
         "Count" eq 1.toByte()
-        "tag" eq { "Unbreakable" eq 1.toByte() }
+        "tag" eq {
+            "Unbreakable" eq 1.toByte()
+        }
     }
 }
 
@@ -64,10 +67,14 @@ internal fun nbtListSample() {
         "pages" eq list("Once", "upon", "a", "time")
         "Items" eq list()
         "Lore" eq
-                list(
-                    { "text" eq "Line 1" },
-                    { "text" eq "Line 2" },
-                )
+            list(
+            {
+                "text" eq "Line 1"
+            },
+            {
+                "text" eq "Line 2"
+            },
+        )
         "rows" eq list(intArrayOf(1, 2), intArrayOf(3, 4))
         "grid" eq list(list(1, 2), list(3, 4))
     }
