@@ -132,6 +132,20 @@ class ObjectComponentDslTest :
                 }
             }
 
+            "rejects a fallback lambda after a fallback value in one block" {
+                val contents = sprite(key("minecraft", "block/stone"))
+                val first = text("[old]")
+
+                shouldThrow<IllegalStateException> {
+                    display(contents) {
+                        fallback(first)
+                        fallback {
+                            text("[stone]")
+                        }
+                    }
+                }
+            }
+
             "accepts a null fallback" {
                 val contents = sprite(key("minecraft", "block/stone"))
 
