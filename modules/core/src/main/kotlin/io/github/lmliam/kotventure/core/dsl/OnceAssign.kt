@@ -1,6 +1,5 @@
 package io.github.lmliam.kotventure.core.dsl
 
-import java.util.concurrent.atomic.AtomicReference
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
@@ -9,20 +8,13 @@ import kotlin.reflect.KProperty
  * name, so a slot's DSL name and its diagnostic cannot drift apart.
  */
 internal class OnceAssign<T> : ReadWriteProperty<Any?, T?> {
-    private val value = AtomicReference<Any?>(Unset)
+    private var assigned = false
+    private var value: T? = null
 
     override fun getValue(
         thisRef: Any?,
         property: KProperty<*>,
-    ): T? {
-        val current = value.get()
-        return if (current === Unset) {
-            null
-        } else {
-            @Suppress("UNCHECKED_CAST")
-            current as T?
-        }
-    }
+    ): T? = value
 
     /**
      * @throws IllegalStateException when the property was already assigned.
@@ -32,10 +24,10 @@ internal class OnceAssign<T> : ReadWriteProperty<Any?, T?> {
         property: KProperty<*>,
         value: T?,
     ) {
-        check(this.value.compareAndSet(Unset, value)) { "'${property.name}' is already set." }
+        check(!assigned) { "'${property.name}' is already set." }
+        assigned = true
+        this.value = value
     }
-
-    private object Unset
 }
 
 /** Creates a [OnceAssign] slot for a `by`-delegated builder property. */
