@@ -1,6 +1,7 @@
 package io.github.lmliam.kotventure.core.style
 
 import io.github.lmliam.kotventure.core.component.component
+import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldHaveChildCount
@@ -236,7 +237,7 @@ class StyleDslTest :
                 }
                 shouldThrow<IllegalStateException> {
                     style {
-                        font(Key.key("minecraft", "uniform"))
+                        font(key("minecraft", "uniform"))
                         font(null)
                     }
                 }

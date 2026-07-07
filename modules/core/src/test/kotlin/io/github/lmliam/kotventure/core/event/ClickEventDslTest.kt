@@ -177,18 +177,21 @@ class ClickEventDslTest :
             }
 
             "rejects a second click event in one block" {
-                val manualEvent = ClickEvent.openUrl("https://example.org")
+                val event =
+                    click {
+                        openUrl("https://example.org")
+                    }
 
                 shouldThrow<IllegalStateException> {
                     component {
-                        click(manualEvent)
+                        click(event)
                         click(null)
                     }
                 }
                 shouldThrow<IllegalStateException> {
                     style {
-                        click(manualEvent)
-                        click(manualEvent)
+                        click(event)
+                        click(event)
                     }
                 }
             }

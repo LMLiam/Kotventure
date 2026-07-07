@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.core.nbt
 
+import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldBeBlockNbtComponent
 import io.github.lmliam.kotventure.test.text.shouldContainText
@@ -116,9 +117,11 @@ class BlockNbtDslTest :
             }
 
             "rejects setting the separator twice in one block" {
+                val comma = text(", ")
+
                 shouldThrow<IllegalStateException> {
                     blockNbt(BlockNBTComponent.Pos.fromString("1 2 3"), nbtPath("Items[].id")) {
-                        separator(Component.text(", "))
+                        separator(comma)
                         separator {
                             content(" | ")
                         }

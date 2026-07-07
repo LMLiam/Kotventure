@@ -1,12 +1,16 @@
 package io.github.lmliam.kotventure.core.text
 
-import io.github.lmliam.kotventure.core.dsl.SingleAssignmentGuard
+import io.github.lmliam.kotventure.core.dsl.singleAssign
+import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.JoinConfiguration
 
 internal class JoinBuilder : JoinScope {
     private val builder = JoinConfiguration.builder()
-    private val singleAssignments = SingleAssignmentGuard()
+    private var separator: Component? by singleAssign()
+    private var lastSeparator: Component? by singleAssign()
+    private var prefix: Component? by singleAssign()
+    private var suffix: Component? by singleAssign()
 
     override fun separator(
         value: String,
@@ -14,8 +18,9 @@ internal class JoinBuilder : JoinScope {
     ) = separator(text(value, init))
 
     override fun <T : ComponentLike> separator(component: T) {
-        singleAssignments.assign("separator")
-        builder.separator(component.asComponent())
+        val value = component.asComponent()
+        separator = value
+        builder.separator(value)
     }
 
     override fun lastSeparator(
@@ -24,8 +29,9 @@ internal class JoinBuilder : JoinScope {
     ) = lastSeparator(text(value, init))
 
     override fun <T : ComponentLike> lastSeparator(component: T) {
-        singleAssignments.assign("lastSeparator")
-        builder.lastSeparator(component.asComponent())
+        val value = component.asComponent()
+        lastSeparator = value
+        builder.lastSeparator(value)
     }
 
     override fun prefix(
@@ -34,8 +40,9 @@ internal class JoinBuilder : JoinScope {
     ) = prefix(text(value, init))
 
     override fun <T : ComponentLike> prefix(component: T) {
-        singleAssignments.assign("prefix")
-        builder.prefix(component.asComponent())
+        val value = component.asComponent()
+        prefix = value
+        builder.prefix(value)
     }
 
     override fun suffix(
@@ -44,8 +51,9 @@ internal class JoinBuilder : JoinScope {
     ) = suffix(text(value, init))
 
     override fun <T : ComponentLike> suffix(component: T) {
-        singleAssignments.assign("suffix")
-        builder.suffix(component.asComponent())
+        val value = component.asComponent()
+        suffix = value
+        builder.suffix(value)
     }
 
     internal fun build(): JoinConfiguration = builder.build()

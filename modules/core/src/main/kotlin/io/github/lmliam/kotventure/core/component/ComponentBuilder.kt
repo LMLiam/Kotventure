@@ -1,6 +1,7 @@
 package io.github.lmliam.kotventure.core.component
 
-import io.github.lmliam.kotventure.core.dsl.SingleAssignmentGuard
+import io.github.lmliam.kotventure.core.dsl.SingleAssignSet
+import io.github.lmliam.kotventure.core.dsl.singleAssign
 import io.github.lmliam.kotventure.core.style.StyleBuilder
 import io.github.lmliam.kotventure.core.style.StyleScope
 import net.kyori.adventure.key.Key
@@ -18,45 +19,52 @@ import net.kyori.adventure.text.ComponentBuilder as AdventureComponentBuilder
 internal open class ComponentBuilder<C : Component, B : AdventureComponentBuilder<C, B>>(
     protected val builder: B,
 ) : ComponentScope {
-    protected val singleAssignments: SingleAssignmentGuard = SingleAssignmentGuard()
+    private var color: TextColor? by singleAssign()
+    private var shadow: ShadowColor? by singleAssign()
+    private var font: Key? by singleAssign()
+    private var insertion: String? by singleAssign()
+    private var style: Any? by singleAssign()
+    private var click: ClickEvent<*>? by singleAssign()
+    private var hover: HoverEventSource<*>? by singleAssign()
+    private val decorations = SingleAssignSet<TextDecoration>()
 
     override fun color(color: TextColor?) {
-        singleAssignments.assign("color")
+        this.color = color
         builder.color(color)
     }
 
     override fun shadow(color: ShadowColor?) {
-        singleAssignments.assign("shadow")
+        this.shadow = color
         builder.style { styleBuilder -> styleBuilder.shadowColor(color) }
     }
 
     override fun font(font: Key?) {
-        singleAssignments.assign("font")
+        this.font = font
         builder.style { styleBuilder -> styleBuilder.font(font) }
     }
 
     override fun insertion(insertion: String?) {
-        singleAssignments.assign("insertion")
+        this.insertion = insertion
         builder.style { styleBuilder -> styleBuilder.insertion(insertion) }
     }
 
     override fun style(style: Style) {
-        singleAssignments.assign("style")
+        this.style = style
         builder.style(style)
     }
 
     override fun style(init: StyleScope.() -> Unit) {
-        singleAssignments.assign("style")
+        this.style = init
         builder.style { styleBuilder -> StyleBuilder(styleBuilder).init() }
     }
 
     override fun click(event: ClickEvent<*>?) {
-        singleAssignments.assign("click")
+        this.click = event
         builder.clickEvent(event)
     }
 
     override fun hover(source: HoverEventSource<*>?) {
-        singleAssignments.assign("hover")
+        this.hover = source
         builder.hoverEvent(source)
     }
 
@@ -71,7 +79,7 @@ internal open class ComponentBuilder<C : Component, B : AdventureComponentBuilde
         decoration: TextDecoration,
         state: State,
     ) {
-        singleAssignments.assign("decoration '$decoration'")
+        decorations.assign(decoration)
         builder.decoration(decoration, state)
     }
 

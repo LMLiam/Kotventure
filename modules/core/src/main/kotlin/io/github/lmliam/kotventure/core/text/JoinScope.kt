@@ -5,9 +5,6 @@ import net.kyori.adventure.text.ComponentLike
 
 /**
  * Scope for configuring how a sequence of components is joined.
- *
- * Each part (separator, last separator, prefix, suffix) is a singleton slot: setting it twice within one block
- * throws [IllegalStateException] instead of silently overwriting the first value.
  */
 @KotventureDslMarker
 public interface JoinScope {

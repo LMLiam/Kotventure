@@ -50,5 +50,13 @@ class TextDslTest :
                     }
                 }
             }
+
+            "rejects setting content when a literal value is already supplied" {
+                shouldThrow<IllegalStateException> {
+                    text("Title") {
+                        content("Subtitle")
+                    }
+                }
+            }
         },
     )

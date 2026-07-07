@@ -9,8 +9,7 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
  * literal form (e.g. a [Byte] renders as `1b`, a [Long] as `1L`). Nest a compound with the lambda
  * overload of [eq].
  *
- * Each key may be assigned once per compound: every overload of [eq] throws [IllegalStateException] when the
- * key is already set, instead of silently overwriting the first value.
+ * [eq] throws [IllegalStateException] on a duplicate key.
  *
  * @sample io.github.lmliam.kotventure.core.nbt.nbtCompoundScopeSample
  */

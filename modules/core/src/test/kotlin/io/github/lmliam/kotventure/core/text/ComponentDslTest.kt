@@ -2,6 +2,7 @@ package io.github.lmliam.kotventure.core.text
 
 import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
+import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.keybind.keybind
 import io.github.lmliam.kotventure.core.nbt.blockNbt
 import io.github.lmliam.kotventure.core.nbt.entityNbt
@@ -12,6 +13,7 @@ import io.github.lmliam.kotventure.core.selector.allPlayers
 import io.github.lmliam.kotventure.core.selector.nearestPlayer
 import io.github.lmliam.kotventure.core.selector.parseSelector
 import io.github.lmliam.kotventure.core.selector.selector
+import io.github.lmliam.kotventure.core.style.style
 import io.github.lmliam.kotventure.core.translatable.translatable
 import io.github.lmliam.kotventure.test.compilation.assertDoesNotCompile
 import io.github.lmliam.kotventure.test.text.childAt
@@ -441,7 +443,7 @@ class ComponentDslTest :
                 }
                 shouldThrow<IllegalStateException> {
                     component {
-                        font(Key.key("minecraft", "uniform"))
+                        font(key("minecraft", "uniform"))
                         font(null)
                     }
                 }
@@ -454,9 +456,14 @@ class ComponentDslTest :
             }
 
             "rejects applying a style twice in one block" {
+                val base =
+                    style {
+                        color(NamedTextColor.RED)
+                    }
+
                 shouldThrow<IllegalStateException> {
                     component {
-                        style(Style.style(NamedTextColor.RED))
+                        style(base)
                         style {
                             bold()
                         }

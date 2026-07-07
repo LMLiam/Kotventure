@@ -21,18 +21,12 @@ public interface ComponentScope : StyleScope {
     /**
      * Applies a complete Adventure style to the component being configured.
      *
-     * The style is one singleton slot; it is not cross-checked against the individual attribute setters, whose
-     * overlap resolves through Adventure's style merging.
-     *
      * @throws IllegalStateException when a style is already applied in this block.
      */
     public fun style(style: Style)
 
     /**
      * Applies style attributes from [init] to the component being configured.
-     *
-     * The style is one singleton slot; it is not cross-checked against the individual attribute setters, whose
-     * overlap resolves through Adventure's style merging.
      *
      * @throws IllegalStateException when a style is already applied in this block.
      */

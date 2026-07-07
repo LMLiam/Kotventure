@@ -194,7 +194,7 @@ class JoinDslTest :
                 shouldThrow<IllegalStateException> {
                     listOf(alex, steve).join {
                         lastSeparator(" and ")
-                        lastSeparator(Component.text(" & "))
+                        lastSeparator(text(" & "))
                     }
                 }
                 shouldThrow<IllegalStateException> {

@@ -121,11 +121,13 @@ class ObjectComponentDslTest :
 
             "rejects a second fallback in one block" {
                 val contents = sprite(key("minecraft", "block/stone"))
+                val first = text("[old]")
+                val second = text("[stone]")
 
                 shouldThrow<IllegalStateException> {
                     display(contents) {
-                        fallback(Component.text("[old]"))
-                        fallback(Component.text("[stone]"))
+                        fallback(first)
+                        fallback(second)
                     }
                 }
             }
