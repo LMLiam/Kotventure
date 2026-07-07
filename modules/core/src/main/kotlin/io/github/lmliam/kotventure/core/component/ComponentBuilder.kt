@@ -1,6 +1,5 @@
 package io.github.lmliam.kotventure.core.component
 
-import io.github.lmliam.kotventure.core.dsl.OnceAssignSet
 import io.github.lmliam.kotventure.core.dsl.once
 import io.github.lmliam.kotventure.core.style.StyleBuilder
 import io.github.lmliam.kotventure.core.style.StyleScope
@@ -23,10 +22,14 @@ internal open class ComponentBuilder<C : Component, B : AdventureComponentBuilde
     private var shadow: ShadowColor? by once()
     private var font: Key? by once()
     private var insertion: String? by once()
-    private var style: Any? by once()
+    private var style: Style? by once()
     private var click: ClickEvent<*>? by once()
     private var hover: HoverEventSource<*>? by once()
-    private val decorations = OnceAssignSet<TextDecoration>()
+    private var bold: State? by once()
+    private var italic: State? by once()
+    private var underlined: State? by once()
+    private var strikethrough: State? by once()
+    private var obfuscated: State? by once()
 
     override fun color(color: TextColor?) {
         this.color = color
@@ -54,8 +57,10 @@ internal open class ComponentBuilder<C : Component, B : AdventureComponentBuilde
     }
 
     override fun style(init: StyleScope.() -> Unit) {
-        this.style = init
-        builder.style { styleBuilder -> StyleBuilder(styleBuilder).init() }
+        builder.style { styleBuilder ->
+            StyleBuilder(styleBuilder).init()
+            style = styleBuilder.build()
+        }
     }
 
     override fun click(event: ClickEvent<*>?) {
@@ -79,7 +84,13 @@ internal open class ComponentBuilder<C : Component, B : AdventureComponentBuilde
         decoration: TextDecoration,
         state: State,
     ) {
-        decorations.assign(decoration)
+        when (decoration) {
+            TextDecoration.BOLD -> bold = state
+            TextDecoration.ITALIC -> italic = state
+            TextDecoration.UNDERLINED -> underlined = state
+            TextDecoration.STRIKETHROUGH -> strikethrough = state
+            TextDecoration.OBFUSCATED -> obfuscated = state
+        }
         builder.decoration(decoration, state)
     }
 

@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.core.style
 
+import io.github.lmliam.kotventure.core.color.red
 import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.text.text
@@ -225,7 +226,7 @@ class StyleDslTest :
             "rejects assigning a singleton style attribute twice in one block" {
                 shouldThrow<IllegalStateException> {
                     style {
-                        color(NamedTextColor.RED)
+                        color(red)
                         color(null)
                     }
                 }
@@ -258,7 +259,7 @@ class StyleDslTest :
                 }
                 shouldThrow<IllegalStateException> {
                     style {
-                        italic(State.TRUE)
+                        italic(true)
                         italic(null)
                     }
                 }

@@ -12,7 +12,7 @@ internal class ItemDataComponentBuilder : ItemDataComponentScope {
         key: Key,
         value: DataComponentValue,
     ) {
-        check(key !in components) { "Data component '$key' is already declared; each key can only be declared once." }
+        check(key !in components) { "Data component '$key' is already declared." }
         components[key] = value
     }
 

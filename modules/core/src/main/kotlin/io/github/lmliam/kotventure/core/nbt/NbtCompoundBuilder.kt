@@ -9,7 +9,7 @@ internal class NbtCompoundBuilder : NbtCompoundScope {
         key: String,
         value: NbtValue,
     ) {
-        check(key !in entries) { "NBT key '$key' is already set; a compound key can only be assigned once." }
+        check(key !in entries) { "NBT key '$key' is already set." }
         entries[key] = value
     }
 

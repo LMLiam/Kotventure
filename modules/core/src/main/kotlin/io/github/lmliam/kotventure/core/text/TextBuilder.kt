@@ -32,7 +32,7 @@ internal class TextBuilder :
         val component = builder.build()
         val gradient = gradient ?: return component
         val content = component.content()
-        check(content.isNotEmpty()) { "'gradient' is set but 'content' is empty; a gradient needs text to color." }
+        check(content.isNotEmpty()) { "'gradient' is set but 'content' is empty." }
 
         val builder = Component.text().style(component.style())
         gradientComponent(content, gradient).children().forEach { child -> builder.append(child) }

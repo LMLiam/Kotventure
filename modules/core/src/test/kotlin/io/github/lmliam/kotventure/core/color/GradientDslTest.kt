@@ -77,7 +77,7 @@ class GradientDslTest :
             "rejects a gradient on empty text content" {
                 shouldThrow<IllegalStateException> {
                     text {
-                        gradient(NamedTextColor.RED, NamedTextColor.BLUE)
+                        gradient(red, blue)
                     }
                 }
             }
@@ -85,8 +85,8 @@ class GradientDslTest :
             "rejects a second gradient in one text block" {
                 shouldThrow<IllegalStateException> {
                     text("abc") {
-                        gradient(NamedTextColor.RED, NamedTextColor.BLUE)
-                        gradient(NamedTextColor.GOLD, NamedTextColor.AQUA)
+                        gradient(red, blue)
+                        gradient(gold, aqua)
                     }
                 }
             }

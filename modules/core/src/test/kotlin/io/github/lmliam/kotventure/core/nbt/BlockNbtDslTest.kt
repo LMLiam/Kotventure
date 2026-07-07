@@ -109,7 +109,7 @@ class BlockNbtDslTest :
 
             "rejects setting interpret twice in one block" {
                 shouldThrow<IllegalStateException> {
-                    blockNbt(BlockNBTComponent.Pos.fromString("1 2 3"), nbtPath("CustomName")) {
+                    blockNbt(blockPos(1, 2, 3), nbtPath("CustomName")) {
                         interpret(true)
                         interpret(false)
                     }
@@ -120,7 +120,7 @@ class BlockNbtDslTest :
                 val comma = text(", ")
 
                 shouldThrow<IllegalStateException> {
-                    blockNbt(BlockNBTComponent.Pos.fromString("1 2 3"), nbtPath("Items[].id")) {
+                    blockNbt(blockPos(1, 2, 3), nbtPath("Items[].id")) {
                         separator(comma)
                         separator {
                             content(" | ")

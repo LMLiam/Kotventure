@@ -1,5 +1,7 @@
 package io.github.lmliam.kotventure.core.text
 
+import io.github.lmliam.kotventure.core.color.blue
+import io.github.lmliam.kotventure.core.color.red
 import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import io.github.lmliam.kotventure.core.key.key
@@ -431,8 +433,8 @@ class ComponentDslTest :
             "rejects assigning a singleton component attribute twice in one block" {
                 shouldThrow<IllegalStateException> {
                     component {
-                        color(NamedTextColor.RED)
-                        color(NamedTextColor.BLUE)
+                        color(red)
+                        color(blue)
                     }
                 }
                 shouldThrow<IllegalStateException> {
@@ -458,7 +460,7 @@ class ComponentDslTest :
             "rejects applying a style twice in one block" {
                 val base =
                     style {
-                        color(NamedTextColor.RED)
+                        color(red)
                     }
 
                 shouldThrow<IllegalStateException> {

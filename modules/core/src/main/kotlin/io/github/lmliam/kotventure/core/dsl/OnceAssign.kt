@@ -1,25 +1,28 @@
 package io.github.lmliam.kotventure.core.dsl
 
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 /**
  * A builder slot that may be assigned at most once; the failure message reuses the delegated property's
  * name, so a slot's DSL name and its diagnostic cannot drift apart.
- *
- * Assignment claims the slot atomically, so concurrent writers cannot both succeed.
  */
 internal class OnceAssign<T> : ReadWriteProperty<Any?, T?> {
-    private val assigned = AtomicBoolean(false)
-
-    @Volatile
-    private var value: T? = null
+    private val value = AtomicReference<Any?>(Unset)
 
     override fun getValue(
         thisRef: Any?,
         property: KProperty<*>,
-    ): T? = value
+    ): T? {
+        val current = value.get()
+        return if (current === Unset) {
+            null
+        } else {
+            @Suppress("UNCHECKED_CAST")
+            current as T?
+        }
+    }
 
     /**
      * @throws IllegalStateException when the property was already assigned.
@@ -29,11 +32,10 @@ internal class OnceAssign<T> : ReadWriteProperty<Any?, T?> {
         property: KProperty<*>,
         value: T?,
     ) {
-        check(assigned.compareAndSet(false, true)) {
-            "'${property.name}' is already set; it can only be set once per block."
-        }
-        this.value = value
+        check(this.value.compareAndSet(Unset, value)) { "'${property.name}' is already set." }
     }
+
+    private object Unset
 }
 
 /** Creates a [OnceAssign] slot for a `by`-delegated builder property. */
