@@ -1,6 +1,6 @@
 package io.github.lmliam.kotventure.core.style
 
-import io.github.lmliam.kotventure.core.dsl.SingleAssignSet
+import io.github.lmliam.kotventure.core.dsl.OnceAssignSet
 import io.github.lmliam.kotventure.core.dsl.once
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.event.ClickEvent
@@ -20,7 +20,7 @@ internal class StyleBuilder(
     private var insertion: String? by once()
     private var click: ClickEvent<*>? by once()
     private var hover: HoverEventSource<*>? by once()
-    private val decorations = SingleAssignSet<TextDecoration>()
+    private val decorations = OnceAssignSet<TextDecoration>()
 
     override fun color(color: TextColor?) {
         this.color = color

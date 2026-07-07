@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap
  *
  * Claiming a key is atomic, so concurrent writers cannot both succeed for the same key.
  */
-internal class SingleAssignSet<K : Any> {
+internal class OnceAssignSet<K : Any> {
     private val assigned = ConcurrentHashMap.newKeySet<K>()
 
     /**

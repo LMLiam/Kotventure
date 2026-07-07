@@ -1,6 +1,6 @@
 package io.github.lmliam.kotventure.core.component
 
-import io.github.lmliam.kotventure.core.dsl.SingleAssignSet
+import io.github.lmliam.kotventure.core.dsl.OnceAssignSet
 import io.github.lmliam.kotventure.core.dsl.once
 import io.github.lmliam.kotventure.core.style.StyleBuilder
 import io.github.lmliam.kotventure.core.style.StyleScope
@@ -26,7 +26,7 @@ internal open class ComponentBuilder<C : Component, B : AdventureComponentBuilde
     private var style: Any? by once()
     private var click: ClickEvent<*>? by once()
     private var hover: HoverEventSource<*>? by once()
-    private val decorations = SingleAssignSet<TextDecoration>()
+    private val decorations = OnceAssignSet<TextDecoration>()
 
     override fun color(color: TextColor?) {
         this.color = color
