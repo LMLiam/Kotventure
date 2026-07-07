@@ -3,7 +3,7 @@ package io.github.lmliam.kotventure.core.objectcomponent
 import io.github.lmliam.kotventure.core.component.ComponentBuilder
 import io.github.lmliam.kotventure.core.component.ComponentScope
 import io.github.lmliam.kotventure.core.component.component
-import io.github.lmliam.kotventure.core.dsl.singleAssign
+import io.github.lmliam.kotventure.core.dsl.once
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.ObjectComponent
@@ -13,7 +13,7 @@ internal class ObjectComponentBuilder(
     contents: ObjectContents,
 ) : ComponentBuilder<ObjectComponent, ObjectComponent.Builder>(Component.`object`().contents(contents)),
     ObjectScope {
-    private var fallback: ComponentLike? by singleAssign()
+    private var fallback: ComponentLike? by once()
 
     override fun fallback(fallback: ComponentLike?) {
         this.fallback = fallback

@@ -1,7 +1,7 @@
 package io.github.lmliam.kotventure.core.translatable
 
 import io.github.lmliam.kotventure.core.component.ComponentBuilder
-import io.github.lmliam.kotventure.core.dsl.singleAssign
+import io.github.lmliam.kotventure.core.dsl.once
 import io.github.lmliam.kotventure.core.text.TextScope
 import io.github.lmliam.kotventure.core.text.buildTextComponent
 import net.kyori.adventure.text.Component
@@ -16,7 +16,7 @@ internal class TranslatableComponentBuilder(
 ),
     TranslatableScope {
     private val arguments = mutableListOf<TranslationArgument>()
-    private var fallback: String? by singleAssign()
+    private var fallback: String? by once()
 
     override fun fallback(fallback: String) {
         this.fallback = fallback

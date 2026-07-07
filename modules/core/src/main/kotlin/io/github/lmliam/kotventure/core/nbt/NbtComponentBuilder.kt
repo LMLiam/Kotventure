@@ -1,7 +1,7 @@
 package io.github.lmliam.kotventure.core.nbt
 
 import io.github.lmliam.kotventure.core.component.ComponentBuilder
-import io.github.lmliam.kotventure.core.dsl.singleAssign
+import io.github.lmliam.kotventure.core.dsl.once
 import io.github.lmliam.kotventure.core.text.TextScope
 import io.github.lmliam.kotventure.core.text.buildTextComponent
 import net.kyori.adventure.text.ComponentLike
@@ -12,8 +12,8 @@ internal class NbtComponentBuilder<C : NBTComponent<C>, B : NBTComponentBuilder<
     builder: B,
 ) : ComponentBuilder<C, B>(builder),
     NbtScope {
-    private var interpret: Boolean? by singleAssign()
-    private var separator: ComponentLike? by singleAssign()
+    private var interpret: Boolean? by once()
+    private var separator: ComponentLike? by once()
 
     override fun interpret(interpret: Boolean) {
         this.interpret = interpret

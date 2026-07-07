@@ -1,16 +1,16 @@
 package io.github.lmliam.kotventure.core.text
 
-import io.github.lmliam.kotventure.core.dsl.singleAssign
+import io.github.lmliam.kotventure.core.dsl.once
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.JoinConfiguration
 
 internal class JoinBuilder : JoinScope {
     private val builder = JoinConfiguration.builder()
-    private var separator: Component? by singleAssign()
-    private var lastSeparator: Component? by singleAssign()
-    private var prefix: Component? by singleAssign()
-    private var suffix: Component? by singleAssign()
+    private var separator: Component? by once()
+    private var lastSeparator: Component? by once()
+    private var prefix: Component? by once()
+    private var suffix: Component? by once()
 
     override fun separator(
         value: String,

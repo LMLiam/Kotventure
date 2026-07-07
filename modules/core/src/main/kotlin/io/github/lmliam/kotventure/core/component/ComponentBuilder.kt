@@ -1,7 +1,7 @@
 package io.github.lmliam.kotventure.core.component
 
 import io.github.lmliam.kotventure.core.dsl.SingleAssignSet
-import io.github.lmliam.kotventure.core.dsl.singleAssign
+import io.github.lmliam.kotventure.core.dsl.once
 import io.github.lmliam.kotventure.core.style.StyleBuilder
 import io.github.lmliam.kotventure.core.style.StyleScope
 import net.kyori.adventure.key.Key
@@ -19,13 +19,13 @@ import net.kyori.adventure.text.ComponentBuilder as AdventureComponentBuilder
 internal open class ComponentBuilder<C : Component, B : AdventureComponentBuilder<C, B>>(
     protected val builder: B,
 ) : ComponentScope {
-    private var color: TextColor? by singleAssign()
-    private var shadow: ShadowColor? by singleAssign()
-    private var font: Key? by singleAssign()
-    private var insertion: String? by singleAssign()
-    private var style: Any? by singleAssign()
-    private var click: ClickEvent<*>? by singleAssign()
-    private var hover: HoverEventSource<*>? by singleAssign()
+    private var color: TextColor? by once()
+    private var shadow: ShadowColor? by once()
+    private var font: Key? by once()
+    private var insertion: String? by once()
+    private var style: Any? by once()
+    private var click: ClickEvent<*>? by once()
+    private var hover: HoverEventSource<*>? by once()
     private val decorations = SingleAssignSet<TextDecoration>()
 
     override fun color(color: TextColor?) {

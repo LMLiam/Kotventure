@@ -10,7 +10,7 @@ import kotlin.reflect.KProperty
  *
  * Assignment claims the slot atomically, so concurrent writers cannot both succeed.
  */
-internal class SingleAssign<T> : ReadWriteProperty<Any?, T?> {
+internal class OnceAssign<T> : ReadWriteProperty<Any?, T?> {
     private val assigned = AtomicBoolean(false)
 
     @Volatile
@@ -36,5 +36,5 @@ internal class SingleAssign<T> : ReadWriteProperty<Any?, T?> {
     }
 }
 
-/** Creates a [SingleAssign] slot for a `by`-delegated builder property. */
-internal fun <T> singleAssign(): SingleAssign<T> = SingleAssign()
+/** Creates a [OnceAssign] slot for a `by`-delegated builder property. */
+internal fun <T> once(): OnceAssign<T> = OnceAssign()

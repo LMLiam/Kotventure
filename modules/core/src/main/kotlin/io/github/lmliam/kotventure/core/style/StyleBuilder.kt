@@ -1,7 +1,7 @@
 package io.github.lmliam.kotventure.core.style
 
 import io.github.lmliam.kotventure.core.dsl.SingleAssignSet
-import io.github.lmliam.kotventure.core.dsl.singleAssign
+import io.github.lmliam.kotventure.core.dsl.once
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.HoverEventSource
@@ -14,12 +14,12 @@ import net.kyori.adventure.text.format.TextDecoration.State
 internal class StyleBuilder(
     private val builder: Style.Builder,
 ) : StyleScope {
-    private var color: TextColor? by singleAssign()
-    private var shadow: ShadowColor? by singleAssign()
-    private var font: Key? by singleAssign()
-    private var insertion: String? by singleAssign()
-    private var click: ClickEvent<*>? by singleAssign()
-    private var hover: HoverEventSource<*>? by singleAssign()
+    private var color: TextColor? by once()
+    private var shadow: ShadowColor? by once()
+    private var font: Key? by once()
+    private var insertion: String? by once()
+    private var click: ClickEvent<*>? by once()
+    private var hover: HoverEventSource<*>? by once()
     private val decorations = SingleAssignSet<TextDecoration>()
 
     override fun color(color: TextColor?) {

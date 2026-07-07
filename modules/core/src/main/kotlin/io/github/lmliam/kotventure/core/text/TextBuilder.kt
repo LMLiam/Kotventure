@@ -2,7 +2,7 @@ package io.github.lmliam.kotventure.core.text
 
 import io.github.lmliam.kotventure.core.color.ColorGradient
 import io.github.lmliam.kotventure.core.component.ComponentBuilder
-import io.github.lmliam.kotventure.core.dsl.singleAssign
+import io.github.lmliam.kotventure.core.dsl.once
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.format.TextColor
@@ -12,8 +12,8 @@ import io.github.lmliam.kotventure.core.color.gradientText as gradientComponent
 internal class TextBuilder :
     ComponentBuilder<TextComponent, TextComponent.Builder>(Component.text()),
     TextScope {
-    private var content: String? by singleAssign()
-    private var gradient: ColorGradient? by singleAssign()
+    private var content: String? by once()
+    private var gradient: ColorGradient? by once()
 
     override fun content(value: String) {
         content = value
