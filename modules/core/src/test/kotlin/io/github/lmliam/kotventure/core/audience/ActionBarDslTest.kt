@@ -47,7 +47,7 @@ class ActionBarDslTest :
                 val first = ActionBarRecordingAudience()
                 val second = ActionBarRecordingAudience()
 
-                Audience.audience(first, second).actionBar {
+                audienceOf(first, second).actionBar {
                     text("Broadcast")
                 }
 

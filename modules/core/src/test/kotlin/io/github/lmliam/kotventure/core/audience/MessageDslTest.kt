@@ -47,7 +47,7 @@ class MessageDslTest :
                 val first = RecordingAudience()
                 val second = RecordingAudience()
 
-                Audience.audience(first, second).message {
+                audienceOf(first, second).message {
                     text("Broadcast")
                 }
 

@@ -177,6 +177,10 @@ Qualitative metrics (reviewed, not measured — the review bar):
 
 - **Kotest** for everything. Every behavioural change ships with tests; write the test first when practical.
 - **Dogfood the project's own matchers** (the `test` module). See the skill `writing-component-tests`.
+- **Dogfood the DSL surface in arrange/act code** — tests, samples, and docs use Kotventure's own entry points wherever
+  an equivalent exists (`audienceOf(...)` over `Audience.audience(...)`, `emptyAudience()` over `Audience.empty()`).
+  Assertion *expected values* are the exception: they stay raw `net.kyori` (e.g. `Component.empty()`) so builders are
+  verified against Adventure ground truth, not against the DSL itself (§5 "Wrapping Adventure").
 - Use **snapshot tests** for message regressions where appropriate.
 
 ## 7. Commits, PRs, branches (enforced in CI)
