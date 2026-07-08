@@ -21,16 +21,16 @@ class ComposableMatchersTest :
         {
             "composes attribute matchers with and" {
                 val component =
-                    Component
-                        .text("Alert")
-                        .color(red)
-                        .decoration(TextDecoration.BOLD, true)
+                    text("Alert") {
+                        color(red)
+                        bold()
+                    }
 
                 component should (haveColor(red) and haveDecoration(TextDecoration.BOLD))
             }
 
             "fails a composed and matcher reporting the unmet attribute" {
-                val component = text("Alert").color(red)
+                val component = text("Alert") { color(red) }
 
                 val failure =
                     shouldThrow<AssertionError> {
@@ -43,13 +43,13 @@ class ComposableMatchersTest :
             }
 
             "composes attribute matchers with or" {
-                val component = text("Alert").color(blue)
+                val component = text("Alert") { color(blue) }
 
                 component should (haveColor(red) or haveColor(blue))
             }
 
             "fails a composed or matcher when no branch matches" {
-                val component = text("Alert").color(green)
+                val component = text("Alert") { color(green) }
 
                 val failure =
                     shouldThrow<AssertionError> {
@@ -60,13 +60,13 @@ class ComposableMatchersTest :
             }
 
             "negates a matcher with shouldNot" {
-                val component = text("Alert").color(red)
+                val component = text("Alert") { color(red) }
 
                 component shouldNot haveColor(blue)
             }
 
             "reports the negated failure message when a negated matcher matches" {
-                val component = text("Alert").color(red)
+                val component = text("Alert") { color(red) }
 
                 val failure =
                     shouldThrow<AssertionError> {
@@ -79,10 +79,10 @@ class ComposableMatchersTest :
 
             "composes matchers across different component attributes" {
                 val component =
-                    Component
-                        .text("Greeting")
-                        .color(aqua)
-                        .decoration(TextDecoration.ITALIC, true)
+                    text("Greeting") {
+                        color(aqua)
+                        italic()
+                    }
 
                 component should
                         (
@@ -92,7 +92,7 @@ class ComposableMatchersTest :
             }
 
             "inverts a matcher to assert the opposite" {
-                val component = text("Alert").color(red)
+                val component = text("Alert") { color(red) }
 
                 component should haveColor(blue).invert()
             }

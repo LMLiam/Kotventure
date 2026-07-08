@@ -20,15 +20,13 @@ class HoverEventMatchersTest :
             }
 
             "matches root hover event actions" {
-                Component
-                    .text("Hover")
+                text("Hover")
                     .hoverEvent(HoverEvent.showText(text("Tooltip"))) shouldHaveHoverAction
                         HoverEvent.Action.SHOW_TEXT
             }
 
             "matches text hover payloads" {
-                Component
-                    .text("Hover")
+                text("Hover")
                     .hoverEvent(HoverEvent.showText(text("Tooltip"))) shouldHaveHoverText
                         text("Tooltip")
             }
@@ -69,8 +67,7 @@ class HoverEventMatchersTest :
             "reports hover action mismatches" {
                 val failure =
                     shouldThrow<AssertionError> {
-                        Component
-                            .text("Hover")
+                        text("Hover")
                             .hoverEvent(HoverEvent.showText(text("Tooltip"))) shouldHaveHoverAction
                                 HoverEvent.Action.SHOW_ITEM
                     }
@@ -84,8 +81,7 @@ class HoverEventMatchersTest :
             "reports text hover payload mismatches" {
                 val failure =
                     shouldThrow<AssertionError> {
-                        Component
-                            .text("Hover")
+                        text("Hover")
                             .hoverEvent(HoverEvent.showText(text("actual"))) shouldHaveHoverText
                                 text("expected")
                     }

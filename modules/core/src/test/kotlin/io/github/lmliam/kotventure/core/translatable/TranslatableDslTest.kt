@@ -71,7 +71,7 @@ class TranslatableDslTest :
                     }
 
                 component.shouldHaveArguments(
-                    TranslationArgument.component(text("Alex").color(aqua)),
+                    TranslationArgument.component(text("Alex") { color(aqua) }),
                 )
             }
 

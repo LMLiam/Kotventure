@@ -295,8 +295,7 @@ class MiniMessageToDslTextRenderingTest :
 
                 test("emits shadow colours nested in children") {
                     val nested =
-                        Component
-                            .text("ok")
+                        text("ok")
                             .append(text("bad").shadowColor(ShadowColor.shadowColor(0xFF112233.toInt())))
 
                     MiniMessageToDslWriter.write(nested) shouldBe

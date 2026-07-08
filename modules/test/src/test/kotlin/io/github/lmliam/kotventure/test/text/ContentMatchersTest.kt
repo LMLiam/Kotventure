@@ -15,11 +15,9 @@ class ContentMatchersTest :
 
             "matches text content nested in child components" {
                 val component =
-                    Component
-                        .text()
-                        .content("Hello ")
-                        .append(text("world"))
-                        .build()
+                    text("Hello ") {
+                        text("world")
+                    }
 
                 component shouldContainText "world"
             }
@@ -36,12 +34,10 @@ class ContentMatchersTest :
 
             "reports nested text mismatch with the complete extracted content" {
                 val component =
-                    Component
-                        .text()
-                        .content("Hello ")
-                        .append(text("world"))
-                        .append(text("!"))
-                        .build()
+                    text("Hello ") {
+                        text("world")
+                        text("!")
+                    }
 
                 val failure =
                     shouldThrow<AssertionError> {
@@ -69,22 +65,18 @@ class ContentMatchersTest :
 
             "matches exact flattened text content" {
                 val component =
-                    Component
-                        .text()
-                        .content("Hello ")
-                        .append(text("world"))
-                        .build()
+                    text("Hello ") {
+                        text("world")
+                    }
 
                 component shouldHaveContent "Hello world"
             }
 
             "reports exact content mismatch with expected and actual content" {
                 val component =
-                    Component
-                        .text()
-                        .content("Hello ")
-                        .append(text("world"))
-                        .build()
+                    text("Hello ") {
+                        text("world")
+                    }
 
                 val failure =
                     shouldThrow<AssertionError> {

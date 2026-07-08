@@ -60,7 +60,7 @@ class ColorMatchersTest :
             "matches root shadow colors" {
                 val shadow = ShadowColor.shadowColor(0, 0, 0, 255)
 
-                text("Glow").shadowColor(shadow) shouldHaveShadowColor shadow
+                text("Glow") { shadow(shadow) } shouldHaveShadowColor shadow
             }
 
             "reports shadow color mismatch with expected and actual colors" {
@@ -69,7 +69,7 @@ class ColorMatchersTest :
 
                 val failure =
                     shouldThrow<AssertionError> {
-                        text("Glow").shadowColor(actual) shouldHaveShadowColor expected
+                        text("Glow") { shadow(actual) } shouldHaveShadowColor expected
                     }
                 val expectedMessage = "Expected component shadow color <$expected>, but was <$actual>."
 
@@ -85,7 +85,7 @@ class ColorMatchersTest :
 
                 val failure =
                     shouldThrow<AssertionError> {
-                        text("Glow").shadowColor(shadow).shouldNotHaveShadowColor()
+                        text("Glow") { shadow(shadow) }.shouldNotHaveShadowColor()
                     }
                 val expectedMessage = "Expected component shadow color to be absent, but was <$shadow>."
 
