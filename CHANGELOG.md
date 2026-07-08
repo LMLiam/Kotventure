@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any release.
 
+## [0.6.0](https://github.com/LMLiam/Kotventure/compare/0.5.1...0.6.0) (2026-07-08)
+
+
+### ✨ Features
+
+* **core:** add the audience message send dsl ([#229](https://github.com/LMLiam/Kotventure/issues/229)) ([c089305](https://github.com/LMLiam/Kotventure/commit/c0893052bcdfae5a809c788bd523df38f788118f))
+
 ## [0.5.1](https://github.com/LMLiam/Kotventure/compare/0.5.0...0.5.1) (2026-07-08)
 
 
