@@ -11,7 +11,7 @@ import kotlin.time.toJavaDuration
 class TitleTimesMatchersTest :
     StringSpec(
         {
-            "matches times built from Kotlin durations" {
+            "matches individual timing slots from Kotlin durations" {
                 val times =
                     Title.Times.times(
                         1.ticks.toJavaDuration(),
@@ -19,10 +19,12 @@ class TitleTimesMatchersTest :
                         1.ticks.toJavaDuration(),
                     )
 
-                times.shouldHaveTimes(fadeIn = 1.ticks, stay = 3.seconds, fadeOut = 1.ticks)
+                times shouldHaveFadeIn 1.ticks
+                times shouldHaveStay 3.seconds
+                times shouldHaveFadeOut 1.ticks
             }
 
-            "reports a timing mismatch with expected and actual kotlin durations" {
+            "reports a fade-in mismatch with expected and actual kotlin durations" {
                 val times =
                     Title.Times.times(
                         1.ticks.toJavaDuration(),
@@ -32,15 +34,13 @@ class TitleTimesMatchersTest :
 
                 val failure =
                     shouldThrow<AssertionError> {
-                        times.shouldHaveTimes(fadeIn = 2.ticks, stay = 3.seconds, fadeOut = 1.ticks)
+                        times shouldHaveFadeIn 2.ticks
                     }
 
-                failure.message shouldContain
-                    "Expected title times <fadeIn=100ms, stay=3s, fadeOut=50ms>"
-                failure.message shouldContain "fadeIn=50ms"
+                failure.message shouldContain "Expected title fade-in <100ms>, but was <50ms>."
             }
 
-            "matches the absence of the given times" {
+            "matches the absence of a given stay duration" {
                 val times =
                     Title.Times.times(
                         1.ticks.toJavaDuration(),
@@ -48,7 +48,7 @@ class TitleTimesMatchersTest :
                         1.ticks.toJavaDuration(),
                     )
 
-                times.shouldNotHaveTimes(fadeIn = 2.ticks, stay = 3.seconds, fadeOut = 1.ticks)
+                times shouldNotHaveStay 1.seconds
             }
         },
     )
