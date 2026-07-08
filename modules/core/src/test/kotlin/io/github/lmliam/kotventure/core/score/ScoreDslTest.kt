@@ -1,5 +1,7 @@
 package io.github.lmliam.kotventure.core.score
 
+import io.github.lmliam.kotventure.core.color.red
+import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldBeScoreComponent
 import io.github.lmliam.kotventure.test.text.shouldHaveChildCount
@@ -27,20 +29,20 @@ class ScoreDslTest :
             "applies style to the score root" {
                 val component =
                     score("Alex", "kills") {
-                        color(NamedTextColor.RED)
+                        color(red)
                         strikethrough()
                         style {
                             italic()
                         }
                     }
 
-                component shouldHaveColor NamedTextColor.RED
+                component shouldHaveColor red
                 component shouldHaveDecoration TextDecoration.STRIKETHROUGH
                 component shouldHaveDecoration TextDecoration.ITALIC
             }
 
             "appends child components" {
-                val suffix = Component.text(" kills")
+                val suffix = text(" kills")
 
                 val component =
                     score("Alex", "kills") {

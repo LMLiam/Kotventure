@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.test.text
 
+import io.github.lmliam.kotventure.core.text.text
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.string.shouldContain
@@ -45,7 +46,7 @@ class ScoreMatchersTest :
             "reports non-score components before score assertions" {
                 val failure =
                     shouldThrow<AssertionError> {
-                        Component.text("plain").shouldBeScoreComponent()
+                        text("plain").shouldBeScoreComponent()
                     }
                 val expectedMessage = "Expected score component, but was <TextComponentImpl>."
 

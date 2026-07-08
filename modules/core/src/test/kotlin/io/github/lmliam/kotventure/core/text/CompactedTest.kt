@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.core.text
 
+import io.github.lmliam.kotventure.core.color.red
 import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.objectcomponent.display
@@ -36,7 +37,7 @@ class CompactedTest :
                 val message =
                     component {
                         text("warn") {
-                            color(NamedTextColor.RED)
+                            color(red)
                             bold()
                         }
                     }
@@ -44,7 +45,7 @@ class CompactedTest :
                 val compacted = message.compact()
 
                 compacted shouldContainText "warn"
-                compacted shouldHaveColor NamedTextColor.RED
+                compacted shouldHaveColor red
                 compacted shouldHaveDecoration TextDecoration.BOLD
             }
 

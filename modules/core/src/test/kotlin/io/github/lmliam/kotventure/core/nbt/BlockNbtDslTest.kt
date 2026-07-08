@@ -1,5 +1,7 @@
 package io.github.lmliam.kotventure.core.nbt
 
+import io.github.lmliam.kotventure.core.color.aqua
+import io.github.lmliam.kotventure.core.color.gray
 import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldBeBlockNbtComponent
@@ -25,7 +27,7 @@ class BlockNbtDslTest :
     StringSpec(
         {
             "builds a block nbt component with a position and path" {
-                val pos = BlockNBTComponent.Pos.fromString("~1 ~2 ~3")
+                val pos = relativeBlockPos(1, 2, 3)
                 val path = nbtPath("Items")[0]["tag"]["display"]["Name"]
 
                 val component = blockNbt(pos, path).shouldBeBlockNbtComponent()
@@ -46,24 +48,24 @@ class BlockNbtDslTest :
 
             "applies style to the block nbt root" {
                 val component =
-                    blockNbt(BlockNBTComponent.Pos.fromString("1 2 3"), nbtPath("CustomName")) {
-                        color(NamedTextColor.AQUA)
+                    blockNbt(blockPos(1, 2, 3), nbtPath("CustomName")) {
+                        color(aqua)
                         bold()
                         style {
                             underlined()
                         }
                     }
 
-                component shouldHaveColor NamedTextColor.AQUA
+                component shouldHaveColor aqua
                 component shouldHaveDecoration TextDecoration.BOLD
                 component shouldHaveDecoration TextDecoration.UNDERLINED
             }
 
             "appends child components" {
-                val suffix = Component.text(" block")
+                val suffix = text(" block")
 
                 val component =
-                    blockNbt(BlockNBTComponent.Pos.fromString("1 2 3"), nbtPath("CustomName")) {
+                    blockNbt(blockPos(1, 2, 3), nbtPath("CustomName")) {
                         append(suffix)
                     }
 
@@ -73,7 +75,7 @@ class BlockNbtDslTest :
 
             "sets interpret true" {
                 val component =
-                    blockNbt(BlockNBTComponent.Pos.fromString("1 2 3"), nbtPath("CustomName")) {
+                    blockNbt(blockPos(1, 2, 3), nbtPath("CustomName")) {
                         interpret(true)
                     }
 
@@ -81,11 +83,11 @@ class BlockNbtDslTest :
             }
 
             "sets a component separator" {
-                val separator = Component.text(", ")
+                val separator = text(", ")
                 val path = nbtPath("Items")[all]["id"]
 
                 val component =
-                    blockNbt(BlockNBTComponent.Pos.fromString("1 2 3"), path) {
+                    blockNbt(blockPos(1, 2, 3), path) {
                         separator(separator)
                     }
 
@@ -94,16 +96,16 @@ class BlockNbtDslTest :
 
             "sets an inline text separator" {
                 val component =
-                    blockNbt(BlockNBTComponent.Pos.fromString("1 2 3"), nbtPath("Items[].id")) {
+                    blockNbt(blockPos(1, 2, 3), nbtPath("Items[].id")) {
                         separator {
                             content(" | ")
-                            color(NamedTextColor.GRAY)
+                            color(gray)
                         }
                     }
 
                 val separator = checkNotNull(component.shouldBeBlockNbtComponent().separator())
 
-                separator shouldHaveColor NamedTextColor.GRAY
+                separator shouldHaveColor gray
                 separator shouldContainText " | "
             }
 

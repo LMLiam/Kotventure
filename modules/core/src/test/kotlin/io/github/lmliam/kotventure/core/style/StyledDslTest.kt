@@ -1,5 +1,8 @@
 package io.github.lmliam.kotventure.core.style
 
+import io.github.lmliam.kotventure.core.color.gold
+import io.github.lmliam.kotventure.core.color.green
+import io.github.lmliam.kotventure.core.color.red
 import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.github.lmliam.kotventure.test.text.shouldHaveColor
@@ -17,7 +20,7 @@ class StyledDslTest :
             "applies a complete style to a component" {
                 val header =
                     style {
-                        color(NamedTextColor.GOLD)
+                        color(gold)
                         bold()
                         insertion("/help")
                     }
@@ -26,18 +29,18 @@ class StyledDslTest :
 
                 title shouldContainText "Title"
                 title shouldHaveStyle header
-                title shouldHaveColor NamedTextColor.GOLD
+                title shouldHaveColor gold
                 title shouldHaveDecoration TextDecoration.BOLD
                 title shouldHaveInsertion "/help"
             }
 
             "replaces any style already present on the component" {
-                val original = Component.text("Title", NamedTextColor.RED)
-                val replacement = style { color(NamedTextColor.GREEN) }
+                val original = text("Title") { color(red) }
+                val replacement = style { color(green) }
 
                 val styled = original styled replacement
 
-                styled shouldHaveColor NamedTextColor.GREEN
+                styled shouldHaveColor green
             }
         },
     )

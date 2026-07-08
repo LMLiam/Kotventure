@@ -1,5 +1,7 @@
 package io.github.lmliam.kotventure.core.objectcomponent
 
+import io.github.lmliam.kotventure.core.color.gold
+import io.github.lmliam.kotventure.core.color.gray
 import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.keybind.keybind
@@ -86,17 +88,17 @@ class ObjectComponentDslTest :
 
             "applies style and fallback to the object root" {
                 val contents = sprite(key("minecraft", "block/stone"))
-                val fallback = Component.text("[stone]")
+                val fallback = text("[stone]")
 
                 val component =
                     display(contents) {
-                        color(NamedTextColor.GOLD)
+                        color(gold)
                         bold()
                         fallback(fallback)
                     }.shouldBeObjectComponent()
 
                 component shouldHaveObjectContents contents
-                component shouldHaveColor NamedTextColor.GOLD
+                component shouldHaveColor gold
                 component shouldHaveDecoration TextDecoration.BOLD
                 component shouldHaveObjectFallback fallback
             }
@@ -108,7 +110,7 @@ class ObjectComponentDslTest :
                     display(contents) {
                         fallback {
                             text("stone") {
-                                color(NamedTextColor.GRAY)
+                                color(gray)
                             }
                         }
                     }.shouldBeObjectComponent()
@@ -116,7 +118,7 @@ class ObjectComponentDslTest :
                 val fallback = checkNotNull(component.fallback())
                 fallback shouldHaveChildCount 1
                 fallback.childAt(0) shouldContainText "stone"
-                fallback.childAt(0) shouldHaveColor NamedTextColor.GRAY
+                fallback.childAt(0) shouldHaveColor gray
             }
 
             "rejects a second fallback in one block" {
@@ -177,12 +179,13 @@ class ObjectComponentDslTest :
 
             "appends object components from component scope" {
                 val contents = sprite(key("minecraft", "block/stone"))
+                val stoneFallback = text("[stone]")
 
                 val component =
                     component {
                         text("Block: ")
                         display(contents) {
-                            fallback(Component.text("[stone]"))
+                            fallback(stoneFallback)
                         }
                     }
 
@@ -190,7 +193,7 @@ class ObjectComponentDslTest :
                 component.childAt(0) shouldContainText "Block: "
                 val objectChild = component.childAt(1).shouldBeObjectComponent()
                 objectChild shouldHaveObjectContents contents
-                objectChild shouldHaveObjectFallback Component.text("[stone]")
+                objectChild shouldHaveObjectFallback text("[stone]")
             }
         },
     )

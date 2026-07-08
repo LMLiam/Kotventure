@@ -1,5 +1,7 @@
 package io.github.lmliam.kotventure.test.text
 
+import io.github.lmliam.kotventure.core.key.key
+import io.github.lmliam.kotventure.core.text.text
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.string.shouldContain
@@ -65,7 +67,7 @@ class NbtMatchersTest :
             }
 
             "matches storage nbt keys and type" {
-                val storage = Key.key("kotventure", "messages")
+                val storage = key("kotventure", "messages")
                 val component = Component.storageNBT("welcome.title", storage).shouldBeStorageNbtComponent()
 
                 component shouldHaveStorageKey storage
@@ -73,8 +75,8 @@ class NbtMatchersTest :
             }
 
             "reports storage key mismatch with expected and actual keys" {
-                val actual = Key.key("kotventure", "messages")
-                val expected = Key.key("kotventure", "errors")
+                val actual = key("kotventure", "messages")
+                val expected = key("kotventure", "errors")
                 val component = Component.storageNBT("welcome.title", actual).shouldBeStorageNbtComponent()
 
                 val failure =
@@ -122,7 +124,7 @@ class NbtMatchersTest :
             }
 
             "matches nbt separators" {
-                val separator = Component.text(", ")
+                val separator = text(", ")
                 val component =
                     Component
                         .blockNBT()
@@ -139,7 +141,7 @@ class NbtMatchersTest :
             }
 
             "reports an unexpected nbt separator" {
-                val separator = Component.text(", ")
+                val separator = text(", ")
                 val component =
                     Component
                         .blockNBT()
@@ -160,7 +162,7 @@ class NbtMatchersTest :
             "reports non-block-nbt components before block nbt assertions" {
                 val failure =
                     shouldThrow<AssertionError> {
-                        Component.text("plain").shouldBeBlockNbtComponent()
+                        text("plain").shouldBeBlockNbtComponent()
                     }
                 val expectedMessage = "Expected block NBT component, but was <TextComponentImpl>."
 

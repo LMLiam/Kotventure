@@ -1,5 +1,18 @@
 package io.github.lmliam.kotventure.test.snapshot
 
+import io.github.lmliam.kotventure.core.color.aqua
+import io.github.lmliam.kotventure.core.color.blue
+import io.github.lmliam.kotventure.core.color.gold
+import io.github.lmliam.kotventure.core.color.gray
+import io.github.lmliam.kotventure.core.color.red
+import io.github.lmliam.kotventure.core.color.yellow
+import io.github.lmliam.kotventure.core.key.key
+import io.github.lmliam.kotventure.core.keybind.keybind
+import io.github.lmliam.kotventure.core.score.score
+import io.github.lmliam.kotventure.core.selector.entities
+import io.github.lmliam.kotventure.core.selector.selector
+import io.github.lmliam.kotventure.core.text.text
+import io.github.lmliam.kotventure.core.translatable.translatable
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
@@ -20,13 +33,13 @@ import kotlin.io.path.writeText
 
 /** The component recorded in `styled-component.snapshot.json`; keep in sync with that committed fixture. */
 private fun styledComponent(): Component =
-    Component
-        .text()
-        .content("Hello ")
-        .color(NamedTextColor.RED)
-        .decorate(TextDecoration.BOLD)
-        .append(Component.text("world", NamedTextColor.BLUE))
-        .build()
+    text("Hello ") {
+        color(red)
+        bold()
+        text("world") {
+            color(blue)
+        }
+    }
 
 /**
  * The component recorded in `rich-message.snapshot.json`; keep in sync with that committed fixture.
@@ -36,31 +49,41 @@ private fun styledComponent(): Component =
  * forms surfaces as a single snapshot diff, which is exactly what structural matchers are clumsy at covering.
  */
 private fun richMessage(): Component =
-    Component
-        .text()
-        .content("Welcome, ")
-        .color(NamedTextColor.GOLD)
-        .decorate(TextDecoration.BOLD)
-        .font(Key.key("minecraft:uniform"))
-        .clickEvent(ClickEvent.openUrl("https://example.com/docs"))
-        .hoverEvent(HoverEvent.showText(Component.text("Open the documentation")))
-        .append(
-            Component
-                .translatable("multiplayer.player.joined")
-                .fallback("%s joined the game")
-                .arguments(Component.text("Steve", NamedTextColor.AQUA)),
-        ).append(Component.text(" — jump with "))
-        .append(Component.keybind("key.jump", NamedTextColor.YELLOW))
-        .append(Component.text(" — deaths "))
-        .append(Component.score("@p", "deaths"))
-        .append(Component.text(" — nearby "))
-        .append(Component.selector("@e[type=minecraft:armor_stand,limit=3]"))
-        .append(
-            Component
-                .text("!")
-                .color(NamedTextColor.GRAY)
-                .decoration(TextDecoration.ITALIC, false),
-        ).build()
+    text("Welcome, ") {
+        color(gold)
+        bold()
+        font(key("minecraft:uniform"))
+        click {
+            openUrl("https://example.com/docs")
+        }
+        hover {
+            text("Open the documentation")
+        }
+        translatable("multiplayer.player.joined") {
+            fallback("%s joined the game")
+            arg {
+                content("Steve")
+                color(aqua)
+            }
+        }
+        text(" — jump with ")
+        keybind("key.jump") {
+            color(yellow)
+        }
+        text(" — deaths ")
+        score("@p", "deaths")
+        text(" — nearby ")
+        selector(
+            entities {
+                type("minecraft:armor_stand")
+                limit(3)
+            },
+        )
+        text("!") {
+            color(gray)
+            italic(false)
+        }
+    }
 
 class SnapshotMatchersTest :
     StringSpec(
@@ -77,7 +100,7 @@ class SnapshotMatchersTest :
 
             "matches a plain text component against its committed snapshot" {
                 withSnapshotProperties {
-                    Component.text("Hello") shouldMatchSnapshot "simple-text"
+                    text("Hello") shouldMatchSnapshot "simple-text"
                 }
             }
 
@@ -95,7 +118,7 @@ class SnapshotMatchersTest :
 
             "returns the receiver so assertions chain" {
                 withSnapshotProperties {
-                    val component = Component.text("Hello")
+                    val component = text("Hello")
 
                     (component shouldMatchSnapshot "simple-text") shouldBe component
                 }
@@ -103,7 +126,7 @@ class SnapshotMatchersTest :
 
             "composes as an ordinary matcher under shouldNot" {
                 withSnapshotProperties {
-                    Component.text("different") shouldNot matchSnapshot("simple-text")
+                    text("different") shouldNot matchSnapshot("simple-text")
                 }
             }
 
@@ -113,7 +136,7 @@ class SnapshotMatchersTest :
                 target.writeText(original)
 
                 withSnapshotProperties(update = true, dir = tempDir.toString()) {
-                    Component.text("different") shouldNot matchSnapshot("guard")
+                    text("different") shouldNot matchSnapshot("guard")
                 }
 
                 target.readText() shouldBe original // the pure matcher must not write through shouldNot
@@ -123,7 +146,7 @@ class SnapshotMatchersTest :
                 withSnapshotProperties {
                     val failure =
                         shouldThrow<AssertionError> {
-                            Component.text("Goodbye") shouldMatchSnapshot "simple-text"
+                            text("Goodbye") shouldMatchSnapshot "simple-text"
                         }
 
                     failure.message shouldContain "does not match snapshot <simple-text>"
@@ -136,7 +159,7 @@ class SnapshotMatchersTest :
                 withSnapshotProperties(dir = tempDir.toString()) {
                     val failure =
                         shouldThrow<AssertionError> {
-                            Component.text("Hello") shouldMatchSnapshot "absent"
+                            text("Hello") shouldMatchSnapshot "absent"
                         }
 
                     failure.message shouldContain "No snapshot recorded for <absent>"
@@ -146,7 +169,7 @@ class SnapshotMatchersTest :
 
             "records a new snapshot in record mode and matches it afterwards" {
                 withSnapshotProperties(update = true, dir = tempDir.toString()) {
-                    Component.text("Hello") shouldMatchSnapshot "fresh"
+                    text("Hello") shouldMatchSnapshot "fresh"
                 }
 
                 val written = tempDir.resolve("fresh.snapshot.json")
@@ -155,7 +178,7 @@ class SnapshotMatchersTest :
 
                 // The recorded snapshot now satisfies a plain comparison.
                 withSnapshotProperties(dir = tempDir.toString()) {
-                    Component.text("Hello") shouldMatchSnapshot "fresh"
+                    text("Hello") shouldMatchSnapshot "fresh"
                 }
             }
 
@@ -164,7 +187,7 @@ class SnapshotMatchersTest :
                 target.writeText("{\n  \"text\": \"old\"\n}\n")
 
                 withSnapshotProperties(update = true, dir = tempDir.toString()) {
-                    Component.text("new") shouldMatchSnapshot "stale"
+                    text("new") shouldMatchSnapshot "stale"
                 }
 
                 val updated = target.readText()
@@ -178,7 +201,7 @@ class SnapshotMatchersTest :
                 val before = target.readText()
 
                 withSnapshotProperties(dir = tempDir.toString()) {
-                    Component.text("Hello") shouldMatchSnapshot "simple-text"
+                    text("Hello") shouldMatchSnapshot "simple-text"
                 }
 
                 target.readText() shouldBe before

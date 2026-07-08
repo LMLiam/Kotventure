@@ -19,9 +19,10 @@ class ObjectComponentRendererTest :
         {
             "renders object components with fallback replacements" {
                 val contents = sprite(key("minecraft", "block/stone"))
+                val stoneFallback = text("[stone]")
                 val message =
                     display(contents) {
-                        fallback(Component.text("[stone]"))
+                        fallback(stoneFallback)
                         text(" item")
                     }
 
@@ -60,11 +61,12 @@ class ObjectComponentRendererTest :
 
             "renders nested object fallbacks in component trees" {
                 val contents = sprite(key("minecraft", "block/stone"))
+                val stoneFallback = text("[stone]")
                 val message =
                     component {
                         text("Block: ")
                         display(contents) {
-                            fallback(Component.text("[stone]"))
+                            fallback(stoneFallback)
                         }
                     }
 

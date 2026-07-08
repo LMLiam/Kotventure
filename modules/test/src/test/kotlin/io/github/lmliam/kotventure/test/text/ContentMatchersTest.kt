@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.test.text
 
+import io.github.lmliam.kotventure.core.text.text
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.string.shouldContain
@@ -9,7 +10,7 @@ class ContentMatchersTest :
     StringSpec(
         {
             "matches text content on Adventure text components" {
-                Component.text("Hello") shouldContainText "Hello"
+                text("Hello") shouldContainText "Hello"
             }
 
             "matches text content nested in child components" {
@@ -17,7 +18,7 @@ class ContentMatchersTest :
                     Component
                         .text()
                         .content("Hello ")
-                        .append(Component.text("world"))
+                        .append(text("world"))
                         .build()
 
                 component shouldContainText "world"
@@ -26,7 +27,7 @@ class ContentMatchersTest :
             "reports text mismatch with expected and actual content" {
                 val failure =
                     shouldThrow<AssertionError> {
-                        Component.text("Hello") shouldContainText "Bye"
+                        text("Hello") shouldContainText "Bye"
                     }
                 val expectedMessage = "Expected component text to contain <Bye>, but was <Hello>."
 
@@ -38,8 +39,8 @@ class ContentMatchersTest :
                     Component
                         .text()
                         .content("Hello ")
-                        .append(Component.text("world"))
-                        .append(Component.text("!"))
+                        .append(text("world"))
+                        .append(text("!"))
                         .build()
 
                 val failure =
@@ -53,13 +54,13 @@ class ContentMatchersTest :
             }
 
             "matches the absence of text content" {
-                Component.text("Hello") shouldNotContainText "Bye"
+                text("Hello") shouldNotContainText "Bye"
             }
 
             "reports unexpectedly present text content" {
                 val failure =
                     shouldThrow<AssertionError> {
-                        Component.text("Hello") shouldNotContainText "Hell"
+                        text("Hello") shouldNotContainText "Hell"
                     }
                 val expectedMessage = "Expected component text not to contain <Hell>."
 
@@ -71,7 +72,7 @@ class ContentMatchersTest :
                     Component
                         .text()
                         .content("Hello ")
-                        .append(Component.text("world"))
+                        .append(text("world"))
                         .build()
 
                 component shouldHaveContent "Hello world"
@@ -82,7 +83,7 @@ class ContentMatchersTest :
                     Component
                         .text()
                         .content("Hello ")
-                        .append(Component.text("world"))
+                        .append(text("world"))
                         .build()
 
                 val failure =
@@ -95,13 +96,13 @@ class ContentMatchersTest :
             }
 
             "matches differing exact content via negation" {
-                Component.text("Hello") shouldNotHaveContent "Goodbye"
+                text("Hello") shouldNotHaveContent "Goodbye"
             }
 
             "reports exact content that matches when negated" {
                 val failure =
                     shouldThrow<AssertionError> {
-                        Component.text("Hello") shouldNotHaveContent "Hello"
+                        text("Hello") shouldNotHaveContent "Hello"
                     }
                 val expectedMessage = "Expected component text not to be <Hello>."
 

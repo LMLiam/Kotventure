@@ -1,5 +1,9 @@
 package io.github.lmliam.kotventure.core.nbt
 
+import io.github.lmliam.kotventure.core.color.aqua
+import io.github.lmliam.kotventure.core.color.gray
+import io.github.lmliam.kotventure.core.key.key
+import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldBeStorageNbtComponent
 import io.github.lmliam.kotventure.test.text.shouldContainText
@@ -23,7 +27,7 @@ class StorageNbtDslTest :
     StringSpec(
         {
             "builds a storage nbt component with a key and path" {
-                val storage = Key.key("kotventure", "messages")
+                val storage = key("kotventure", "messages")
                 val path = nbtPath("welcome")["title"]
 
                 val component = storageNbt(storage, path).shouldBeStorageNbtComponent()
@@ -37,7 +41,7 @@ class StorageNbtDslTest :
             "accepts an nbt path from the string escape hatch" {
                 val component =
                     storageNbt(
-                        Key.key("kotventure", "messages"),
+                        key("kotventure", "messages"),
                         nbtPath("welcome.title"),
                     ).shouldBeStorageNbtComponent()
 
@@ -46,24 +50,24 @@ class StorageNbtDslTest :
 
             "applies style to the storage nbt root" {
                 val component =
-                    storageNbt(Key.key("kotventure", "messages"), nbtPath("welcome.title")) {
-                        color(NamedTextColor.AQUA)
+                    storageNbt(key("kotventure", "messages"), nbtPath("welcome.title")) {
+                        color(aqua)
                         bold()
                         style {
                             underlined()
                         }
                     }
 
-                component shouldHaveColor NamedTextColor.AQUA
+                component shouldHaveColor aqua
                 component shouldHaveDecoration TextDecoration.BOLD
                 component shouldHaveDecoration TextDecoration.UNDERLINED
             }
 
             "appends child components" {
-                val suffix = Component.text(" storage")
+                val suffix = text(" storage")
 
                 val component =
-                    storageNbt(Key.key("kotventure", "messages"), nbtPath("welcome.title")) {
+                    storageNbt(key("kotventure", "messages"), nbtPath("welcome.title")) {
                         append(suffix)
                     }
 
@@ -73,7 +77,7 @@ class StorageNbtDslTest :
 
             "sets interpret true" {
                 val component =
-                    storageNbt(Key.key("kotventure", "messages"), nbtPath("welcome.title")) {
+                    storageNbt(key("kotventure", "messages"), nbtPath("welcome.title")) {
                         interpret(true)
                     }
 
@@ -81,11 +85,11 @@ class StorageNbtDslTest :
             }
 
             "sets a component separator" {
-                val separator = Component.text(", ")
+                val separator = text(", ")
                 val path = nbtPath("entries")[all]["id"]
 
                 val component =
-                    storageNbt(Key.key("kotventure", "messages"), path) {
+                    storageNbt(key("kotventure", "messages"), path) {
                         separator(separator)
                     }
 
@@ -94,16 +98,16 @@ class StorageNbtDslTest :
 
             "sets an inline text separator" {
                 val component =
-                    storageNbt(Key.key("kotventure", "messages"), nbtPath("entries[].id")) {
+                    storageNbt(key("kotventure", "messages"), nbtPath("entries[].id")) {
                         separator {
                             content(" | ")
-                            color(NamedTextColor.GRAY)
+                            color(gray)
                         }
                     }
 
                 val separator = checkNotNull(component.shouldBeStorageNbtComponent().separator())
 
-                separator shouldHaveColor NamedTextColor.GRAY
+                separator shouldHaveColor gray
                 separator shouldContainText " | "
             }
         },

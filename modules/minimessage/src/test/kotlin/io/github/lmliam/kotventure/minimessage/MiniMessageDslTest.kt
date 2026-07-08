@@ -1,5 +1,9 @@
 package io.github.lmliam.kotventure.minimessage
 
+import io.github.lmliam.kotventure.core.color.aqua
+import io.github.lmliam.kotventure.core.color.gold
+import io.github.lmliam.kotventure.core.color.gray
+import io.github.lmliam.kotventure.core.color.red
 import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.minimessage.placeholder.placeholder
@@ -25,7 +29,7 @@ class MiniMessageDslTest :
                 val parsed = mini("<red>hi")
 
                 parsed shouldContainText "hi"
-                parsed shouldHaveColor NamedTextColor.RED
+                parsed shouldHaveColor red
             }
 
             "applies parsed placeholders through the resolver DSL" {
@@ -35,7 +39,7 @@ class MiniMessageDslTest :
                     }
 
                 parsed shouldContainText "Alex"
-                parsed shouldHaveColor NamedTextColor.GOLD
+                parsed shouldHaveColor gold
             }
 
             "applies unparsed placeholders without interpreting nested markup" {
@@ -49,7 +53,7 @@ class MiniMessageDslTest :
             }
 
             "applies component placeholders from existing Adventure components" {
-                val badge = Component.text("VIP", NamedTextColor.AQUA)
+                val badge = text("VIP") { color(aqua) }
                 val parsed =
                     mini("<badge> joined") {
                         component("badge", badge)
@@ -75,14 +79,14 @@ class MiniMessageDslTest :
                     mini("<badge> joined") {
                         component("badge") {
                             text("VIP") {
-                                color(NamedTextColor.AQUA)
+                                color(aqua)
                             }
                         }
                     }
 
                 parsed shouldHaveChildCount 2
                 parsed.childAt(0) shouldContainText "VIP"
-                parsed.childAt(0) shouldHaveColor NamedTextColor.AQUA
+                parsed.childAt(0) shouldHaveColor aqua
                 parsed.childAt(1) shouldContainText " joined"
                 parsed.childAt(1).shouldNotHaveColor()
             }
@@ -101,7 +105,7 @@ class MiniMessageDslTest :
                 message.childAt(1) shouldContainText "Alex joined"
                 message.childAt(1) shouldHaveChildCount 2
                 message.childAt(1).childAt(0) shouldContainText "Alex"
-                message.childAt(1).childAt(0) shouldHaveColor NamedTextColor.GOLD
+                message.childAt(1).childAt(0) shouldHaveColor gold
                 message.childAt(1).childAt(1) shouldContainText " joined"
                 message.childAt(1).childAt(1).shouldNotHaveColor()
             }
@@ -110,12 +114,12 @@ class MiniMessageDslTest :
                 val badge = placeholder<Component>("badge")
                 val parsed =
                     mini("<badge> joined") {
-                        resolve(badge, Component.text("VIP", NamedTextColor.AQUA))
+                        resolve(badge, text("VIP") { color(aqua) })
                     }
 
                 parsed shouldHaveChildCount 2
                 parsed.childAt(0) shouldContainText "VIP"
-                parsed.childAt(0) shouldHaveColor NamedTextColor.AQUA
+                parsed.childAt(0) shouldHaveColor aqua
                 parsed.childAt(1) shouldContainText " joined"
                 parsed.childAt(1).shouldNotHaveColor()
             }
@@ -149,7 +153,7 @@ class MiniMessageDslTest :
                 val channel = placeholder<String>("channel")
                 val player = placeholder<Component>("player")
                 val count = placeholder<Long>("count")
-                val playerComponent = Component.text("Alex", NamedTextColor.AQUA)
+                val playerComponent = text("Alex") { color(aqua) }
                 val parsed =
                     mini("<gray>[<channel>]</gray> <gold><player></gold> has <count> invites") {
                         resolve(channel, "chat")
@@ -173,7 +177,7 @@ class MiniMessageDslTest :
 
                 message shouldHaveChildCount 2
                 message.childAt(1) shouldContainText "Alex joined"
-                message.childAt(1).childAt(0) shouldHaveColor NamedTextColor.GOLD
+                message.childAt(1).childAt(0) shouldHaveColor gold
             }
 
             "keeps parsed string bridge available for markup-aware substitutions" {
@@ -184,7 +188,7 @@ class MiniMessageDslTest :
                     }
 
                 parsed shouldContainText "[chat] Alex"
-                parsed.childAt(0) shouldHaveColor NamedTextColor.GRAY
+                parsed.childAt(0) shouldHaveColor gray
             }
 
             "rejects unsupported placeholder value families" {

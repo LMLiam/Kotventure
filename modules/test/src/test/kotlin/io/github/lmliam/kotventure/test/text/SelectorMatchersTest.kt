@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.test.text
 
+import io.github.lmliam.kotventure.core.text.text
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.string.shouldContain
@@ -9,7 +10,7 @@ class SelectorMatchersTest :
     StringSpec(
         {
             "matches selector patterns and separators" {
-                val separator = Component.text(", ")
+                val separator = text(", ")
                 val component =
                     Component
                         .selector("@a", separator)
@@ -26,7 +27,7 @@ class SelectorMatchersTest :
             "reports non-selector components before separator assertions" {
                 val failure =
                     shouldThrow<AssertionError> {
-                        Component.text("plain").shouldBeSelectorComponent()
+                        text("plain").shouldBeSelectorComponent()
                     }
                 val expectedMessage = "Expected selector component, but was <TextComponentImpl>."
 
@@ -46,8 +47,8 @@ class SelectorMatchersTest :
             }
 
             "reports selector separator mismatch with expected and actual separators" {
-                val expected = Component.text(", ")
-                val actual = Component.text(" | ")
+                val expected = text(", ")
+                val actual = text(" | ")
                 val failure =
                     shouldThrow<AssertionError> {
                         Component
@@ -60,7 +61,7 @@ class SelectorMatchersTest :
             }
 
             "reports missing selector separators" {
-                val expected = Component.text(", ")
+                val expected = text(", ")
                 val failure =
                     shouldThrow<AssertionError> {
                         Component
@@ -73,7 +74,7 @@ class SelectorMatchersTest :
             }
 
             "reports unexpected selector separators" {
-                val actual = Component.text(", ")
+                val actual = text(", ")
                 val failure =
                     shouldThrow<AssertionError> {
                         Component.selector("@a", actual).shouldBeSelectorComponent().shouldNotHaveSelectorSeparator()

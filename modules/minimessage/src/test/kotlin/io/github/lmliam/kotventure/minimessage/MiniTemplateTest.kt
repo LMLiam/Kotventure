@@ -1,5 +1,10 @@
 package io.github.lmliam.kotventure.minimessage
 
+import io.github.lmliam.kotventure.core.color.aqua
+import io.github.lmliam.kotventure.core.color.gold
+import io.github.lmliam.kotventure.core.color.green
+import io.github.lmliam.kotventure.core.color.red
+import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.minimessage.placeholder.MiniMessagePlaceholder
 import io.github.lmliam.kotventure.minimessage.placeholder.placeholder
 import io.github.lmliam.kotventure.minimessage.template.MiniTemplate
@@ -43,7 +48,7 @@ class MiniTemplateTest :
             describe("required-placeholder enforcement") {
                 it("rejects a render that omits one binding") {
                     shouldThrow<IllegalArgumentException> {
-                        WelcomeTemplate { player bind Component.text("Alex") }
+                        WelcomeTemplate { player bind text("Alex") }
                     }
                 }
 
@@ -66,10 +71,10 @@ class MiniTemplateTest :
 
                     shouldThrow<IllegalArgumentException> {
                         WelcomeTemplate {
-                            player bind Component.text("Alex")
+                            player bind text("Alex")
                             count bind 1
                             @Suppress("UNCHECKED_CAST")
-                            (outsider as MiniMessagePlaceholder<Component>) bind Component.text("x")
+                            (outsider as MiniMessagePlaceholder<Component>) bind text("x")
                         }
                     }
                 }
@@ -78,7 +83,7 @@ class MiniTemplateTest :
                     shouldThrow<IllegalArgumentException> {
                         WelcomeTemplate {
                             @Suppress("UNCHECKED_CAST")
-                            (AltTemplate.player as MiniMessagePlaceholder<Component>) bind Component.text("Alex")
+                            (AltTemplate.player as MiniMessagePlaceholder<Component>) bind text("Alex")
                             count bind 1
                         }
                     }
@@ -87,7 +92,7 @@ class MiniTemplateTest :
                 it("rejects another template's structurally equal descriptor") {
                     shouldThrow<IllegalArgumentException> {
                         WelcomeTemplate {
-                            SameTypeAltTemplate.player bind Component.text("Alex")
+                            SameTypeAltTemplate.player bind text("Alex")
                             count bind 1
                         }
                     }
@@ -96,9 +101,9 @@ class MiniTemplateTest :
                 it("rejects binding the same placeholder twice in one render") {
                     shouldThrow<IllegalArgumentException> {
                         WelcomeTemplate {
-                            player bind Component.text("First", NamedTextColor.GREEN)
+                            player bind text("First") { color(green) }
                             count bind 1
-                            player bind Component.text("Second", NamedTextColor.RED)
+                            player bind text("Second") { color(red) }
                         }
                     }
                 }
@@ -108,26 +113,26 @@ class MiniTemplateTest :
                 it("renders independent components for repeated invocations") {
                     val forAlex =
                         WelcomeTemplate {
-                            player bind Component.text("Alex", NamedTextColor.GREEN)
+                            player bind text("Alex") { color(green) }
                             count bind 3
                         }
                     val forSam =
                         WelcomeTemplate {
-                            player bind Component.text("Sam", NamedTextColor.RED)
+                            player bind text("Sam") { color(red) }
                             count bind 0
                         }
 
-                    forAlex shouldHaveColor NamedTextColor.GOLD
+                    forAlex shouldHaveColor gold
                     forAlex shouldContainText "Alex"
                     forAlex shouldContainText "3"
 
-                    forSam shouldHaveColor NamedTextColor.GOLD
+                    forSam shouldHaveColor gold
                     forSam shouldContainText "Sam"
                     forSam shouldContainText "0"
                 }
 
                 it("inlines the bound component placeholder into the tree") {
-                    val alex = Component.text("Alex", NamedTextColor.AQUA)
+                    val alex = text("Alex") { color(aqua) }
 
                     val rendered =
                         WelcomeTemplate {
@@ -135,7 +140,7 @@ class MiniTemplateTest :
                             count bind 5
                         }
 
-                    rendered shouldHaveColor NamedTextColor.GOLD
+                    rendered shouldHaveColor gold
                     rendered shouldContainText "Alex"
                     rendered shouldContainComponent alex
                 }
@@ -143,11 +148,11 @@ class MiniTemplateTest :
                 it("renders every literal and bound segment") {
                     val rendered =
                         WelcomeTemplate {
-                            player bind Component.text("Alex")
+                            player bind text("Alex")
                             count bind 7
                         }
 
-                    rendered shouldHaveColor NamedTextColor.GOLD
+                    rendered shouldHaveColor gold
                     rendered shouldContainText "Welcome"
                     rendered shouldContainText "Alex"
                     rendered shouldContainText "7"

@@ -1,5 +1,8 @@
 package io.github.lmliam.kotventure.core.text
 
+import io.github.lmliam.kotventure.core.color.darkGray
+import io.github.lmliam.kotventure.core.color.gray
+import io.github.lmliam.kotventure.core.color.green
 import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.github.lmliam.kotventure.test.text.shouldHaveChildCount
@@ -75,15 +78,15 @@ class JoinDslTest :
             "string knob with styling block produces a styled separator" {
                 val result =
                     listOf(alex, steve, notch).join {
-                        separator(", ") { color(NamedTextColor.GRAY) }
+                        separator(", ") { color(gray) }
                     }
 
-                result.childAt(1) shouldHaveColor NamedTextColor.GRAY
-                result.childAt(3) shouldHaveColor NamedTextColor.GRAY
+                result.childAt(1) shouldHaveColor gray
+                result.childAt(3) shouldHaveColor gray
             }
 
             "component knob form accepts a prebuilt separator unchanged" {
-                val dot = Component.text(" • ", NamedTextColor.DARK_GRAY)
+                val dot = text(" • ") { color(darkGray) }
 
                 val result =
                     listOf(alex, steve, notch).join {
@@ -95,7 +98,7 @@ class JoinDslTest :
             }
 
             "component knob form accepts a prebuilt lastSeparator unchanged" {
-                val and = Component.text(" and ", NamedTextColor.GRAY)
+                val and = text(" and ") { color(gray) }
 
                 val result =
                     listOf(alex, steve, notch).join {
@@ -107,7 +110,7 @@ class JoinDslTest :
             }
 
             "component knob form accepts a prebuilt prefix unchanged" {
-                val online = Component.text("Online: ", NamedTextColor.GREEN)
+                val online = text("Online: ") { color(green) }
 
                 val result =
                     listOf(alex, steve).join {
@@ -119,7 +122,7 @@ class JoinDslTest :
             }
 
             "component knob form accepts a prebuilt suffix unchanged" {
-                val period = Component.text(".", NamedTextColor.GRAY)
+                val period = text(".") { color(gray) }
 
                 val result =
                     listOf(alex, steve).join {

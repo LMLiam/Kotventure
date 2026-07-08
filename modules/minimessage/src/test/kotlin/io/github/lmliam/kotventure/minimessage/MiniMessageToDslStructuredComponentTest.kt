@@ -643,7 +643,7 @@ class MiniMessageToDslStructuredComponentTest :
                     val contents =
                         ObjectContents
                             .playerHead()
-                            .texture(Key.key("minecraft", "entity/player/wide/steve"))
+                            .texture(key("minecraft", "entity/player/wide/steve"))
                             .hat(false)
                             .build()
                     val playerHead = Component.`object`().contents(contents).build()

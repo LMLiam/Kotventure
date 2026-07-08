@@ -1,7 +1,10 @@
 package io.github.lmliam.kotventure.core.selector
 
+import io.github.lmliam.kotventure.core.color.aqua
+import io.github.lmliam.kotventure.core.color.gray
 import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.nbt.list
+import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldBeSelectorComponent
 import io.github.lmliam.kotventure.test.text.shouldContainText
@@ -126,7 +129,7 @@ class SelectorDslTest :
             }
 
             "sets a component separator" {
-                val separator = Component.text(", ")
+                val separator = text(", ")
 
                 val component =
                     selector(allPlayers()) {
@@ -141,33 +144,33 @@ class SelectorDslTest :
                     selector(allPlayers()) {
                         separator {
                             content(" | ")
-                            color(NamedTextColor.GRAY)
+                            color(gray)
                         }
                     }
 
                 val separator = checkNotNull(component.shouldBeSelectorComponent().separator())
 
-                separator shouldHaveColor NamedTextColor.GRAY
+                separator shouldHaveColor gray
                 separator shouldContainText " | "
             }
 
             "applies style to the selector root" {
                 val component =
                     selector(randomPlayer()) {
-                        color(NamedTextColor.AQUA)
+                        color(aqua)
                         obfuscated()
                         style {
                             underlined()
                         }
                     }
 
-                component shouldHaveColor NamedTextColor.AQUA
+                component shouldHaveColor aqua
                 component shouldHaveDecoration TextDecoration.OBFUSCATED
                 component shouldHaveDecoration TextDecoration.UNDERLINED
             }
 
             "appends child components" {
-                val suffix = Component.text(" joined")
+                val suffix = text(" joined")
 
                 val component =
                     selector(nearestPlayer()) {

@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.test.text
 
+import io.github.lmliam.kotventure.core.text.text
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.string.shouldContain
@@ -29,7 +30,7 @@ class KeybindMatchersTest :
             "reports non-keybind components before keybind assertions" {
                 val failure =
                     shouldThrow<AssertionError> {
-                        Component.text("plain").shouldBeKeybindComponent()
+                        text("plain").shouldBeKeybindComponent()
                     }
                 val expectedMessage = "Expected keybind component, but was <TextComponentImpl>."
 
