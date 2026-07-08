@@ -59,11 +59,11 @@ class BossBarDslTest :
                 bar shouldHaveColor BossBar.Color.RED
                 bar shouldHaveOverlay BossBar.Overlay.NOTCHED_10
                 bar shouldHaveFlags
-                    setOf(
-                        BossBar.Flag.DARKEN_SCREEN,
-                        BossBar.Flag.PLAY_BOSS_MUSIC,
-                        BossBar.Flag.CREATE_WORLD_FOG,
-                    )
+                        setOf(
+                            BossBar.Flag.DARKEN_SCREEN,
+                            BossBar.Flag.PLAY_BOSS_MUSIC,
+                            BossBar.Flag.CREATE_WORLD_FOG,
+                        )
             }
 
             "defaults produce a full pink progress bar with no flags" {

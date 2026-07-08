@@ -40,10 +40,10 @@ class BossBarMatchersTest :
                 subject shouldHaveColor BossBar.Color.RED
                 subject shouldHaveOverlay BossBar.Overlay.NOTCHED_10
                 subject shouldHaveFlags
-                    setOf(
-                        BossBar.Flag.DARKEN_SCREEN,
-                        BossBar.Flag.PLAY_BOSS_MUSIC,
-                    )
+                        setOf(
+                            BossBar.Flag.DARKEN_SCREEN,
+                            BossBar.Flag.PLAY_BOSS_MUSIC,
+                        )
                 subject shouldHaveFlag BossBar.Flag.DARKEN_SCREEN
                 subject shouldNotHaveFlag BossBar.Flag.CREATE_WORLD_FOG
             }
@@ -63,7 +63,7 @@ class BossBarMatchersTest :
                     }
 
                 failure.message shouldContain
-                    "Expected boss bar progress <0.5>, but was <0.25>."
+                        "Expected boss bar progress <0.5>, but was <0.25>."
             }
 
             "reports a colour mismatch with expected and actual values" {
@@ -73,7 +73,7 @@ class BossBarMatchersTest :
                     }
 
                 failure.message shouldContain
-                    "Expected boss bar color <RED>, but was <BLUE>."
+                        "Expected boss bar color <RED>, but was <BLUE>."
             }
 
             "reports a missing flag with the actual flag set" {
@@ -83,7 +83,7 @@ class BossBarMatchersTest :
                     }
 
                 failure.message shouldContain
-                    "Expected boss bar to have flag <CREATE_WORLD_FOG>, but flags were <[]>."
+                        "Expected boss bar to have flag <CREATE_WORLD_FOG>, but flags were <[]>."
             }
         },
     )
