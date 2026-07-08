@@ -61,7 +61,7 @@ class ChatDslTest :
                 val audience = RecordingChatAudience()
 
                 audience.chat {
-                    type(ChatType.MSG_COMMAND_OUTGOING)
+                    type(msgCommandOutgoing)
                     name { text("Steve") }
                     target { text("Alex") }
                     content { text("psst") }
@@ -109,7 +109,7 @@ class ChatDslTest :
                 val first = RecordingChatAudience()
                 val second = RecordingChatAudience()
 
-                Audience.audience(first, second).chat {
+                audienceOf(first, second).chat {
                     name { text("Steve") }
                     content { text("broadcast") }
                 }
@@ -162,8 +162,8 @@ class ChatDslTest :
             "rejects a duplicate type" {
                 shouldThrow<IllegalStateException> {
                     RecordingChatAudience().chat {
-                        type(ChatType.CHAT)
-                        type(ChatType.SAY_COMMAND)
+                        type(chat)
+                        type(sayCommand)
                     }
                 }
             }

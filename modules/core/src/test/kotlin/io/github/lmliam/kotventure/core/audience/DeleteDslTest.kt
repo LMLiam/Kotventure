@@ -47,7 +47,7 @@ class DeleteDslTest :
         {
             "deletes a signed message" {
                 val audience = RecordingDeleteAudience()
-                val signed = PlayerSignedMessage(SignedMessage.signature(byteArrayOf(1, 2, 3)))
+                val signed = PlayerSignedMessage(signature(byteArrayOf(1, 2, 3)))
 
                 audience.delete(signed)
 
@@ -68,7 +68,7 @@ class DeleteDslTest :
 
             "deletes by signature" {
                 val audience = RecordingDeleteAudience()
-                val signature = SignedMessage.signature(byteArrayOf(4, 5, 6))
+                val signature = signature(byteArrayOf(4, 5, 6))
 
                 audience.delete(signature)
 

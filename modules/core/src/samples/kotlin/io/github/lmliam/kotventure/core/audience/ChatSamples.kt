@@ -3,23 +3,21 @@ package io.github.lmliam.kotventure.core.audience
 import io.github.lmliam.kotventure.core.color.aqua
 import io.github.lmliam.kotventure.core.color.gold
 import io.github.lmliam.kotventure.core.text.text
-import net.kyori.adventure.audience.Audience
-import net.kyori.adventure.chat.ChatType
 import net.kyori.adventure.chat.SignedMessage
 
 internal fun chatSample() {
-    val audience = Audience.empty()
+    val audience = emptyAudience()
 
     audience.chat {
         name { text("Steve") { color(aqua) } }
         target { text("Alex") }
-        type(ChatType.MSG_COMMAND_OUTGOING)
+        type(msgCommandOutgoing)
         content { text("hi there") }
     }
 }
 
 internal fun signedChatSample() {
-    val audience = Audience.empty()
+    val audience = emptyAudience()
     val signed = signedMessageFromPlatform()
 
     audience.chat(signed) {
@@ -28,7 +26,7 @@ internal fun signedChatSample() {
 }
 
 internal fun deleteSample() {
-    val audience = Audience.empty()
+    val audience = emptyAudience()
     val signed = signedMessageFromPlatform()
 
     if (signed.canDelete()) {
@@ -37,10 +35,9 @@ internal fun deleteSample() {
 }
 
 internal fun deleteBySignatureSample() {
-    val audience = Audience.empty()
-    val signature = SignedMessage.signature(byteArrayOf(1, 2, 3))
+    val audience = emptyAudience()
 
-    audience.delete(signature)
+    audience.delete(signature(byteArrayOf(1, 2, 3)))
 }
 
 internal fun systemMessageSample() {
@@ -50,7 +47,7 @@ internal fun systemMessageSample() {
             text("soon")
         }
 
-    Audience.empty().chat(announcement) {
+    emptyAudience().chat(announcement) {
         name { text("Server") }
     }
 }
