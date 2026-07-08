@@ -7,6 +7,10 @@ import net.kyori.adventure.chat.SignedMessage
  * Builds a component and its bound chat type from a [ChatScope] block and sends it to this
  * [Audience] as a non-system, player-styled chat message.
  *
+ * Unlike [message], which sends an unattributed system line, the client renders this through the
+ * player-chat pipeline: attributed to the scope's `name` in the chosen chat-type format and subject
+ * to the viewer's chat visibility settings.
+ *
  * Works for any audience — a player, the console, or a forwarding audience over many members.
  *
  * @throws IllegalStateException when the block leaves `name` or `content` unset, or sets any slot
