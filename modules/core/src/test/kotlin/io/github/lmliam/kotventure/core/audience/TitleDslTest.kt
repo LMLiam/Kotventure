@@ -22,9 +22,8 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toKotlinDuration
 
 /**
- * Captures titles via [sendTitlePart], matching Adventure's default [Audience.showTitle]
- * (which fans out parts — including through [audienceOf] — rather than calling [Audience.showTitle]
- * on each member).
+ * Captures titles via [sendTitlePart], matching Adventure's default [Audience.showTitle].
+ * Kept local to the test for isolation and readability.
  */
 private class TitleRecordingAudience : Audience {
     val titles = mutableListOf<Title>()
@@ -44,6 +43,7 @@ private class TitleRecordingAudience : Audience {
                 subtitlePart = Component.empty()
                 timesPart = null
             }
+
             TitlePart.SUBTITLE -> subtitlePart = value as Component
             TitlePart.TIMES -> timesPart = value as Title.Times
             else -> error("Unexpected title part: $part")
@@ -54,26 +54,27 @@ private class TitleRecordingAudience : Audience {
 class TitleDslTest :
     StringSpec(
         {
+            fun record(block: TitleScope.() -> Unit): Title =
+                TitleRecordingAudience().also { it.title(block) }.titles.single()
+
             "builds and shows a title with subtitle and times" {
-                val audience = TitleRecordingAudience()
-
-                audience.title {
-                    title {
-                        text("Welcome") { color(gold) }
+                val shown =
+                    record {
+                        title {
+                            text("Welcome") { color(gold) }
+                        }
+                        subtitle { text("to the server") }
+                        times {
+                            fadeIn(1.ticks)
+                            stay(3.seconds)
+                            fadeOut(1.ticks)
+                        }
                     }
-                    subtitle { text("to the server") }
-                    times {
-                        fadeIn(1.ticks)
-                        stay(3.seconds)
-                        fadeOut(1.ticks)
-                    }
-                }
 
-                audience.titles shouldHaveSize 1
-                val shown = audience.titles.single()
                 shown.title().childAt(0) shouldContainText "Welcome"
                 shown.title().childAt(0) shouldHaveColor gold
                 shown.subtitle().childAt(0) shouldContainText "to the server"
+
                 val times = shown.times().shouldNotBeNull()
                 times shouldHaveFadeIn 1.ticks
                 times shouldHaveStay 3.seconds
@@ -81,63 +82,45 @@ class TitleDslTest :
             }
 
             "defaults unset timing slots to DEFAULT_TIMES values" {
-                val audience = TitleRecordingAudience()
                 val defaults = Title.DEFAULT_TIMES
 
-                audience.title {
-                    title { text("Partial times") }
-                    times {
-                        stay(1.seconds)
-                    }
-                }
-
                 val times =
-                        audience.titles
-                                .single()
-                                .times()
-                                .shouldNotBeNull()
+                    record {
+                        title { text("Partial times") }
+                        times { stay(1.seconds) }
+                    }.times().shouldNotBeNull()
+
                 times shouldHaveFadeIn defaults.fadeIn().toKotlinDuration()
                 times shouldHaveStay 1.seconds
                 times shouldHaveFadeOut defaults.fadeOut().toKotlinDuration()
             }
 
             "defaults subtitle to empty and times to DEFAULT_TIMES when only title is set" {
-                val audience = TitleRecordingAudience()
+                val shown = record { title { text("Solo") } }
 
-                audience.title {
-                    title { text("Solo") }
-                }
-
-                val shown = audience.titles.single()
                 shown.title().childAt(0) shouldContainText "Solo"
                 shown.subtitle() shouldBe Component.empty()
                 shown.times() shouldBe Title.DEFAULT_TIMES
             }
 
             "allows a subtitle-only title" {
-                val audience = TitleRecordingAudience()
+                val shown = record { subtitle { text("only subtitle") } }
 
-                audience.title {
-                    subtitle { text("only subtitle") }
-                }
-
-                val shown = audience.titles.single()
                 shown.title() shouldBe Component.empty()
                 shown.subtitle().childAt(0) shouldContainText "only subtitle"
                 shown.times() shouldBe Title.DEFAULT_TIMES
             }
 
             "accepts existing components for title and subtitle" {
-                val audience = TitleRecordingAudience()
                 val main = Component.text("Main")
                 val sub = Component.text("Sub")
 
-                audience.title {
-                    title(main)
-                    subtitle(sub)
-                }
+                val shown =
+                    record {
+                        title(main)
+                        subtitle(sub)
+                    }
 
-                val shown = audience.titles.single()
                 shown.title() shouldBe main
                 shown.subtitle() shouldBe sub
             }
@@ -146,59 +129,40 @@ class TitleDslTest :
                 val first = TitleRecordingAudience()
                 val second = TitleRecordingAudience()
 
-                audienceOf(first, second).title {
-                    title { text("Broadcast") }
-                }
+                audienceOf(first, second).title { title { text("Broadcast") } }
 
                 first.titles shouldHaveSize 1
                 second.titles shouldHaveSize 1
                 first.titles.single().title() shouldBe second.titles.single().title()
             }
 
-            "rejects a block with neither title nor subtitle" {
-                shouldThrow<IllegalStateException> {
-                    TitleRecordingAudience().title {}
-                }
-            }
-
-            "rejects a times-only block" {
-                shouldThrow<IllegalStateException> {
+            listOf(
+                "rejects a block with neither title nor subtitle" to { TitleRecordingAudience().title {} },
+                "rejects a times-only block" to {
                     TitleRecordingAudience().title {
                         times { stay(1.seconds) }
                     }
-                }
-            }
-
-            "rejects a duplicate title" {
-                shouldThrow<IllegalStateException> {
+                },
+                "rejects a duplicate title" to {
                     TitleRecordingAudience().title {
                         title { text("a") }
                         title { text("b") }
                     }
-                }
-            }
-
-            "rejects a duplicate subtitle" {
-                shouldThrow<IllegalStateException> {
+                },
+                "rejects a duplicate subtitle" to {
                     TitleRecordingAudience().title {
                         subtitle { text("a") }
                         subtitle { text("b") }
                     }
-                }
-            }
-
-            "rejects a duplicate times block" {
-                shouldThrow<IllegalStateException> {
+                },
+                "rejects a duplicate times block" to {
                     TitleRecordingAudience().title {
                         title { text("a") }
                         times { stay(1.seconds) }
                         times { stay(2.seconds) }
                     }
-                }
-            }
-
-            "rejects a duplicate timing slot inside times" {
-                shouldThrow<IllegalStateException> {
+                },
+                "rejects a duplicate timing slot inside times" to {
                     TitleRecordingAudience().title {
                         title { text("a") }
                         times {
@@ -206,6 +170,10 @@ class TitleDslTest :
                             fadeIn(2.ticks)
                         }
                     }
+                },
+            ).forEach { (name, action) ->
+                name {
+                    shouldThrow<IllegalStateException> { action() }
                 }
             }
         },
