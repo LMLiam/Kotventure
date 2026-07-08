@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any release.
 
+## [0.7.0](https://github.com/LMLiam/Kotventure/compare/0.6.0...0.7.0) (2026-07-08)
+
+
+### ✨ Features
+
+* **audience:** add the action bar dsl ([#233](https://github.com/LMLiam/Kotventure/issues/233)) ([e901aa1](https://github.com/LMLiam/Kotventure/commit/e901aa17f6189be2a5679615e41d9cff9104eeaa))
+* **core:** add signed message send and deletion helpers ([#231](https://github.com/LMLiam/Kotventure/issues/231)) ([3044c79](https://github.com/LMLiam/Kotventure/commit/3044c79bc4901f93958da133aba079abae55ea4e))
+
 ## [0.6.0](https://github.com/LMLiam/Kotventure/compare/0.5.1...0.6.0) (2026-07-08)
 
 
