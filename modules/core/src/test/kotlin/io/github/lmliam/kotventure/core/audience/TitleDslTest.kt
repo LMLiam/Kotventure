@@ -161,6 +161,14 @@ class TitleDslTest :
                 }
             }
 
+            "rejects a times-only block" {
+                shouldThrow<IllegalStateException> {
+                    TitleRecordingAudience().title {
+                        times { stay(1.seconds) }
+                    }
+                }
+            }
+
             "rejects a duplicate title" {
                 shouldThrow<IllegalStateException> {
                     TitleRecordingAudience().title {
