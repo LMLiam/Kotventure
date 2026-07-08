@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any release.
 
+## [0.8.0](https://github.com/LMLiam/Kotventure/compare/0.7.0...0.8.0) (2026-07-08)
+
+
+### ✨ Features
+
+* **audience:** add the title dsl with times ([#234](https://github.com/LMLiam/Kotventure/issues/234)) ([46f1b18](https://github.com/LMLiam/Kotventure/commit/46f1b189633edc5a6b51d9499da7e3701cd496ed))
+
 ## [0.7.0](https://github.com/LMLiam/Kotventure/compare/0.6.0...0.7.0) (2026-07-08)
 
 
