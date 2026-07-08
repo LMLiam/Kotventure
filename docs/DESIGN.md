@@ -171,6 +171,18 @@ player.title {
         fadeOut(1.ticks)
     }
 }
+val dragon = bossBar {
+    name { text("Ender Dragon") { color(0x9B30FF) } }
+    progress(0.25f)
+    color(red)              // BossBar.Color — scope-bound, no enum import
+    overlay(notched10)
+    darkenScreen()
+    playBossMusic()
+}
+player.show(dragon)
+player.hide(dragon)
+val raid = player.bossBar { name { text("Raid") } }   // build + show; keep for hide/updates
+
 
 // ── Typed MiniMessage template + validation ────────────────────
 val Welcome = miniTemplate("<gold>Welcome <player>, <count> new messages") {
