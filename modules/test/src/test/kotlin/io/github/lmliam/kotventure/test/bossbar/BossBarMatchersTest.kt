@@ -40,10 +40,10 @@ class BossBarMatchersTest :
                 subject shouldHaveColor BossBar.Color.RED
                 subject shouldHaveOverlay BossBar.Overlay.NOTCHED_10
                 subject shouldHaveFlags
-                    setOf(
-                        BossBar.Flag.DARKEN_SCREEN,
-                        BossBar.Flag.PLAY_BOSS_MUSIC,
-                    )
+                        setOf(
+                            BossBar.Flag.DARKEN_SCREEN,
+                            BossBar.Flag.PLAY_BOSS_MUSIC,
+                        )
                 subject shouldHaveFlag BossBar.Flag.DARKEN_SCREEN
                 subject shouldNotHaveFlag BossBar.Flag.CREATE_WORLD_FOG
             }
@@ -66,7 +66,7 @@ class BossBarMatchersTest :
 
             "matches the absence of an exact flag set" {
                 bar(flags = setOf(BossBar.Flag.DARKEN_SCREEN)) shouldNotHaveFlags
-                    setOf(BossBar.Flag.PLAY_BOSS_MUSIC)
+                        setOf(BossBar.Flag.PLAY_BOSS_MUSIC)
             }
 
             "reports a progress mismatch with expected and actual values" {
@@ -76,7 +76,7 @@ class BossBarMatchersTest :
                     }
 
                 failure.message shouldContain
-                    "Expected boss bar progress <0.5>, but was <0.25>."
+                        "Expected boss bar progress <0.5>, but was <0.25>."
             }
 
             "reports when progress unexpectedly matches" {
@@ -86,7 +86,7 @@ class BossBarMatchersTest :
                     }
 
                 failure.message shouldContain
-                    "Expected boss bar progress not to be <0.25>."
+                        "Expected boss bar progress not to be <0.25>."
             }
 
             "reports a colour mismatch with expected and actual values" {
@@ -96,29 +96,29 @@ class BossBarMatchersTest :
                     }
 
                 failure.message shouldContain
-                    "Expected boss bar color <RED>, but was <BLUE>."
+                        "Expected boss bar color <RED>, but was <BLUE>."
             }
 
             "reports an overlay mismatch with expected and actual values" {
                 val failure =
                     shouldThrow<AssertionError> {
                         bar(overlay = BossBar.Overlay.PROGRESS) shouldHaveOverlay
-                            BossBar.Overlay.NOTCHED_10
+                                BossBar.Overlay.NOTCHED_10
                     }
 
                 failure.message shouldContain
-                    "Expected boss bar overlay <NOTCHED_10>, but was <PROGRESS>."
+                        "Expected boss bar overlay <NOTCHED_10>, but was <PROGRESS>."
             }
 
             "reports a flags mismatch with expected and actual values" {
                 val failure =
                     shouldThrow<AssertionError> {
                         bar(flags = setOf(BossBar.Flag.DARKEN_SCREEN)) shouldHaveFlags
-                            setOf(BossBar.Flag.PLAY_BOSS_MUSIC)
+                                setOf(BossBar.Flag.PLAY_BOSS_MUSIC)
                     }
 
                 failure.message shouldContain
-                    "Expected boss bar flags <[PLAY_BOSS_MUSIC]>, but was <[DARKEN_SCREEN]>."
+                        "Expected boss bar flags <[PLAY_BOSS_MUSIC]>, but was <[DARKEN_SCREEN]>."
             }
 
             "reports flags present when expecting no flags" {
@@ -128,7 +128,7 @@ class BossBarMatchersTest :
                     }
 
                 failure.message shouldContain
-                    "Expected boss bar to have no flags, but was <[DARKEN_SCREEN]>."
+                        "Expected boss bar to have no flags, but was <[DARKEN_SCREEN]>."
             }
 
             "reports a missing flag with the actual flag set" {
@@ -138,7 +138,7 @@ class BossBarMatchersTest :
                     }
 
                 failure.message shouldContain
-                    "Expected boss bar to have flag <CREATE_WORLD_FOG>, but flags were <[]>."
+                        "Expected boss bar to have flag <CREATE_WORLD_FOG>, but flags were <[]>."
             }
         },
     )
