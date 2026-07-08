@@ -6,6 +6,7 @@ import io.github.lmliam.kotventure.core.time.ticks
 import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.github.lmliam.kotventure.test.text.shouldHaveColor
+import io.github.lmliam.kotventure.test.title.shouldHaveTimes
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldHaveSize
@@ -16,7 +17,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.TitlePart
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.toJavaDuration
+import kotlin.time.toKotlinDuration
 
 /**
  * Captures titles via [sendTitlePart], matching Adventure's default [Audience.showTitle]
@@ -71,10 +72,11 @@ class TitleDslTest :
                 shown.title().childAt(0) shouldContainText "Welcome"
                 shown.title().childAt(0) shouldHaveColor gold
                 shown.subtitle().childAt(0) shouldContainText "to the server"
-                val times = shown.times().shouldNotBeNull()
-                times.fadeIn() shouldBe 1.ticks.toJavaDuration()
-                times.stay() shouldBe 3.seconds.toJavaDuration()
-                times.fadeOut() shouldBe 1.ticks.toJavaDuration()
+                shown.times().shouldNotBeNull().shouldHaveTimes(
+                    fadeIn = 1.ticks,
+                    stay = 3.seconds,
+                    fadeOut = 1.ticks,
+                )
             }
 
             "defaults unset timing slots to DEFAULT_TIMES values" {
@@ -88,14 +90,15 @@ class TitleDslTest :
                     }
                 }
 
-                val times =
-                    audience.titles
+                audience.titles
                     .single()
                     .times()
                     .shouldNotBeNull()
-                times.fadeIn() shouldBe defaults.fadeIn()
-                times.stay() shouldBe 1.seconds.toJavaDuration()
-                times.fadeOut() shouldBe defaults.fadeOut()
+                    .shouldHaveTimes(
+                        fadeIn = defaults.fadeIn().toKotlinDuration(),
+                        stay = 1.seconds,
+                        fadeOut = defaults.fadeOut().toKotlinDuration(),
+                    )
             }
 
             "defaults subtitle to empty and times to DEFAULT_TIMES when only title is set" {
