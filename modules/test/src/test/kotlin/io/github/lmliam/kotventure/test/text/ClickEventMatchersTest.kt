@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.test.text
 
+import io.github.lmliam.kotventure.core.text.text
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.string.shouldContain
@@ -12,7 +13,7 @@ class ClickEventMatchersTest :
             "matches root click events" {
                 val clickEvent = ClickEvent.openUrl("https://example.com")
 
-                Component.text("Open").clickEvent(clickEvent) shouldHaveClickEvent clickEvent
+                text("Open").clickEvent(clickEvent) shouldHaveClickEvent clickEvent
             }
 
             "matches root click event actions" {
@@ -34,7 +35,7 @@ class ClickEventMatchersTest :
             }
 
             "matches components without click events" {
-                Component.text("Plain").shouldNotHaveClickEvent()
+                text("Plain").shouldNotHaveClickEvent()
             }
 
             "reports missing click events" {
@@ -42,7 +43,7 @@ class ClickEventMatchersTest :
 
                 val failure =
                     shouldThrow<AssertionError> {
-                        Component.text("Plain") shouldHaveClickEvent expected
+                        text("Plain") shouldHaveClickEvent expected
                     }
                 val expectedMessage = "Expected click event <$expected>, but was <null>."
 
@@ -117,7 +118,7 @@ class ClickEventMatchersTest :
 
                 val failure =
                     shouldThrow<AssertionError> {
-                        Component.text("Suggest").clickEvent(actual).shouldNotHaveClickEvent()
+                        text("Suggest").clickEvent(actual).shouldNotHaveClickEvent()
                     }
                 val expectedMessage = "Expected click event to be absent, but was <$actual>."
 

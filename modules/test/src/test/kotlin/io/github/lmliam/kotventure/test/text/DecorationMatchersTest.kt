@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.test.text
 
+import io.github.lmliam.kotventure.core.text.text
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.string.shouldContain
@@ -10,19 +11,17 @@ class DecorationMatchersTest :
     StringSpec(
         {
             "matches root decorations" {
-                Component
-                    .text("Title")
-                    .decoration(TextDecoration.BOLD, true) shouldHaveDecoration TextDecoration.BOLD
+                text("Title") { bold(true) } shouldHaveDecoration TextDecoration.BOLD
             }
 
             "matches missing root decorations" {
-                Component.text("Title") shouldNotHaveDecoration TextDecoration.BOLD
+                text("Title") shouldNotHaveDecoration TextDecoration.BOLD
             }
 
             "reports decoration mismatch with expected and actual state" {
                 val failure =
                     shouldThrow<AssertionError> {
-                        Component.text("Title") shouldHaveDecoration TextDecoration.BOLD
+                        text("Title") shouldHaveDecoration TextDecoration.BOLD
                     }
                 val expectedMessage =
                     "Expected component decoration <${TextDecoration.BOLD}> to be <TRUE>, " +
@@ -34,9 +33,7 @@ class DecorationMatchersTest :
             "reports unexpected root decorations" {
                 val failure =
                     shouldThrow<AssertionError> {
-                        Component
-                            .text("Title")
-                            .decoration(TextDecoration.BOLD, true) shouldNotHaveDecoration TextDecoration.BOLD
+                        text("Title") { bold(true) } shouldNotHaveDecoration TextDecoration.BOLD
                     }
                 val expectedMessage =
                     "Expected component decoration <${TextDecoration.BOLD}> to be <NOT_SET>, " +
@@ -48,9 +45,7 @@ class DecorationMatchersTest :
             "does not treat explicitly disabled decorations as missing" {
                 val failure =
                     shouldThrow<AssertionError> {
-                        Component
-                            .text("Title")
-                            .decoration(TextDecoration.BOLD, false) shouldNotHaveDecoration TextDecoration.BOLD
+                        text("Title") { bold(false) } shouldNotHaveDecoration TextDecoration.BOLD
                     }
                 val expectedMessage =
                     "Expected component decoration <${TextDecoration.BOLD}> to be <NOT_SET>, " +
@@ -60,36 +55,34 @@ class DecorationMatchersTest :
             }
 
             "matches explicit decoration states" {
-                Component
-                    .text("Title")
-                    .decoration(TextDecoration.ITALIC, false)
+                text("Title") { italic(false) }
                     .shouldHaveDecoration(TextDecoration.ITALIC, TextDecoration.State.FALSE)
             }
 
             "matches each decoration through its own assertion" {
-                Component.text("x").decoration(TextDecoration.BOLD, true).shouldBeBold()
-                Component.text("x").decoration(TextDecoration.ITALIC, true).shouldBeItalic()
-                Component.text("x").decoration(TextDecoration.UNDERLINED, true).shouldBeUnderlined()
-                Component.text("x").decoration(TextDecoration.STRIKETHROUGH, true).shouldBeStrikethrough()
-                Component.text("x").decoration(TextDecoration.OBFUSCATED, true).shouldBeObfuscated()
+                text("x") { bold(true) }.shouldBeBold()
+                text("x") { italic(true) }.shouldBeItalic()
+                text("x") { underlined(true) }.shouldBeUnderlined()
+                text("x") { strikethrough(true) }.shouldBeStrikethrough()
+                text("x") { obfuscated(true) }.shouldBeObfuscated()
             }
 
             "matches the absence of each decoration through its own assertion" {
-                Component.text("plain").shouldNotBeBold()
-                Component.text("plain").shouldNotBeItalic()
-                Component.text("plain").shouldNotBeUnderlined()
-                Component.text("plain").shouldNotBeStrikethrough()
-                Component.text("plain").shouldNotBeObfuscated()
+                text("plain").shouldNotBeBold()
+                text("plain").shouldNotBeItalic()
+                text("plain").shouldNotBeUnderlined()
+                text("plain").shouldNotBeStrikethrough()
+                text("plain").shouldNotBeObfuscated()
             }
 
             "treats an explicitly disabled decoration as not enabled" {
-                Component.text("x").decoration(TextDecoration.BOLD, false).shouldNotBeBold()
+                text("x") { bold(false) }.shouldNotBeBold()
             }
 
             "reports a component that is not bold" {
                 val failure =
                     shouldThrow<AssertionError> {
-                        Component.text("plain").shouldBeBold()
+                        text("plain").shouldBeBold()
                     }
                 val expectedMessage =
                     "Expected component decoration <${TextDecoration.BOLD}> to be <TRUE>, but was <NOT_SET>."
@@ -100,7 +93,7 @@ class DecorationMatchersTest :
             "reports a component that is unexpectedly italic" {
                 val failure =
                     shouldThrow<AssertionError> {
-                        Component.text("x").decoration(TextDecoration.ITALIC, true).shouldNotBeItalic()
+                        text("x") { italic(true) }.shouldNotBeItalic()
                     }
                 val expectedMessage = "Expected component decoration <${TextDecoration.ITALIC}> not to be <TRUE>."
 

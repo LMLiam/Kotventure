@@ -1,5 +1,7 @@
 package io.github.lmliam.kotventure.core.text
 
+import io.github.lmliam.kotventure.core.color.aqua
+import io.github.lmliam.kotventure.core.color.gold
 import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.github.lmliam.kotventure.test.text.shouldHaveChildCount
 import io.github.lmliam.kotventure.test.text.shouldHaveColor
@@ -22,12 +24,12 @@ class TextDslTest :
             "builds a text component from a value and a configuration block" {
                 val component =
                     text("Title") {
-                        color(NamedTextColor.AQUA)
+                        color(aqua)
                         bold()
                     }
 
                 component shouldContainText "Title"
-                component shouldHaveColor NamedTextColor.AQUA
+                component shouldHaveColor aqua
                 component shouldHaveDecoration TextDecoration.BOLD
             }
 
@@ -35,11 +37,11 @@ class TextDslTest :
                 val component =
                     text {
                         content("Title")
-                        color(NamedTextColor.GOLD)
+                        color(gold)
                     }
 
                 component shouldContainText "Title"
-                component shouldHaveColor NamedTextColor.GOLD
+                component shouldHaveColor gold
             }
 
             "rejects setting content twice in one block" {

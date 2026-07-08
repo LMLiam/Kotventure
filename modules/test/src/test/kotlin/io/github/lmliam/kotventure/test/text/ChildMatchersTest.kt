@@ -1,5 +1,7 @@
 package io.github.lmliam.kotventure.test.text
 
+import io.github.lmliam.kotventure.core.component.component
+import io.github.lmliam.kotventure.core.text.text
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.string.shouldContain
@@ -10,11 +12,9 @@ class ChildMatchersTest :
         {
             "matches child count and retrieves children by index" {
                 val component =
-                    Component
-                        .text()
-                        .content("Hello ")
-                        .append(Component.text("world"))
-                        .build()
+                    text("Hello ") {
+                        text("world")
+                    }
 
                 component shouldHaveChildCount 1
                 component.childAt(0) shouldContainText "world"
@@ -22,11 +22,9 @@ class ChildMatchersTest :
 
             "reports child count mismatch with expected and actual counts" {
                 val component =
-                    Component
-                        .text()
-                        .content("Hello ")
-                        .append(Component.text("world"))
-                        .build()
+                    text("Hello ") {
+                        text("world")
+                    }
 
                 val failure =
                     shouldThrow<AssertionError> {
@@ -38,16 +36,14 @@ class ChildMatchersTest :
             }
 
             "matches the absence of children" {
-                Component.text("Hello").shouldHaveNoChildren()
+                text("Hello").shouldHaveNoChildren()
             }
 
             "reports unexpected children" {
                 val component =
-                    Component
-                        .text()
-                        .content("Hello ")
-                        .append(Component.text("world"))
-                        .build()
+                    text("Hello ") {
+                        text("world")
+                    }
 
                 val failure =
                     shouldThrow<AssertionError> {
@@ -61,7 +57,7 @@ class ChildMatchersTest :
             "reports missing child indexes clearly" {
                 val failure =
                     shouldThrow<IllegalStateException> {
-                        Component.text("Hello").childAt(0)
+                        text("Hello").childAt(0)
                     }
                 val expectedMessage = "Expected child at index <0>, but component has <0> children."
 
@@ -69,27 +65,25 @@ class ChildMatchersTest :
             }
 
             "matches direct children in order" {
-                val first = Component.text("one")
-                val second = Component.text("two")
+                val first = text("one")
+                val second = text("two")
                 val component =
-                    Component
-                        .text()
-                        .append(first)
-                        .append(second)
-                        .build()
+                    component {
+                        append(first)
+                        append(second)
+                    }
 
                 component.shouldHaveChildren(first, second)
             }
 
             "reports children that differ in order" {
-                val first = Component.text("one")
-                val second = Component.text("two")
+                val first = text("one")
+                val second = text("two")
                 val component =
-                    Component
-                        .text()
-                        .append(first)
-                        .append(second)
-                        .build()
+                    component {
+                        append(first)
+                        append(second)
+                    }
 
                 val failure =
                     shouldThrow<AssertionError> {
@@ -102,9 +96,9 @@ class ChildMatchersTest :
             }
 
             "reports children that differ in count" {
-                val first = Component.text("one")
-                val second = Component.text("two")
-                val component = Component.text().append(first).build()
+                val first = text("one")
+                val second = text("two")
+                val component = component { append(first) }
 
                 val failure =
                     shouldThrow<AssertionError> {
@@ -117,25 +111,21 @@ class ChildMatchersTest :
             }
 
             "matches a component contained anywhere in the tree" {
-                val needle = Component.text("world")
+                val needle = text("world")
                 val component =
-                    Component
-                        .text()
-                        .content("Hello ")
-                        .append(needle)
-                        .build()
+                    text("Hello ") {
+                        append(needle)
+                    }
 
                 component shouldContainComponent needle
             }
 
             "reports a component missing from the tree" {
-                val needle = Component.text("absent")
+                val needle = text("absent")
                 val component =
-                    Component
-                        .text()
-                        .content("Hello ")
-                        .append(Component.text("world"))
-                        .build()
+                    text("Hello ") {
+                        text("world")
+                    }
 
                 val failure =
                     shouldThrow<AssertionError> {
@@ -147,25 +137,21 @@ class ChildMatchersTest :
             }
 
             "matches the absence of a component from the tree" {
-                val needle = Component.text("absent")
+                val needle = text("absent")
                 val component =
-                    Component
-                        .text()
-                        .content("Hello ")
-                        .append(Component.text("world"))
-                        .build()
+                    text("Hello ") {
+                        text("world")
+                    }
 
                 component shouldNotContainComponent needle
             }
 
             "reports a component unexpectedly present in the tree" {
-                val needle = Component.text("world")
+                val needle = text("world")
                 val component =
-                    Component
-                        .text()
-                        .content("Hello ")
-                        .append(needle)
-                        .build()
+                    text("Hello ") {
+                        append(needle)
+                    }
 
                 val failure =
                     shouldThrow<AssertionError> {

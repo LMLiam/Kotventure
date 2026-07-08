@@ -42,8 +42,8 @@ class ClickEventDslTest :
 
                 events.forEach { (event, expected) ->
                     val (action, payload) = expected
-                    Component.text("Action").clickEvent(event) shouldHaveClickAction action
-                    Component.text("Action").clickEvent(event) shouldHaveClickTextPayload payload
+                    text("Action").clickEvent(event) shouldHaveClickAction action
+                    text("Action").clickEvent(event) shouldHaveClickTextPayload payload
                 }
             }
 
@@ -64,10 +64,10 @@ class ClickEventDslTest :
                         openFile("/tmp/example.txt")
                     }
 
-                Component.text("Url").clickEvent(urlEvent) shouldHaveClickAction ClickEvent.Action.OPEN_URL
-                Component.text("Url").clickEvent(urlEvent) shouldHaveClickTextPayload target
-                Component.text("File").clickEvent(fileEvent) shouldHaveClickAction ClickEvent.Action.OPEN_FILE
-                Component.text("File").clickEvent(fileEvent) shouldHaveClickTextPayload "/tmp/example.txt"
+                text("Url").clickEvent(urlEvent) shouldHaveClickAction ClickEvent.Action.OPEN_URL
+                text("Url").clickEvent(urlEvent) shouldHaveClickTextPayload target
+                text("File").clickEvent(fileEvent) shouldHaveClickAction ClickEvent.Action.OPEN_FILE
+                text("File").clickEvent(fileEvent) shouldHaveClickTextPayload "/tmp/example.txt"
             }
 
             "builds reusable change page click events with integer payloads" {
@@ -76,8 +76,8 @@ class ClickEventDslTest :
                         changePage(4)
                     }
 
-                Component.text("Page").clickEvent(event) shouldHaveClickAction ClickEvent.Action.CHANGE_PAGE
-                Component.text("Page").clickEvent(event) shouldHaveClickIntPayload 4
+                text("Page").clickEvent(event) shouldHaveClickAction ClickEvent.Action.CHANGE_PAGE
+                text("Page").clickEvent(event) shouldHaveClickIntPayload 4
             }
 
             "builds typed raw click events with Adventure validation" {
@@ -216,7 +216,7 @@ class ClickEventDslTest :
                     }
                 val audience = Audience.empty()
 
-                Component.text("Callback").clickEvent(event) shouldHaveClickEvent
+                text("Callback").clickEvent(event) shouldHaveClickEvent
                         RecordingClickCallbackProvider.lastEvent
                 RecordingClickCallbackProvider.lastOptions?.uses() shouldBe 3
                 RecordingClickCallbackProvider.lastOptions?.lifetime() shouldBe JavaDuration.ofMinutes(10)
@@ -238,7 +238,7 @@ class ClickEventDslTest :
                     }
                 val audience = Audience.empty()
 
-                Component.text("Callback").clickEvent(event) shouldHaveClickEvent
+                text("Callback").clickEvent(event) shouldHaveClickEvent
                         RecordingClickCallbackProvider.lastEvent
 
                 RecordingClickCallbackProvider.fire(audience)
@@ -263,7 +263,7 @@ class ClickEventDslTest :
                         }
                     }
 
-                Component.text("Callback").clickEvent(event) shouldHaveClickEvent
+                text("Callback").clickEvent(event) shouldHaveClickEvent
                         RecordingClickCallbackProvider.lastEvent
                 RecordingClickCallbackProvider.lastOptions shouldBe options
                 RecordingClickCallbackProvider.lastOptions?.uses() shouldBe 4

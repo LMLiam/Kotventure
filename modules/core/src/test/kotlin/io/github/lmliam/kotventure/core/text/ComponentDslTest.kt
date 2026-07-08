@@ -1,12 +1,18 @@
 package io.github.lmliam.kotventure.core.text
 
+import io.github.lmliam.kotventure.core.color.aqua
 import io.github.lmliam.kotventure.core.color.blue
+import io.github.lmliam.kotventure.core.color.gold
+import io.github.lmliam.kotventure.core.color.gray
+import io.github.lmliam.kotventure.core.color.green
 import io.github.lmliam.kotventure.core.color.red
+import io.github.lmliam.kotventure.core.color.yellow
 import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.keybind.keybind
 import io.github.lmliam.kotventure.core.nbt.blockNbt
+import io.github.lmliam.kotventure.core.nbt.blockPos
 import io.github.lmliam.kotventure.core.nbt.entityNbt
 import io.github.lmliam.kotventure.core.nbt.nbtPath
 import io.github.lmliam.kotventure.core.nbt.storageNbt
@@ -66,11 +72,11 @@ class ComponentDslTest :
             "applies color to the root text component" {
                 val component =
                     component {
-                        color(NamedTextColor.RED)
+                        color(red)
                         text("Warning")
                     }
 
-                component shouldHaveColor NamedTextColor.RED
+                component shouldHaveColor red
             }
 
             "appends nested text children in declaration order" {
@@ -79,7 +85,7 @@ class ComponentDslTest :
                         text("Hello ")
                         text {
                             content("world")
-                            color(NamedTextColor.AQUA)
+                            color(aqua)
                         }
                         text {
                             content("!")
@@ -89,7 +95,7 @@ class ComponentDslTest :
                 component shouldHaveChildCount 3
                 component.childAt(0) shouldContainText "Hello "
                 component.childAt(1) shouldContainText "world"
-                component.childAt(1) shouldHaveColor NamedTextColor.AQUA
+                component.childAt(1) shouldHaveColor aqua
                 component.childAt(2) shouldContainText "!"
             }
 
@@ -97,17 +103,17 @@ class ComponentDslTest :
                 val component =
                     component {
                         text("Hello") {
-                            color(NamedTextColor.AQUA)
+                            color(aqua)
                         }
                     }
 
                 component shouldHaveChildCount 1
                 component.childAt(0) shouldContainText "Hello"
-                component.childAt(0) shouldHaveColor NamedTextColor.AQUA
+                component.childAt(0) shouldHaveColor aqua
             }
 
             "appends existing Adventure components in declaration order" {
-                val badge = Component.text("[OK]", NamedTextColor.GREEN)
+                val badge = text("[OK]") { color(green) }
 
                 val component =
                     component {
@@ -140,7 +146,7 @@ class ComponentDslTest :
             }
 
             "appends specialized component children in declaration order" {
-                val separator = Component.text(", ")
+                val separator = text(", ")
 
                 val component =
                     component {
@@ -148,7 +154,7 @@ class ComponentDslTest :
                             fallback("Diamond")
                         }
                         keybind("key.jump") {
-                            color(NamedTextColor.YELLOW)
+                            color(yellow)
                         }
                         score("Alex", "kills")
                         selector(allPlayers()) {
@@ -160,7 +166,7 @@ class ComponentDslTest :
                 component.childAt(0) shouldHaveTranslationKey "item.minecraft.diamond"
                 val keybind = component.childAt(1).shouldBeKeybindComponent()
                 keybind shouldHaveKeybind "key.jump"
-                keybind shouldHaveColor NamedTextColor.YELLOW
+                keybind shouldHaveColor yellow
                 val score = component.childAt(2).shouldBeScoreComponent()
                 score shouldHaveScoreName "Alex"
                 score shouldHaveScoreObjective "kills"
@@ -170,8 +176,8 @@ class ComponentDslTest :
             }
 
             "appends nbt component children in declaration order" {
-                val pos = BlockNBTComponent.Pos.fromString("1 2 3")
-                val storage = Key.key("kotventure", "messages")
+                val pos = blockPos(1, 2, 3)
+                val storage = key("kotventure", "messages")
 
                 val component =
                     component {
@@ -193,7 +199,11 @@ class ComponentDslTest :
             }
 
             "applies a complete Adventure style" {
-                val style = Style.style(NamedTextColor.GOLD, TextDecoration.BOLD)
+                val style =
+                    style {
+                        color(gold)
+                        bold()
+                    }
 
                 val component =
                     component {
@@ -207,13 +217,13 @@ class ComponentDslTest :
                 val component =
                     component {
                         style {
-                            color(NamedTextColor.GOLD)
+                            color(gold)
                             bold()
                             underlined()
                         }
                     }
 
-                component shouldHaveColor NamedTextColor.GOLD
+                component shouldHaveColor gold
                 component shouldHaveDecoration TextDecoration.BOLD
                 component shouldHaveDecoration TextDecoration.UNDERLINED
             }
@@ -222,19 +232,19 @@ class ComponentDslTest :
                 val component =
                     component {
                         style {
-                            color(NamedTextColor.GRAY)
+                            color(gray)
                         }
                         text("child") {
                             style {
-                                color(NamedTextColor.AQUA)
+                                color(aqua)
                                 obfuscated()
                             }
                         }
                     }
 
-                component shouldHaveColor NamedTextColor.GRAY
+                component shouldHaveColor gray
                 component shouldHaveChildCount 1
-                component.childAt(0) shouldHaveColor NamedTextColor.AQUA
+                component.childAt(0) shouldHaveColor aqua
                 component.childAt(0) shouldHaveDecoration TextDecoration.OBFUSCATED
                 component.childAt(0) shouldNotHaveDecoration TextDecoration.BOLD
             }
@@ -242,7 +252,7 @@ class ComponentDslTest :
             "keeps style blocks additive with surrounding style calls" {
                 val styleAfterColor =
                     component {
-                        color(NamedTextColor.GOLD)
+                        color(gold)
                         style {
                             bold()
                         }
@@ -253,22 +263,22 @@ class ComponentDslTest :
                         style {
                             bold()
                         }
-                        color(NamedTextColor.GOLD)
+                        color(gold)
                     }
 
                 val styleAfterDecoration =
                     component {
                         bold()
                         style {
-                            color(NamedTextColor.GOLD)
+                            color(gold)
                         }
                     }
 
-                styleAfterColor shouldHaveColor NamedTextColor.GOLD
+                styleAfterColor shouldHaveColor gold
                 styleAfterColor shouldHaveDecoration TextDecoration.BOLD
-                colorAfterStyle shouldHaveColor NamedTextColor.GOLD
+                colorAfterStyle shouldHaveColor gold
                 colorAfterStyle shouldHaveDecoration TextDecoration.BOLD
-                styleAfterDecoration shouldHaveColor NamedTextColor.GOLD
+                styleAfterDecoration shouldHaveColor gold
                 styleAfterDecoration shouldHaveDecoration TextDecoration.BOLD
             }
 
@@ -387,7 +397,7 @@ class ComponentDslTest :
                             component {
                                 text {
                                     style {
-                                        color(NamedTextColor.GOLD)
+                                        color(gold)
                                         content("leaked")
                                     }
                                 }

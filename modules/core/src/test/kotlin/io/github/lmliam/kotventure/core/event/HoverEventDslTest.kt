@@ -1,5 +1,8 @@
 package io.github.lmliam.kotventure.core.event
 
+import io.github.lmliam.kotventure.core.color.aqua
+import io.github.lmliam.kotventure.core.color.darkGreen
+import io.github.lmliam.kotventure.core.color.green
 import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.nbt.nbt
@@ -32,14 +35,14 @@ class HoverEventDslTest :
                 val event =
                     hover {
                         text("Tooltip") {
-                            color(NamedTextColor.AQUA)
+                            color(aqua)
                         }
                     }
 
                 event.action() shouldBe HoverEvent.Action.SHOW_TEXT
                 val value = event.value() as Component
                 value shouldContainText "Tooltip"
-                value shouldHaveColor NamedTextColor.AQUA
+                value shouldHaveColor aqua
             }
 
             "builds reusable item hover events with data components from a block" {
@@ -119,7 +122,7 @@ class HoverEventDslTest :
 
             "builds reusable entity hover events with component names" {
                 val id = UUID.fromString("3f5f1f4e-29cb-4c98-93f0-3c7f4b52ddee")
-                val name = Component.text("Alex")
+                val name = text("Alex")
                 val event =
                     hover {
                         entity(
@@ -136,18 +139,19 @@ class HoverEventDslTest :
             "builds reusable entity hover events from keyed values" {
                 val id = UUID.fromString("0d1630e2-fc7c-48ef-b7a0-8dfb9e57ec25")
                 val entityType = Keyed { key("minecraft", "zombie") }
+                val name = text("Zombie")
                 val event =
                     hover {
                         entity(
                             type = entityType,
                             id = id,
-                            name = Component.text("Zombie"),
+                            name = name,
                         )
                     }
 
                 event.action() shouldBe HoverEvent.Action.SHOW_ENTITY
                 event.value() shouldBe
-                        HoverEvent.ShowEntity.showEntity(key("minecraft", "zombie"), id, Component.text("Zombie"))
+                        HoverEvent.ShowEntity.showEntity(key("minecraft", "zombie"), id, text("Zombie"))
             }
 
             "applies hover events through component scopes" {
@@ -172,7 +176,7 @@ class HoverEventDslTest :
                     }
 
                 component.childAt(0) shouldHaveHoverAction HoverEvent.Action.SHOW_TEXT
-                component.childAt(0) shouldHaveHoverText Component.text("Text hover")
+                component.childAt(0) shouldHaveHoverText text("Text hover")
                 component.childAt(1) shouldHaveHoverItem HoverEvent.ShowItem.showItem(key("minecraft", "stone"), 1)
                 component.childAt(2) shouldHaveHoverEntity
                         HoverEvent.ShowEntity.showEntity(key("minecraft", "zombie"), id)
@@ -185,11 +189,11 @@ class HoverEventDslTest :
                             hover {
                                 text {
                                     text("First") {
-                                        color(NamedTextColor.GREEN)
+                                        color(green)
                                     }
                                     newline()
                                     text("Second") {
-                                        color(NamedTextColor.DARK_GREEN)
+                                        color(darkGreen)
                                     }
                                 }
                             }
@@ -200,8 +204,8 @@ class HoverEventDslTest :
 
                 hoverText shouldContainText "First"
                 hoverText shouldContainText "Second"
-                hoverText.childAt(0) shouldHaveColor NamedTextColor.GREEN
-                hoverText.childAt(2) shouldHaveColor NamedTextColor.DARK_GREEN
+                hoverText.childAt(0) shouldHaveColor green
+                hoverText.childAt(2) shouldHaveColor darkGreen
             }
 
             "applies reusable hover events and styles" {
@@ -253,7 +257,7 @@ class HoverEventDslTest :
             }
 
             "builds typed raw hover events with Adventure validation" {
-                val value = Component.text("Raw")
+                val value = text("Raw")
                 val event = hoverEvent(HoverEvent.Action.SHOW_TEXT, value)
                 val component = component { hover(HoverEvent.Action.SHOW_TEXT, value) }
 

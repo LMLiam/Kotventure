@@ -1,5 +1,8 @@
 package io.github.lmliam.kotventure.core.style
 
+import io.github.lmliam.kotventure.core.color.aqua
+import io.github.lmliam.kotventure.core.color.black
+import io.github.lmliam.kotventure.core.color.gold
 import io.github.lmliam.kotventure.core.color.red
 import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.key.key
@@ -38,10 +41,10 @@ class StyleDslTest :
                 )
 
             "builds a reusable style with color font insertion and decoration states" {
-                val font = Key.key("minecraft", "uniform")
+                val font = key("minecraft", "uniform")
                 val header =
                     style {
-                        color(NamedTextColor.GOLD)
+                        color(gold)
                         font(font)
                         insertion("/help")
                         bold()
@@ -51,9 +54,9 @@ class StyleDslTest :
                         obfuscated(State.NOT_SET)
                     }
 
-                val component = Component.text("Title").style(header)
+                val component = text("Title").style(header)
 
-                component shouldHaveColor NamedTextColor.GOLD
+                component shouldHaveColor gold
                 component shouldHaveFont font
                 component shouldHaveInsertion "/help"
                 component.shouldHaveDecoration(TextDecoration.BOLD, State.TRUE)
@@ -64,10 +67,10 @@ class StyleDslTest :
             }
 
             "applies the same reusable style to multiple component builders" {
-                val font = Key.key("minecraft", "uniform")
+                val font = key("minecraft", "uniform")
                 val header =
                     style {
-                        color(NamedTextColor.AQUA)
+                        color(aqua)
                         font(font)
                         insertion("/warp spawn")
                         bold()
@@ -88,8 +91,8 @@ class StyleDslTest :
                     component.childAt(0).shouldHaveDecoration(decoration, header.decoration(decoration))
                     component.childAt(1).shouldHaveDecoration(decoration, header.decoration(decoration))
                 }
-                component.childAt(0) shouldHaveColor NamedTextColor.AQUA
-                component.childAt(1) shouldHaveColor NamedTextColor.AQUA
+                component.childAt(0) shouldHaveColor aqua
+                component.childAt(1) shouldHaveColor aqua
                 component.childAt(0) shouldHaveFont font
                 component.childAt(1) shouldHaveFont font
                 component.childAt(0) shouldHaveInsertion "/warp spawn"
@@ -123,14 +126,14 @@ class StyleDslTest :
                     }
 
                 decorations.forEach { decoration ->
-                    Component.text("enabled").style(enabled).shouldHaveDecoration(decoration, State.TRUE)
-                    Component.text("disabled").style(disabled).shouldHaveDecoration(decoration, State.FALSE)
-                    Component.text("unset").style(unset).shouldHaveDecoration(decoration, State.NOT_SET)
+                    text("enabled").style(enabled).shouldHaveDecoration(decoration, State.TRUE)
+                    text("disabled").style(disabled).shouldHaveDecoration(decoration, State.FALSE)
+                    text("unset").style(unset).shouldHaveDecoration(decoration, State.NOT_SET)
                 }
             }
 
             "sets component-local style attributes through the shared style scope" {
-                val font = Key.key("minecraft", "alt")
+                val font = key("minecraft", "alt")
                 val component =
                     component {
                         text("Styled") {
@@ -159,7 +162,7 @@ class StyleDslTest :
             "sets a raw shadow color on a reusable style and a component shortcut" {
                 val shadow = ShadowColor.shadowColor(0xFF112233.toInt())
 
-                val styled = Component.text("Spawn").style(style { shadow(shadow) })
+                val styled = text("Spawn").style(style { shadow(shadow) })
                 val component =
                     component {
                         text("Spawn") {
@@ -175,22 +178,22 @@ class StyleDslTest :
                 val opaque =
                     component {
                         text("Opaque") {
-                            shadow(NamedTextColor.BLACK)
+                            shadow(black)
                         }
                     }
                 val translucent =
                     component {
                         text("Translucent") {
-                            shadow(NamedTextColor.BLACK, alpha = 0x80)
+                            shadow(black, alpha = 0x80)
                         }
                     }
 
-                opaque.childAt(0) shouldHaveShadowColor ShadowColor.shadowColor(NamedTextColor.BLACK, 0xFF)
-                translucent.childAt(0) shouldHaveShadowColor ShadowColor.shadowColor(NamedTextColor.BLACK, 0x80)
+                opaque.childAt(0) shouldHaveShadowColor ShadowColor.shadowColor(black, 0xFF)
+                translucent.childAt(0) shouldHaveShadowColor ShadowColor.shadowColor(black, 0x80)
             }
 
             "clears the shadow color when null is provided" {
-                val base = Style.style().shadowColor(ShadowColor.shadowColor(0xFF112233.toInt())).build()
+                val base = style { shadow(ShadowColor.shadowColor(0xFF112233.toInt())) }
 
                 val component =
                     component {
@@ -205,8 +208,8 @@ class StyleDslTest :
                 val base =
                     Style
                         .style()
-                        .color(NamedTextColor.RED)
-                        .font(Key.key("minecraft", "uniform"))
+                        .color(red)
+                        .font(key("minecraft", "uniform"))
                         .insertion("/old")
                         .build()
 

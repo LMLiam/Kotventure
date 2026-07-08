@@ -213,7 +213,7 @@ class MiniMessageToDslTextRenderingTest :
 
                     assertGoldenRoundTrip(input, expectedSource, expected)
                     expected shouldHaveChildCount 1
-                    expected.childAt(0) shouldHaveColor NamedTextColor.RED
+                    expected.childAt(0) shouldHaveColor red
                     expected.childAt(0) shouldHaveDecoration TextDecoration.BOLD
                 }
 
@@ -242,7 +242,7 @@ class MiniMessageToDslTextRenderingTest :
 
                     assertGoldenRoundTrip(input, expectedSource, expected)
                     expected shouldHaveChildCount 1
-                    expected.childAt(0) shouldHaveColor NamedTextColor.GRAY
+                    expected.childAt(0) shouldHaveColor gray
                     expected.childAt(0).childAt(0) shouldHaveColor TextColor.color(0x12AB34)
                 }
 
@@ -295,9 +295,8 @@ class MiniMessageToDslTextRenderingTest :
 
                 test("emits shadow colours nested in children") {
                     val nested =
-                        Component
-                            .text("ok")
-                            .append(Component.text("bad").shadowColor(ShadowColor.shadowColor(0xFF112233.toInt())))
+                        text("ok")
+                            .append(text("bad").shadowColor(ShadowColor.shadowColor(0xFF112233.toInt())))
 
                     MiniMessageToDslWriter.write(nested) shouldBe
                             """
@@ -316,7 +315,7 @@ class MiniMessageToDslTextRenderingTest :
                         Component
                             .translatable()
                             .key("chat.type.text")
-                            .arguments(Component.text("Alex").shadowColor(ShadowColor.shadowColor(0xFF112233.toInt())))
+                            .arguments(text("Alex").shadowColor(ShadowColor.shadowColor(0xFF112233.toInt())))
                             .build()
 
                     MiniMessageToDslWriter.write(translatable) shouldBe
@@ -334,7 +333,7 @@ class MiniMessageToDslTextRenderingTest :
                 }
 
                 test("emits shadow colours nested in selector separators") {
-                    val separator = Component.text(", ").shadowColor(ShadowColor.shadowColor(0xFF112233.toInt()))
+                    val separator = text(", ").shadowColor(ShadowColor.shadowColor(0xFF112233.toInt()))
                     val selector = Component.selector("@e").separator(separator)
 
                     MiniMessageToDslWriter.write(selector) shouldBe
@@ -354,8 +353,8 @@ class MiniMessageToDslTextRenderingTest :
                 }
 
                 test("emits shadow colours nested in hover text payloads") {
-                    val payload = Component.text("tip").shadowColor(ShadowColor.shadowColor(0xFF112233.toInt()))
-                    val component = Component.text("hover me").hoverEvent(HoverEvent.showText(payload))
+                    val payload = text("tip") { shadow(ShadowColor.shadowColor(0xFF112233.toInt())) }
+                    val component = text("hover me") { hover(payload) }
 
                     MiniMessageToDslWriter.write(component) shouldBe
                             """

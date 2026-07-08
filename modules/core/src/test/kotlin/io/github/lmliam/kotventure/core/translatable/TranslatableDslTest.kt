@@ -1,5 +1,8 @@
 package io.github.lmliam.kotventure.core.translatable
 
+import io.github.lmliam.kotventure.core.color.aqua
+import io.github.lmliam.kotventure.core.color.gold
+import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldHaveArgumentCount
 import io.github.lmliam.kotventure.test.text.shouldHaveArguments
@@ -48,7 +51,7 @@ class TranslatableDslTest :
             }
 
             "adds a component argument" {
-                val item = Component.text("Diamond")
+                val item = text("Diamond")
 
                 val component =
                     translatable("item.count") {
@@ -63,12 +66,12 @@ class TranslatableDslTest :
                     translatable("chat.type.text") {
                         arg {
                             content("Alex")
-                            color(NamedTextColor.AQUA)
+                            color(aqua)
                         }
                     }
 
                 component.shouldHaveArguments(
-                    TranslationArgument.component(Component.text("Alex").color(NamedTextColor.AQUA)),
+                    TranslationArgument.component(text("Alex") { color(aqua) }),
                 )
             }
 
@@ -86,8 +89,8 @@ class TranslatableDslTest :
             }
 
             "adds multiple component arguments at once" {
-                val player = Component.text("Alex")
-                val item = Component.text("Diamond")
+                val player = text("Alex")
+                val item = text("Diamond")
 
                 val component =
                     translatable("chat.type.item") {
@@ -127,20 +130,20 @@ class TranslatableDslTest :
             "applies style to the translatable root" {
                 val component =
                     translatable("menu.title") {
-                        color(NamedTextColor.GOLD)
+                        color(gold)
                         bold()
                         style {
                             underlined()
                         }
                     }
 
-                component shouldHaveColor NamedTextColor.GOLD
+                component shouldHaveColor gold
                 component shouldHaveDecoration TextDecoration.BOLD
                 component shouldHaveDecoration TextDecoration.UNDERLINED
             }
 
             "appends child components" {
-                val suffix = Component.text(" unlocked")
+                val suffix = text(" unlocked")
 
                 val component =
                     translatable("advancements.toast.task") {
@@ -152,8 +155,8 @@ class TranslatableDslTest :
             }
 
             "combines fallback arguments style and children" {
-                val player = Component.text("Alex")
-                val suffix = Component.text("!")
+                val player = text("Alex")
+                val suffix = text("!")
 
                 val component =
                     translatable("quest.progress") {
@@ -161,7 +164,7 @@ class TranslatableDslTest :
                         arg(player)
                         arg(false)
                         arg(12.5)
-                        color(NamedTextColor.AQUA)
+                        color(aqua)
                         italic()
                         append(suffix)
                     }
@@ -173,7 +176,7 @@ class TranslatableDslTest :
                     TranslationArgument.bool(false),
                     TranslationArgument.numeric(12.5),
                 )
-                component shouldHaveColor NamedTextColor.AQUA
+                component shouldHaveColor aqua
                 component shouldHaveDecoration TextDecoration.ITALIC
                 component.childAt(0) shouldBe suffix
             }

@@ -1,7 +1,12 @@
 package io.github.lmliam.kotventure.serializer
 
+import io.github.lmliam.kotventure.core.color.aqua
+import io.github.lmliam.kotventure.core.color.gold
+import io.github.lmliam.kotventure.core.color.green
 import io.github.lmliam.kotventure.core.color.hex
+import io.github.lmliam.kotventure.core.color.red
 import io.github.lmliam.kotventure.core.component.component
+import io.github.lmliam.kotventure.core.event.click
 import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.nbt.nbt
 import io.github.lmliam.kotventure.core.objectcomponent.display
@@ -40,10 +45,10 @@ class ComponentSerializerExtensionsTest :
                 val message =
                     component {
                         text("Hello ") {
-                            color(NamedTextColor.AQUA)
+                            color(aqua)
                         }
                         text("world") {
-                            color(NamedTextColor.GOLD)
+                            color(gold)
                         }
                     }
 
@@ -51,7 +56,7 @@ class ComponentSerializerExtensionsTest :
             }
 
             "deserializes plain text strings" {
-                val message = Component.text("Hello world")
+                val message = text("Hello world")
 
                 message shouldContainText "Hello world"
                 message.shouldNotHaveColor()
@@ -61,7 +66,7 @@ class ComponentSerializerExtensionsTest :
                 val message = "&aHello".asLegacyAmpersandComponent()
 
                 message shouldContainText "Hello"
-                message shouldHaveColor NamedTextColor.GREEN
+                message shouldHaveColor green
                 message.toLegacyAmpersand() shouldBe "&aHello"
             }
 
@@ -69,24 +74,31 @@ class ComponentSerializerExtensionsTest :
                 val message = "\u00a7bHello".asLegacySectionComponent()
 
                 message shouldContainText "Hello"
-                message shouldHaveColor NamedTextColor.AQUA
+                message shouldHaveColor aqua
                 message.toLegacySection() shouldBe "\u00a7bHello"
             }
 
             "round-trips JSON strings with color and events" {
+                val spawnClick =
+                    click {
+                        run("/spawn")
+                    }
                 val message =
-                    Component
-                        .text("Portal", hex("#123ABC"))
-                        .clickEvent(ClickEvent.runCommand("/spawn"))
-                        .hoverEvent(Component.text("Teleport"))
+                    text("Portal") {
+                        color(hex("#123ABC"))
+                        click(spawnClick)
+                        hover {
+                            text("Teleport")
+                        }
+                    }
 
                 val json = message.toJson()
                 val roundTripped = json.asJsonComponent()
 
                 roundTripped shouldContainText "Portal"
                 roundTripped shouldHaveColor hex("#123ABC")
-                roundTripped shouldHaveClickEvent ClickEvent.runCommand("/spawn")
-                roundTripped shouldHaveHoverText Component.text("Teleport")
+                roundTripped shouldHaveClickEvent spawnClick
+                roundTripped shouldHaveHoverText text("Teleport")
             }
 
             "deserializes legacy item hover JSON strings" {
@@ -124,14 +136,14 @@ class ComponentSerializerExtensionsTest :
                 val message = MiniMessage.miniMessage().deserialize("<red>Hello")
 
                 message shouldContainText "Hello"
-                message shouldHaveColor NamedTextColor.RED
+                message shouldHaveColor red
             }
 
             "round-trips MiniMessage output through Adventure" {
                 val message =
                     component {
                         text("Alert") {
-                            color(NamedTextColor.RED)
+                            color(red)
                         }
                     }
 
@@ -141,7 +153,7 @@ class ComponentSerializerExtensionsTest :
                 val roundTripped = MiniMessage.miniMessage().deserialize(serialized)
 
                 roundTripped shouldContainText "Alert"
-                roundTripped shouldHaveColor NamedTextColor.RED
+                roundTripped shouldHaveColor red
             }
 
             "serializes hex colors with Adventure MiniMessage formatting" {
@@ -165,7 +177,7 @@ class ComponentSerializerExtensionsTest :
                 val message =
                     component {
                         text("ace") {
-                            gradient(NamedTextColor.RED, NamedTextColor.GOLD, NamedTextColor.AQUA)
+                            gradient(red, gold, aqua)
                         }
                     }
 
@@ -176,9 +188,9 @@ class ComponentSerializerExtensionsTest :
 
                 roundTripped shouldContainText "ace"
                 roundTripped shouldHaveChildCount 3
-                roundTripped.childAt(0) shouldHaveColor NamedTextColor.RED
-                roundTripped.childAt(1) shouldHaveColor NamedTextColor.GOLD
-                roundTripped.childAt(2) shouldHaveColor NamedTextColor.AQUA
+                roundTripped.childAt(0) shouldHaveColor red
+                roundTripped.childAt(1) shouldHaveColor gold
+                roundTripped.childAt(2) shouldHaveColor aqua
             }
 
             "serializes object components to plain text" {
@@ -212,7 +224,7 @@ class ComponentSerializerExtensionsTest :
 
                 val roundTripped = MiniMessage.miniMessage().deserialize(message.toMiniMessage())
 
-                roundTripped shouldHaveHoverText Component.text("Tooltip")
+                roundTripped shouldHaveHoverText text("Tooltip")
             }
 
             "round-trips item hover payload data components through MiniMessage" {
@@ -243,7 +255,7 @@ class ComponentSerializerExtensionsTest :
                     HoverEvent.ShowEntity.showEntity(
                         key("minecraft", "player"),
                         id,
-                        Component.text("Alex"),
+                        text("Alex"),
                     )
                 val message =
                     component {

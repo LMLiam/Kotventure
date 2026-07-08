@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.minimessage.external
 
+import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.minimessage.template.MiniTemplate
 import io.github.lmliam.kotventure.minimessage.template.bind
 import io.github.lmliam.kotventure.minimessage.template.invoke
@@ -18,7 +19,7 @@ class MiniTemplateExternalDslTest :
             "renders with unqualified placeholders from another package" {
                 val rendered =
                     ExternalWelcomeTemplate {
-                        player bind Component.text("Alex")
+                        player bind text("Alex")
                         count bind 3
                     }
 

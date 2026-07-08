@@ -1,11 +1,14 @@
 package io.github.lmliam.kotventure.core.nbt
 
+import io.github.lmliam.kotventure.core.color.aqua
+import io.github.lmliam.kotventure.core.color.gray
 import io.github.lmliam.kotventure.core.selector.allPlayers
 import io.github.lmliam.kotventure.core.selector.entities
 import io.github.lmliam.kotventure.core.selector.nearestPlayer
 import io.github.lmliam.kotventure.core.selector.parseSelector
 import io.github.lmliam.kotventure.core.selector.randomPlayer
 import io.github.lmliam.kotventure.core.selector.self
+import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldBeEntityNbtComponent
 import io.github.lmliam.kotventure.test.text.shouldContainText
@@ -52,20 +55,20 @@ class EntityNbtDslTest :
             "applies style to the entity nbt root" {
                 val component =
                     entityNbt(randomPlayer(), nbtPath("CustomName")) {
-                        color(NamedTextColor.AQUA)
+                        color(aqua)
                         bold()
                         style {
                             underlined()
                         }
                     }
 
-                component shouldHaveColor NamedTextColor.AQUA
+                component shouldHaveColor aqua
                 component shouldHaveDecoration TextDecoration.BOLD
                 component shouldHaveDecoration TextDecoration.UNDERLINED
             }
 
             "appends child components" {
-                val suffix = Component.text(" entity")
+                val suffix = text(" entity")
 
                 val component =
                     entityNbt(nearestPlayer(), nbtPath("CustomName")) {
@@ -86,7 +89,7 @@ class EntityNbtDslTest :
             }
 
             "sets a component separator" {
-                val separator = Component.text(", ")
+                val separator = text(", ")
                 val path = nbtPath("Inventory")[all]["id"]
 
                 val component =
@@ -102,13 +105,13 @@ class EntityNbtDslTest :
                     entityNbt(allPlayers(), nbtPath("Inventory[].id")) {
                         separator {
                             content(" | ")
-                            color(NamedTextColor.GRAY)
+                            color(gray)
                         }
                     }.shouldBeEntityNbtComponent()
 
                 val separator = checkNotNull(component.separator())
 
-                separator shouldHaveColor NamedTextColor.GRAY
+                separator shouldHaveColor gray
                 separator shouldContainText " | "
             }
 

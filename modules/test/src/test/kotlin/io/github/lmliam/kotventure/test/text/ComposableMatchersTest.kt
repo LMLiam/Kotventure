@@ -1,5 +1,10 @@
 package io.github.lmliam.kotventure.test.text
 
+import io.github.lmliam.kotventure.core.color.aqua
+import io.github.lmliam.kotventure.core.color.blue
+import io.github.lmliam.kotventure.core.color.green
+import io.github.lmliam.kotventure.core.color.red
+import io.github.lmliam.kotventure.core.text.text
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.and
@@ -16,20 +21,20 @@ class ComposableMatchersTest :
         {
             "composes attribute matchers with and" {
                 val component =
-                    Component
-                        .text("Alert")
-                        .color(NamedTextColor.RED)
-                        .decoration(TextDecoration.BOLD, true)
+                    text("Alert") {
+                        color(red)
+                        bold()
+                    }
 
-                component should (haveColor(NamedTextColor.RED) and haveDecoration(TextDecoration.BOLD))
+                component should (haveColor(red) and haveDecoration(TextDecoration.BOLD))
             }
 
             "fails a composed and matcher reporting the unmet attribute" {
-                val component = Component.text("Alert").color(NamedTextColor.RED)
+                val component = text("Alert") { color(red) }
 
                 val failure =
                     shouldThrow<AssertionError> {
-                        component should (haveColor(NamedTextColor.RED) and haveDecoration(TextDecoration.BOLD))
+                        component should (haveColor(red) and haveDecoration(TextDecoration.BOLD))
                     }
                 val expectedMessage =
                     "Expected component decoration <${TextDecoration.BOLD}> to be <TRUE>, but was <NOT_SET>."
@@ -38,58 +43,58 @@ class ComposableMatchersTest :
             }
 
             "composes attribute matchers with or" {
-                val component = Component.text("Alert").color(NamedTextColor.BLUE)
+                val component = text("Alert") { color(blue) }
 
-                component should (haveColor(NamedTextColor.RED) or haveColor(NamedTextColor.BLUE))
+                component should (haveColor(red) or haveColor(blue))
             }
 
             "fails a composed or matcher when no branch matches" {
-                val component = Component.text("Alert").color(NamedTextColor.GREEN)
+                val component = text("Alert") { color(green) }
 
                 val failure =
                     shouldThrow<AssertionError> {
-                        component should (haveColor(NamedTextColor.RED) or haveColor(NamedTextColor.BLUE))
+                        component should (haveColor(red) or haveColor(blue))
                     }
 
                 failure.message shouldContain "component color"
             }
 
             "negates a matcher with shouldNot" {
-                val component = Component.text("Alert").color(NamedTextColor.RED)
+                val component = text("Alert") { color(red) }
 
-                component shouldNot haveColor(NamedTextColor.BLUE)
+                component shouldNot haveColor(blue)
             }
 
             "reports the negated failure message when a negated matcher matches" {
-                val component = Component.text("Alert").color(NamedTextColor.RED)
+                val component = text("Alert") { color(red) }
 
                 val failure =
                     shouldThrow<AssertionError> {
-                        component shouldNot haveColor(NamedTextColor.RED)
+                        component shouldNot haveColor(red)
                     }
-                val expectedMessage = "Expected component color not to be <${NamedTextColor.RED}>."
+                val expectedMessage = "Expected component color not to be <$red>."
 
                 failure.message shouldContain expectedMessage
             }
 
             "composes matchers across different component attributes" {
                 val component =
-                    Component
-                        .text("Greeting")
-                        .color(NamedTextColor.AQUA)
-                        .decoration(TextDecoration.ITALIC, true)
+                    text("Greeting") {
+                        color(aqua)
+                        italic()
+                    }
 
                 component should
                         (
-                                containText("Greet") and haveColor(NamedTextColor.AQUA) and
+                                containText("Greet") and haveColor(aqua) and
                                         haveDecoration(TextDecoration.ITALIC)
                                 )
             }
 
             "inverts a matcher to assert the opposite" {
-                val component = Component.text("Alert").color(NamedTextColor.RED)
+                val component = text("Alert") { color(red) }
 
-                component should haveColor(NamedTextColor.BLUE).invert()
+                component should haveColor(blue).invert()
             }
         },
     )

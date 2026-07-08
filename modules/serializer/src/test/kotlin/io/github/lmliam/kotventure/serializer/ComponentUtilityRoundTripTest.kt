@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.serializer
 
+import io.github.lmliam.kotventure.core.color.gold
 import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.text.asSequence
 import io.github.lmliam.kotventure.core.text.text
@@ -21,8 +22,8 @@ class ComponentUtilityRoundTripTest :
             "compaction preserves rendered text and round-trips losslessly through json" {
                 val message =
                     component {
-                        text("Hello, ") { color(NamedTextColor.GOLD) }
-                        text("world") { color(NamedTextColor.GOLD) }
+                        text("Hello, ") { color(gold) }
+                        text("world") { color(gold) }
                     }
 
                 val compacted = message.compact()

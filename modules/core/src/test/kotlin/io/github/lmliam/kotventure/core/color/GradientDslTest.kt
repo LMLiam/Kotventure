@@ -15,33 +15,33 @@ class GradientDslTest :
     StringSpec(
         {
             "renders a multi stop gradient as one styled child per code point" {
-                val message = gradientText("abcde", NamedTextColor.RED, NamedTextColor.GOLD, NamedTextColor.AQUA)
+                val message = gradientText("abcde", red, gold, aqua)
 
                 message shouldContainText "abcde"
                 message shouldHaveChildCount 5
                 message.childAt(0) shouldContainText "a"
-                message.childAt(0) shouldHaveColor NamedTextColor.RED
+                message.childAt(0) shouldHaveColor red
                 message.childAt(1) shouldContainText "b"
-                message.childAt(1) shouldHaveColor interpolate(0.5f, NamedTextColor.RED, NamedTextColor.GOLD)
+                message.childAt(1) shouldHaveColor interpolate(0.5f, red, gold)
                 message.childAt(2) shouldContainText "c"
-                message.childAt(2) shouldHaveColor NamedTextColor.GOLD
+                message.childAt(2) shouldHaveColor gold
                 message.childAt(3) shouldContainText "d"
-                message.childAt(3) shouldHaveColor interpolate(0.5f, NamedTextColor.GOLD, NamedTextColor.AQUA)
+                message.childAt(3) shouldHaveColor interpolate(0.5f, gold, aqua)
                 message.childAt(4) shouldContainText "e"
-                message.childAt(4) shouldHaveColor NamedTextColor.AQUA
+                message.childAt(4) shouldHaveColor aqua
             }
 
             "handles empty single character and supplementary code point text deterministically" {
-                val empty = gradientText("", NamedTextColor.RED, NamedTextColor.BLUE)
-                val single = gradientText("x", NamedTextColor.RED, NamedTextColor.BLUE)
+                val empty = gradientText("", red, blue)
+                val single = gradientText("x", red, blue)
                 val symbol = "\uD834\uDD1E"
-                val mixed = gradientText("A${symbol}B", NamedTextColor.RED, NamedTextColor.GOLD)
+                val mixed = gradientText("A${symbol}B", red, gold)
 
                 empty shouldHaveChildCount 0
 
                 single shouldHaveChildCount 1
                 single.childAt(0) shouldContainText "x"
-                single.childAt(0) shouldHaveColor NamedTextColor.RED
+                single.childAt(0) shouldHaveColor red
 
                 mixed shouldContainText "A${symbol}B"
                 mixed shouldHaveChildCount 3
@@ -55,7 +55,7 @@ class GradientDslTest :
                     component {
                         text(">")
                         text("abc") {
-                            gradient(NamedTextColor.RED, NamedTextColor.GOLD, NamedTextColor.AQUA)
+                            gradient(red, gold, aqua)
                         }
                         text("<")
                     }
@@ -66,11 +66,11 @@ class GradientDslTest :
                 message.childAt(1) shouldContainText "abc"
                 message.childAt(1) shouldHaveChildCount 3
                 message.childAt(1).childAt(0) shouldContainText "a"
-                message.childAt(1).childAt(0) shouldHaveColor NamedTextColor.RED
+                message.childAt(1).childAt(0) shouldHaveColor red
                 message.childAt(1).childAt(1) shouldContainText "b"
-                message.childAt(1).childAt(1) shouldHaveColor NamedTextColor.GOLD
+                message.childAt(1).childAt(1) shouldHaveColor gold
                 message.childAt(1).childAt(2) shouldContainText "c"
-                message.childAt(1).childAt(2) shouldHaveColor NamedTextColor.AQUA
+                message.childAt(1).childAt(2) shouldHaveColor aqua
                 message.childAt(2) shouldContainText "<"
             }
 
@@ -93,7 +93,7 @@ class GradientDslTest :
 
             "rejects gradients with fewer than two stops" {
                 shouldThrow<IllegalArgumentException> {
-                    gradient(NamedTextColor.RED)
+                    gradient(red)
                 }
 
                 shouldThrow<IllegalArgumentException> {
@@ -102,12 +102,12 @@ class GradientDslTest :
             }
 
             "stores gradient stops immutably" {
-                val stops = mutableListOf(NamedTextColor.RED, NamedTextColor.BLUE)
+                val stops = mutableListOf(red, blue)
                 val gradient = gradient(stops)
 
-                stops[0] = NamedTextColor.GREEN
+                stops[0] = green
 
-                gradient.stops shouldBe listOf(NamedTextColor.RED, NamedTextColor.BLUE)
+                gradient.stops shouldBe listOf(red, blue)
             }
         },
     )

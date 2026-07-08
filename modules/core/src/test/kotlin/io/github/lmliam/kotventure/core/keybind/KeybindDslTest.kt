@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.core.keybind
 
+import io.github.lmliam.kotventure.core.color.gold
 import io.github.lmliam.kotventure.core.score.score
 import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.test.text.childAt
@@ -30,20 +31,20 @@ class KeybindDslTest :
             "applies style to the keybind root" {
                 val component =
                     keybind("key.inventory") {
-                        color(NamedTextColor.GOLD)
+                        color(gold)
                         bold()
                         style {
                             underlined()
                         }
                     }
 
-                component shouldHaveColor NamedTextColor.GOLD
+                component shouldHaveColor gold
                 component shouldHaveDecoration TextDecoration.BOLD
                 component shouldHaveDecoration TextDecoration.UNDERLINED
             }
 
             "appends child components" {
-                val suffix = Component.text(" to open inventory")
+                val suffix = text(" to open inventory")
 
                 val component =
                     keybind("key.inventory") {

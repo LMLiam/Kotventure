@@ -1,5 +1,7 @@
 package io.github.lmliam.kotventure.test.text
 
+import io.github.lmliam.kotventure.core.key.key
+import io.github.lmliam.kotventure.core.text.text
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.string.shouldContain
@@ -11,8 +13,8 @@ class ObjectComponentMatchersTest :
     StringSpec(
         {
             "matches object component contents and fallback" {
-                val contents = ObjectContents.sprite(Key.key("minecraft", "block/stone"))
-                val fallback = Component.text("[stone]")
+                val contents = ObjectContents.sprite(key("minecraft", "block/stone"))
+                val fallback = text("[stone]")
                 val component =
                     Component
                         .`object`()
@@ -26,7 +28,7 @@ class ObjectComponentMatchersTest :
             }
 
             "matches object components without fallback" {
-                val contents = ObjectContents.sprite(Key.key("minecraft", "block/stone"))
+                val contents = ObjectContents.sprite(key("minecraft", "block/stone"))
 
                 Component.`object`(contents).shouldBeObjectComponent().shouldNotHaveObjectFallback()
             }
@@ -34,7 +36,7 @@ class ObjectComponentMatchersTest :
             "reports non-object components before object assertions" {
                 val failure =
                     shouldThrow<AssertionError> {
-                        Component.text("plain").shouldBeObjectComponent()
+                        text("plain").shouldBeObjectComponent()
                     }
                 val expectedMessage = "Expected object component, but was <TextComponentImpl>."
 
@@ -42,8 +44,8 @@ class ObjectComponentMatchersTest :
             }
 
             "reports object contents mismatches" {
-                val actual = ObjectContents.sprite(Key.key("minecraft", "block/stone"))
-                val expected = ObjectContents.sprite(Key.key("minecraft", "block/dirt"))
+                val actual = ObjectContents.sprite(key("minecraft", "block/stone"))
+                val expected = ObjectContents.sprite(key("minecraft", "block/dirt"))
 
                 val failure =
                     shouldThrow<AssertionError> {
@@ -55,9 +57,9 @@ class ObjectComponentMatchersTest :
             }
 
             "reports object fallback mismatches" {
-                val contents = ObjectContents.sprite(Key.key("minecraft", "block/stone"))
-                val actual = Component.text("[stone]")
-                val expected = Component.text("[dirt]")
+                val contents = ObjectContents.sprite(key("minecraft", "block/stone"))
+                val actual = text("[stone]")
+                val expected = text("[dirt]")
 
                 val failure =
                     shouldThrow<AssertionError> {
@@ -74,8 +76,8 @@ class ObjectComponentMatchersTest :
             }
 
             "reports missing object fallback" {
-                val contents = ObjectContents.sprite(Key.key("minecraft", "block/stone"))
-                val expected = Component.text("[stone]")
+                val contents = ObjectContents.sprite(key("minecraft", "block/stone"))
+                val expected = text("[stone]")
 
                 val failure =
                     shouldThrow<AssertionError> {
@@ -87,8 +89,8 @@ class ObjectComponentMatchersTest :
             }
 
             "reports unexpected object fallback" {
-                val contents = ObjectContents.sprite(Key.key("minecraft", "block/stone"))
-                val fallback = Component.text("[stone]")
+                val contents = ObjectContents.sprite(key("minecraft", "block/stone"))
+                val fallback = text("[stone]")
 
                 val failure =
                     shouldThrow<AssertionError> {
