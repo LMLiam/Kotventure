@@ -122,6 +122,9 @@ public fun component(init: TextScope.() -> Unit): Component =
 ## Smell check before committing
 
 - Could a reviewer understand this file's one job from its name? If not, split it.
+- **Exactly one top-level class/interface/object per file** (AGENTS.md §5 hard rule). Scope + builder = two files
+  (`FooScope.kt`, `FooBuilder.kt`); base + subtype = two files. Run this check on every new file before committing —
+  the maintainer rejects violations on sight. Feature-grouped top-level functions/vals sharing a file are fine.
 - Does any public declaration lack a visibility modifier, return type, or KDoc? Fix it (`explicitApi()` will fail
   otherwise).
 - Is there a builder field that escapes mutable? Make the output immutable.

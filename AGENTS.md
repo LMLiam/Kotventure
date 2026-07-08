@@ -75,6 +75,10 @@ See `docs/DESIGN.md` §4 for the full map. Non-negotiables:
 ### Single Responsibility (SRP)
 
 - One file / class / object = **one reason to change**. If a file does two things, split it.
+- **Hard rule — one top-level class/interface/object per file**, named after it. Never co-locate two, however
+  related: a scope and its builder are two files (`FooScope.kt` + `FooBuilder.kt`), a base and its subtype are two
+  files. Only a feature's top-level *functions/properties* may share a file (e.g. `NamedColors.kt`). This is checked
+  in every review; violations are an automatic rework.
 - Prefer **many small, focused files** over a few large ones. A file you can't hold in your head is too big.
 - A function does one thing at one level of abstraction. Extract when it grows, nests deeply, or needs a comment to
   explain a block.
