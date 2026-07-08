@@ -4,10 +4,15 @@ import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 /**
- * A builder slot that may be assigned at most once; the failure message reuses the delegated property's
- * name, so a slot's DSL name and its diagnostic cannot drift apart.
+ * A builder slot that may be assigned at most once.
+ *
+ * The failure message uses [slotName] when provided, otherwise the delegated property's name, so a
+ * slot's DSL name and its diagnostic cannot drift apart — even when the backing property must use a
+ * different name (e.g. it collides with a scope-bound val).
  */
-internal class OnceAssign<T> : ReadWriteProperty<Any?, T?> {
+internal class OnceAssign<T>(
+    private val slotName: String? = null,
+) : ReadWriteProperty<Any?, T?> {
     private var assigned = false
     private var value: T? = null
 
@@ -24,11 +29,16 @@ internal class OnceAssign<T> : ReadWriteProperty<Any?, T?> {
         property: KProperty<*>,
         value: T?,
     ) {
-        check(!assigned) { "'${property.name}' is already set." }
+        check(!assigned) { "'${slotName ?: property.name}' is already set." }
         assigned = true
         this.value = value
     }
 }
 
-/** Creates a [OnceAssign] slot for a `by`-delegated builder property. */
-internal fun <T> once(): OnceAssign<T> = OnceAssign()
+/**
+ * Creates a [OnceAssign] slot for a `by`-delegated builder property.
+ *
+ * @param slotName optional DSL slot name for the failure message when the property name is not the
+ *   public slot name.
+ */
+internal fun <T> once(slotName: String? = null): OnceAssign<T> = OnceAssign(slotName)

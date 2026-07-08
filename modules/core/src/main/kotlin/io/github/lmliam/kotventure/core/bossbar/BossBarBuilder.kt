@@ -10,9 +10,7 @@ import net.kyori.adventure.text.ComponentLike
 internal class BossBarBuilder : BossBarScope {
     private var name: Component? by once()
 
-    // Cannot use `by once()` named `progress` — that name is the scope-bound Overlay property.
-    private var progressAssigned = false
-    private var progressValue: Float? = null
+    private var progressValue: Float? by once(slotName = "progress")
 
     private var color: BossBar.Color? by once()
     private var overlay: BossBar.Overlay? by once()
@@ -27,8 +25,6 @@ internal class BossBarBuilder : BossBarScope {
     }
 
     override fun progress(progress: Float) {
-        check(!progressAssigned) { "'progress' is already set." }
-        progressAssigned = true
         progressValue = progress
     }
 

@@ -1,8 +1,16 @@
 package io.github.lmliam.kotventure.core.bossbar
 
 import io.github.lmliam.kotventure.core.audience.audienceOf
+import io.github.lmliam.kotventure.core.audience.bossBar
+import io.github.lmliam.kotventure.core.audience.hide
+import io.github.lmliam.kotventure.core.audience.show
 import io.github.lmliam.kotventure.core.color.gold
 import io.github.lmliam.kotventure.core.text.text
+import io.github.lmliam.kotventure.test.bossbar.shouldHaveColor
+import io.github.lmliam.kotventure.test.bossbar.shouldHaveFlags
+import io.github.lmliam.kotventure.test.bossbar.shouldHaveNoFlags
+import io.github.lmliam.kotventure.test.bossbar.shouldHaveOverlay
+import io.github.lmliam.kotventure.test.bossbar.shouldHaveProgress
 import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.github.lmliam.kotventure.test.text.shouldHaveColor
@@ -47,15 +55,15 @@ class BossBarDslTest :
 
                 bar.name().childAt(0) shouldContainText "Ender Dragon"
                 bar.name().childAt(0) shouldHaveColor gold
-                bar.progress() shouldBe 0.25f
-                bar.color() shouldBe BossBar.Color.RED
-                bar.overlay() shouldBe BossBar.Overlay.NOTCHED_10
-                bar.flags() shouldBe
-                        setOf(
-                            BossBar.Flag.DARKEN_SCREEN,
-                            BossBar.Flag.PLAY_BOSS_MUSIC,
-                            BossBar.Flag.CREATE_WORLD_FOG,
-                        )
+                bar shouldHaveProgress 0.25f
+                bar shouldHaveColor BossBar.Color.RED
+                bar shouldHaveOverlay BossBar.Overlay.NOTCHED_10
+                bar shouldHaveFlags
+                    setOf(
+                        BossBar.Flag.DARKEN_SCREEN,
+                        BossBar.Flag.PLAY_BOSS_MUSIC,
+                        BossBar.Flag.CREATE_WORLD_FOG,
+                    )
             }
 
             "defaults produce a full pink progress bar with no flags" {
@@ -65,10 +73,10 @@ class BossBarDslTest :
                     }
 
                 bar.name().childAt(0) shouldContainText "Raid"
-                bar.progress() shouldBe BossBar.MAX_PROGRESS
-                bar.color() shouldBe BossBar.Color.PINK
-                bar.overlay() shouldBe BossBar.Overlay.PROGRESS
-                bar.flags() shouldBe emptySet()
+                bar shouldHaveProgress BossBar.MAX_PROGRESS
+                bar shouldHaveColor BossBar.Color.PINK
+                bar shouldHaveOverlay BossBar.Overlay.PROGRESS
+                bar.shouldHaveNoFlags()
             }
 
             "accepts an existing component for the name" {
@@ -87,8 +95,8 @@ class BossBarDslTest :
                         overlay(notched20)
                     }
 
-                bar.color() shouldBe BossBar.Color.BLUE
-                bar.overlay() shouldBe BossBar.Overlay.NOTCHED_20
+                bar shouldHaveColor BossBar.Color.BLUE
+                bar shouldHaveOverlay BossBar.Overlay.NOTCHED_20
             }
 
             "progress overlay property coexists with progress function" {
@@ -99,8 +107,8 @@ class BossBarDslTest :
                         overlay(progress)
                     }
 
-                bar.progress() shouldBe 0.5f
-                bar.overlay() shouldBe BossBar.Overlay.PROGRESS
+                bar shouldHaveProgress 0.5f
+                bar shouldHaveOverlay BossBar.Overlay.PROGRESS
             }
 
             "shows and hides a built bar" {
@@ -125,8 +133,8 @@ class BossBarDslTest :
 
                 audience.shown shouldContainExactly listOf(bar)
                 bar.name().childAt(0) shouldContainText "Raid"
-                bar.color() shouldBe BossBar.Color.GREEN
-                bar.progress() shouldBe BossBar.MAX_PROGRESS
+                bar shouldHaveColor BossBar.Color.GREEN
+                bar shouldHaveProgress BossBar.MAX_PROGRESS
             }
 
             "shows the same bar to every member of a forwarding audience" {
