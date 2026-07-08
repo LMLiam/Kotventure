@@ -24,6 +24,14 @@ class TitleTimesMatchersTest :
                 times shouldHaveFadeOut 1.ticks
             }
 
+            "matches individual timing slots from java.time durations" {
+                val times = Title.DEFAULT_TIMES
+
+                times shouldHaveFadeIn Title.DEFAULT_TIMES.fadeIn()
+                times shouldHaveStay Title.DEFAULT_TIMES.stay()
+                times shouldHaveFadeOut Title.DEFAULT_TIMES.fadeOut()
+            }
+
             "reports a fade-in mismatch with expected and actual kotlin durations" {
                 val times =
                     Title.Times.times(
