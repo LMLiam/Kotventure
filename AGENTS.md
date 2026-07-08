@@ -142,6 +142,33 @@ Before sketching any public surface (and **before posting an implementation plan
   type.
 - See the skill `adventure-reference` before using an API you're unsure of — **do not guess API shapes.**
 
+### Quality metrics — weigh these on every change
+
+Structural metrics (mechanically checkable; CI tooling — Qodana/detekt, Kover, ktlint — flags most of them):
+
+- **Cyclomatic complexity ≤ 10 per function.** Fewer independent paths = fewer defects. Extract named functions or
+  predicates instead of stacking conditions; a `when` over a sealed type is fine, a nest of `if`s is not.
+- **Halstead/WMFP intuition:** fewer distinct operators/operands per function. Long expression soup and clever
+  one-liners score badly — split and name the pieces.
+- **Testability:** every behaviour reachable and assertable through the public surface; if a test must poke an
+  internal seam, the design (or the test) is wrong.
+- **Coverage** is gated by Kover (see §3) — a threshold, not a target; tests must assert behaviour, not lines.
+
+Qualitative metrics (reviewed, not measured — the review bar):
+
+- **Readability & clarity:** a reader gets a file's one job from its name and its flow from top-to-bottom reading,
+  without ambiguity. Full names, small functions, one abstraction level each (§5 SRP).
+- **Maintainability:** the change is easy to alter later — minimal interdependencies, policy declared in exactly one
+  place, no duplicated rules that must move in lockstep.
+- **Reusability & portability:** prefer small composable functions with few dependencies; `core` stays
+  `adventure-api`-only so features stay platform-portable (§4).
+- **Extensibility:** closed sets are `sealed`/`enum` so the compiler points at every site a new variant must handle;
+  extension never requires editing a god object (there are none) or a registry.
+- **Reliability & efficiency:** fail fast on malformed input (§5 API design); no needless allocation or rescanning in
+  hot paths — but never trade clarity for micro-optimisation without a measurement.
+- **Documentation:** KDoc on all public API (enforced by `explicitApi()` + review), stating contracts (`@throws`,
+  invariants), not restating signatures.
+
 ## 6. Testing
 
 - **Kotest** for everything. Every behavioural change ships with tests; write the test first when practical.

@@ -1,10 +1,16 @@
 package io.github.lmliam.kotventure.core.text
 
+import io.github.lmliam.kotventure.core.dsl.once
+import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.JoinConfiguration
 
 internal class JoinBuilder : JoinScope {
     private val builder = JoinConfiguration.builder()
+    private var separator: Component? by once()
+    private var lastSeparator: Component? by once()
+    private var prefix: Component? by once()
+    private var suffix: Component? by once()
 
     override fun separator(
         value: String,
@@ -12,7 +18,9 @@ internal class JoinBuilder : JoinScope {
     ) = separator(text(value, init))
 
     override fun <T : ComponentLike> separator(component: T) {
-        builder.separator(component.asComponent())
+        val value = component.asComponent()
+        separator = value
+        builder.separator(value)
     }
 
     override fun lastSeparator(
@@ -21,7 +29,9 @@ internal class JoinBuilder : JoinScope {
     ) = lastSeparator(text(value, init))
 
     override fun <T : ComponentLike> lastSeparator(component: T) {
-        builder.lastSeparator(component.asComponent())
+        val value = component.asComponent()
+        lastSeparator = value
+        builder.lastSeparator(value)
     }
 
     override fun prefix(
@@ -30,7 +40,9 @@ internal class JoinBuilder : JoinScope {
     ) = prefix(text(value, init))
 
     override fun <T : ComponentLike> prefix(component: T) {
-        builder.prefix(component.asComponent())
+        val value = component.asComponent()
+        prefix = value
+        builder.prefix(value)
     }
 
     override fun suffix(
@@ -39,7 +51,9 @@ internal class JoinBuilder : JoinScope {
     ) = suffix(text(value, init))
 
     override fun <T : ComponentLike> suffix(component: T) {
-        builder.suffix(component.asComponent())
+        val value = component.asComponent()
+        suffix = value
+        builder.suffix(value)
     }
 
     internal fun build(): JoinConfiguration = builder.build()

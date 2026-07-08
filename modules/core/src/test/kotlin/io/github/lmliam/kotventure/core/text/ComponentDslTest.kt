@@ -1,7 +1,10 @@
 package io.github.lmliam.kotventure.core.text
 
+import io.github.lmliam.kotventure.core.color.blue
+import io.github.lmliam.kotventure.core.color.red
 import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
+import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.keybind.keybind
 import io.github.lmliam.kotventure.core.nbt.blockNbt
 import io.github.lmliam.kotventure.core.nbt.entityNbt
@@ -12,6 +15,7 @@ import io.github.lmliam.kotventure.core.selector.allPlayers
 import io.github.lmliam.kotventure.core.selector.nearestPlayer
 import io.github.lmliam.kotventure.core.selector.parseSelector
 import io.github.lmliam.kotventure.core.selector.selector
+import io.github.lmliam.kotventure.core.style.style
 import io.github.lmliam.kotventure.core.translatable.translatable
 import io.github.lmliam.kotventure.test.compilation.assertDoesNotCompile
 import io.github.lmliam.kotventure.test.text.childAt
@@ -37,6 +41,7 @@ import io.github.lmliam.kotventure.test.text.shouldHaveStorageKey
 import io.github.lmliam.kotventure.test.text.shouldHaveStyle
 import io.github.lmliam.kotventure.test.text.shouldHaveTranslationKey
 import io.github.lmliam.kotventure.test.text.shouldNotHaveDecoration
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import net.kyori.adventure.key.Key
@@ -423,6 +428,58 @@ class ComponentDslTest :
                 component shouldHaveChildCount 1
                 component.childAt(0) shouldContainText "child"
                 component.childAt(0) shouldHaveDecoration TextDecoration.BOLD
+            }
+
+            "rejects assigning a singleton component attribute twice in one block" {
+                shouldThrow<IllegalStateException> {
+                    component {
+                        color(red)
+                        color(blue)
+                    }
+                }
+                shouldThrow<IllegalStateException> {
+                    component {
+                        shadow(null)
+                        shadow(null)
+                    }
+                }
+                shouldThrow<IllegalStateException> {
+                    component {
+                        font(key("minecraft", "uniform"))
+                        font(null)
+                    }
+                }
+                shouldThrow<IllegalStateException> {
+                    component {
+                        insertion("/help")
+                        insertion("/warp")
+                    }
+                }
+            }
+
+            "rejects applying a style twice in one block" {
+                val base =
+                    style {
+                        color(red)
+                    }
+
+                shouldThrow<IllegalStateException> {
+                    component {
+                        style(base)
+                        style {
+                            bold()
+                        }
+                    }
+                }
+            }
+
+            "rejects setting the same decoration twice in one component block" {
+                shouldThrow<IllegalStateException> {
+                    component {
+                        bold()
+                        bold(false)
+                    }
+                }
             }
         },
     )

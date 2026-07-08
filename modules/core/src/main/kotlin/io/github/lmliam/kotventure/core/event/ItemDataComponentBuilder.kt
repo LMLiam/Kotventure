@@ -8,22 +8,30 @@ import net.kyori.adventure.text.event.DataComponentValue
 internal class ItemDataComponentBuilder : ItemDataComponentScope {
     private val components = LinkedHashMap<Key, DataComponentValue>()
 
+    private fun put(
+        key: Key,
+        value: DataComponentValue,
+    ) {
+        check(key !in components) { "Data component '$key' is already declared." }
+        components[key] = value
+    }
+
     override fun component(
         key: Key,
         init: NbtCompoundScope.() -> Unit,
     ) {
-        components[key] = nbt(init)
+        put(key, nbt(init))
     }
 
     override fun component(
         key: Key,
         value: DataComponentValue,
     ) {
-        components[key] = value
+        put(key, value)
     }
 
     override fun removed(key: Key) {
-        components[key] = DataComponentValue.removed()
+        put(key, DataComponentValue.removed())
     }
 
     internal fun build(): Map<Key, DataComponentValue> = components.toMap()

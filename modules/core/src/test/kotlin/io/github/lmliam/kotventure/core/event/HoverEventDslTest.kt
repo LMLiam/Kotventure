@@ -81,23 +81,26 @@ class HoverEventDslTest :
                         )
             }
 
-            "replaces an item data component when its key is declared twice" {
-                val event =
+            "rejects an item data component when its key is declared twice" {
+                shouldThrow<IllegalStateException> {
                     hover {
                         item(key("minecraft", "diamond_sword")) {
                             component(key("minecraft", "custom_data")) { "kotventure" eq 1.toByte() }
                             component(key("minecraft", "custom_data")) { "kotventure" eq 2.toByte() }
                         }
                     }
+                }
+            }
 
-                event.value() shouldBe
-                        HoverEvent.ShowItem.showItem(
-                            key("minecraft", "diamond_sword"),
-                            1,
-                            mapOf(
-                                key("minecraft", "custom_data") to BinaryTagHolder.binaryTagHolder("{kotventure:2b}"),
-                            ),
-                        )
+            "rejects removing an item data component whose key is already declared" {
+                shouldThrow<IllegalStateException> {
+                    hover {
+                        item(key("minecraft", "diamond_sword")) {
+                            component(key("minecraft", "custom_data")) { "kotventure" eq 1.toByte() }
+                            removed(key("minecraft", "custom_data"))
+                        }
+                    }
+                }
             }
 
             "builds reusable item hover events from keyed values and permits zero counts" {
@@ -224,14 +227,7 @@ class HoverEventDslTest :
                 component.childAt(1) shouldHaveHoverEvent event
             }
 
-            "clears hover events through component and style scopes" {
-                val component =
-                    component {
-                        hover {
-                            text("Tooltip")
-                        }
-                        hover(null)
-                    }
+            "clears hover events through style scopes" {
                 val styled =
                     component {
                         hover {
@@ -242,8 +238,18 @@ class HoverEventDslTest :
                         }
                     }
 
-                component.shouldNotHaveHoverEvent()
                 styled.shouldNotHaveHoverEvent()
+            }
+
+            "rejects a second hover event in one block" {
+                shouldThrow<IllegalStateException> {
+                    component {
+                        hover {
+                            text("Tooltip")
+                        }
+                        hover(null)
+                    }
+                }
             }
 
             "builds typed raw hover events with Adventure validation" {

@@ -2,6 +2,7 @@ package io.github.lmliam.kotventure.core.text
 
 import io.github.lmliam.kotventure.core.color.ColorGradient
 import io.github.lmliam.kotventure.core.component.ComponentBuilder
+import io.github.lmliam.kotventure.core.dsl.once
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.format.TextColor
@@ -11,9 +12,11 @@ import io.github.lmliam.kotventure.core.color.gradientText as gradientComponent
 internal class TextBuilder :
     ComponentBuilder<TextComponent, TextComponent.Builder>(Component.text()),
     TextScope {
-    private var gradient: ColorGradient? = null
+    private var content: String? by once()
+    private var gradient: ColorGradient? by once()
 
     override fun content(value: String) {
+        content = value
         builder.content(value)
     }
 
@@ -29,9 +32,7 @@ internal class TextBuilder :
         val component = builder.build()
         val gradient = gradient ?: return component
         val content = component.content()
-        if (content.isEmpty()) {
-            return component
-        }
+        check(content.isNotEmpty()) { "'gradient' is set but 'content' is empty." }
 
         val builder = Component.text().style(component.style())
         gradientComponent(content, gradient).children().forEach { child -> builder.append(child) }

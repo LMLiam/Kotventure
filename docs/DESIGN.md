@@ -43,6 +43,9 @@ access.
 - **Small, well‑bounded units.** Each module has one clear purpose, a defined public surface, and is testable in
   isolation.
 - **Correctness is a feature.** Type‑safety, validation, and first‑class tests are differentiators, not afterthoughts.
+- **Reject malformed input; never normalize it away.** A builder slot that can only be meaningfully set once throws
+  `IllegalStateException` (naming the argument) on a second assignment instead of last‑write‑wins; genuinely repeatable
+  inputs accumulate in call order. Value validation (ranges, finiteness, blank names) uses `IllegalArgumentException`.
 - **Pay for what you use.** A consumer pulling only `core` shouldn't drag in MiniMessage, coroutines, or platform code.
 - **Dogfood.** Every module is tested using our own `test` matchers.
 

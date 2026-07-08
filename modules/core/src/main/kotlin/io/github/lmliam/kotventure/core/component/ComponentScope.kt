@@ -20,11 +20,15 @@ import net.kyori.adventure.text.format.Style
 public interface ComponentScope : StyleScope {
     /**
      * Applies a complete Adventure style to the component being configured.
+     *
+     * @throws IllegalStateException when a style is already applied in this block.
      */
     public fun style(style: Style)
 
     /**
      * Applies style attributes from [init] to the component being configured.
+     *
+     * @throws IllegalStateException when a style is already applied in this block.
      */
     public fun style(init: StyleScope.() -> Unit)
 

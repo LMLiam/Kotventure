@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.core.nbt
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
@@ -73,11 +74,24 @@ class NbtFactoryTest :
                 nbt { "Times" eq longArrayOf(10L, 20L) }.string() shouldBe "{Times:[L;10L,20L]}"
             }
 
-            "last-write-wins for duplicate keys" {
-                nbt {
-                    "key" eq 1
-                    "key" eq 2
-                }.string() shouldBe "{key:2}"
+            "rejects duplicate keys" {
+                shouldThrow<IllegalStateException> {
+                    nbt {
+                        "key" eq 1
+                        "key" eq 2
+                    }
+                }
+            }
+
+            "rejects duplicate keys in a nested compound" {
+                shouldThrow<IllegalStateException> {
+                    nbt {
+                        "outer" eq {
+                            "key" eq 1
+                            "key" eq "two"
+                        }
+                    }
+                }
             }
 
             "raw SNBT passthrough" {

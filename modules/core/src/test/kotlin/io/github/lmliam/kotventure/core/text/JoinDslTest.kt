@@ -4,6 +4,7 @@ import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.github.lmliam.kotventure.test.text.shouldHaveChildCount
 import io.github.lmliam.kotventure.test.text.shouldHaveColor
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import net.kyori.adventure.text.Component
@@ -183,14 +184,31 @@ class JoinDslTest :
                 result.childAt(2) shouldBe notch
             }
 
-            "last-write wins when a knob is called multiple times" {
-                val result =
+            "rejects a knob called multiple times" {
+                shouldThrow<IllegalStateException> {
                     listOf(alex, steve).join {
                         separator(", ")
                         separator(" | ")
                     }
-
-                result.childAt(1) shouldContainText " | "
+                }
+                shouldThrow<IllegalStateException> {
+                    listOf(alex, steve).join {
+                        lastSeparator(" and ")
+                        lastSeparator(text(" & "))
+                    }
+                }
+                shouldThrow<IllegalStateException> {
+                    listOf(alex, steve).join {
+                        prefix("[")
+                        prefix("(")
+                    }
+                }
+                shouldThrow<IllegalStateException> {
+                    listOf(alex, steve).join {
+                        suffix("]")
+                        suffix(")")
+                    }
+                }
             }
         },
     )
