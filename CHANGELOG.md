@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any release.
 
+## [0.5.1](https://github.com/LMLiam/Kotventure/compare/0.5.0...0.5.1) (2026-07-08)
+
+
+### 🔧 Refactors
+
+* **core:** reject malformed input across dsl builders ([#223](https://github.com/LMLiam/Kotventure/issues/223)) ([71397c0](https://github.com/LMLiam/Kotventure/commit/71397c0f022486520c9dd8a539b34aaf87ecffb0))
+
 ## [0.5.0](https://github.com/LMLiam/Kotventure/compare/0.4.1...0.5.0) (2026-07-06)
 
 
