@@ -19,6 +19,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.title.Title
 import net.kyori.adventure.title.TitlePart
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toKotlinDuration
 
 /**
  * Captures titles via [sendTitlePart], matching Adventure's default [Audience.showTitle]
@@ -91,13 +92,13 @@ class TitleDslTest :
                 }
 
                 val times =
-                    audience.titles
-                    .single()
-                    .times()
-                    .shouldNotBeNull()
-                times shouldHaveFadeIn defaults.fadeIn()
+                        audience.titles
+                                .single()
+                                .times()
+                                .shouldNotBeNull()
+                times shouldHaveFadeIn defaults.fadeIn().toKotlinDuration()
                 times shouldHaveStay 1.seconds
-                times shouldHaveFadeOut defaults.fadeOut()
+                times shouldHaveFadeOut defaults.fadeOut().toKotlinDuration()
             }
 
             "defaults subtitle to empty and times to DEFAULT_TIMES when only title is set" {

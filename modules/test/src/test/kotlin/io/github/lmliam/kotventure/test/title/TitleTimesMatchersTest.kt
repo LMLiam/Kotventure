@@ -7,6 +7,7 @@ import io.kotest.matchers.string.shouldContain
 import net.kyori.adventure.title.Title
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
+import kotlin.time.toKotlinDuration
 
 class TitleTimesMatchersTest :
     StringSpec(
@@ -24,12 +25,12 @@ class TitleTimesMatchersTest :
                 times shouldHaveFadeOut 1.ticks
             }
 
-            "matches individual timing slots from java.time durations" {
+            "matches Adventure values converted at the call site" {
                 val times = Title.DEFAULT_TIMES
 
-                times shouldHaveFadeIn Title.DEFAULT_TIMES.fadeIn()
-                times shouldHaveStay Title.DEFAULT_TIMES.stay()
-                times shouldHaveFadeOut Title.DEFAULT_TIMES.fadeOut()
+                times shouldHaveFadeIn Title.DEFAULT_TIMES.fadeIn().toKotlinDuration()
+                times shouldHaveStay Title.DEFAULT_TIMES.stay().toKotlinDuration()
+                times shouldHaveFadeOut Title.DEFAULT_TIMES.fadeOut().toKotlinDuration()
             }
 
             "reports a fade-in mismatch with expected and actual kotlin durations" {
