@@ -1,5 +1,5 @@
 [versions]
-project = "0.7.0"
+project = "0.8.0"
 adventureApi = "5.2.0"
 dokka = "2.2.0"
 kctfork = "0.13.0"
