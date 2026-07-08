@@ -11,8 +11,7 @@ internal class BossBarBuilder : BossBarScope {
     private var name: Component? by once()
 
     // Cannot be named `progress`: BossBarScope already has `val progress: Overlay`.
-    private var progressValue: Float? = null
-    private var progressAssigned = false
+    private var progressValue: Float? by once { "'progress' is already set." }
 
     private var color: BossBar.Color? by once()
     private var overlay: BossBar.Overlay? by once()
@@ -27,8 +26,6 @@ internal class BossBarBuilder : BossBarScope {
     }
 
     override fun progress(progress: Float) {
-        check(!progressAssigned) { "'progress' is already set." }
-        progressAssigned = true
         progressValue = progress
     }
 
