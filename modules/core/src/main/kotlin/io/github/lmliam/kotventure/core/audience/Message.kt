@@ -12,5 +12,7 @@ import net.kyori.adventure.audience.Audience
  * chat attributed to a sender name, use [chat].
  *
  * Works for any audience — a player, the console, or a forwarding audience over many members.
+ *
+ * @sample io.github.lmliam.kotventure.core.audience.messageSample
  */
 public fun Audience.message(init: ComponentScope.() -> Unit): Unit = sendMessage(component(init))
