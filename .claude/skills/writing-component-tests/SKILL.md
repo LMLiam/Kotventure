@@ -34,6 +34,16 @@ class StyleDslTest : StringSpec({
   deliverable in its own right — see issue #31) rather than asserting inline.
 - Matchers must give **readable failure messages** (actual vs expected).
 
+## Dogfood the DSL surface too
+
+- Arrange/act code uses **Kotventure's own entry points** wherever an equivalent exists: `audienceOf(first, second)`
+  not `Audience.audience(first, second)`, `emptyAudience()` not `Audience.empty()`, `component { }` not
+  `Component.text()...`. Before reaching for a raw `net.kyori` factory, check the owning feature package for the DSL
+  equivalent.
+- The exception is the **expected value in an assertion**: keep it raw Adventure (e.g. `shouldBe Component.empty()`)
+  so the DSL is verified against Adventure ground truth rather than against itself — asserting `component {}` equals
+  `component {}` proves nothing.
+
 ## Snapshot / golden tests
 
 - For larger messages where regressions matter, use `shouldMatchSnapshot()` (issue #32). Snapshots serialize to a stable

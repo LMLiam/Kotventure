@@ -161,6 +161,7 @@ themes.theme("brand")?.style("header")       // dynamic interop lookup
 
 // ── Sending (Audience extensions) ──────────────────────────────
 player.message { text("hi") }
+player.actionBar { text("+10 XP") }
 player.title {
     title { text("Welcome") }
     subtitle { mini("<gray>to the server") }
