@@ -7,9 +7,9 @@ import net.kyori.adventure.bossbar.BossBar
  * Builds an Adventure [BossBar] from a [BossBarScope] block without showing it.
  *
  * Use this when one bar is shared across audiences or held for later
- * [io.github.lmliam.kotventure.core.audience.show] /
- * [io.github.lmliam.kotventure.core.audience.hide]. For a one-shot build-and-show, prefer
- * [io.github.lmliam.kotventure.core.audience.bossBar].
+ * [show][io.github.lmliam.kotventure.core.audience.show] /
+ * [hide][io.github.lmliam.kotventure.core.audience.hide]. For a one-shot build-and-show, prefer
+ * [Audience.bossBar][io.github.lmliam.kotventure.core.audience.bossBar].
  *
  * @throws IllegalStateException when `name` is missing or any slot/flag is set twice.
  * @throws IllegalArgumentException when `progress` is outside `0f..1f`.
