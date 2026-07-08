@@ -8,6 +8,9 @@ import net.kyori.adventure.audience.Audience
  * Builds a component from a Kotventure component DSL block and sends it to this [Audience] as a
  * system chat message.
  *
+ * A system message renders as a plain, unattributed line from the server; to send player-styled
+ * chat attributed to a sender name, use [chat].
+ *
  * Works for any audience — a player, the console, or a forwarding audience over many members.
  */
 public fun Audience.message(init: ComponentScope.() -> Unit): Unit = sendMessage(component(init))
