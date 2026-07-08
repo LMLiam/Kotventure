@@ -4,7 +4,6 @@ import io.github.lmliam.kotventure.core.component.ComponentScope
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.ComponentLike
-import kotlin.time.Duration
 
 /**
  * Scope for configuring a screen title shown via [Audience.title]: the main [title] line, an
@@ -43,15 +42,13 @@ public interface TitleScope {
     public fun <T : ComponentLike> subtitle(component: T)
 
     /**
-     * Sets how long the title fades in, stays on screen, and fades out.
+     * Configures fade-in, stay, and fade-out durations via [TitleTimesScope].
      *
-     * When not set, Adventure's default timings (`Title.DEFAULT_TIMES`) are used.
+     * Each timing may be set independently; any left unset uses Adventure's default for that slot
+     * (`Title.DEFAULT_TIMES`). When this block is omitted entirely, those same defaults apply.
      *
-     * @throws IllegalStateException when times are already set in this block.
+     * @throws IllegalStateException when times are already configured in this title block, or when
+     *   a timing slot is set twice inside [init].
      */
-    public fun times(
-        fadeIn: Duration,
-        stay: Duration,
-        fadeOut: Duration,
-    )
+    public fun times(init: TitleTimesScope.() -> Unit)
 }

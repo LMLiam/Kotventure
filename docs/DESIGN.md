@@ -165,7 +165,11 @@ player.actionBar { text("+10 XP") }
 player.title {
     title { text("Welcome") }
     subtitle { mini("<gray>to the server") }
-    times(fadeIn = 1.ticks, stay = 3.seconds, fadeOut = 1.ticks)
+    times {
+        fadeIn(1.ticks)
+        stay(3.seconds)
+        fadeOut(1.ticks)
+    }
 }
 
 // ── Typed MiniMessage template + validation ────────────────────

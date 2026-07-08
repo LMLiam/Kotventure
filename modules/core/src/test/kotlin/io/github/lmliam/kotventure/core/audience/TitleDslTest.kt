@@ -59,7 +59,11 @@ class TitleDslTest :
                         text("Welcome") { color(gold) }
                     }
                     subtitle { text("to the server") }
-                    times(fadeIn = 1.ticks, stay = 3.seconds, fadeOut = 1.ticks)
+                    times {
+                        fadeIn(1.ticks)
+                        stay(3.seconds)
+                        fadeOut(1.ticks)
+                    }
                 }
 
                 audience.titles shouldHaveSize 1
@@ -71,6 +75,27 @@ class TitleDslTest :
                 times.fadeIn() shouldBe 1.ticks.toJavaDuration()
                 times.stay() shouldBe 3.seconds.toJavaDuration()
                 times.fadeOut() shouldBe 1.ticks.toJavaDuration()
+            }
+
+            "defaults unset timing slots to DEFAULT_TIMES values" {
+                val audience = TitleRecordingAudience()
+                val defaults = Title.DEFAULT_TIMES
+
+                audience.title {
+                    title { text("Partial times") }
+                    times {
+                        stay(1.seconds)
+                    }
+                }
+
+                val times =
+                    audience.titles
+                    .single()
+                    .times()
+                    .shouldNotBeNull()
+                times.fadeIn() shouldBe defaults.fadeIn()
+                times.stay() shouldBe 1.seconds.toJavaDuration()
+                times.fadeOut() shouldBe defaults.fadeOut()
             }
 
             "defaults subtitle to empty and times to DEFAULT_TIMES when only title is set" {
@@ -151,12 +176,24 @@ class TitleDslTest :
                 }
             }
 
-            "rejects duplicate times" {
+            "rejects a duplicate times block" {
                 shouldThrow<IllegalStateException> {
                     TitleRecordingAudience().title {
                         title { text("a") }
-                        times(fadeIn = 1.ticks, stay = 1.seconds, fadeOut = 1.ticks)
-                        times(fadeIn = 2.ticks, stay = 2.seconds, fadeOut = 2.ticks)
+                        times { stay(1.seconds) }
+                        times { stay(2.seconds) }
+                    }
+                }
+            }
+
+            "rejects a duplicate timing slot inside times" {
+                shouldThrow<IllegalStateException> {
+                    TitleRecordingAudience().title {
+                        title { text("a") }
+                        times {
+                            fadeIn(1.ticks)
+                            fadeIn(2.ticks)
+                        }
                     }
                 }
             }

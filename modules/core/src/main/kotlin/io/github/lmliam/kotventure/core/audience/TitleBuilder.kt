@@ -6,8 +6,6 @@ import io.github.lmliam.kotventure.core.dsl.once
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.title.Title
-import kotlin.time.Duration
-import kotlin.time.toJavaDuration
 
 internal class TitleBuilder : TitleScope {
     private var title: Component? by once()
@@ -26,17 +24,8 @@ internal class TitleBuilder : TitleScope {
         subtitle = component.asComponent()
     }
 
-    override fun times(
-        fadeIn: Duration,
-        stay: Duration,
-        fadeOut: Duration,
-    ) {
-        times =
-            Title.Times.times(
-                fadeIn.toJavaDuration(),
-                stay.toJavaDuration(),
-                fadeOut.toJavaDuration(),
-            )
+    override fun times(init: TitleTimesScope.() -> Unit) {
+        times = TitleTimesBuilder().apply(init).build()
     }
 
     internal fun build(): Title {
