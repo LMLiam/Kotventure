@@ -69,13 +69,20 @@ internal class TimedBossBarBuilder(
 
     private fun toConfig(over: Duration): TimedBossBarConfig {
         val endpoints = progressValue
+        val lifetime = over.requirePositive(label = "over")
+        val interval = every ?: 1.ticks
+        // Each tick subtracts `every` from remaining; a larger cadence would miss the lifetime
+        // entirely and complete only after the first (late) fire.
+        require(interval <= lifetime) {
+            "'every' ($interval) must not exceed 'over' ($lifetime)."
+        }
         return TimedBossBarConfig(
             name = checkNotNull(name) { "'name' is not set." },
             progressFrom = endpoints?.from ?: BossBar.MAX_PROGRESS,
             progressTo = endpoints?.to ?: BossBar.MIN_PROGRESS,
             appearance = appearance.build(),
-            every = every ?: 1.ticks,
-            over = over.requirePositive(label = "over"),
+            every = interval,
+            over = lifetime,
             onTick = onTick,
             onFinish = onFinish,
             onCancel = onCancel,

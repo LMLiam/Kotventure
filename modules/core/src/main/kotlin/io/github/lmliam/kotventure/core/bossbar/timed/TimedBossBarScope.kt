@@ -66,11 +66,13 @@ public interface TimedBossBarScope : BossBarAppearanceScope {
     /**
      * Sets how often the bar updates (progress, dynamic name, [onTick]).
      *
-     * Defaults to one game tick when unset.
+     * Defaults to one game tick when unset. Must not exceed the bar's `over` lifetime — each
+     * tick subtracts this interval from remaining time.
      *
-     * @param interval positive delay between updates.
+     * @param interval positive delay between updates; must be `<= over` when the bar is built.
      * @throws IllegalStateException when the cadence is already set in this block.
-     * @throws IllegalArgumentException when [interval] is not positive.
+     * @throws IllegalArgumentException when [interval] is not positive, or when it exceeds `over`
+     *   at build time.
      */
     public fun every(interval: Duration)
 

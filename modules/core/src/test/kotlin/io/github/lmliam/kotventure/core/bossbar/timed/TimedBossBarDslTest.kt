@@ -352,6 +352,20 @@ class TimedBossBarDslTest :
                 }
             }
 
+            "rejects every larger than over" {
+                val ticker = ManualTicker()
+                val audience = TimedBossBarRecordingAudience()
+
+                shouldThrow<IllegalArgumentException> {
+                    context(ticker) {
+                        audience.bossBar(over = 1.seconds) {
+                            name { text("Bad") }
+                            every(2.seconds)
+                        }
+                    }
+                }.message shouldBe "'every' (2s) must not exceed 'over' (1s)."
+            }
+
             "rejects missing name" {
                 val ticker = ManualTicker()
                 val audience = TimedBossBarRecordingAudience()
@@ -639,5 +653,39 @@ class TimedBossBarDslTest :
                 late.shown shouldHaveSize 0
                 late.hidden shouldHaveSize 0
             }
+
+            "cancel still hides remaining viewers and fires onCancel when one hide fails" {
+                val ticker = ManualTicker()
+                val creator = TimedBossBarRecordingAudience()
+                val healthy = TimedBossBarRecordingAudience()
+                var cancels = 0
+                val broken =
+                    object : Audience {
+                        override fun showBossBar(bar: BossBar) {}
+
+                        override fun hideBossBar(bar: BossBar) {
+                            error("hide failed")
+                        }
+                    }
+
+                val timed =
+                    context(ticker) {
+                        creator.bossBar(over = 10.seconds) {
+                            name { text("X") }
+                            every(1.seconds)
+                            onCancel { cancels++ }
+                        }
+                    }
+                timed.show(broken)
+                timed.show(healthy)
+
+                shouldThrow<IllegalStateException> { timed.cancel() }
+
+                cancels shouldBe 1
+                healthy.hidden shouldContainExactly listOf(timed.bar)
+                creator.hidden shouldContainExactly listOf(timed.bar)
+                timed.isRunning shouldBe false
+            }
+
         },
     )

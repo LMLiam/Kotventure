@@ -63,38 +63,43 @@ public class TimedBossBar internal constructor(
      *
      * @throws IllegalStateException when the bar is finished, cancelled, or already paused.
      */
-    public fun pause(): Unit =
-        lock.withLock {
-            check(running) { "Cannot pause a finished or cancelled TimedBossBar." }
-            check(!paused) { "TimedBossBar is already paused." }
-            paused = true
-            stopTicking()
-        }
+    public fun pause() {
+        val toCancel =
+            lock.withLock {
+                check(running) { "Cannot pause a finished or cancelled TimedBossBar." }
+                check(!paused) { "TimedBossBar is already paused." }
+                paused = true
+                detachTask()
+            }
+        toCancel?.cancel()
+    }
 
     /**
      * Continues from the frozen [remaining] after [pause].
      *
      * @throws IllegalStateException when the bar is finished, cancelled, or not paused.
      */
-    public fun resume(): Unit =
+    public fun resume() {
+        // Schedule under the lock so cancel cannot race a new task into existence after stop.
         lock.withLock {
             check(running) { "Cannot resume a finished or cancelled TimedBossBar." }
             check(paused) { "TimedBossBar is not paused." }
             paused = false
             startTicking()
         }
+    }
 
     /**
      * Stops the bar, hides it from all tracked viewers, and fires `onCancel` once when this call
      * ends a still-running bar. Idempotent after finish or a prior cancel.
      */
     public fun cancel() {
-        lock.withLock {
-            if (!running) return
-            stop()
-        }
-        // Runs outside the lock, like completion, so re-entrant handle calls can take it.
-        config.onCancel?.invoke(this)
+        val shutdown =
+            lock.withLock {
+                if (!running) return
+                markStopped()
+            }
+        finalizeShutdown(shutdown, config.onCancel)
     }
 
     /**
@@ -104,29 +109,43 @@ public class TimedBossBar internal constructor(
      * same audience again while running re-invokes Adventure show and keeps a single tracking
      * entry.
      */
-    public fun show(audience: Audience): Unit =
-        lock.withLock {
-            if (!running) return
-            viewers.add(audience)
-            audience.showBossBar(bar)
+    public fun show(audience: Audience) {
+        val accepted =
+            lock.withLock {
+                if (!running) {
+                    false
+                } else {
+                    viewers.add(audience)
+                    true
+                }
+            }
+        if (!accepted) return
+
+        audience.showBossBar(bar)
+
+        // If cancel/finish raced between track and show, undo the visible bar.
+        val stillTracked = lock.withLock { running && audience in viewers }
+        if (!stillTracked) {
+            audience.hideBossBar(bar)
         }
+    }
 
     /**
      * Hides [bar] from [audience] and stops tracking it for auto-hide.
      */
-    public fun hide(audience: Audience): Unit =
-        lock.withLock {
-            viewers.remove(audience)
-            audience.hideBossBar(bar)
-        }
+    public fun hide(audience: Audience) {
+        lock.withLock { viewers.remove(audience) }
+        audience.hideBossBar(bar)
+    }
 
     private fun startTicking() {
         task = ticker.repeating(config.every) { tick() }
     }
 
-    private fun stopTicking() {
-        task?.cancel()
+    private fun detachTask(): TickerTask? {
+        val current = task
         task = null
+        return current
     }
 
     private fun tick() {
@@ -156,22 +175,57 @@ public class TimedBossBar internal constructor(
     }
 
     private fun completeNaturally() {
-        lock.withLock {
-            if (!running) return
-            stop()
-        }
-        config.onFinish?.invoke(this)
+        val shutdown =
+            lock.withLock {
+                if (!running) return
+                markStopped()
+            }
+        finalizeShutdown(shutdown, config.onFinish)
     }
 
-    /** Ends the bar: callers hold [lock] and have checked [running]. */
-    private fun stop() {
+    /**
+     * Ends the bar under [lock]: clears running state, detaches the ticker task, and snapshots
+     * viewers. Adventure hide and task cancel happen outside the lock via [finalizeShutdown].
+     */
+    private fun markStopped(): Shutdown {
         running = false
         paused = false
-        stopTicking()
-        viewers.toList().let { hidden ->
-            viewers.clear()
-            hidden.forEach { it.hideBossBar(bar) }
+        val detached = detachTask()
+        val snapshot = viewers.toList()
+        viewers.clear()
+        return Shutdown(task = detached, viewers = snapshot)
+    }
+
+    /**
+     * Cancels the detached ticker task, hides every snapshotted viewer (isolating per-viewer
+     * failures), then always runs the terminal [hook] once.
+     */
+    private fun finalizeShutdown(
+        shutdown: Shutdown,
+        hook: (TimedBossBar.() -> Unit)?,
+    ) {
+        shutdown.task?.cancel()
+        try {
+            hideAll(shutdown.viewers)
+        } finally {
+            hook?.invoke(this)
         }
+    }
+
+    private fun hideAll(audiences: List<Audience>) {
+        var firstError: Throwable? = null
+        for (audience in audiences) {
+            try {
+                audience.hideBossBar(bar)
+            } catch (error: Throwable) {
+                if (firstError == null) {
+                    firstError = error
+                } else {
+                    firstError.addSuppressed(error)
+                }
+            }
+        }
+        firstError?.let { throw it }
     }
 
     private fun interpolateProgress(remaining: Duration): Float {
@@ -180,4 +234,9 @@ public class TimedBossBar internal constructor(
         val delta = config.progressTo - config.progressFrom
         return config.progressFrom + (delta * elapsed).toFloat()
     }
+
+    private data class Shutdown(
+        val task: TickerTask?,
+        val viewers: List<Audience>,
+    )
 }
