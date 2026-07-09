@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.test.book
 
+import io.github.lmliam.kotventure.core.component.emptyComponent
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.string.shouldContain
@@ -10,8 +11,8 @@ class BookMatchersTest :
     StringSpec(
         {
             fun book(
-                title: Component = Component.empty(),
-                author: Component = Component.empty(),
+                title: Component = emptyComponent(),
+                author: Component = emptyComponent(),
                 pages: List<Component> = emptyList(),
             ): Book = Book.book(title, author, pages)
 

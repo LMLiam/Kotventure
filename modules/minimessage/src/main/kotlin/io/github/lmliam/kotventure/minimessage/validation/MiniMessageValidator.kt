@@ -1,7 +1,7 @@
 package io.github.lmliam.kotventure.minimessage.validation
 
+import io.github.lmliam.kotventure.core.component.emptyComponent
 import io.github.lmliam.kotventure.minimessage.placeholder.MiniMessagePlaceholder
-import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.ParsingException
 import net.kyori.adventure.text.minimessage.tag.Tag
@@ -92,7 +92,7 @@ private fun buildPlaceholderMismatchDiagnostics(
 /** Resolves placeholder names as self-closing tags for the strict malformed-tag pass. */
 private fun buildPlaceholderNameResolver(placeholders: List<MiniMessagePlaceholder<*>>): TagResolver {
     if (placeholders.isEmpty()) return TagResolver.empty()
-    val selfClosingTag = Tag.selfClosingInserting(Component.empty())
+    val selfClosingTag = Tag.selfClosingInserting(emptyComponent())
     val resolvers = placeholders.map { TagResolver.resolver(it.name, selfClosingTag) }
     return TagResolver.resolver(*resolvers.toTypedArray())
 }

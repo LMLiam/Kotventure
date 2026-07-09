@@ -1,6 +1,7 @@
 package io.github.lmliam.kotventure.core.audience
 
 import io.github.lmliam.kotventure.core.color.gold
+import io.github.lmliam.kotventure.core.component.emptyComponent
 import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.core.time.ticks
 import io.github.lmliam.kotventure.test.text.childAt
@@ -27,8 +28,8 @@ import kotlin.time.toKotlinDuration
  */
 private class TitleRecordingAudience : Audience {
     val titles = mutableListOf<Title>()
-    private var titlePart: Component = Component.empty()
-    private var subtitlePart: Component = Component.empty()
+    private var titlePart: Component = emptyComponent()
+    private var subtitlePart: Component = emptyComponent()
     private var timesPart: Title.Times? = null
 
     override fun <T : Any> sendTitlePart(
@@ -39,8 +40,8 @@ private class TitleRecordingAudience : Audience {
             TitlePart.TITLE -> {
                 titlePart = value as Component
                 titles += Title.title(titlePart, subtitlePart, timesPart)
-                titlePart = Component.empty()
-                subtitlePart = Component.empty()
+                titlePart = emptyComponent()
+                subtitlePart = emptyComponent()
                 timesPart = null
             }
 

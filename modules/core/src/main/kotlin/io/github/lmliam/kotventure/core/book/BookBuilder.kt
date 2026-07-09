@@ -2,6 +2,7 @@ package io.github.lmliam.kotventure.core.book
 
 import io.github.lmliam.kotventure.core.component.ComponentScope
 import io.github.lmliam.kotventure.core.component.component
+import io.github.lmliam.kotventure.core.component.emptyComponent
 import io.github.lmliam.kotventure.core.dsl.once
 import net.kyori.adventure.inventory.Book
 import net.kyori.adventure.text.Component
@@ -40,8 +41,8 @@ internal class BookBuilder : BookScope {
 
     internal fun build(): Book =
         Book.book(
-            title ?: Component.empty(),
-            author ?: Component.empty(),
+            title ?: emptyComponent(),
+            author ?: emptyComponent(),
             pages.toList(),
         )
 }
