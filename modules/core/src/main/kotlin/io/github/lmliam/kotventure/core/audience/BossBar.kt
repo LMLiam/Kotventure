@@ -67,3 +67,23 @@ public fun Audience.bossBar(
     over: Duration,
     init: TimedBossBarScope.() -> Unit,
 ): TimedBossBar = TimedBossBarBuilder().apply(init).build(over, ticker, initialViewer = this)
+
+/**
+ * Shows the managed [bar] to this [Audience] and tracks this audience for auto-hide on
+ * completion or cancel.
+ *
+ * Same verb as the static [show] overload; equivalent to [TimedBossBar.show], including the
+ * no-op once the bar has finished or been cancelled.
+ *
+ * @sample io.github.lmliam.kotventure.core.audience.timedBossBarSample
+ */
+public fun Audience.show(bar: TimedBossBar): Unit = bar.show(this)
+
+/**
+ * Hides the managed [bar] from this [Audience] and stops tracking this audience for auto-hide.
+ *
+ * Same verb as the static [hide] overload; equivalent to [TimedBossBar.hide].
+ *
+ * @sample io.github.lmliam.kotventure.core.audience.timedBossBarSample
+ */
+public fun Audience.hide(bar: TimedBossBar): Unit = bar.hide(this)

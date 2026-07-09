@@ -1,6 +1,8 @@
 package io.github.lmliam.kotventure.core.bossbar.timed
 
 import io.github.lmliam.kotventure.core.audience.bossBar
+import io.github.lmliam.kotventure.core.audience.hide
+import io.github.lmliam.kotventure.core.audience.show
 import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.core.time.ticks
 import io.github.lmliam.kotventure.test.bossbar.shouldHaveColor
@@ -534,6 +536,29 @@ class TimedBossBarDslTest :
                 timed.show(extra)
 
                 extra.shown shouldContainExactly listOf(timed.bar)
+            }
+
+            "audience show and hide verbs mirror the handle" {
+                val ticker = ManualTicker()
+                val creator = TimedBossBarRecordingAudience()
+                val spectator = TimedBossBarRecordingAudience()
+
+                val timed =
+                    context(ticker) {
+                        creator.bossBar(over = 5.seconds) {
+                            name { text("X") }
+                            every(1.seconds)
+                        }
+                    }
+
+                spectator.show(timed)
+                spectator.shown shouldContainExactly listOf(timed.bar)
+
+                spectator.hide(timed)
+                spectator.hidden shouldContainExactly listOf(timed.bar)
+
+                ticker.advance(5.seconds)
+                spectator.hidden shouldHaveSize 1
             }
 
             "never re-pushes a fixed name" {

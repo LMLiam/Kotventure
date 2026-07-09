@@ -20,6 +20,10 @@ internal fun timedBossBarSample(ticker: Ticker) {
                 onFinish { /* auto-hidden from all tracked viewers */ }
             }
 
+        val spectator = emptyAudience()
+        spectator.show(meteor)
+        spectator.hide(meteor)
+
         meteor.pause()
         meteor.resume()
         meteor.cancel()
