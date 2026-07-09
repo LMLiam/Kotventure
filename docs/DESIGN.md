@@ -183,6 +183,20 @@ player.show(dragon)
 player.hide(dragon)
 val raid = player.bossBar { name { text("Raid") } }   // build + show; keep for hide/updates
 
+// Managed (timed) boss bars — context(ticker) once; `over` opts into lifecycle management
+// val ticker = paperTicker(plugin)   // platform-provided; ManualTicker in tests
+context(ticker) {
+    val meteor = player.bossBar(over = 30.seconds) {
+        name { remaining -> text("Meteor in ${remaining.inWholeSeconds}s") }
+        color(red)
+        overlay(notched10)
+        progress(from = 1f, to = 0f)   // default countdown
+        every(1.ticks)
+        onFinish { /* natural completion */ }
+    }
+    meteor.pause(); meteor.resume(); meteor.cancel()
+}
+
 
 // ── Typed MiniMessage template + validation ────────────────────
 val Welcome = miniTemplate("<gold>Welcome <player>, <count> new messages") {
