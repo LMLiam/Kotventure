@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.core.color
 
+import io.github.lmliam.kotventure.core.component.emptyComponent
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.TextColor
 import kotlin.math.floor
@@ -80,7 +81,7 @@ public fun gradientText(
 ): Component {
     val children = gradientTextChildren(value, gradient)
     if (children.isEmpty()) {
-        return Component.empty()
+        return emptyComponent()
     }
 
     val builder = Component.text()

@@ -2,6 +2,7 @@ package io.github.lmliam.kotventure.core.audience
 
 import io.github.lmliam.kotventure.core.component.ComponentScope
 import io.github.lmliam.kotventure.core.component.component
+import io.github.lmliam.kotventure.core.component.emptyComponent
 import io.github.lmliam.kotventure.core.dsl.once
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentLike
@@ -33,8 +34,8 @@ internal class TitleBuilder : TitleScope {
             "At least one of 'title' or 'subtitle' must be set."
         }
         return Title.title(
-            title ?: Component.empty(),
-            subtitle ?: Component.empty(),
+            title ?: emptyComponent(),
+            subtitle ?: emptyComponent(),
             times ?: Title.DEFAULT_TIMES,
         )
     }

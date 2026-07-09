@@ -8,6 +8,7 @@ import io.github.lmliam.kotventure.core.color.green
 import io.github.lmliam.kotventure.core.color.red
 import io.github.lmliam.kotventure.core.color.yellow
 import io.github.lmliam.kotventure.core.component.component
+import io.github.lmliam.kotventure.core.component.emptyComponent
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.keybind.keybind
@@ -50,6 +51,7 @@ import io.github.lmliam.kotventure.test.text.shouldNotHaveDecoration
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeSameInstanceAs
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.BlockNBTComponent
 import net.kyori.adventure.text.Component
@@ -60,6 +62,10 @@ import net.kyori.adventure.text.format.TextDecoration
 class ComponentDslTest :
     StringSpec(
         {
+            "emptyComponent returns Adventure's empty component" {
+                emptyComponent() shouldBeSameInstanceAs Component.empty()
+            }
+
             "builds a text component with content" {
                 val component =
                     component {
