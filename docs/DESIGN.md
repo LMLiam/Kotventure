@@ -183,6 +183,16 @@ player.show(dragon)
 player.hide(dragon)
 val raid = player.bossBar { name { text("Raid") } }   // build + show; keep for hide/updates
 
+val rules = book {
+    title { text("Server Rules") }
+    author { text("Staff") }
+    page { text("Be kind.") }
+}
+player.open(rules)
+player.book {
+    page { text("One-shot welcome") }
+}
+
 // Managed (timed) boss bars — context(ticker) once; `over` opts into lifecycle management
 // val ticker = paperTicker(plugin)   // platform-provided; ManualTicker in tests
 context(ticker) {
