@@ -13,12 +13,16 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentLike
 import kotlin.time.Duration
 
+/**
+ * Collects [TimedBossBarScope] slots into an immutable [TimedBossBarConfig], then starts a
+ * [TimedBossBar] against the given [Ticker] and initial viewer.
+ */
 internal class TimedBossBarBuilder(
     private val appearance: BossBarAppearanceBuilder = BossBarAppearanceBuilder(),
 ) : TimedBossBarScope,
     BossBarAppearanceScope by appearance {
     private var name: ((Duration) -> Component)? by once()
-    private var progressRange: ProgressRange? by once { "'progress' is already set." }
+    private var progressValue: ProgressEndpoints? by once { "'progress' is already set." }
     private var every: Duration? by once()
     private var onTick: (TimedBossBar.(Duration) -> Unit)? by once()
     private var onFinish: (TimedBossBar.() -> Unit)? by once()
@@ -27,26 +31,22 @@ internal class TimedBossBarBuilder(
     override fun name(init: ComponentScope.() -> Unit): Unit = name(component(init))
 
     override fun <T : ComponentLike> name(component: T) {
-        val fixed = component.asComponent()
-        name = { fixed }
+        name = component.asComponent().asFixedName()
     }
 
     override fun name(render: TimedBossBarName) {
-        name = { remaining -> component { with(render) { render(remaining) } } }
+        name = render.asDynamicName()
     }
 
     override fun progress(
         from: Float,
         to: Float,
     ) {
-        requireProgress(from, "from")
-        requireProgress(to, "to")
-        progressRange = ProgressRange(from, to)
+        progressValue = ProgressEndpoints(from, to)
     }
 
     override fun every(interval: Duration) {
-        require(interval.isPositive()) { "'every' must be positive, got $interval." }
-        every = interval
+        every = interval.requirePositive(label = "every")
     }
 
     override fun onTick(handler: TimedBossBar.(remaining: Duration) -> Unit) {
@@ -65,36 +65,56 @@ internal class TimedBossBarBuilder(
         over: Duration,
         ticker: Ticker,
         initialViewer: Audience,
-    ): TimedBossBar = TimedBossBar(ticker, buildConfig(over), initialViewer)
+    ): TimedBossBar = TimedBossBar(ticker, toConfig(over), initialViewer)
 
-    private fun buildConfig(over: Duration): TimedBossBarConfig {
-        require(over.isPositive()) { "'over' must be positive, got $over." }
-        val name = checkNotNull(name) { "'name' is not set." }
-        val range = progressRange
+    private fun toConfig(over: Duration): TimedBossBarConfig {
+        val endpoints = progressValue
         return TimedBossBarConfig(
-            name = name,
-            progressFrom = range?.from ?: BossBar.MAX_PROGRESS,
-            progressTo = range?.to ?: BossBar.MIN_PROGRESS,
+            name = checkNotNull(name) { "'name' is not set." },
+            progressFrom = endpoints?.from ?: BossBar.MAX_PROGRESS,
+            progressTo = endpoints?.to ?: BossBar.MIN_PROGRESS,
             appearance = appearance.build(),
             every = every ?: 1.ticks,
-            over = over,
+            over = over.requirePositive(label = "over"),
             onTick = onTick,
             onFinish = onFinish,
             onCancel = onCancel,
         )
     }
 
-    private data class ProgressRange(
+    /** Linear progress endpoints; both ends must be legal Adventure boss-bar progress. */
+    private data class ProgressEndpoints(
         val from: Float,
         val to: Float,
-    )
-}
-
-private fun requireProgress(
-    value: Float,
-    label: String,
-) {
-    require(value in BossBar.MIN_PROGRESS..BossBar.MAX_PROGRESS) {
-        "'progress' $label must be in ${BossBar.MIN_PROGRESS}..${BossBar.MAX_PROGRESS}, got $value."
+    ) {
+        init {
+            from.requireBossBarProgress(label = "from")
+            to.requireBossBarProgress(label = "to")
+        }
     }
 }
+
+/** Fixed name: ignore remaining time; change-detection on the bar skips redundant pushes. */
+private fun Component.asFixedName(): (Duration) -> Component = { _ -> this }
+
+/** Dynamic name: re-enter a component scope each tick with [TimedBossBarName] as the renderer. */
+private fun TimedBossBarName.asDynamicName(): (Duration) -> Component =
+    { remaining ->
+        component {
+            with(this@asDynamicName) {
+                render(remaining)
+            }
+        }
+    }
+
+private fun Float.requireBossBarProgress(label: String): Float =
+    also {
+        require(this in BossBar.MIN_PROGRESS..BossBar.MAX_PROGRESS) {
+            "'progress' $label must be in ${BossBar.MIN_PROGRESS}..${BossBar.MAX_PROGRESS}, got $this."
+        }
+    }
+
+private fun Duration.requirePositive(label: String): Duration =
+    also {
+        require(isPositive()) { "'$label' must be positive, got $this." }
+    }
