@@ -69,7 +69,7 @@ class BookMatchersTest :
                 val failure =
                     shouldThrow<AssertionError> {
                         book(author = Component.text("A")) shouldHaveAuthor
-                            Component.text("B")
+                                Component.text("B")
                     }
 
                 failure.message shouldContain "Expected book author"
@@ -82,7 +82,7 @@ class BookMatchersTest :
                     }
 
                 failure.message shouldContain
-                    "Expected book page count <2>, but was <1>."
+                        "Expected book page count <2>, but was <1>."
             }
 
             "reports a page-at-index mismatch" {
@@ -104,14 +104,14 @@ class BookMatchersTest :
                     }
 
                 failure.message shouldContain
-                    "Expected book page at index <0>, but page count was <0>."
+                        "Expected book page at index <0>, but page count was <0>."
             }
 
             "reports a pages mismatch" {
                 val failure =
                     shouldThrow<AssertionError> {
                         book(pages = listOf(Component.text("A"))) shouldHavePages
-                            listOf(Component.text("B"))
+                                listOf(Component.text("B"))
                     }
 
                 failure.message shouldContain "Expected book pages"
