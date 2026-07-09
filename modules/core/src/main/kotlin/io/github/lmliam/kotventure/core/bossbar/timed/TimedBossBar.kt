@@ -99,7 +99,7 @@ public class TimedBossBar internal constructor(
                 if (!running) return
                 markStopped()
             }
-        finalizeShutdown(shutdown, config.onCancel)
+        finaliseShutdown(shutdown, config.onCancel)
     }
 
     /**
@@ -178,12 +178,12 @@ public class TimedBossBar internal constructor(
                 if (!running) return
                 markStopped()
             }
-        finalizeShutdown(shutdown, config.onFinish)
+        finaliseShutdown(shutdown, config.onFinish)
     }
 
     /**
      * Ends the bar under [lock]: clears running state, detaches the ticker task, and snapshots
-     * viewers. Adventure hide and task cancel happen outside the lock via [finalizeShutdown].
+     * viewers. Adventure hide and task cancel happen outside the lock via [finaliseShutdown].
      */
     private fun markStopped(): TimedBossBarShutdown {
         running = false
@@ -198,7 +198,7 @@ public class TimedBossBar internal constructor(
      * Cancels the detached ticker task, hides every snapshotted viewer (isolating per-viewer
      * failures), then always runs the terminal [hook] once.
      */
-    private fun finalizeShutdown(
+    private fun finaliseShutdown(
         shutdown: TimedBossBarShutdown,
         hook: (TimedBossBar.() -> Unit)?,
     ) {
