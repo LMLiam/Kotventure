@@ -1,6 +1,8 @@
 package io.github.lmliam.kotventure.core.bossbar.timed
 
 import io.github.lmliam.kotventure.core.component.ComponentScope
+import io.github.lmliam.kotventure.core.component.component
+import net.kyori.adventure.text.Component
 import kotlin.time.Duration
 
 /**
@@ -20,3 +22,16 @@ public fun interface TimedBossBarName {
      */
     public fun ComponentScope.render(remaining: Duration)
 }
+
+/** Fixed name: ignore remaining time; change-detection on the bar skips redundant pushes. */
+internal fun Component.asFixedTimedName(): (Duration) -> Component = { _ -> this }
+
+/** Dynamic name: re-enter a component scope each tick with [TimedBossBarName] as the renderer. */
+internal fun TimedBossBarName.asDynamicTimedName(): (Duration) -> Component =
+    { remaining ->
+        component {
+            with(this@asDynamicTimedName) {
+                render(remaining)
+            }
+        }
+    }

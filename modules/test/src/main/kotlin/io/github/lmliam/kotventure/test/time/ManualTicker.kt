@@ -8,12 +8,13 @@ import kotlin.time.Duration
 /**
  * Deterministic [Ticker] for unit tests: virtual time moves only via [advance].
  *
- * Due repeating work fires in schedule order (earliest due first; same-time ties keep registration order).
- * Phase is preserved: each fire re-queues at `previousDue + interval`, not `currentTime + interval`, so jumping
- * multiple intervals does not drift.
+ * Due repeating work fires in schedule order (earliest due first; same-time ties keep registration
+ * order). Phase is preserved: each fire re-queues at `previousDue + interval`, not
+ * `currentTime + interval`, so jumping multiple intervals does not drift.
  *
- * Modeled after the virtual-clock loop in kotlinx-coroutines-test's `TestCoroutineScheduler.advanceTimeBy`
- * (event heap + advance-to-next-due), without a coroutines dependency.
+ * Modeled after the virtual-clock loop in kotlinx-coroutines-test's
+ * `TestCoroutineScheduler.advanceTimeBy` (event heap + advance-to-next-due), without a coroutines
+ * dependency.
  *
  * Thread-safety: single-threaded test use only.
  */
@@ -21,7 +22,7 @@ public class ManualTicker : Ticker {
     /**
      * Current virtual time.
      *
-     * Only advances through [advance]; never wall-clock
+     * Only advances through [advance]; never wall-clock.
      */
     public var currentTime: Duration = Duration.ZERO
         private set
@@ -31,10 +32,15 @@ public class ManualTicker : Ticker {
 
     /**
      * Min-heap of pending firings. Entries are immutable; a repeating task re-offers a new
-     * [Scheduled] after each successful fire instead of mutating on in-heap key.
+     * [ManualTickerScheduleEntry] after each successful fire instead of mutating an in-heap key.
      */
-    private val schedule: PriorityQueue<Scheduled> =
-        PriorityQueue(compareBy(Scheduled::dueAt, Scheduled::sequence))
+    private val schedule: PriorityQueue<ManualTickerScheduleEntry> =
+        PriorityQueue(
+            compareBy(
+                ManualTickerScheduleEntry::dueAt,
+                ManualTickerScheduleEntry::sequence,
+            ),
+        )
 
     /**
      * Advances the virtual clock by [duration] and runs every task due at or before the new
@@ -67,23 +73,28 @@ public class ManualTicker : Ticker {
         action: () -> Unit,
     ): TickerTask {
         require(interval.isPositive()) { "repeating interval must be positive, got $interval." }
-        val task = ManualTask(interval = interval, action = action)
+        val task = ManualTickerTask(interval = interval, action = action)
         requeue(task = task, dueAt = currentTime + interval)
         return task
     }
 
     private fun requeue(
-        task: ManualTask,
+        task: ManualTickerTask,
         dueAt: Duration,
     ) {
-        schedule += Scheduled(dueAt = dueAt, sequence = nextSequence++, task = task)
+        schedule +=
+            ManualTickerScheduleEntry(
+                dueAt = dueAt,
+                sequence = nextSequence++,
+                task = task,
+            )
     }
 
     /**
      * Pops the earliest still-active schedule entry with `dueAt <= limit`, discarding cancelled
      * heads along the way. Returns `null` when nothing is due by [limit].
      */
-    private fun pollNextDueAtOrBefore(limit: Duration): Scheduled? {
+    private fun pollNextDueAtOrBefore(limit: Duration): ManualTickerScheduleEntry? {
         while (true) {
             val head = schedule.peek() ?: return null
             if (head.dueAt > limit) {
@@ -93,43 +104,6 @@ public class ManualTicker : Ticker {
             if (head.task.isActive) {
                 return head
             }
-        }
-    }
-
-    /**
-     * One planned firing of a [ManualTask].
-     *
-     * Immutable so the [PriorityQueue] never sees a mutated sort key.
-     */
-    private data class Scheduled(
-        val dueAt: Duration,
-        val sequence: Long,
-        val task: ManualTask,
-    )
-
-    private class ManualTask(
-        private val interval: Duration,
-        private val action: () -> Unit,
-    ) : TickerTask {
-        var isActive: Boolean = true
-            private set
-
-        /**
-         * Invokes [action] once at virtual time [dueAt].
-         *
-         * @return next due time (`dueAt + interval`) when the task should keep repeating,
-         * or `null` when it was already cancelled or cancelled itself during [action].
-         */
-        fun fire(dueAt: Duration): Duration? {
-            if (!isActive) {
-                return null
-            }
-            action()
-            return if (isActive) dueAt + interval else null
-        }
-
-        override fun cancel() {
-            isActive = false
         }
     }
 }

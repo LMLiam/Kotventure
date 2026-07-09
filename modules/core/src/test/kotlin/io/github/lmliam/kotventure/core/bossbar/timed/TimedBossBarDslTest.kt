@@ -17,35 +17,9 @@ import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.floats.shouldBeWithinPercentageOf
 import io.kotest.matchers.shouldBe
-import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.bossbar.BossBar
-import net.kyori.adventure.text.Component
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-
-private fun nameChangeListener(target: MutableList<Component>): BossBar.Listener =
-    object : BossBar.Listener {
-        override fun bossBarNameChanged(
-            bar: BossBar,
-            oldName: Component,
-            newName: Component,
-        ) {
-            target += newName
-        }
-    }
-
-private class TimedBossBarRecordingAudience : Audience {
-    val shown = mutableListOf<BossBar>()
-    val hidden = mutableListOf<BossBar>()
-
-    override fun showBossBar(bar: BossBar) {
-        shown += bar
-    }
-
-    override fun hideBossBar(bar: BossBar) {
-        hidden += bar
-    }
-}
 
 class TimedBossBarDslTest :
     StringSpec(
@@ -578,7 +552,7 @@ class TimedBossBarDslTest :
             "never re-pushes a fixed name" {
                 val ticker = ManualTicker()
                 val audience = TimedBossBarRecordingAudience()
-                val nameChanges = mutableListOf<Component>()
+                val nameChanges = BossBarNameChangeRecorder()
 
                 val timed =
                     context(ticker) {
@@ -587,17 +561,17 @@ class TimedBossBarDslTest :
                             every(1.seconds)
                         }
                     }
-                timed.bar.addListener(nameChangeListener(nameChanges))
+                timed.bar.addListener(nameChanges)
 
                 ticker.advance(3.seconds)
 
-                nameChanges shouldHaveSize 0
+                nameChanges.names shouldHaveSize 0
             }
 
             "pushes a dynamic name only when the rendered component changes" {
                 val ticker = ManualTicker()
                 val audience = TimedBossBarRecordingAudience()
-                val nameChanges = mutableListOf<Component>()
+                val nameChanges = BossBarNameChangeRecorder()
 
                 val timed =
                     context(ticker) {
@@ -607,11 +581,11 @@ class TimedBossBarDslTest :
                             every(1.seconds)
                         }
                     }
-                timed.bar.addListener(nameChangeListener(nameChanges))
+                timed.bar.addListener(nameChanges)
 
                 ticker.advance(4.seconds)
 
-                nameChanges shouldHaveSize 2
+                nameChanges.names shouldHaveSize 2
             }
 
             "show after cancel is a no-op and does not track the viewer" {
@@ -658,15 +632,8 @@ class TimedBossBarDslTest :
                 val ticker = ManualTicker()
                 val creator = TimedBossBarRecordingAudience()
                 val healthy = TimedBossBarRecordingAudience()
+                val broken = ThrowingHideAudience()
                 var cancels = 0
-                val broken =
-                    object : Audience {
-                        override fun showBossBar(bar: BossBar) {}
-
-                        override fun hideBossBar(bar: BossBar) {
-                            error("hide failed")
-                        }
-                    }
 
                 val timed =
                     context(ticker) {
@@ -686,6 +653,5 @@ class TimedBossBarDslTest :
                 creator.hidden shouldContainExactly listOf(timed.bar)
                 timed.isRunning shouldBe false
             }
-
         },
     )

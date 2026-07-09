@@ -22,7 +22,9 @@ internal class TimedBossBarBuilder(
 ) : TimedBossBarScope,
     BossBarAppearanceScope by appearance {
     private var name: ((Duration) -> Component)? by once()
-    private var progressValue: ProgressEndpoints? by once { "'progress' is already set." }
+
+    // Not named `progress`: BossBarAppearanceScope already has `val progress: Overlay`.
+    private var progressEndpoints: TimedBossBarProgress? by once { "'progress' is already set." }
     private var every: Duration? by once()
     private var onTick: (TimedBossBar.(Duration) -> Unit)? by once()
     private var onFinish: (TimedBossBar.() -> Unit)? by once()
@@ -31,18 +33,18 @@ internal class TimedBossBarBuilder(
     override fun name(init: ComponentScope.() -> Unit): Unit = name(component(init))
 
     override fun <T : ComponentLike> name(component: T) {
-        name = component.asComponent().asFixedName()
+        name = component.asComponent().asFixedTimedName()
     }
 
     override fun name(render: TimedBossBarName) {
-        name = render.asDynamicName()
+        name = render.asDynamicTimedName()
     }
 
     override fun progress(
         from: Float,
         to: Float,
     ) {
-        progressValue = ProgressEndpoints(from, to)
+        progressEndpoints = TimedBossBarProgress(from = from, to = to)
     }
 
     override fun every(interval: Duration) {
@@ -68,7 +70,6 @@ internal class TimedBossBarBuilder(
     ): TimedBossBar = TimedBossBar(ticker, toConfig(over), initialViewer)
 
     private fun toConfig(over: Duration): TimedBossBarConfig {
-        val endpoints = progressValue
         val lifetime = over.requirePositive(label = "over")
         val interval = every ?: 1.ticks
         // Each tick subtracts `every` from remaining; a larger cadence would miss the lifetime
@@ -78,8 +79,9 @@ internal class TimedBossBarBuilder(
         }
         return TimedBossBarConfig(
             name = checkNotNull(name) { "'name' is not set." },
-            progressFrom = endpoints?.from ?: BossBar.MAX_PROGRESS,
-            progressTo = endpoints?.to ?: BossBar.MIN_PROGRESS,
+            progress =
+                progressEndpoints
+                    ?: TimedBossBarProgress(from = BossBar.MAX_PROGRESS, to = BossBar.MIN_PROGRESS),
             appearance = appearance.build(),
             every = interval,
             over = lifetime,
@@ -88,38 +90,7 @@ internal class TimedBossBarBuilder(
             onCancel = onCancel,
         )
     }
-
-    /** Linear progress endpoints; both ends must be legal Adventure boss-bar progress. */
-    private data class ProgressEndpoints(
-        val from: Float,
-        val to: Float,
-    ) {
-        init {
-            from.requireBossBarProgress(label = "from")
-            to.requireBossBarProgress(label = "to")
-        }
-    }
 }
-
-/** Fixed name: ignore remaining time; change-detection on the bar skips redundant pushes. */
-private fun Component.asFixedName(): (Duration) -> Component = { _ -> this }
-
-/** Dynamic name: re-enter a component scope each tick with [TimedBossBarName] as the renderer. */
-private fun TimedBossBarName.asDynamicName(): (Duration) -> Component =
-    { remaining ->
-        component {
-            with(this@asDynamicName) {
-                render(remaining)
-            }
-        }
-    }
-
-private fun Float.requireBossBarProgress(label: String): Float =
-    also {
-        require(this in BossBar.MIN_PROGRESS..BossBar.MAX_PROGRESS) {
-            "'progress' $label must be in ${BossBar.MIN_PROGRESS}..${BossBar.MAX_PROGRESS}, got $this."
-        }
-    }
 
 private fun Duration.requirePositive(label: String): Duration =
     also {

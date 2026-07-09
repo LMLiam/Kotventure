@@ -12,8 +12,7 @@ import kotlin.time.Duration
  */
 internal data class TimedBossBarConfig(
     val name: (Duration) -> Component,
-    val progressFrom: Float,
-    val progressTo: Float,
+    val progress: TimedBossBarProgress,
     val appearance: BossBarAppearance,
     val every: Duration,
     val over: Duration,

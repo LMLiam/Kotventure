@@ -25,14 +25,14 @@ public class TimedBossBar internal constructor(
     public val bar: BossBar =
         BossBar.bossBar(
             config.name(config.over),
-            config.progressFrom,
+            config.progress.from,
             config.appearance.color,
             config.appearance.overlay,
             config.appearance.flags,
         )
 
     private val lock = ReentrantLock()
-    private val viewers = mutableSetOf<Audience>()
+    private val viewers = TimedBossBarViewers()
     private var task: TickerTask? = null
     private var remainingTime = config.over
     private var running = true
@@ -139,7 +139,7 @@ public class TimedBossBar internal constructor(
     }
 
     private fun startTicking() {
-        task = ticker.repeating(config.every) { tick() }
+        task = ticker.repeating(config.every) { onTick() }
     }
 
     private fun detachTask(): TickerTask? {
@@ -148,7 +148,7 @@ public class TimedBossBar internal constructor(
         return current
     }
 
-    private fun tick() {
+    private fun onTick() {
         val remainingNow = lock.withLock { advanceOrNull() } ?: return
         config.onTick?.invoke(this, remainingNow)
         if (remainingNow == Duration.ZERO) completeNaturally()
@@ -161,13 +161,11 @@ public class TimedBossBar internal constructor(
      */
     private fun advanceOrNull(): Duration? {
         if (!running || paused) return null
-        remainingTime = advanceTime()
-        bar.progress(interpolateProgress(remainingTime))
+        remainingTime = (remainingTime - config.every).coerceAtLeast(Duration.ZERO)
+        bar.progress(config.progress.at(remaining = remainingTime, over = config.over))
         updateNameIfChanged(remainingTime)
         return remainingTime
     }
-
-    private fun advanceTime(): Duration = (remainingTime - config.every).coerceAtLeast(Duration.ZERO)
 
     private fun updateNameIfChanged(remaining: Duration) {
         val name = config.name(remaining)
@@ -187,13 +185,13 @@ public class TimedBossBar internal constructor(
      * Ends the bar under [lock]: clears running state, detaches the ticker task, and snapshots
      * viewers. Adventure hide and task cancel happen outside the lock via [finalizeShutdown].
      */
-    private fun markStopped(): Shutdown {
+    private fun markStopped(): TimedBossBarShutdown {
         running = false
         paused = false
-        val detached = detachTask()
-        val snapshot = viewers.toList()
-        viewers.clear()
-        return Shutdown(task = detached, viewers = snapshot)
+        return TimedBossBarShutdown(
+            task = detachTask(),
+            viewers = viewers.snapshotAndClear(),
+        )
     }
 
     /**
@@ -201,42 +199,14 @@ public class TimedBossBar internal constructor(
      * failures), then always runs the terminal [hook] once.
      */
     private fun finalizeShutdown(
-        shutdown: Shutdown,
+        shutdown: TimedBossBarShutdown,
         hook: (TimedBossBar.() -> Unit)?,
     ) {
         shutdown.task?.cancel()
         try {
-            hideAll(shutdown.viewers)
+            viewers.hideAll(bar, shutdown.viewers)
         } finally {
             hook?.invoke(this)
         }
     }
-
-    private fun hideAll(audiences: List<Audience>) {
-        var firstError: Throwable? = null
-        for (audience in audiences) {
-            try {
-                audience.hideBossBar(bar)
-            } catch (error: Throwable) {
-                if (firstError == null) {
-                    firstError = error
-                } else {
-                    firstError.addSuppressed(error)
-                }
-            }
-        }
-        firstError?.let { throw it }
-    }
-
-    private fun interpolateProgress(remaining: Duration): Float {
-        if (remaining == Duration.ZERO) return config.progressTo
-        val elapsed = 1.0 - (remaining / config.over)
-        val delta = config.progressTo - config.progressFrom
-        return config.progressFrom + (delta * elapsed).toFloat()
-    }
-
-    private data class Shutdown(
-        val task: TickerTask?,
-        val viewers: List<Audience>,
-    )
 }
