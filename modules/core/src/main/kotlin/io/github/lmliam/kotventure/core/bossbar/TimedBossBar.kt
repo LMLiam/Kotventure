@@ -17,7 +17,10 @@ public interface TimedBossBar {
     /** The underlying Adventure boss bar; progress and name are updated each tick. */
     public val bar: BossBar
 
-    /** Time remaining until natural completion; frozen while [isPaused]. */
+    /**
+     * Time remaining until natural completion; frozen while [isPaused] and at the value it had
+     * when [cancel] ended the bar early. [Duration.ZERO] after natural completion.
+     */
     public val remaining: Duration
 
     /** `true` until the bar finishes naturally or is [cancel]led. */

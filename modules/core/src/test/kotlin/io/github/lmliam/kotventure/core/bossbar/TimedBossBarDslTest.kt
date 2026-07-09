@@ -118,15 +118,17 @@ class TimedBossBarDslTest :
                         }
                     }
 
+                ticker.advance(3.seconds)
                 timed.cancel()
                 timed.cancel()
 
                 cancels shouldBe 1
                 timed.isRunning shouldBe false
+                timed.remaining shouldBe 7.seconds
                 audience.hidden shouldContainExactly listOf(timed.bar)
 
                 ticker.advance(10.seconds)
-                timed.bar shouldHaveProgress BossBar.MAX_PROGRESS
+                timed.remaining shouldBe 7.seconds
             }
 
             "pause freezes remaining and stops ticking; resume continues" {
@@ -176,6 +178,27 @@ class TimedBossBarDslTest :
                 timed.bar.name() shouldContainText "T-1"
                 ticker.advance(1.seconds)
                 timed.bar.name() shouldContainText "T-0"
+            }
+
+            "dynamic name block is a full component scope" {
+                val ticker = ManualTicker()
+                val audience = TimedBossBarRecordingAudience()
+
+                val timed =
+                    context(ticker) {
+                        audience.bossBar(over = 2.seconds) {
+                            name { remaining ->
+                                text("Ends in ")
+                                text("${remaining.inWholeSeconds}s") { bold() }
+                            }
+                            every(1.seconds)
+                        }
+                    }
+
+                timed.bar.name() shouldContainText "Ends in "
+                timed.bar.name() shouldContainText "2s"
+                ticker.advance(1.seconds)
+                timed.bar.name() shouldContainText "1s"
             }
 
             "hook order is progress → name → onTick; onFinish fires once on natural completion" {

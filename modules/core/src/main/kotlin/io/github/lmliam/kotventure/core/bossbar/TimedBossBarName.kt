@@ -1,20 +1,22 @@
 package io.github.lmliam.kotventure.core.bossbar
 
-import net.kyori.adventure.text.Component
+import io.github.lmliam.kotventure.core.component.ComponentScope
 import kotlin.time.Duration
 
 /**
- * Renders a managed boss bar's name from the time remaining until completion.
+ * Re-renders a managed boss bar's name each tick from the time remaining until completion.
  *
- * Used as a SAM for [TimedBossBarScope.name], so call sites stay as
- * `name { remaining -> text("…") }` while remaining distinct from the static
- * [BossBarBaseScope.name] overloads on the JVM.
+ * The block is a regular [ComponentScope], so the dynamic form composes exactly like the static
+ * `name { }` form — child builders, styling, and the string shorthands all apply. The SAM keeps
+ * `name { remaining -> text("…") }` distinct from the static [BossBarBaseScope.name] overloads
+ * during overload resolution.
  */
 public fun interface TimedBossBarName {
     /**
-     * Builds the name component for the given remaining duration.
+     * Appends the name's content to the receiving component scope for the given remaining
+     * duration.
      *
      * @param remaining time left until the bar completes.
      */
-    public operator fun invoke(remaining: Duration): Component
+    public fun ComponentScope.render(remaining: Duration)
 }

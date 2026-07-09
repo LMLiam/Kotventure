@@ -4,7 +4,6 @@ import io.github.lmliam.kotventure.core.time.Ticker
 import io.github.lmliam.kotventure.core.time.TickerTask
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.bossbar.BossBar
-import net.kyori.adventure.text.Component
 import java.util.Collections
 import java.util.IdentityHashMap
 import kotlin.time.Duration
@@ -16,7 +15,7 @@ internal class TimedBossBarImpl(
 ) : TimedBossBar {
     override val bar: BossBar =
         BossBar.bossBar(
-            renderName(config.over),
+            config.name.resolve(config.over),
             config.progressFrom,
             config.color,
             config.overlay,
@@ -70,21 +69,17 @@ internal class TimedBossBarImpl(
     }
 
     override fun cancel() {
-        val shouldFireCancel: Boolean
         synchronized(lock) {
             if (!isRunning) {
                 return
             }
             isRunning = false
             isPaused = false
-            remaining = Duration.ZERO
             stopTicking()
             hideAllViewers()
-            shouldFireCancel = true
         }
-        if (shouldFireCancel) {
-            config.onCancel?.invoke(this)
-        }
+        // Runs outside the lock, like completion, so re-entrant handle calls can take it.
+        config.onCancel?.invoke(this)
     }
 
     override fun show(audience: Audience) {
@@ -170,17 +165,11 @@ internal class TimedBossBarImpl(
     }
 
     private fun applyName(remaining: Duration) {
-        when (val spec = config.name) {
-            is BossBarNameSpec.Static -> Unit
-            is BossBarNameSpec.Dynamic -> bar.name(spec.render(remaining))
+        val spec = config.name
+        if (spec is BossBarNameSpec.Dynamic) {
+            bar.name(spec.resolve(remaining))
         }
     }
-
-    private fun renderName(remaining: Duration): Component =
-        when (val spec = config.name) {
-            is BossBarNameSpec.Static -> spec.component
-            is BossBarNameSpec.Dynamic -> spec.render(remaining)
-        }
 
     private fun interpolatedProgress(elapsed: Duration): Float {
         val overNanos = config.over.inWholeNanoseconds.toDouble()

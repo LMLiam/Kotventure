@@ -25,12 +25,8 @@ public class ManualTicker : Ticker {
         require(duration >= Duration.ZERO) { "advance duration must not be negative, got $duration." }
         val end = now + duration
         while (true) {
-            val next =
-                tasks
-                    .asSequence()
-                    .filter { it.isActive }
-                    .minByOrNull { it.nextFire }
-                    ?: break
+            tasks.removeAll { !it.isActive }
+            val next = tasks.minByOrNull { it.nextFire } ?: break
             if (next.nextFire > end) {
                 break
             }

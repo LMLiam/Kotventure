@@ -17,9 +17,10 @@ public interface TimedBossBarScope : BossBarBaseScope {
     /**
      * Re-renders the bar name every tick from the time remaining until completion.
      *
-     * Call site: `name { remaining -> text("… ${remaining.inWholeSeconds}s") }`. The SAM
-     * [TimedBossBarName] keeps this overload distinct from the static
-     * [name][BossBarBaseScope.name] forms (component DSL block / existing component).
+     * Call site: `name { remaining -> text("… ${remaining.inWholeSeconds}s") }`. The block is a
+     * component scope exactly like the static `name { }` form — the extra `remaining` parameter
+     * is the only difference. The SAM [TimedBossBarName] keeps this overload distinct from the
+     * static [name][BossBarBaseScope.name] forms (component DSL block / existing component).
      *
      * @throws IllegalStateException when the name is already set in this block.
      */
