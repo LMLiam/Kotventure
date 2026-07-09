@@ -32,15 +32,10 @@ public class TimedBossBar internal constructor(
         )
 
     private val lock = ReentrantLock()
-
     private val viewers = mutableSetOf<Audience>()
-
     private var task: TickerTask? = null
-
     private var remainingTime = config.over
-
     private var running = true
-
     private var paused = false
 
     /**
@@ -68,28 +63,26 @@ public class TimedBossBar internal constructor(
      *
      * @throws IllegalStateException when the bar is finished, cancelled, or already paused.
      */
-    public fun pause() {
+    public fun pause(): Unit =
         lock.withLock {
             check(running) { "Cannot pause a finished or cancelled TimedBossBar." }
             check(!paused) { "TimedBossBar is already paused." }
             paused = true
             stopTicking()
         }
-    }
 
     /**
      * Continues from the frozen [remaining] after [pause].
      *
      * @throws IllegalStateException when the bar is finished, cancelled, or not paused.
      */
-    public fun resume() {
+    public fun resume(): Unit =
         lock.withLock {
             check(running) { "Cannot resume a finished or cancelled TimedBossBar." }
             check(paused) { "TimedBossBar is not paused." }
             paused = false
             startTicking()
         }
-    }
 
     /**
      * Stops the bar, hides it from all tracked viewers, and fires `onCancel` once when this call
@@ -97,9 +90,7 @@ public class TimedBossBar internal constructor(
      */
     public fun cancel() {
         lock.withLock {
-            if (!running) {
-                return
-            }
+            if (!running) return
             stop()
         }
         // Runs outside the lock, like completion, so re-entrant handle calls can take it.
@@ -113,25 +104,21 @@ public class TimedBossBar internal constructor(
      * same audience again while running re-invokes Adventure show and keeps a single tracking
      * entry.
      */
-    public fun show(audience: Audience) {
+    public fun show(audience: Audience): Unit =
         lock.withLock {
-            if (!running) {
-                return
-            }
+            if (!running) return
             viewers.add(audience)
             audience.showBossBar(bar)
         }
-    }
 
     /**
      * Hides [bar] from [audience] and stops tracking it for auto-hide.
      */
-    public fun hide(audience: Audience) {
+    public fun hide(audience: Audience): Unit =
         lock.withLock {
             viewers.remove(audience)
             audience.hideBossBar(bar)
         }
-    }
 
     private fun startTicking() {
         task = ticker.repeating(config.every) { tick() }
@@ -144,13 +131,8 @@ public class TimedBossBar internal constructor(
 
     private fun tick() {
         val remainingNow = lock.withLock { advanceOrNull() } ?: return
-
-        // Hooks run outside the lock so re-entrant handle calls can take it.
         config.onTick?.invoke(this, remainingNow)
-
-        if (remainingNow == Duration.ZERO) {
-            completeNaturally()
-        }
+        if (remainingNow == Duration.ZERO) completeNaturally()
     }
 
     /**
@@ -159,23 +141,23 @@ public class TimedBossBar internal constructor(
      * current one, so fixed names and unchanged dynamic frames stay silent.
      */
     private fun advanceOrNull(): Duration? {
-        if (!running || paused) {
-            return null
-        }
-        remainingTime = (remainingTime - config.every).coerceAtLeast(Duration.ZERO)
-        bar.progress(progressAt(remainingTime))
-        val name = config.name(remainingTime)
-        if (name != bar.name()) {
-            bar.name(name)
-        }
+        if (!running || paused) return null
+        remainingTime = advanceTime()
+        bar.progress(interpolateProgress(remainingTime))
+        updateNameIfChanged(remainingTime)
         return remainingTime
+    }
+
+    private fun advanceTime(): Duration = (remainingTime - config.every).coerceAtLeast(Duration.ZERO)
+
+    private fun updateNameIfChanged(remaining: Duration) {
+        val name = config.name(remaining)
+        if (name != bar.name()) bar.name(name)
     }
 
     private fun completeNaturally() {
         lock.withLock {
-            if (!running) {
-                return
-            }
+            if (!running) return
             stop()
         }
         config.onFinish?.invoke(this)
@@ -186,16 +168,16 @@ public class TimedBossBar internal constructor(
         running = false
         paused = false
         stopTicking()
-        val hidden = viewers.toList()
-        viewers.clear()
-        hidden.forEach { it.hideBossBar(bar) }
+        viewers.toList().let { hidden ->
+            viewers.clear()
+            hidden.forEach { it.hideBossBar(bar) }
+        }
     }
 
-    private fun progressAt(remaining: Duration): Float {
-        if (remaining == Duration.ZERO) {
-            return config.progressTo
-        }
-        val fraction = (1.0 - remaining / config.over).toFloat()
-        return config.progressFrom + (config.progressTo - config.progressFrom) * fraction
+    private fun interpolateProgress(remaining: Duration): Float {
+        if (remaining == Duration.ZERO) return config.progressTo
+        val elapsed = 1.0 - (remaining / config.over)
+        val delta = config.progressTo - config.progressFrom
+        return config.progressFrom + (delta * elapsed).toFloat()
     }
 }

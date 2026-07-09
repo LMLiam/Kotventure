@@ -39,11 +39,8 @@ public fun Audience.hide(bar: BossBar): Unit = hideBossBar(bar)
  * @throws IllegalArgumentException when `progress` is outside `0f..1f`.
  * @sample io.github.lmliam.kotventure.core.audience.audienceBossBarSample
  */
-public fun Audience.bossBar(init: BossBarScope.() -> Unit): BossBar {
-    val bar = buildBossBar(init)
-    show(bar)
-    return bar
-}
+public fun Audience.bossBar(init: BossBarScope.() -> Unit): BossBar =
+    buildBossBar(init).also(::show)
 
 /**
  * Builds a lifecycle-managed [TimedBossBar] that interpolates progress over [over], shows it on
