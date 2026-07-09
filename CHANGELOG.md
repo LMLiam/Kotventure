@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any release.
 
+## [0.10.0](https://github.com/LMLiam/Kotventure/compare/0.9.0...0.10.0) (2026-07-09)
+
+
+### ✨ Features
+
+* **audience:** add managed boss bars ([#238](https://github.com/LMLiam/Kotventure/issues/238)) ([850e42d](https://github.com/LMLiam/Kotventure/commit/850e42d64df3c9ef350828c604557a6a43f0475a))
+
 ## [0.9.0](https://github.com/LMLiam/Kotventure/compare/0.8.0...0.9.0) (2026-07-08)
 
 
