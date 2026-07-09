@@ -89,16 +89,19 @@ internal class TimedBossBarImpl(
 
     override fun show(audience: Audience) {
         synchronized(lock) {
+            if (!isRunning) {
+                return
+            }
             viewers.add(audience)
+            audience.showBossBar(bar)
         }
-        audience.showBossBar(bar)
     }
 
     override fun hide(audience: Audience) {
         synchronized(lock) {
             viewers.remove(audience)
+            audience.hideBossBar(bar)
         }
-        audience.hideBossBar(bar)
     }
 
     private fun startTicking() {

@@ -16,7 +16,7 @@ internal fun timedBossBarSample() {
                 action: () -> Unit,
             ): TickerTask =
                 object : TickerTask {
-                    override fun cancel() {}
+                    override fun cancel(): Unit = Unit
                 }
         }
     val player = emptyAudience()

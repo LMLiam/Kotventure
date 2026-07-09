@@ -49,7 +49,9 @@ public interface TimedBossBar {
     /**
      * Shows [bar] to [audience] and tracks it for auto-hide on completion or [cancel].
      *
-     * Showing the same audience again is a no-op for tracking (Adventure show remains called).
+     * No-op when the bar is already finished or cancelled (not tracked, not shown). Showing the
+     * same audience again while running re-invokes Adventure show and keeps a single tracking
+     * entry.
      */
     public fun show(audience: Audience)
 

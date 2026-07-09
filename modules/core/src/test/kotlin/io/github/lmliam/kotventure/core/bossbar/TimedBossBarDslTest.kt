@@ -500,5 +500,45 @@ class TimedBossBarDslTest :
 
                 extra.shown shouldContainExactly listOf(timed.bar)
             }
+
+            "show after cancel is a no-op and does not track the viewer" {
+                val ticker = ManualTicker()
+                val creator = TimedBossBarRecordingAudience()
+                val late = TimedBossBarRecordingAudience()
+
+                val timed =
+                    context(ticker) {
+                        creator.bossBar(over = 5.seconds) {
+                            name { text("X") }
+                            every(1.seconds)
+                        }
+                    }
+                timed.cancel()
+                timed.show(late)
+
+                late.shown shouldHaveSize 0
+                late.hidden shouldHaveSize 0
+            }
+
+            "show after natural completion is a no-op and does not track the viewer" {
+                val ticker = ManualTicker()
+                val creator = TimedBossBarRecordingAudience()
+                val late = TimedBossBarRecordingAudience()
+
+                val timed =
+                    context(ticker) {
+                        creator.bossBar(over = 1.seconds) {
+                            name { text("X") }
+                            every(1.seconds)
+                        }
+                    }
+                ticker.advance(1.seconds)
+                timed.isRunning shouldBe false
+
+                timed.show(late)
+
+                late.shown shouldHaveSize 0
+                late.hidden shouldHaveSize 0
+            }
         },
     )
