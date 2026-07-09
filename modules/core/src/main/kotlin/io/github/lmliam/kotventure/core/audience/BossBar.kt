@@ -66,7 +66,4 @@ context(ticker: Ticker)
 public fun Audience.bossBar(
     over: Duration,
     init: TimedBossBarScope.() -> Unit,
-): TimedBossBar {
-    val config = TimedBossBarBuilder().apply(init).buildConfig(over)
-    return TimedBossBar(ticker, config, creator = this)
-}
+): TimedBossBar = TimedBossBarBuilder().apply(init).build(over, ticker, initialViewer = this)

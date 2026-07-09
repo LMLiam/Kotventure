@@ -5,8 +5,11 @@ import io.github.lmliam.kotventure.core.bossbar.BossBarAppearanceScope
 import io.github.lmliam.kotventure.core.component.ComponentScope
 import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.dsl.once
+import io.github.lmliam.kotventure.core.time.Ticker
 import io.github.lmliam.kotventure.core.time.ticks
+import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.bossbar.BossBar
+import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentLike
 import kotlin.time.Duration
 
@@ -14,7 +17,7 @@ internal class TimedBossBarBuilder(
     private val appearance: BossBarAppearanceBuilder = BossBarAppearanceBuilder(),
 ) : TimedBossBarScope,
     BossBarAppearanceScope by appearance {
-    private var name: TimedBossBarNameSpec? by once()
+    private var name: ((Duration) -> Component)? by once()
     private var progressRange: ProgressRange? by once { "'progress' is already set." }
     private var every: Duration? by once()
     private var onTick: (TimedBossBar.(Duration) -> Unit)? by once()
@@ -24,11 +27,12 @@ internal class TimedBossBarBuilder(
     override fun name(init: ComponentScope.() -> Unit): Unit = name(component(init))
 
     override fun <T : ComponentLike> name(component: T) {
-        name = TimedBossBarNameSpec.Static(component.asComponent())
+        val fixed = component.asComponent()
+        name = { fixed }
     }
 
     override fun name(render: TimedBossBarName) {
-        name = TimedBossBarNameSpec.Dynamic(render)
+        name = { remaining -> component { with(render) { render(remaining) } } }
     }
 
     override fun progress(
@@ -57,7 +61,13 @@ internal class TimedBossBarBuilder(
         onCancel = handler
     }
 
-    internal fun buildConfig(over: Duration): TimedBossBarConfig {
+    internal fun build(
+        over: Duration,
+        ticker: Ticker,
+        initialViewer: Audience,
+    ): TimedBossBar = TimedBossBar(ticker, buildConfig(over), initialViewer)
+
+    private fun buildConfig(over: Duration): TimedBossBarConfig {
         require(over.isPositive()) { "'over' must be positive, got $over." }
         val name = checkNotNull(name) { "'name' is not set." }
         val range = progressRange

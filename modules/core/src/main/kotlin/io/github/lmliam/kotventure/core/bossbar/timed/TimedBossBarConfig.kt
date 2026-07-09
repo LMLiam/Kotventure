@@ -1,13 +1,17 @@
 package io.github.lmliam.kotventure.core.bossbar.timed
 
 import io.github.lmliam.kotventure.core.bossbar.BossBarAppearance
+import net.kyori.adventure.text.Component
 import kotlin.time.Duration
 
 /**
  * Immutable configuration snapshot produced by [TimedBossBarBuilder] for [TimedBossBar].
+ *
+ * [name] renders the bar name for a remaining duration. Fixed names ignore the argument and
+ * return the same component every call, so the bar's change-detection skips redundant pushes.
  */
 internal data class TimedBossBarConfig(
-    val name: TimedBossBarNameSpec,
+    val name: (Duration) -> Component,
     val progressFrom: Float,
     val progressTo: Float,
     val appearance: BossBarAppearance,

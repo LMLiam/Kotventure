@@ -38,7 +38,8 @@ public interface TimedBossBarScope : BossBarAppearanceScope {
      * Call site: `name { remaining -> text("… ${remaining.inWholeSeconds}s") }`. The block is a
      * component scope exactly like the fixed `name { }` form — the extra `remaining` parameter
      * is the only difference. The SAM [TimedBossBarName] keeps this overload distinct from the
-     * fixed forms during overload resolution.
+     * fixed forms during overload resolution. The rendered component is pushed to the bar only
+     * when it differs from the current name, so unchanged frames cause no viewer updates.
      *
      * @throws IllegalStateException when the name is already set in this block.
      */

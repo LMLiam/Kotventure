@@ -17,8 +17,20 @@ import io.kotest.matchers.floats.shouldBeWithinPercentageOf
 import io.kotest.matchers.shouldBe
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.bossbar.BossBar
+import net.kyori.adventure.text.Component
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+
+private fun nameChangeListener(target: MutableList<Component>): BossBar.Listener =
+    object : BossBar.Listener {
+        override fun bossBarNameChanged(
+            bar: BossBar,
+            oldName: Component,
+            newName: Component,
+        ) {
+            target += newName
+        }
+    }
 
 private class TimedBossBarRecordingAudience : Audience {
     val shown = mutableListOf<BossBar>()
@@ -522,6 +534,45 @@ class TimedBossBarDslTest :
                 timed.show(extra)
 
                 extra.shown shouldContainExactly listOf(timed.bar)
+            }
+
+            "never re-pushes a fixed name" {
+                val ticker = ManualTicker()
+                val audience = TimedBossBarRecordingAudience()
+                val nameChanges = mutableListOf<Component>()
+
+                val timed =
+                    context(ticker) {
+                        audience.bossBar(over = 3.seconds) {
+                            name { text("Fixed") }
+                            every(1.seconds)
+                        }
+                    }
+                timed.bar.addListener(nameChangeListener(nameChanges))
+
+                ticker.advance(3.seconds)
+
+                nameChanges shouldHaveSize 0
+            }
+
+            "pushes a dynamic name only when the rendered component changes" {
+                val ticker = ManualTicker()
+                val audience = TimedBossBarRecordingAudience()
+                val nameChanges = mutableListOf<Component>()
+
+                val timed =
+                    context(ticker) {
+                        audience.bossBar(over = 4.seconds) {
+                            // Initial 2; ticks render 2, 1, 1, 0 — only two actual changes.
+                            name { remaining -> text("${(remaining.inWholeSeconds + 1) / 2}") }
+                            every(1.seconds)
+                        }
+                    }
+                timed.bar.addListener(nameChangeListener(nameChanges))
+
+                ticker.advance(4.seconds)
+
+                nameChanges shouldHaveSize 2
             }
 
             "show after cancel is a no-op and does not track the viewer" {
