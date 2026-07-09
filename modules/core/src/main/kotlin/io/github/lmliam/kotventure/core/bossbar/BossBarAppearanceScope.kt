@@ -1,38 +1,22 @@
 package io.github.lmliam.kotventure.core.bossbar
 
-import io.github.lmliam.kotventure.core.component.ComponentScope
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import net.kyori.adventure.bossbar.BossBar
-import net.kyori.adventure.text.ComponentLike
 
 /**
- * Shared boss-bar configuration slots: required [name], optional [color]/[overlay], and flag
- * toggles.
+ * The look of the bar strip shared by every boss-bar scope: optional [color]/[overlay] and the
+ * screen-effect flag toggles.
  *
- * Progress is intentionally absent — static bars expose [BossBarScope.progress], while
- * time-managed bars own progress via [TimedBossBarScope.progress] so the wrong slot is a
+ * Progress and the name are intentionally absent — they are the slots on which the static and
+ * time-managed scopes differ, so each concrete scope declares its own and the wrong form is a
  * compile-time error, not a runtime one.
  *
  * Scope-bound [BossBar.Color] and [BossBar.Overlay] vals (`red`, `notched10`, …) shadow top-level
- * text colours only inside this block; nested [name] component scopes cannot see them thanks to
+ * text colours only inside this block; nested component scopes cannot see them thanks to
  * [KotventureDslMarker].
  */
 @KotventureDslMarker
-public interface BossBarBaseScope {
-    /**
-     * Builds the boss bar name from a component DSL block.
-     *
-     * @throws IllegalStateException when the name is already set in this block.
-     */
-    public fun name(init: ComponentScope.() -> Unit)
-
-    /**
-     * Sets the boss bar name.
-     *
-     * @throws IllegalStateException when the name is already set in this block.
-     */
-    public fun <T : ComponentLike> name(component: T)
-
+public interface BossBarAppearanceScope {
     /**
      * Sets the bar colour (the strip colour — not the name text colour).
      *
@@ -103,8 +87,8 @@ public interface BossBarBaseScope {
     /**
      * Continuous [BossBar.Overlay.PROGRESS] overlay (no notches).
      *
-     * Coexists with float [BossBarScope.progress] / [TimedBossBarScope.progress]:
-     * `progress(0.25f)` resolves to the function; `overlay(progress)` resolves to this property.
+     * Coexists with the float `progress` slots on the concrete scopes: `progress(0.25f)` resolves
+     * to the function; `overlay(progress)` resolves to this property.
      */
     public val progress: BossBar.Overlay
         get() = BossBar.Overlay.PROGRESS

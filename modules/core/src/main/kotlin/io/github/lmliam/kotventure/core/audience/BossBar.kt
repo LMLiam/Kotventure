@@ -1,9 +1,9 @@
 package io.github.lmliam.kotventure.core.audience
 
 import io.github.lmliam.kotventure.core.bossbar.BossBarScope
-import io.github.lmliam.kotventure.core.bossbar.TimedBossBar
-import io.github.lmliam.kotventure.core.bossbar.TimedBossBarBuilder
-import io.github.lmliam.kotventure.core.bossbar.TimedBossBarScope
+import io.github.lmliam.kotventure.core.bossbar.timed.TimedBossBar
+import io.github.lmliam.kotventure.core.bossbar.timed.TimedBossBarBuilder
+import io.github.lmliam.kotventure.core.bossbar.timed.TimedBossBarScope
 import io.github.lmliam.kotventure.core.time.Ticker
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.bossbar.BossBar

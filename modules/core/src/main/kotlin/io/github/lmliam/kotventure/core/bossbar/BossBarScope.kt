@@ -1,25 +1,41 @@
 package io.github.lmliam.kotventure.core.bossbar
 
+import io.github.lmliam.kotventure.core.component.ComponentScope
 import net.kyori.adventure.bossbar.BossBar
+import net.kyori.adventure.text.ComponentLike
 
 /**
- * Configures a static Adventure [BossBar]: required name, optional [progress]/colour/overlay, and
- * optional flag toggles.
+ * Configures a static Adventure [BossBar]: required [name], optional [progress], and the shared
+ * [appearance][BossBarAppearanceScope] slots.
  *
- * Only [name][BossBarBaseScope.name] is required. Unset optional slots default to a full pink
- * continuous bar ([BossBar.MAX_PROGRESS], [BossBar.Color.PINK], [BossBar.Overlay.PROGRESS], no
- * flags). Each slot and each flag may be set at most once.
+ * Only [name] is required. Unset optional slots default to a full pink continuous bar
+ * ([BossBar.MAX_PROGRESS], [BossBar.Color.PINK], [BossBar.Overlay.PROGRESS], no flags).
+ * Each slot and each flag may be set at most once.
  *
  * @sample io.github.lmliam.kotventure.core.bossbar.bossBarSample
  */
-public interface BossBarScope : BossBarBaseScope {
+public interface BossBarScope : BossBarAppearanceScope {
+    /**
+     * Builds the boss bar name from a component DSL block.
+     *
+     * @throws IllegalStateException when the name is already set in this block.
+     */
+    public fun name(init: ComponentScope.() -> Unit)
+
+    /**
+     * Sets the boss bar name.
+     *
+     * @throws IllegalStateException when the name is already set in this block.
+     */
+    public fun <T : ComponentLike> name(component: T)
+
     /**
      * Sets fill amount in the inclusive range
      * [[BossBar.MIN_PROGRESS], [BossBar.MAX_PROGRESS]].
      *
-     * Out-of-range values fail fast via Adventure's own bounds check (not clamped).
+     * Defaults to a full bar ([BossBar.MAX_PROGRESS]) when unset.
      *
-     * @throws IllegalStateException when progress is already set in this block.
+     * @throws IllegalStateException when the progress is already set in this block.
      * @throws IllegalArgumentException when [progress] is outside `0f..1f`.
      */
     public fun progress(progress: Float)

@@ -1,4 +1,4 @@
-package io.github.lmliam.kotventure.core.bossbar
+package io.github.lmliam.kotventure.core.bossbar.timed
 
 import io.github.lmliam.kotventure.core.component.ComponentScope
 import kotlin.time.Duration
@@ -8,7 +8,7 @@ import kotlin.time.Duration
  *
  * The block is a regular [ComponentScope], so the dynamic form composes exactly like the static
  * `name { }` form — child builders, styling, and the string shorthands all apply. The SAM keeps
- * `name { remaining -> text("…") }` distinct from the static [BossBarBaseScope.name] overloads
+ * `name { remaining -> text("…") }` distinct from the static [TimedBossBarScope.name] overloads
  * during overload resolution.
  */
 public fun interface TimedBossBarName {

@@ -1,5 +1,7 @@
-package io.github.lmliam.kotventure.core.bossbar
+package io.github.lmliam.kotventure.core.bossbar.timed
 
+import io.github.lmliam.kotventure.core.bossbar.BossBarAppearanceBuilder
+import io.github.lmliam.kotventure.core.bossbar.BossBarAppearanceScope
 import io.github.lmliam.kotventure.core.component.ComponentScope
 import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.dsl.once
@@ -8,10 +10,11 @@ import net.kyori.adventure.bossbar.BossBar
 import net.kyori.adventure.text.ComponentLike
 import kotlin.time.Duration
 
-internal class TimedBossBarBuilder :
-    BossBarBaseBuilder(),
-    TimedBossBarScope {
-    private var name: BossBarNameSpec? by once()
+internal class TimedBossBarBuilder(
+    private val appearance: BossBarAppearanceBuilder = BossBarAppearanceBuilder(),
+) : TimedBossBarScope,
+    BossBarAppearanceScope by appearance {
+    private var name: TimedBossBarNameSpec? by once()
     private var progressRange: ProgressRange? by once { "'progress' is already set." }
     private var every: Duration? by once()
     private var onTick: (TimedBossBar.(Duration) -> Unit)? by once()
@@ -21,11 +24,11 @@ internal class TimedBossBarBuilder :
     override fun name(init: ComponentScope.() -> Unit): Unit = name(component(init))
 
     override fun <T : ComponentLike> name(component: T) {
-        name = BossBarNameSpec.Static(component.asComponent())
+        name = TimedBossBarNameSpec.Static(component.asComponent())
     }
 
     override fun name(render: TimedBossBarName) {
-        name = BossBarNameSpec.Dynamic(render)
+        name = TimedBossBarNameSpec.Dynamic(render)
     }
 
     override fun progress(
@@ -62,9 +65,7 @@ internal class TimedBossBarBuilder :
             name = name,
             progressFrom = range?.from ?: BossBar.MAX_PROGRESS,
             progressTo = range?.to ?: BossBar.MIN_PROGRESS,
-            color = resolvedColor(),
-            overlay = resolvedOverlay(),
-            flags = resolvedFlags(),
+            appearance = appearance.build(),
             every = every ?: 1.ticks,
             over = over,
             onTick = onTick,

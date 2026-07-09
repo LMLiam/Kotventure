@@ -1,21 +1,18 @@
-package io.github.lmliam.kotventure.core.bossbar
+package io.github.lmliam.kotventure.core.bossbar.timed
 
 import io.github.lmliam.kotventure.core.time.Ticker
 import io.github.lmliam.kotventure.core.time.TickerTask
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.bossbar.BossBar
-import java.util.Collections
-import java.util.IdentityHashMap
 import kotlin.time.Duration
 
 /**
  * Handle for a lifecycle-managed boss bar that interpolates progress over a duration and
  * auto-hides when finished or cancelled.
  *
- * Built via [io.github.lmliam.kotventure.core.audience.bossBar] with a contextual
- * [Ticker][io.github.lmliam.kotventure.core.time.Ticker]. The underlying [bar] remains a
- * live-mutable Adventure [BossBar]. Viewers added via [show] are tracked so completion and
- * [cancel] hide the bar from every tracked audience.
+ * Built via [io.github.lmliam.kotventure.core.audience.bossBar] with a contextual [Ticker]. The
+ * underlying [bar] remains a live-mutable Adventure [BossBar]. Viewers added via [show] are
+ * tracked so completion and [cancel] hide the bar from every tracked audience.
  */
 public class TimedBossBar internal constructor(
     private val ticker: Ticker,
@@ -27,18 +24,14 @@ public class TimedBossBar internal constructor(
         BossBar.bossBar(
             config.name.resolve(config.over),
             config.progressFrom,
-            config.color,
-            config.overlay,
-            config.flags,
+            config.appearance.color,
+            config.appearance.overlay,
+            config.appearance.flags,
         )
 
-    private val viewers: MutableSet<Audience> =
-        Collections.newSetFromMap(IdentityHashMap())
+    private val viewers = mutableSetOf<Audience>()
 
     private val lock = Any()
-
-    @Volatile
-    private var elapsed: Duration = Duration.ZERO
 
     /**
      * Time remaining until natural completion; frozen while [isPaused] and at the value it had
@@ -103,10 +96,7 @@ public class TimedBossBar internal constructor(
             if (!isRunning) {
                 return
             }
-            isRunning = false
-            isPaused = false
-            stopTicking()
-            hideAllViewers()
+            stop()
         }
         // Runs outside the lock, like completion, so re-entrant handle calls can take it.
         config.onCancel?.invoke(this)
@@ -140,10 +130,7 @@ public class TimedBossBar internal constructor(
     }
 
     private fun startTicking() {
-        task =
-            ticker.repeating(config.every) {
-                onInterval()
-            }
+        task = ticker.repeating(config.every) { tick() }
     }
 
     private fun stopTicking() {
@@ -151,36 +138,32 @@ public class TimedBossBar internal constructor(
         task = null
     }
 
-    private fun onInterval() {
-        val finished: Boolean
-        val remainingAfter: Duration
-        synchronized(lock) {
-            if (!isRunning || isPaused) {
-                return
-            }
-            elapsed += config.every
-            if (elapsed >= config.over) {
-                elapsed = config.over
-                remaining = Duration.ZERO
-                bar.progress(config.progressTo)
-                applyName(Duration.ZERO)
-                finished = true
-                remainingAfter = Duration.ZERO
-            } else {
-                remaining = config.over - elapsed
-                bar.progress(interpolatedProgress(elapsed))
-                applyName(remaining)
-                finished = false
-                remainingAfter = remaining
-            }
-        }
+    private fun tick() {
+        val remainingNow = synchronized(lock) { advanceOrNull() } ?: return
 
         // Hooks run outside the lock so re-entrant handle calls can take it.
-        config.onTick?.invoke(this, remainingAfter)
+        config.onTick?.invoke(this, remainingNow)
 
-        if (finished) {
+        if (remainingNow == Duration.ZERO) {
             completeNaturally()
         }
+    }
+
+    /**
+     * Advances one interval and updates the bar, returning the new [remaining]; `null` when the
+     * bar is no longer advancing.
+     */
+    private fun advanceOrNull(): Duration? {
+        if (!isRunning || isPaused) {
+            return null
+        }
+        remaining = (remaining - config.every).coerceAtLeast(Duration.ZERO)
+        bar.progress(progressAt(remaining))
+        val name = config.name
+        if (name is TimedBossBarNameSpec.Dynamic) {
+            bar.name(name.resolve(remaining))
+        }
+        return remaining
     }
 
     private fun completeNaturally() {
@@ -188,32 +171,26 @@ public class TimedBossBar internal constructor(
             if (!isRunning) {
                 return
             }
-            isRunning = false
-            isPaused = false
-            stopTicking()
-            hideAllViewers()
+            stop()
         }
         config.onFinish?.invoke(this)
     }
 
-    private fun hideAllViewers() {
-        val snapshot = viewers.toList()
+    /** Ends the bar: callers hold [lock] and have checked [isRunning]. */
+    private fun stop() {
+        isRunning = false
+        isPaused = false
+        stopTicking()
+        val hidden = viewers.toList()
         viewers.clear()
-        for (audience in snapshot) {
-            audience.hideBossBar(bar)
-        }
+        hidden.forEach { it.hideBossBar(bar) }
     }
 
-    private fun applyName(remaining: Duration) {
-        val spec = config.name
-        if (spec is BossBarNameSpec.Dynamic) {
-            bar.name(spec.resolve(remaining))
+    private fun progressAt(remaining: Duration): Float {
+        if (remaining == Duration.ZERO) {
+            return config.progressTo
         }
-    }
-
-    private fun interpolatedProgress(elapsed: Duration): Float {
-        val overNanos = config.over.inWholeNanoseconds.toDouble()
-        val fraction = (elapsed.inWholeNanoseconds.toDouble() / overNanos).toFloat()
+        val fraction = (1.0 - remaining / config.over).toFloat()
         return config.progressFrom + (config.progressTo - config.progressFrom) * fraction
     }
 }

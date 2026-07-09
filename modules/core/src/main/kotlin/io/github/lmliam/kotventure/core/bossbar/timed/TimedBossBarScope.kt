@@ -1,11 +1,15 @@
-package io.github.lmliam.kotventure.core.bossbar
+package io.github.lmliam.kotventure.core.bossbar.timed
 
+import io.github.lmliam.kotventure.core.bossbar.BossBarAppearanceScope
+import io.github.lmliam.kotventure.core.bossbar.BossBarScope
+import io.github.lmliam.kotventure.core.component.ComponentScope
 import net.kyori.adventure.bossbar.BossBar
+import net.kyori.adventure.text.ComponentLike
 import kotlin.time.Duration
 
 /**
- * Configures a lifecycle-managed [TimedBossBar]: shared name/colour/overlay/flag slots plus
- * interpolated [progress], update cadence, and lifecycle hooks.
+ * Configures a lifecycle-managed [TimedBossBar]: required [name], interpolated [progress], update
+ * cadence, lifecycle hooks, and the shared [appearance][BossBarAppearanceScope] slots.
  *
  * Static [progress][BossBarScope.progress] is intentionally absent — a managed bar owns its fill
  * amount over time. Unset [progress] defaults to a full → empty countdown; unset [every] defaults
@@ -13,14 +17,28 @@ import kotlin.time.Duration
  *
  * @sample io.github.lmliam.kotventure.core.audience.timedBossBarSample
  */
-public interface TimedBossBarScope : BossBarBaseScope {
+public interface TimedBossBarScope : BossBarAppearanceScope {
+    /**
+     * Builds a fixed boss bar name from a component DSL block.
+     *
+     * @throws IllegalStateException when the name is already set in this block.
+     */
+    public fun name(init: ComponentScope.() -> Unit)
+
+    /**
+     * Sets a fixed boss bar name.
+     *
+     * @throws IllegalStateException when the name is already set in this block.
+     */
+    public fun <T : ComponentLike> name(component: T)
+
     /**
      * Re-renders the bar name every tick from the time remaining until completion.
      *
      * Call site: `name { remaining -> text("… ${remaining.inWholeSeconds}s") }`. The block is a
-     * component scope exactly like the static `name { }` form — the extra `remaining` parameter
+     * component scope exactly like the fixed `name { }` form — the extra `remaining` parameter
      * is the only difference. The SAM [TimedBossBarName] keeps this overload distinct from the
-     * static [name][BossBarBaseScope.name] forms (component DSL block / existing component).
+     * fixed forms during overload resolution.
      *
      * @throws IllegalStateException when the name is already set in this block.
      */

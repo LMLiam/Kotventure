@@ -1,4 +1,4 @@
-package io.github.lmliam.kotventure.core.bossbar
+package io.github.lmliam.kotventure.core.bossbar.timed
 
 import io.github.lmliam.kotventure.core.audience.bossBar
 import io.github.lmliam.kotventure.core.text.text

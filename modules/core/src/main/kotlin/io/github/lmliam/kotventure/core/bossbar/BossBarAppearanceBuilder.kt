@@ -4,9 +4,10 @@ import io.github.lmliam.kotventure.core.dsl.once
 import net.kyori.adventure.bossbar.BossBar
 
 /**
- * Shared builder state for [BossBarBaseScope] colour, overlay, and flag slots.
+ * Collects the [BossBarAppearanceScope] slots; concrete boss-bar builders compose this by
+ * interface delegation and take the resolved snapshot via [build].
  */
-internal abstract class BossBarBaseBuilder : BossBarBaseScope {
+internal class BossBarAppearanceBuilder : BossBarAppearanceScope {
     private var color: BossBar.Color? by once()
     private var overlay: BossBar.Overlay? by once()
     private var darkenScreen: Boolean? by once()
@@ -33,14 +34,15 @@ internal abstract class BossBarBaseBuilder : BossBarBaseScope {
         createWorldFog = true
     }
 
-    protected fun resolvedColor(): BossBar.Color = color ?: BossBar.Color.PINK
-
-    protected fun resolvedOverlay(): BossBar.Overlay = overlay ?: BossBar.Overlay.PROGRESS
-
-    protected fun resolvedFlags(): Set<BossBar.Flag> =
-        buildSet {
-            if (darkenScreen == true) add(BossBar.Flag.DARKEN_SCREEN)
-            if (playBossMusic == true) add(BossBar.Flag.PLAY_BOSS_MUSIC)
-            if (createWorldFog == true) add(BossBar.Flag.CREATE_WORLD_FOG)
-        }
+    fun build(): BossBarAppearance =
+        BossBarAppearance(
+            color = color ?: BossBar.Color.PINK,
+            overlay = overlay ?: BossBar.Overlay.PROGRESS,
+            flags =
+                buildSet {
+                    if (darkenScreen == true) add(BossBar.Flag.DARKEN_SCREEN)
+                    if (playBossMusic == true) add(BossBar.Flag.PLAY_BOSS_MUSIC)
+                    if (createWorldFog == true) add(BossBar.Flag.CREATE_WORLD_FOG)
+                },
+        )
 }

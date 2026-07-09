@@ -7,12 +7,13 @@ import net.kyori.adventure.bossbar.BossBar
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentLike
 
-internal class BossBarBuilder :
-    BossBarBaseBuilder(),
-    BossBarScope {
+internal class BossBarBuilder(
+    private val appearance: BossBarAppearanceBuilder = BossBarAppearanceBuilder(),
+) : BossBarScope,
+    BossBarAppearanceScope by appearance {
     private var name: Component? by once()
 
-    // Cannot be named `progress`: BossBarBaseScope already has `val progress: Overlay`.
+    // Cannot be named `progress`: BossBarAppearanceScope already has `val progress: Overlay`.
     private var progressValue: Float? by once { "'progress' is already set." }
 
     override fun name(init: ComponentScope.() -> Unit): Unit = name(component(init))
@@ -27,12 +28,13 @@ internal class BossBarBuilder :
 
     internal fun build(): BossBar {
         val name = checkNotNull(name) { "'name' is not set." }
+        val appearance = appearance.build()
         return BossBar.bossBar(
             name,
             progressValue ?: BossBar.MAX_PROGRESS,
-            resolvedColor(),
-            resolvedOverlay(),
-            resolvedFlags(),
+            appearance.color,
+            appearance.overlay,
+            appearance.flags,
         )
     }
 }
