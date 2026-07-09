@@ -4,7 +4,7 @@ import net.kyori.adventure.bossbar.BossBar
 import kotlin.time.Duration
 
 /**
- * Immutable configuration snapshot produced by [TimedBossBarBuilder] for [TimedBossBarImpl].
+ * Immutable configuration snapshot produced by [TimedBossBarBuilder] for [TimedBossBar].
  */
 internal data class TimedBossBarConfig(
     val name: BossBarNameSpec,

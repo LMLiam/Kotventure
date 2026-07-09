@@ -3,7 +3,6 @@ package io.github.lmliam.kotventure.core.audience
 import io.github.lmliam.kotventure.core.bossbar.BossBarScope
 import io.github.lmliam.kotventure.core.bossbar.TimedBossBar
 import io.github.lmliam.kotventure.core.bossbar.TimedBossBarBuilder
-import io.github.lmliam.kotventure.core.bossbar.TimedBossBarImpl
 import io.github.lmliam.kotventure.core.bossbar.TimedBossBarScope
 import io.github.lmliam.kotventure.core.time.Ticker
 import net.kyori.adventure.audience.Audience
@@ -69,5 +68,5 @@ public fun Audience.bossBar(
     init: TimedBossBarScope.() -> Unit,
 ): TimedBossBar {
     val config = TimedBossBarBuilder().apply(init).buildConfig(over)
-    return TimedBossBarImpl(ticker, config, creator = this)
+    return TimedBossBar(ticker, config, creator = this)
 }
