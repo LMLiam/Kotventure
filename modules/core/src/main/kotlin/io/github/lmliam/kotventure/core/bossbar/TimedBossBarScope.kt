@@ -15,7 +15,7 @@ import kotlin.time.Duration
  */
 public interface TimedBossBarScope : BossBarBaseScope {
     /**
-     * Re-renders the bar name every tick from [remaining] time until completion.
+     * Re-renders the bar name every tick from the time remaining until completion.
      *
      * Call site: `name { remaining -> text("… ${remaining.inWholeSeconds}s") }`. The SAM
      * [TimedBossBarName] keeps this overload distinct from the static
@@ -33,6 +33,8 @@ public interface TimedBossBarScope : BossBarBaseScope {
      * Unset defaults to [BossBar.MAX_PROGRESS] → [BossBar.MIN_PROGRESS] (countdown).
      * The final tick lands exactly on [to].
      *
+     * @param from starting fill amount (inclusive `0f..1f`).
+     * @param to ending fill amount (inclusive `0f..1f`).
      * @throws IllegalStateException when progress is already set in this block.
      * @throws IllegalArgumentException when [from] or [to] is outside `0f..1f`.
      */
@@ -46,6 +48,7 @@ public interface TimedBossBarScope : BossBarBaseScope {
      *
      * Defaults to one game tick when unset.
      *
+     * @param interval positive delay between updates.
      * @throws IllegalStateException when the cadence is already set in this block.
      * @throws IllegalArgumentException when [interval] is not positive.
      */
@@ -54,8 +57,8 @@ public interface TimedBossBarScope : BossBarBaseScope {
     /**
      * Invoked after each progress update and name re-render while the bar is running.
      *
-     * The [TimedBossBar] handle is the receiver; [remaining] is the time left after this tick's
-     * update. Runs on the ticker's thread.
+     * The [TimedBossBar] handle is the receiver; the lambda's `remaining` argument is the time
+     * left after this tick's update. Runs on the ticker's thread.
      *
      * @throws IllegalStateException when this hook is already set in this block.
      */
