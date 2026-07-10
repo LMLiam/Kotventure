@@ -7,7 +7,7 @@ import net.kyori.adventure.chat.ChatType
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentLike
 
-internal sealed class BoundChatBuilder : BoundChatScope {
+internal open class BoundChatBuilder : BoundChatScope {
     private var type: ChatType? by once()
     private var name: Component? by once()
     private var target: Component? by once()
@@ -32,7 +32,4 @@ internal sealed class BoundChatBuilder : BoundChatScope {
         val name = checkNotNull(name) { "'name' is not set." }
         return (type ?: ChatType.CHAT).bind(name, target)
     }
-
-    /** Concrete builder for signed-message [BoundChatScope] blocks (no message content slot). */
-    internal class Bound : BoundChatBuilder()
 }
