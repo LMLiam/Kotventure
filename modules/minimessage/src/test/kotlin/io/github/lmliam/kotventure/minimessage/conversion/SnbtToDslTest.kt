@@ -7,6 +7,10 @@ import io.kotest.matchers.shouldBe
 class SnbtToDslTest :
     StringSpec(
         {
+            "escapes ISO control characters in Kotlin string literals" {
+                quoted("a\u0001b\u007fc") shouldBe "\"a\\u0001b\\u007Fc\""
+            }
+
             "parses a single byte entry" {
                 snbtToDslBody("{kotventure:1b}") shouldBe
                         "\"kotventure\" eq 1.toByte()"

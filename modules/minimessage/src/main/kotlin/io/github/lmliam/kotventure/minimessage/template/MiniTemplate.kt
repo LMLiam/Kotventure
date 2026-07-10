@@ -6,13 +6,16 @@ import io.github.lmliam.kotventure.minimessage.validation.runValidation
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
+import kotlin.properties.PropertyDelegateProvider
+import kotlin.properties.ReadOnlyProperty
 import io.github.lmliam.kotventure.minimessage.placeholder.placeholder as createPlaceholder
 
 /**
  * Typed, reusable MiniMessage template with declared placeholders.
  *
- * Subclass and declare each placeholder as a property; rendering invokes the template and binds every
- * placeholder with the [bind][MiniTemplateBindingScope.bind] infix function:
+ * Subclass and declare each placeholder as a delegated property so the property name is the tag
+ * name (compile-checked at call sites). Render with the [invoke] operator and bind values with
+ * [bind][MiniTemplateBindingScope.bind]:
  *
  * @sample io.github.lmliam.kotventure.minimessage.template.miniTemplateRenderSample
  *
@@ -36,7 +39,26 @@ public abstract class MiniTemplate(
     }
 
     /**
-     * Declares a required placeholder on this template.
+     * Declares a required placeholder whose MiniMessage tag name is this property's name.
+     *
+     * Prefer this form so the Kotlin property and the markup tag cannot drift:
+     * `val player by placeholder<Component>()`.
+     *
+     * @throws IllegalArgumentException when the property name is not a valid MiniMessage tag, is
+     *   already declared, or [T] is unsupported.
+     */
+    protected inline fun <reified T : Any> placeholder():
+        PropertyDelegateProvider<MiniTemplate, ReadOnlyProperty<MiniTemplate, MiniMessagePlaceholder<T>>> =
+        PropertyDelegateProvider { template, property ->
+            val registered = template.register(createPlaceholder<T>(property.name))
+            ReadOnlyProperty { _, _ -> registered }
+        }
+
+    /**
+     * Declares a required placeholder with an explicit MiniMessage tag [name].
+     *
+     * Use only when the tag must differ from the Kotlin property name (interop / legacy markup).
+     * Prefer [placeholder] with no name so the property name is the tag.
      *
      * @throws IllegalArgumentException when [name] is invalid or already declared, or [T] is unsupported.
      */

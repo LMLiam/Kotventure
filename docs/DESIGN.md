@@ -227,11 +227,16 @@ context(ticker) {
 
 
 // ── Typed MiniMessage template + validation ────────────────────
-val Welcome = miniTemplate("<gold>Welcome <player>, <count> new messages") {
-    placeholder<Component>("player")
-    placeholder<Int>("count")
+object Welcome : MiniTemplate("<gold>Welcome <player>, <count> new messages</gold>") {
+    val player by placeholder<Component>()
+    val count by placeholder<Int>()
 }
-player.message(Welcome { player = name; count = 3 })
+player.message(
+    Welcome {
+        player bind name
+        count bind 3
+    },
+)
 
 // ── Typed catalog (KSP from messages.yml) ──────────────────────
 Messages.welcome(player = name, count = 3)   // generated, validated placeholders
@@ -274,8 +279,8 @@ update process.
 Three layers, shipped incrementally:
 
 1. **Passthrough** — `mini("<red>hi")` wrapping the parser, plus a tag‑resolver DSL.
-2. **Typed placeholders & templates** — `miniTemplate(...) { placeholder<T>(...) }` producing reusable, type‑checked
-   message factories.
+2. **Typed placeholders & templates** — `object : MiniTemplate("…") { val x by placeholder<T>() }` producing reusable,
+   type‑checked message factories (property name is the tag; optional `placeholder<T>("tag")` when they differ).
 3. **Validation** — detect malformed tags and missing/extra placeholders at load time (runtime API) and at **build time
    ** (Gradle plugin over resource bundles).
 

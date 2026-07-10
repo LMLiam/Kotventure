@@ -31,7 +31,7 @@ val message = component {
 ## Why Kotventure
 
 - **Ergonomic component trees** — a composable builder for components, styles, colours, and events.
-- **Typed MiniMessage** — `mini(...)` parsing, typed `placeholder<T>(name)` resolvers, and reusable `MiniTemplate`s
+- **Typed MiniMessage** — `mini(...)` parsing, typed resolvers, and reusable `MiniTemplate`s (`val x by placeholder<T>()`)
   with compile-checked bindings (`player bind value`).
 - **Correctness tooling** — Kotest component matchers, snapshot assertions over canonical JSON, and load-time
   MiniMessage validation that reports malformed tags and missing/extra placeholders.
