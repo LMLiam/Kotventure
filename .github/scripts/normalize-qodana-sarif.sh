@@ -4,6 +4,7 @@
 set -euo pipefail
 
 sarif_file="${1:-${RUNNER_TEMP:-/tmp}/qodana/results/qodana.sarif.json}"
+tmp_file="${sarif_file}.tmp"
 
 if [[ ! -f "$sarif_file" ]]; then
   echo "Qodana SARIF not found at $sarif_file; skipping normalization."
@@ -14,6 +15,11 @@ if ! command -v jq >/dev/null 2>&1; then
   echo "jq is required to normalize Qodana SARIF." >&2
   exit 1
 fi
+
+cleanup() {
+  rm -f "$tmp_file"
+}
+trap cleanup EXIT
 
 jq '
   def normalize_region:
@@ -37,5 +43,5 @@ jq '
     end;
 
   walk(if type == "object" and has("region") then .region |= normalize_region else . end)
-' "$sarif_file" > "${sarif_file}.tmp"
-mv "${sarif_file}.tmp" "$sarif_file"
+' "$sarif_file" > "$tmp_file"
+mv "$tmp_file" "$sarif_file"

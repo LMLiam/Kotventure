@@ -58,7 +58,7 @@ jobs:
       - name: Normalize Qodana SARIF regions
         if: always()
         shell: bash
-        run: bash .github/scripts/normalize-qodana-sarif.sh
+        run: bash .github/scripts/normalize-qodana-sarif.sh "${{ runner.temp }}/qodana/results/qodana.sarif.json"
 
       - name: Upload Qodana results to code scanning
         if: always()

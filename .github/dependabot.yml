@@ -17,11 +17,45 @@ updates:
     commit-message:
       prefix: "chore(deps)"
 
+  # Root workflows (and any root-level action.yml). Dependabot does not recurse into
+  # .github/actions/* with directory: "/" alone — those are listed separately below.
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 10
+    groups:
+      github-actions:
+        update-types:
+          - "minor"
+          - "patch"
+    labels:
+      - "type: chore"
+      - "dependencies"
+    commit-message:
+      prefix: "chore(ci)"
+
+  - package-ecosystem: "github-actions"
+    directory: "/.github/actions/setup-jdk-gradle"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      github-actions:
+        update-types:
+          - "minor"
+          - "patch"
+    labels:
+      - "type: chore"
+      - "dependencies"
+    commit-message:
+      prefix: "chore(ci)"
+
+  - package-ecosystem: "github-actions"
+    directory: "/.github/actions/publish-junit-report"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
     groups:
       github-actions:
         update-types:
