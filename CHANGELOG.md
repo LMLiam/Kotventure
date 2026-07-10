@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any release.
 
+## [0.14.0](https://github.com/LMLiam/Kotventure/compare/0.13.0...0.14.0) (2026-07-10)
+
+
+### ✨ Features
+
+* **audience:** add the tab list header/footer dsl ([#261](https://github.com/LMLiam/Kotventure/issues/261)) ([7acec44](https://github.com/LMLiam/Kotventure/commit/7acec442ddb171dd870900aae9012a90bec1b6f1))
+
 ## [0.13.0](https://github.com/LMLiam/Kotventure/compare/0.12.2...0.13.0) (2026-07-10)
 
 
