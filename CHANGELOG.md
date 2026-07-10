@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any release.
 
+## [0.12.2](https://github.com/LMLiam/Kotventure/compare/0.12.1...0.12.2) (2026-07-10)
+
+
+### 🔧 Refactors
+
+* **color:** hide ColorGradient constructor behind gradient factories ([#246](https://github.com/LMLiam/Kotventure/issues/246)) ([513e2e6](https://github.com/LMLiam/Kotventure/commit/513e2e6661e16cbf609cb6ce20a8e0ba9634b687))
+
 ## [0.12.1](https://github.com/LMLiam/Kotventure/compare/0.12.0...0.12.1) (2026-07-10)
 
 
