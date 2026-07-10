@@ -45,12 +45,12 @@ jobs:
         with:
           filters: .github/code-paths-filter.yml
 
-  gradle:
-    name: Gradle build
+  lint:
+    name: Format and lint
     needs: [gate, changes]
     if: needs.gate.outputs.run == 'true' && needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
 
     steps:
       - name: Checkout
@@ -62,8 +62,27 @@ jobs:
       - name: Set up JDK and Gradle
         uses: ./.github/actions/setup-jdk-gradle
 
-      - name: Run build, tests, coverage, and formatting checks
-        run: ./gradlew build dokkaGenerate koverXmlReport koverHtmlReport spotlessCheck ktlintCheck
+      - name: Run Spotless and ktlint
+        run: ./gradlew spotlessCheck ktlintCheck
+
+  gradle:
+    name: Gradle build
+    needs: [gate, changes]
+    if: needs.gate.outputs.run == 'true' && needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Set up JDK and Gradle
+        uses: ./.github/actions/setup-jdk-gradle
+
+      - name: Run build, tests, and coverage
+        run: ./gradlew build dokkaGenerate koverXmlReport koverHtmlReport
 
       - name: Publish JUnit test report
         if: always()
@@ -93,7 +112,7 @@ jobs:
           retention-days: 7
 
       - name: Upload build artifacts
-        if: always()
+        if: failure() || (github.event_name == 'push' && github.ref == 'refs/heads/master')
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: gradle-build-artifacts
@@ -104,7 +123,7 @@ jobs:
   build:
     name: Build, Test, and Lint
     if: always()
-    needs: [gate, changes, gradle]
+    needs: [gate, changes, lint, gradle]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -113,6 +132,7 @@ jobs:
           set -euo pipefail
           gate="${{ needs.gate.result }}"
           changes="${{ needs.changes.result }}"
+          lint="${{ needs.lint.result }}"
           gradle="${{ needs.gradle.result }}"
           run="${{ needs.gate.outputs.run }}"
           code="${{ needs.changes.outputs.code }}"
@@ -123,7 +143,7 @@ jobs:
           fi
 
           if [[ "$run" != "true" ]]; then
-            echo "Skipped Gradle build (pure release-please allow-list PR)."
+            echo "Skipped Gradle jobs (pure release-please allow-list PR)."
             exit 0
           fi
 
@@ -133,13 +153,14 @@ jobs:
           fi
 
           if [[ "$code" != "true" ]]; then
-            echo "Skipped Gradle build (no code paths changed)."
+            echo "Skipped Gradle jobs (no code paths changed)."
             exit 0
           fi
 
-          if [[ "$gradle" == "success" ]]; then
+          if [[ "$lint" == "success" && "$gradle" == "success" ]]; then
             exit 0
           fi
 
-          echo "Gradle build result: $gradle"
+          echo "Format and lint: $lint"
+          echo "Gradle build: $gradle"
           exit 1
