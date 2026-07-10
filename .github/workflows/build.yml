@@ -101,7 +101,6 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-  # Required status check: always reports so path-only / release-please skips do not block merges.
   build:
     name: Build, Test, and Lint
     if: always()
