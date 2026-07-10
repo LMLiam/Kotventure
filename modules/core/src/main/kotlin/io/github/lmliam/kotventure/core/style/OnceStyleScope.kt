@@ -10,13 +10,12 @@ import net.kyori.adventure.text.format.TextDecoration
 import net.kyori.adventure.text.format.TextDecoration.State
 
 /**
- * Shared once-assign tracking and [StyleScope] dispatch for builders that apply style to an Adventure
- * target (reusable [Style] or a component builder).
+ * [StyleScope] that records each attribute at most once before applying it to an Adventure target.
  *
- * Subclasses only implement the Adventure apply hooks; slot uniqueness lives here so decoration and
- * attribute once-assign cannot drift between [StyleBuilder] and component builders.
+ * Shared by [StyleBuilder] and component builders so once-assign slots and decoration mapping live
+ * in one place. Subclasses implement the Adventure apply hooks only.
  */
-internal abstract class StyleScopeSupport : StyleScope {
+internal abstract class OnceStyleScope : StyleScope {
     private var color: TextColor? by once()
     private var shadow: ShadowColor? by once()
     private var font: Key? by once()
