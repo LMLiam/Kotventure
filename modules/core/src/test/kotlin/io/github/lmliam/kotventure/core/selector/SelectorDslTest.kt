@@ -135,19 +135,22 @@ class SelectorDslTest :
             }
 
             "rejects a duplicate separator" {
+                val first = text(", ")
+                val second = text("; ")
                 shouldThrow<IllegalStateException> {
                     selector(allPlayers()) {
-                        separator(text(", "))
-                        separator(text("; "))
+                        separator(first)
+                        separator(second)
                     }
                 }
             }
 
             "rejects a separator after an inline text separator" {
+                val second = text("; ")
                 shouldThrow<IllegalStateException> {
                     selector(allPlayers()) {
                         separator { content(", ") }
-                        separator(text("; "))
+                        separator(second)
                     }
                 }
             }

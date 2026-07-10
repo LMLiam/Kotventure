@@ -35,7 +35,8 @@ private class BossBarRecordingAudience : Audience {
     }
 }
 
-class BossBarDslTest : StringSpec(
+class BossBarDslTest :
+    StringSpec(
     {
         "builds a fully configured boss bar" {
             val bar =
@@ -165,13 +166,54 @@ class BossBarDslTest : StringSpec(
         }
 
         listOf(
-            "duplicate name" to { bossBar { name { text("a") }; name { text("b") } } },
-            "duplicate progress" to { bossBar { name { text("a") }; progress(0.1f); progress(0.2f) } },
-            "duplicate color" to { bossBar { name { text("a") }; color(red); color(blue) } },
-            "duplicate overlay" to { bossBar { name { text("a") }; overlay(notched6); overlay(notched12) } },
-            "duplicate darkenScreen" to { bossBar { name { text("a") }; darkenScreen(); darkenScreen() } },
-            "duplicate playBossMusic" to { bossBar { name { text("a") }; playBossMusic(); playBossMusic() } },
-            "duplicate createWorldFog" to { bossBar { name { text("a") }; createWorldFog(); createWorldFog() } },
+            "duplicate name" to {
+                bossBar {
+                name { text("a") }
+                name { text("b") }
+            }
+            },
+            "duplicate progress" to {
+                bossBar {
+                name { text("a") }
+                progress(0.1f)
+                progress(0.2f)
+            }
+            },
+            "duplicate color" to {
+                bossBar {
+                name { text("a") }
+                color(red)
+                color(blue)
+            }
+            },
+            "duplicate overlay" to {
+                bossBar {
+                name { text("a") }
+                overlay(notched6)
+                overlay(notched12)
+            }
+            },
+            "duplicate darkenScreen" to {
+                bossBar {
+                name { text("a") }
+                darkenScreen()
+                darkenScreen()
+            }
+            },
+            "duplicate playBossMusic" to {
+                bossBar {
+                name { text("a") }
+                playBossMusic()
+                playBossMusic()
+            }
+            },
+            "duplicate createWorldFog" to {
+                bossBar {
+                name { text("a") }
+                createWorldFog()
+                createWorldFog()
+            }
+            },
         ).forEach { (name, action) ->
             "rejects a $name" {
                 shouldThrow<IllegalStateException> { action() }

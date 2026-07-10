@@ -16,7 +16,7 @@ builder
  * cannot drift from model/parse validation.
  */
 internal class SelectorFilterGroup<T>(
-    keyword: SelectorArgumentKeyword
+    keyword: SelectorArgumentKeyword,
 ) {
     val argument: String = keyword.sourceName
     private val policy: SelectorFilterPolicy =
@@ -29,7 +29,7 @@ internal class SelectorFilterGroup<T>(
 
     fun add(
         owner: EntitySelectorBuilder,
-        value: T
+        value: T,
     ): SelectorFilterExpression = addEntry(owner, value, SelectorFilterPolarity.POSITIVE)
 
     /**
@@ -42,7 +42,7 @@ internal class SelectorFilterGroup<T>(
     fun addFixed(
         owner: EntitySelectorBuilder,
         value: T,
-        polarity: SelectorFilterPolarity
+        polarity: SelectorFilterPolarity,
     ) {
         addEntry(owner, value, polarity)
     }
@@ -60,7 +60,7 @@ internal class SelectorFilterGroup<T>(
     private fun addEntry(
         owner: EntitySelectorBuilder,
         value: T,
-        polarity: SelectorFilterPolarity
+        polarity: SelectorFilterPolarity,
     ): SelectorFilterEntry<T> {
         if (policy == SelectorFilterPolicy.EXCLUSIVE) {
             check(entries.none { it.polarity == SelectorFilterPolarity.POSITIVE }) {

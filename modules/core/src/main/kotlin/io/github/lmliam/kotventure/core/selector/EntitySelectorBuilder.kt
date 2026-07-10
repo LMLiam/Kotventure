@@ -69,14 +69,14 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
 
     override fun origin(
         first: OriginCoordinate,
-        vararg rest: OriginCoordinate
+        vararg rest: OriginCoordinate,
     ) {
         bindCoordinates((listOf(first) + rest).map { it.coordinate to it.value })
     }
 
     override fun volume(
         first: VolumeDelta,
-        vararg rest: VolumeDelta
+        vararg rest: VolumeDelta,
     ) {
         bindCoordinates((listOf(first) + rest).map { it.coordinate to it.value })
     }
