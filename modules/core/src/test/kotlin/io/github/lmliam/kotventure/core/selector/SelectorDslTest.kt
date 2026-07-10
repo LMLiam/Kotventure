@@ -166,6 +166,16 @@ class SelectorDslTest :
                 }
             }
 
+            "rejects a separator after an inline text separator" {
+                val second = text("; ")
+                shouldThrow<IllegalStateException> {
+                    selector(allPlayers()) {
+                        separator { content(", ") }
+                        separator(second)
+                    }
+                }.message shouldBe "'separator' is already set."
+            }
+
             "applies style to the selector root" {
                 val component =
                     selector(randomPlayer()) {
