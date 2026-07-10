@@ -67,10 +67,10 @@ Actions → **Build** → **Run workflow**. Always runs Format and lint + Gradle
 
 | Input | Default | Behaviour |
 |-------|---------|-----------|
-| `tasks` | empty | Default full set: `build dokkaGenerate koverXmlReport koverHtmlReport`. If only `module` is set: `:<module>:build :<module>:test`. |
-| `module` | empty | Optional project name (`core`, `minimessage`, …). Ignored when `tasks` is non-empty (tasks run as typed). |
+| `tasks` | empty | Default full set: `build dokkaGenerate koverXmlReport koverHtmlReport`. If only `module` is set: `:<module>:build` (includes tests when the project has them). |
+| `module` | empty | Optional project name (`core`, `minimessage`, `bom`, …). Ignored when `tasks` is non-empty (tasks run as typed). |
 
-Module names must match `[A-Za-z0-9_-]+`.
+Module names must match `[A-Za-z0-9_-]+`. Manual runs use a separate concurrency group from push/PR so they do not cancel each other.
 
 ### Heavy CI gate (release-please)
 

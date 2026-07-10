@@ -21,7 +21,7 @@ on:
         type: string
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -123,8 +123,10 @@ jobs:
           INPUT_MODULE: ${{ github.event.inputs.module || '' }}
         run: |
           set -euo pipefail
-          tasks="$(echo -n "${INPUT_TASKS}" | xargs || true)"
-          module="$(echo -n "${INPUT_MODULE}" | xargs || true)"
+          tasks="${INPUT_TASKS#"${INPUT_TASKS%%[![:space:]]*}"}"
+          tasks="${tasks%"${tasks##*[![:space:]]}"}"
+          module="${INPUT_MODULE#"${INPUT_MODULE%%[![:space:]]*}"}"
+          module="${module%"${module##*[![:space:]]}"}"
 
           if [[ -n "$module" && ! "$module" =~ ^[A-Za-z0-9_-]+$ ]]; then
             echo "Invalid module name: $module" >&2
@@ -133,7 +135,7 @@ jobs:
 
           if [[ -z "$tasks" ]]; then
             if [[ -n "$module" ]]; then
-              tasks=":${module}:build :${module}:test"
+              tasks=":${module}:build"
             else
               tasks="build dokkaGenerate koverXmlReport koverHtmlReport"
             fi
