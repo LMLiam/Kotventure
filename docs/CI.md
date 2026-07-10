@@ -123,15 +123,6 @@ The **Format and lint** job checks out full git history so Spotless `ratchetFrom
 | Kover coverage report | Always (including failed runs) |
 | Module jars under `build/libs` | Only on **job failure**, or on **push to `master`** |
 
-### Deferred job-design items
-
-| Item | Status |
-|------|--------|
-| Sticky PR coverage comment | Deferred — 85% Kover gate + coverage artifact already ship on the job |
-| Test sharding / matrix | Deferred — module suite still small |
-| Dokka off the PR path | Deferred — keep `dokkaGenerate` on every code-path PR so doc link breaks fail before merge |
-| Remote build cache | Deferred — setup-gradle local cache is enough at current wall-clock |
-
 ## Re-running CI
 
 - **Re-run failed jobs** / **Re-run all jobs** on an Actions run.
