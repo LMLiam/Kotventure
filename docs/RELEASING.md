@@ -42,7 +42,8 @@ falls back to `GITHUB_TOKEN`, release-please can still open PRs, but GitHub will
 token's PR, tag, and release events.
 
 Pure release-please PRs (changelog, manifest, and `gradle/libs.versions.toml` only) skip Build/Qodana/CodeQL heavy work;
-Dependency Review, titles, and labels still run (and remain required). See [CI.md](./CI.md).
+Dependency Review and conventional title/commit checks still run and remain required. Labels still apply. See
+[CI.md](./CI.md).
 
 ## Publishing Coordination
 

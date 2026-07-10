@@ -85,7 +85,8 @@ When adding release-please `extra-files`, update the gate allow-list in the same
 
 Workflow: [`.github/workflows/codeql.yml`](../.github/workflows/codeql.yml).
 
-- **Languages:** `actions` (build mode `none`) and `java-kotlin` (manual `./gradlew classes testClasses -x test`).
+- **Languages:** `actions` (build mode `none`) and `java-kotlin` (manual `./gradlew classes testClasses -x test`
+  with `--rerun-tasks --no-build-cache` so the extractor sees a real compile).
 - **Path filters** on PR/push match the Build/Qodana code path list; weekly schedule and `workflow_dispatch` always run.
 - Results upload to GitHub code scanning (same surface as Qodana/Scorecard SARIF).
 
@@ -93,7 +94,7 @@ Workflow: [`.github/workflows/codeql.yml`](../.github/workflows/codeql.yml).
 
 | Action | Path | Used by |
 |--------|------|---------|
-| **setup-jdk-gradle** | [`.github/actions/setup-jdk-gradle`](../.github/actions/setup-jdk-gradle/action.yml) | Build, Vanilla Conformance |
+| **setup-jdk-gradle** | [`.github/actions/setup-jdk-gradle`](../.github/actions/setup-jdk-gradle/action.yml) | Build, Vanilla Conformance, CodeQL (`java-kotlin`) |
 | **publish-junit-report** | [`.github/actions/publish-junit-report`](../.github/actions/publish-junit-report/action.yml) | Build, Vanilla Conformance |
 
 Checkout stays per-workflow (Qodana custom `ref` / history; Build uses full history on both parallel jobs).

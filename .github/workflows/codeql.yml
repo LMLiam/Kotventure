@@ -103,7 +103,7 @@ jobs:
 
       - name: Build for CodeQL
         if: matrix.build-mode == 'manual'
-        run: ./gradlew classes testClasses -x test
+        run: ./gradlew classes testClasses -x test -Pkotlin.incremental=false --no-build-cache --rerun-tasks
 
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4
