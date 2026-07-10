@@ -192,6 +192,17 @@ player.open(rules)
 player.book {
     page { text("One-shot welcome") }
 }
+val alert = sound(key("minecraft:block.bell.use")) {   // build once, share
+    source(music)           // Sound.Source — scope-bound, no enum import
+    volume(2f)
+    pitch(0.5f)
+}
+player.play(alert)
+player.sound(key("minecraft:entity.pig.ambient")) {    // build + play one-shot
+    emitter(self)           // follows the recipient; or at(x, y, z) — world position
+}
+player.stopSound { source(music) }
+player.stopSound { all() }
 
 // Managed (timed) boss bars — context(ticker) once; `over` opts into lifecycle management
 // val ticker = paperTicker(plugin)   // platform-provided; ManualTicker in tests
