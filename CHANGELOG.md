@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any release.
 
+## [0.12.1](https://github.com/LMLiam/Kotventure/compare/0.12.0...0.12.1) (2026-07-10)
+
+
+### 🔧 Refactors
+
+* **style:** share style slots and tighten StyleScope docs ([#244](https://github.com/LMLiam/Kotventure/issues/244)) ([ed1cc5c](https://github.com/LMLiam/Kotventure/commit/ed1cc5c8c5645a573f6fba769752ef330e5e3b84))
+
 ## [0.12.0](https://github.com/LMLiam/Kotventure/compare/0.11.0...0.12.0) (2026-07-10)
 
 
