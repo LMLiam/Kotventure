@@ -7,9 +7,9 @@ import net.kyori.adventure.bossbar.BossBar
  *
  * @throws IllegalArgumentException when outside [[BossBar.MIN_PROGRESS], [BossBar.MAX_PROGRESS]]
  */
-internal fun Float.requireBossBarProgress(label: String = "value"): Float =
+internal fun Float.requireBossBarProgress(label: String = "progress"): Float =
     also {
         require(this in BossBar.MIN_PROGRESS..BossBar.MAX_PROGRESS) {
-            "'progress' $label must be in ${BossBar.MIN_PROGRESS}..${BossBar.MAX_PROGRESS}, got $this."
+            "'$label' must be in ${BossBar.MIN_PROGRESS}..${BossBar.MAX_PROGRESS}, got $this."
         }
     }

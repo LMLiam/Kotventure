@@ -164,13 +164,13 @@ class BossBarDslTest :
                         name { text("Bad") }
                         progress(1.5f)
                     }
-                }
+                }.message shouldBe "'progress' must be in 0.0..1.0, got 1.5."
                 shouldThrow<IllegalArgumentException> {
                     bossBar {
                         name { text("Bad") }
                         progress(-0.1f)
                     }
-                }
+                }.message shouldBe "'progress' must be in 0.0..1.0, got -0.1."
             }
 
             listOf(

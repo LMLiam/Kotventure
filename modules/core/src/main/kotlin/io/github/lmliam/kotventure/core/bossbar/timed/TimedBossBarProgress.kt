@@ -13,8 +13,8 @@ internal data class TimedBossBarProgress(
     val to: Float,
 ) {
     init {
-        from.requireBossBarProgress(label = "from")
-        to.requireBossBarProgress(label = "to")
+        from.requireBossBarProgress(label = "progress from")
+        to.requireBossBarProgress(label = "progress to")
     }
 
     /**
