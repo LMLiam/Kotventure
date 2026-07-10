@@ -1,0 +1,79 @@
+# Reusable gate for expensive CI (build, Qodana, …).
+#
+# Skips pure release-please automation PRs (version + changelog only).
+# Still runs when a release-please branch has non-release file changes
+# (manual commits that touch real code/docs beyond the release bump).
+name: Heavy CI gate
+
+on:
+  workflow_call:
+    outputs:
+      run:
+        description: Whether heavy CI should run
+        value: ${{ jobs.gate.outputs.run }}
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  gate:
+    name: Decide
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      run: ${{ steps.decide.outputs.run }}
+    steps:
+      - name: Decide whether heavy CI should run
+        id: decide
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const ALWAYS = () => {
+              core.setOutput('run', 'true');
+            };
+
+            if (context.eventName !== 'pull_request') {
+              core.info(`Event ${context.eventName}: always run heavy CI.`);
+              ALWAYS();
+              return;
+            }
+
+            const headRef = context.payload.pull_request.head.ref;
+            if (!headRef.startsWith('release-please--')) {
+              core.info(`Branch ${headRef}: not a release-please PR; run heavy CI.`);
+              ALWAYS();
+              return;
+            }
+
+            // Files release-please is configured to touch on this repo.
+            // Keep in sync with release-please-config.json (+ the manifest).
+            const releaseOnlyFiles = new Set([
+              'CHANGELOG.md',
+              '.release-please-manifest.json',
+              'gradle/libs.versions.toml',
+            ]);
+
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              per_page: 100,
+            });
+
+            const unexpected = files
+              .map((file) => file.filename)
+              .filter((name) => !releaseOnlyFiles.has(name));
+
+            if (unexpected.length === 0) {
+              core.info(
+                'Pure release-please PR (changelog/version files only); skip heavy CI.',
+              );
+              core.setOutput('run', 'false');
+              return;
+            }
+
+            core.info(
+              `Release-please PR has non-release changes; run heavy CI: ${unexpected.join(', ')}`,
+            );
+            ALWAYS();

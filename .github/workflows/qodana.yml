@@ -22,8 +22,17 @@ permissions:
   security-events: write
 
 jobs:
+  gate:
+    name: Heavy CI gate
+    uses: ./.github/workflows/heavy-ci-gate.yml
+    permissions:
+      contents: read
+      pull-requests: read
+
   qodana:
     name: Qodana
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
