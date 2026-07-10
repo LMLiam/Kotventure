@@ -141,25 +141,10 @@ internal class TimedBossBarRuntime(
         // At ZERO, mark natural stop under the same lock as the tick so cancel() from onTick
         // cannot steal completion (onFinish must win) and a thrown onTick still finalises hide.
         val outcome = lock.withLock { advanceOrNull(generation) } ?: return
-        var tickError: Throwable? = null
         try {
             config.onTick?.invoke(owner, outcome.remaining)
-        } catch (error: Throwable) {
-            tickError = error
-        }
-        if (outcome.shutdown != null) {
-            try {
-                finaliseShutdown(outcome.shutdown, config.onFinish)
-            } catch (error: Throwable) {
-                if (tickError != null) {
-                    tickError.addSuppressed(error)
-                    throw tickError
-                }
-                throw error
-            }
-        }
-        if (tickError != null) {
-            throw tickError
+        } finally {
+            outcome.shutdown?.let { finaliseShutdown(it, config.onFinish) }
         }
     }
 
