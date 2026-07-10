@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.core.event
 
+import io.github.lmliam.kotventure.core.audience.emptyAudience
 import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.style.style
@@ -214,7 +215,7 @@ class ClickEventDslTest :
                             calledWith = audience
                         }
                     }
-                val audience = Audience.empty()
+                val audience = emptyAudience()
 
                 text("Callback").clickEvent(event) shouldHaveClickEvent
                         RecordingClickCallbackProvider.lastEvent
@@ -236,7 +237,7 @@ class ClickEventDslTest :
                             calledWith = audience
                         }
                     }
-                val audience = Audience.empty()
+                val audience = emptyAudience()
 
                 text("Callback").clickEvent(event) shouldHaveClickEvent
                         RecordingClickCallbackProvider.lastEvent
