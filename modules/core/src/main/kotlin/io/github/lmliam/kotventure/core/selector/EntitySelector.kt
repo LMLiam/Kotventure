@@ -62,5 +62,6 @@ public data class EntitySelector private constructor(
             head.token + arguments.joinToString(",", "[", "]", transform = EntitySelectorArgument::render)
         }
 
+    /** Same canonical rendering as [asString]. */
     public override fun toString(): String = asString()
 }

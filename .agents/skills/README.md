@@ -21,6 +21,8 @@ the two trees.
 | [`documenting-public-api`](documenting-public-api/SKILL.md) | KDoc, `@sample`, linking rules, module READMEs |
 | [`fixing-ci-failures`](fixing-ci-failures/SKILL.md) | A CI check is red or looks odd — fixes and known noise |
 | [`reviewing-contributions`](reviewing-contributions/SKILL.md) | Reviewing/landing someone else's PR |
+| [`pickup-issue`](pickup-issue/SKILL.md) | **User-invoked**: `/pickup-issue <n>` — start an issue end-to-end |
+| [`land-pr`](land-pr/SKILL.md) | **User-invoked**: `/land-pr <n>` — maintainer pass on a contributor PR |
 
 ## Format
 

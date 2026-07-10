@@ -39,7 +39,7 @@ Shared definition: [`.github/code-paths-filter.yml`](../.github/code-paths-filte
 1. **Heavy CI gate** — skip pure release-please allow-list PRs.
 2. **Path filter** — skip Gradle work when no `code` paths changed.
 3. **Parallel jobs** (when code paths change):
-   - **Format and lint** — `spotlessCheck` + `ktlintCheck`.
+   - **Format and lint** — one-declaration-per-file check, then `spotlessCheck` + `ktlintCheck`.
    - **Gradle build** — `build`, Dokka, Kover reports.
 4. **`Build, Test, and Lint`** — required check; green when both jobs are skipped, fails if either fails.
 
@@ -115,6 +115,7 @@ Checkout stays per-workflow (Qodana custom `ref` / history; Build uses full hist
 | Script | Role |
 |--------|------|
 | [`.github/scripts/validate-conventional-title.sh`](../.github/scripts/validate-conventional-title.sh) | Title/commit subject format |
+| [`.github/scripts/check-one-declaration-per-file.sh`](../.github/scripts/check-one-declaration-per-file.sh) | One top-level class/interface/object per main-source file (AGENTS.md §5) |
 | [`.github/scripts/normalize-qodana-sarif.sh`](../.github/scripts/normalize-qodana-sarif.sh) | Fix 0-based SARIF regions for GitHub code scanning |
 | [`.github/scripts/write-gradle-job-summary.sh`](../.github/scripts/write-gradle-job-summary.sh) | Job summary: Java/Gradle/Kotlin versions + failed tasks |
 

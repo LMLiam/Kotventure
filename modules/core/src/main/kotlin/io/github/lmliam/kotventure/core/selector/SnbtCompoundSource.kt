@@ -30,5 +30,6 @@ public value class SnbtCompoundSource internal constructor(
             }
     }
 
+    /** The raw SNBT source text. */
     public override fun toString(): String = value
 }

@@ -16,6 +16,8 @@ internal fun requireValidMiniMessageTagName(name: String) {
  *
  * The type parameter controls which values can be bound with [MiniMessageResolverScope.resolve]. Two descriptors are
  * equal when they share both name and value type.
+ *
+ * @property name The MiniMessage tag name this placeholder substitutes.
  */
 public class MiniMessagePlaceholder<T : Any>
 @PublishedApi
@@ -28,10 +30,12 @@ internal constructor(
         requireValidMiniMessageTagName(name)
     }
 
+    /** Value equality over [name] and the bound value type. */
     override fun equals(other: Any?): Boolean =
         this === other ||
                 (other is MiniMessagePlaceholder<*> && name == other.name && type == other.type)
 
+    /** Consistent with [equals]: derived from [name] and the bound value type. */
     override fun hashCode(): Int = 31 * name.hashCode() + type.hashCode()
 }
 

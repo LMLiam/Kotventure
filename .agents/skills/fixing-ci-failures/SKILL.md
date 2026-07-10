@@ -17,6 +17,7 @@ blind "retry" commits.
 | Red check | Cause | Fix |
 |---|---|---|
 | **Build, Test, and Lint** (aggregator) | One of the two nested jobs failed | Open the failed nested job below |
+| Format and lint — declaration check | More than one top-level class/interface/object in a main-source file | Split the file (AGENTS.md §5 hard rule); reproduce with `.github/scripts/check-one-declaration-per-file.sh` |
 | Format and lint | `spotlessCheck` / `ktlintCheck` | `./gradlew ktlintFormat` (or `spotlessApply`), commit. **Continuation indent is 8 spaces (IntelliJ style) and the ktlint indent rule is disabled** — formatters won't fix indentation; write it by hand or IDE-reformat |
 | Gradle build — test failure | Kotest suite red | `./gradlew test` locally; failed-run artifacts include HTML test reports |
 | Gradle build — `koverVerify` | Aggregated line coverage < 85% (`gradle/coverage.gradle`) | **Add tests — never lower the threshold to pass.** `./gradlew koverHtmlReport` → `build/reports/kover/html/index.html` shows uncovered lines per class. (Raising the threshold intentionally: see policy in `.github/CONTRIBUTING.md`) |
