@@ -18,7 +18,7 @@ public class TimedBossBar internal constructor(
     config: TimedBossBarConfig,
     initialViewer: Audience,
 ) {
-    /** The underlying Adventure bsos bar; progress and name are updated each tick. */
+    /** The underlying Adventure boss bar; progress and name are updated each tick. */
     public val bar: BossBar = config.buildInitialBar()
 
     private val runtime = TimedBossBarRuntime(ticker, config, bar, this)
