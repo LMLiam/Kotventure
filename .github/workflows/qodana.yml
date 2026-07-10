@@ -58,40 +58,7 @@ jobs:
       - name: Normalize Qodana SARIF regions
         if: always()
         shell: bash
-        run: |
-          set -euo pipefail
-
-          sarif_file="${RUNNER_TEMP}/qodana/results/qodana.sarif.json"
-
-          if [[ ! -f "$sarif_file" ]]; then
-            echo "Qodana SARIF not found at $sarif_file; skipping normalization."
-            exit 0
-          fi
-
-          jq '
-            def normalize_region:
-              if type == "object" then
-                (
-                  if has("startLine") and (.startLine | type == "number") and .startLine < 1 then
-                    .startLine = 1
-                  else
-                    .
-                  end
-                )
-                | (
-                  if has("startColumn") and (.startColumn | type == "number") and .startColumn < 1 then
-                    .startColumn = 1
-                  else
-                    .
-                  end
-                )
-              else
-                .
-              end;
-
-            walk(if type == "object" and has("region") then .region |= normalize_region else . end)
-          ' "$sarif_file" > "${sarif_file}.tmp"
-          mv "${sarif_file}.tmp" "$sarif_file"
+        run: bash .github/scripts/normalize-qodana-sarif.sh
 
       - name: Upload Qodana results to code scanning
         if: always()
