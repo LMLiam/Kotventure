@@ -1,0 +1,20 @@
+name: Setup JDK and Gradle
+description: Install Temurin JDK and configure the Gradle action (dependency/build caches).
+
+inputs:
+  java-version:
+    description: JDK version for setup-java (matches the project toolchain by default).
+    required: false
+    default: '25'
+
+runs:
+  using: composite
+  steps:
+    - name: Set up JDK
+      uses: actions/setup-java@0f481fcb613427c0f801b606911222b5b6f3083a # v5.5.0
+      with:
+        distribution: temurin
+        java-version: ${{ inputs.java-version }}
+
+    - name: Set up Gradle
+      uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6.2.0
