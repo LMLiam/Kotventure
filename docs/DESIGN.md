@@ -156,6 +156,8 @@ object Brand : Theme("brand") {
 }
 val themes = ThemeRegistry()
 themes.register(Brand)                       // explicit startup wiring
+// themes.replace(BrandV2, default = true)   // hot-reload under the same name
+// themes.unregister("brand")                // remove; clears default if it was default
 text("Title") styled Brand.header            // compile-checked property
 themes.theme("brand")?.style("header")       // dynamic interop lookup
 
