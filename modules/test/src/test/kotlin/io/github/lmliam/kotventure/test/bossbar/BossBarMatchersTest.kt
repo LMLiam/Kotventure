@@ -1,10 +1,11 @@
 package io.github.lmliam.kotventure.test.bossbar
 
+import io.github.lmliam.kotventure.core.bossbar.bossBar
+import io.github.lmliam.kotventure.core.text.text
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.string.shouldContain
 import net.kyori.adventure.bossbar.BossBar
-import net.kyori.adventure.text.Component
 
 class BossBarMatchersTest :
     StringSpec(
@@ -15,13 +16,15 @@ class BossBarMatchersTest :
                 overlay: BossBar.Overlay = BossBar.Overlay.PROGRESS,
                 flags: Set<BossBar.Flag> = emptySet(),
             ): BossBar =
-                BossBar.bossBar(
-                    Component.text("test"),
-                    progress,
-                    color,
-                    overlay,
-                    flags,
-                )
+                bossBar {
+                    name(text("test"))
+                    progress(progress)
+                    color(color)
+                    overlay(overlay)
+                    if (BossBar.Flag.DARKEN_SCREEN in flags) darkenScreen()
+                    if (BossBar.Flag.PLAY_BOSS_MUSIC in flags) playBossMusic()
+                    if (BossBar.Flag.CREATE_WORLD_FOG in flags) createWorldFog()
+                }
 
             "matches progress, colour, overlay, and flags" {
                 val subject =
