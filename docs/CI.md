@@ -115,7 +115,7 @@ Checkout stays per-workflow (Qodana custom `ref` / history; Build uses full hist
 | Script | Role |
 |--------|------|
 | [`.github/scripts/validate-conventional-title.sh`](../.github/scripts/validate-conventional-title.sh) | Title/commit subject format |
-| [`.github/scripts/check-one-declaration-per-file.sh`](../.github/scripts/check-one-declaration-per-file.sh) | One top-level class/interface/object per main-source file (AGENTS.md §5) |
+| [`.github/scripts/check-one-declaration-per-file.sh`](../.github/scripts/check-one-declaration-per-file.sh) | One top-level class/interface/object per main-source file |
 | [`.github/scripts/normalize-qodana-sarif.sh`](../.github/scripts/normalize-qodana-sarif.sh) | Fix 0-based SARIF regions for GitHub code scanning |
 | [`.github/scripts/write-gradle-job-summary.sh`](../.github/scripts/write-gradle-job-summary.sh) | Job summary: Java/Gradle/Kotlin versions + failed tasks |
 
