@@ -25,10 +25,30 @@ jobs:
       contents: read
       pull-requests: read
 
-  build:
-    name: Build, Test, and Lint
+  changes:
+    name: Detect code changes
     needs: gate
     if: needs.gate.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Path filter
+        id: filter
+        uses: dorny/paths-filter@d1c1ffe0248fe513906c8e24db8ea791d46f8590 # v3.0.3
+        with:
+          filters: .github/code-paths-filter.yml
+
+  gradle:
+    name: Gradle build
+    needs: [gate, changes]
+    if: needs.gate.outputs.run == 'true' && needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -80,3 +100,46 @@ jobs:
           path: build/libs
           if-no-files-found: ignore
           retention-days: 7
+
+  build:
+    name: Build, Test, and Lint
+    if: always()
+    needs: [gate, changes, gradle]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Evaluate required check
+        run: |
+          set -euo pipefail
+          gate="${{ needs.gate.result }}"
+          changes="${{ needs.changes.result }}"
+          gradle="${{ needs.gradle.result }}"
+          run="${{ needs.gate.outputs.run }}"
+          code="${{ needs.changes.outputs.code }}"
+
+          if [[ "$gate" == "failure" || "$gate" == "cancelled" ]]; then
+            echo "Heavy CI gate did not succeed ($gate)"
+            exit 1
+          fi
+
+          if [[ "$run" != "true" ]]; then
+            echo "Skipped Gradle build (pure release-please allow-list PR)."
+            exit 0
+          fi
+
+          if [[ "$changes" == "failure" || "$changes" == "cancelled" ]]; then
+            echo "Change detection did not succeed ($changes)"
+            exit 1
+          fi
+
+          if [[ "$code" != "true" ]]; then
+            echo "Skipped Gradle build (no code paths changed)."
+            exit 0
+          fi
+
+          if [[ "$gradle" == "success" ]]; then
+            exit 0
+          fi
+
+          echo "Gradle build result: $gradle"
+          exit 1

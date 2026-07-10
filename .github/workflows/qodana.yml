@@ -2,12 +2,29 @@ name: Qodana
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - master
   pull_request:
     branches:
       - master
+    paths:
+      - 'modules/**'
+      - 'gradle/**'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle.properties'
+      - 'gradlew'
+      - 'gradlew.bat'
+      - 'buildSrc/**'
+      - '.editorconfig'
+      - '.gitattributes'
+      - '.gitignore'
+      - 'qodana.yaml'
+      - 'jitpack.yml'
+      - 'release-please-config.json'
+      - '.github/workflows/**'
+      - '.github/actions/**'
+      - '.github/scripts/**'
+      - '.github/dependabot.yml'
+      - '.github/code-paths-filter.yml'
   schedule:
     - cron: '17 3 * * 1'
 
