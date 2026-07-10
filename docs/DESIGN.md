@@ -206,6 +206,10 @@ player.sound(key("minecraft:entity.pig.ambient")) {    // build + play one-shot
 }
 player.stopSound { source(music) }
 player.stopSound { all() }
+player.tabList {
+    header { text("Welcome") }
+    footer { text("play.example.org") }
+}
 
 // Managed (timed) boss bars — context(ticker) once; `over` opts into lifecycle management
 // val ticker = paperTicker(plugin)   // platform-provided; ManualTicker in tests
