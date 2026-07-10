@@ -38,11 +38,49 @@ jobs:
       - name: Set up JDK and Gradle
         uses: ./.github/actions/setup-jdk-gradle
 
+      - name: Resolve Minecraft fixture cache key
+        id: fixture
+        run: |
+          set -euo pipefail
+          version="$(sed -n "s/^final String targetMinecraftVersion = '\\([^']*\\)'$/\\1/p" gradle/vanilla-conformance.gradle)"
+          sha1="$(sed -n "s/^final String serverBundleSha1 = '\\([^']*\\)'$/\\1/p" gradle/vanilla-conformance.gradle)"
+          if [[ -z "$version" || -z "$sha1" ]]; then
+            echo "Could not parse targetMinecraftVersion / serverBundleSha1 from gradle/vanilla-conformance.gradle" >&2
+            exit 1
+          fi
+          if [[ ! "$sha1" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "serverBundleSha1 is not a 40-char hex SHA-1: $sha1" >&2
+            exit 1
+          fi
+          {
+            echo "version=$version"
+            echo "sha1=$sha1"
+            echo "key=vanilla-mc-${version}-${sha1}"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Cache Minecraft conformance fixtures
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: modules/core/build/vanilla-conformance
-          key: vanilla-mc-26.2-823e2250d24b3ddac457a60c92a6a941943fcd6a
+          key: ${{ steps.fixture.outputs.key }}
+
+      - name: Verify restored fixture checksum
+        run: |
+          set -euo pipefail
+          version="${{ steps.fixture.outputs.version }}"
+          expected="${{ steps.fixture.outputs.sha1 }}"
+          bundle="modules/core/build/vanilla-conformance/${version}/server-${version}-bundle.jar"
+          if [[ ! -f "$bundle" ]]; then
+            echo "No cached server bundle at $bundle; Gradle will download and verify."
+            exit 0
+          fi
+          actual="$(shasum -a 1 "$bundle" | awk '{ print $1 }')"
+          if [[ "$actual" != "$expected" ]]; then
+            echo "Cached fixture SHA-1 mismatch (expected $expected, got $actual); removing corrupted cache entry."
+            rm -f "$bundle"
+            exit 0
+          fi
+          echo "Cached fixture SHA-1 matches $expected."
 
       - name: Run vanilla conformance suites
         run: ./gradlew :core:vanillaConformanceTest

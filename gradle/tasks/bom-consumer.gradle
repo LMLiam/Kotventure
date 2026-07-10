@@ -1,3 +1,5 @@
+import groovy.xml.XmlSlurper
+
 def bomConsumerModules = [
         'core',
         'minimessage',
@@ -10,12 +12,6 @@ def bomConsumerArtifacts = bomConsumerModules.collect { moduleName ->
 }
 def bomConsumerRepositoryDir = rootProject.layout.buildDirectory.dir('bom-consumer-m2')
 
-repositories {
-    maven {
-        url = bomConsumerRepositoryDir
-    }
-    mavenCentral()
-}
 def jitpackBuild = providers.environmentVariable('JITPACK').orNull == 'true'
 def jitpackEnvironmentValue = { String name ->
     def value = providers.environmentVariable(name).orNull
@@ -44,57 +40,83 @@ subprojects { subproject ->
     }
 }
 
-configurations {
-    bomConsumerVerification {
-        canBeConsumed = false
-        canBeResolved = true
-        description = 'Resolves Kotventure modules through the published BOM without per-artifact versions.'
-    }
-}
-
-dependencies {
-    bomConsumerVerification platform("${bomConsumerGroup}:kotventure-bom:${bomConsumerVersion}")
-    bomConsumerArtifacts.each { artifactName ->
-        bomConsumerVerification "${bomConsumerGroup}:${artifactName}"
-    }
-}
-
 def bomPublishTasks = bomConsumerModules.collect { moduleName ->
     ":${moduleName}:publishMavenPublicationToBomConsumerLocalRepository"
 } + [':bom:publishMavenPublicationToBomConsumerLocalRepository']
 
-// FileCollection only — do not capture Configuration in the task for configuration-cache serialization.
-def bomConsumerResolvedFiles = objects.fileCollection()
-bomConsumerResolvedFiles.builtBy(bomPublishTasks)
-bomConsumerResolvedFiles.from(configurations.bomConsumerVerification)
-
+// Configuration-cache safe: verify published local-m2 layout + BOM POM managed GAVs.
+// Do not resolve a versionless configuration as task file inputs — CC fingerprints those
+// before publish tasks run, which fails on a clean tree (and on CI).
 tasks.register('verifyBomConsumerVersionlessDependencies') {
     group = 'verification'
-    description = 'Verifies that a consumer importing kotventure-bom can omit per-artifact versions.'
+    description = 'Verifies that the published BOM manages versionless Kotventure module coordinates.'
 
     bomPublishTasks.each { taskPath ->
         dependsOn taskPath
     }
 
+    def expectedGroup = bomConsumerGroup.toString()
     def expectedVersion = bomConsumerVersion.toString()
     def expectedArtifacts = bomConsumerArtifacts.collect { it.toString() }
-    def resolvedFiles = bomConsumerResolvedFiles
+    def repositoryDir = bomConsumerRepositoryDir
 
+    inputs.property('expectedGroup', expectedGroup)
     inputs.property('expectedVersion', expectedVersion)
     inputs.property('expectedArtifacts', expectedArtifacts)
-    inputs.files(resolvedFiles)
+    inputs.dir(repositoryDir)
 
     doLast {
-        def resolvedNames = resolvedFiles.files.collect { file -> file.name.toString() }.toSet()
-        def missingArtifacts = expectedArtifacts.findAll { artifactName ->
-            def expectedJar = "${artifactName}-${expectedVersion}.jar".toString()
-            !resolvedNames.any { name -> name == expectedJar }
+        def repoRoot = repositoryDir.get().asFile
+        def groupPath = expectedGroup.replace('.', '/')
+        def bomPomFile = new File(
+                repoRoot,
+                "${groupPath}/kotventure-bom/${expectedVersion}/kotventure-bom-${expectedVersion}.pom"
+        )
+        if (!bomPomFile.isFile()) {
+            throw new GradleException("BOM consumer verification missing published BOM POM: ${bomPomFile}")
         }
-        if (!missingArtifacts.isEmpty()) {
+
+        def managedByArtifact = [:]
+        def pom = new XmlSlurper().parse(bomPomFile)
+        pom.dependencyManagement.dependencies.dependency.each { dependency ->
+            def groupId = dependency.groupId.text()
+            def artifactId = dependency.artifactId.text()
+            def version = dependency.version.text()
+            if (groupId == expectedGroup && expectedArtifacts.contains(artifactId)) {
+                managedByArtifact[artifactId] = version
+            }
+        }
+
+        def missingManaged = expectedArtifacts.findAll { artifactName ->
+            !managedByArtifact.containsKey(artifactName)
+        }
+        if (!missingManaged.isEmpty()) {
             throw new GradleException(
-                    "BOM consumer verification did not resolve versionless artifacts " +
-                            "(expected version '${expectedVersion}'): ${missingArtifacts.join(', ')}. " +
-                            "Resolved files: ${resolvedNames.sort().join(', ')}"
+                    "BOM POM does not manage Kotventure artifacts (group '${expectedGroup}'): " +
+                            "${missingManaged.join(', ')}"
+            )
+        }
+
+        def mismatchedManaged = managedByArtifact.findAll { artifactName, managedVersion ->
+            managedVersion != expectedVersion
+        }
+        if (!mismatchedManaged.isEmpty()) {
+            throw new GradleException(
+                    "BOM POM manages unexpected versions (expected '${expectedVersion}'): ${mismatchedManaged}"
+            )
+        }
+
+        def missingJars = expectedArtifacts.findAll { artifactName ->
+            def jar = new File(
+                    repoRoot,
+                    "${groupPath}/${artifactName}/${expectedVersion}/${artifactName}-${expectedVersion}.jar"
+            )
+            !jar.isFile()
+        }
+        if (!missingJars.isEmpty()) {
+            throw new GradleException(
+                    "BOM consumer local repository is missing module jars for version " +
+                            "'${expectedVersion}': ${missingJars.join(', ')}"
             )
         }
     }
