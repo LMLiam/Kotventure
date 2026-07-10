@@ -12,7 +12,12 @@ import kotlin.time.Duration
  * Lock-guarded lifecycle and tick progression for a [TimedBossBar].
  *
  * Owns running/paused state, remaining time, viewer tracking, and the ticker task. Adventure
- * show/hide and terminal hooks run outside the lock where noted by the public facade.
+ * show/hide and terminal hooks run outside the lock.
+ *
+ * **This-escape:** [owner] is the constructing [TimedBossBar]. [start] may schedule ticks before
+ * that constructor returns, so [TimedBossBarConfig.onTick] can observe [owner] mid-construction
+ * on a real scheduler thread. Callers must not assume the facade is fully initialised inside
+ * early hooks.
  */
 internal class TimedBossBarRuntime(
     private val ticker: Ticker,
@@ -62,11 +67,14 @@ internal class TimedBossBarRuntime(
         }
     }
 
-    fun cancel(): TimedBossBarShutdown? =
-        lock.withLock {
-            if (!running) return null
-            markStopped()
-        }
+    fun cancel() {
+        val shutdown =
+            lock.withLock {
+                if (!running) return
+                markStopped()
+            }
+        finaliseShutdown(shutdown, config.onCancel)
+    }
 
     fun show(audience: Audience) {
         val accepted =
@@ -98,7 +106,7 @@ internal class TimedBossBarRuntime(
      * Cancels the detached ticker task, hides every snapshotted viewer (isolating per-viewer
      * failures), then always runs the terminal [hook] once.
      */
-    fun finaliseShutdown(
+    private fun finaliseShutdown(
         shutdown: TimedBossBarShutdown,
         hook: (TimedBossBar.() -> Unit)?,
     ) {

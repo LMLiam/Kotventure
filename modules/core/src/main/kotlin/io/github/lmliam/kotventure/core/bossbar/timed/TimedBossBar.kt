@@ -72,8 +72,7 @@ public class TimedBossBar internal constructor(
      * ends a still-running bar. Idempotent after finish or a prior cancel.
      */
     public fun cancel() {
-        val shutdown = runtime.cancel() ?: return
-        runtime.finaliseShutdown(shutdown, config.onCancel)
+        runtime.cancel()
     }
 
     /**
