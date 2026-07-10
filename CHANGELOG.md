@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any release.
 
+## [0.15.1](https://github.com/LMLiam/Kotventure/compare/0.15.0...0.15.1) (2026-07-10)
+
+
+### 📝 Documentation
+
+* **meta:** overhaul agent skills with progressive disclosure ([#268](https://github.com/LMLiam/Kotventure/issues/268)) ([bd179bc](https://github.com/LMLiam/Kotventure/commit/bd179bc8912e06cbbe521e7d7403d42497224f84))
+* **test:** clarify matcher contracts and dogfood arrange DSL ([#267](https://github.com/LMLiam/Kotventure/issues/267)) ([3b9a26e](https://github.com/LMLiam/Kotventure/commit/3b9a26e630d4cf82d11592eb204986306b2cc33b))
+
 ## [0.15.0](https://github.com/LMLiam/Kotventure/compare/0.14.1...0.15.0) (2026-07-10)
 
 
