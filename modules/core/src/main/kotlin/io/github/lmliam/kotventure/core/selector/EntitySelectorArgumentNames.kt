@@ -38,3 +38,21 @@ internal val EntitySelectorArgument.argumentName: String
             is EntitySelectorArgument.Range -> argument.argumentName
             else -> checkNotNull(keyword) { "Keyword arguments always declare a keyword" }.sourceName
         }
+
+/**
+ * Vanilla argument names that may appear at most once in a selector (coordinates, ranges, and
+ * non-filter-group keywords).
+ *
+ * Single source of truth for singleton policy: [SelectorArgumentOccurrences] consults this set for
+ * both model validation and parse-time rejection, so the two cannot diverge.
+ */
+internal val singletonSelectorArgumentNames: Set<String> =
+    buildSet {
+        addAll(SelectorCoordinate.entries.map { it.argumentName })
+        addAll(SelectorRangeArgument.entries.map { it.argumentName })
+        add(SelectorArgumentKeyword.LIMIT.sourceName)
+        add(SelectorArgumentKeyword.SORT.sourceName)
+        add(SelectorArgumentKeyword.LEVEL.sourceName)
+        add(SelectorArgumentKeyword.SCORES.sourceName)
+        add(SelectorArgumentKeyword.ADVANCEMENTS.sourceName)
+    }

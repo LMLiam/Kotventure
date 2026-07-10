@@ -34,8 +34,10 @@ class SelectorFilterArgumentParsingTest :
                 """@e[name="Boss \"Mob\""]""".shouldBeCanonicalSelector()
             }
 
-            "preserves repeated empty-value filters" {
-                """@e[tag=,tag=!,team=,team=!]""".shouldBeCanonicalSelector()
+            "preserves repeated empty-value filters on repeatable groups" {
+                """@e[tag=,tag=!]""".shouldBeCanonicalSelector()
+                """@e[team=]""".shouldBeCanonicalSelector()
+                """@e[team=!]""".shouldBeCanonicalSelector()
             }
 
             "rejects malformed names" {

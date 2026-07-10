@@ -5,6 +5,10 @@ import net.kyori.adventure.nbt.api.BinaryTagHolder
 /**
  * Builds a [BinaryTagHolder] from compound DSL calls, rendering the compound to SNBT.
  *
+ * This package models **SNBT text** for selector arguments and NBT components — not a full binary
+ * NBT library or reimplementation of Adventure NBT types. Build compounds here, render to SNBT, and
+ * hand off at the [BinaryTagHolder] / selector edge.
+ *
  * @sample io.github.lmliam.kotventure.core.nbt.nbtSample
  */
 public fun nbt(init: NbtCompoundScope.() -> Unit): BinaryTagHolder {

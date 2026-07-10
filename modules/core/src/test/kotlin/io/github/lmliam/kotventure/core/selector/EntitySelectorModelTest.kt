@@ -40,13 +40,13 @@ class EntitySelectorModelTest :
                 assertDoesNotCompile(
                     "SelectorCopyVisibilityTest.kt",
                     """
-                    import io.github.lmliam.kotventure.core.selector.EntitySelector
-                    import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument
+                import io.github.lmliam.kotventure.core.selector.EntitySelector
+                import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument
 
-                    fun invalid(selector: EntitySelector) {
-                        selector.copy(arguments = mutableListOf<EntitySelectorArgument>())
-                    }
-                    """.trimIndent(),
+                fun invalid(selector: EntitySelector) {
+                    selector.copy(arguments = mutableListOf<EntitySelectorArgument>())
+                }
+            """.trimIndent(),
                     "Cannot access",
                 )
             }
@@ -59,6 +59,120 @@ class EntitySelectorModelTest :
 
                 negatable shouldHaveSize 3
                 negatable.count { it.isNegated } shouldBe 2
+            }
+
+            data class RejectionCase(
+                val description: String,
+                val head: EntitySelectorHead,
+                val arguments: List<EntitySelectorArgument>,
+            )
+
+            listOf(
+                RejectionCase(
+                    "duplicate singleton argument",
+                    EntitySelectorHead.ENTITIES,
+                    listOf(EntitySelectorArgument.Limit(1), EntitySelectorArgument.Limit(2)),
+                ),
+                RejectionCase(
+                    "two positive name filters",
+                    EntitySelectorHead.ENTITIES,
+                    listOf(
+                        EntitySelectorArgument.Name("a", isNegated = false),
+                        EntitySelectorArgument.Name("b", isNegated = false),
+                    ),
+                ),
+                RejectionCase(
+                    "two positive type filters",
+                    EntitySelectorHead.ENTITIES,
+                    listOf(
+                        EntitySelectorArgument.Type(
+                            SelectorEntityType.Direct(key("minecraft", "zombie")),
+                            isNegated = false,
+                        ),
+                        EntitySelectorArgument.Type(
+                            SelectorEntityType.Direct(key("minecraft", "skeleton")),
+                            isNegated = false,
+                        ),
+                    ),
+                ),
+                RejectionCase(
+                    "two positive gamemode filters",
+                    EntitySelectorHead.ALL_PLAYERS,
+                    listOf(
+                        EntitySelectorArgument.GameMode(GameMode.SURVIVAL, isNegated = false),
+                        EntitySelectorArgument.GameMode(GameMode.CREATIVE, isNegated = false),
+                    ),
+                ),
+                RejectionCase(
+                    "two positive team filters",
+                    EntitySelectorHead.ENTITIES,
+                    listOf(
+                        EntitySelectorArgument.Team(SelectorStringCondition.Named("red")),
+                        EntitySelectorArgument.Team(SelectorStringCondition.Named("blue")),
+                    ),
+                ),
+                RejectionCase(
+                    "name exclusion after a positive name",
+                    EntitySelectorHead.ENTITIES,
+                    listOf(
+                        EntitySelectorArgument.Name("a", isNegated = false),
+                        EntitySelectorArgument.Name("b", isNegated = true),
+                    ),
+                ),
+                RejectionCase(
+                    "positive name after name exclusions",
+                    EntitySelectorHead.ENTITIES,
+                    listOf(
+                        EntitySelectorArgument.Name("a", isNegated = true),
+                        EntitySelectorArgument.Name("b", isNegated = false),
+                    ),
+                ),
+                RejectionCase(
+                    "positive type after a type exclusion",
+                    EntitySelectorHead.ENTITIES,
+                    listOf(
+                        EntitySelectorArgument.Type(
+                            SelectorEntityType.Direct(key("minecraft", "zombie")),
+                            isNegated = true,
+                        ),
+                        EntitySelectorArgument.Type(
+                            SelectorEntityType.Direct(key("minecraft", "skeleton")),
+                            isNegated = false,
+                        ),
+                    ),
+                ),
+                RejectionCase(
+                    "positive gamemode after a gamemode exclusion",
+                    EntitySelectorHead.ALL_PLAYERS,
+                    listOf(
+                        EntitySelectorArgument.GameMode(GameMode.SURVIVAL, isNegated = true),
+                        EntitySelectorArgument.GameMode(GameMode.CREATIVE, isNegated = false),
+                    ),
+                ),
+                RejectionCase(
+                    "positive team after a team exclusion",
+                    EntitySelectorHead.ENTITIES,
+                    listOf(
+                        EntitySelectorArgument.Team(SelectorStringCondition.Named("red", isNegated = true)),
+                        EntitySelectorArgument.Team(SelectorStringCondition.Named("blue")),
+                    ),
+                ),
+            ).forEach { (description, head, arguments) ->
+                "model rejects $description" {
+                    shouldThrow<IllegalArgumentException> { EntitySelector(head, arguments) }
+                }
+            }
+
+            "allows exclusive exclusions and repeatable mixed filter groups" {
+                EntitySelector(
+                    EntitySelectorHead.ENTITIES,
+                    listOf(
+                        EntitySelectorArgument.Name("a", isNegated = true),
+                        EntitySelectorArgument.Name("b", isNegated = true),
+                        EntitySelectorArgument.Tag(SelectorStringCondition.Named("admin")),
+                        EntitySelectorArgument.Tag(SelectorStringCondition.Named("hidden", isNegated = true)),
+                    ),
+                ) shouldRenderAs "@e[name=!a,name=!b,tag=admin,tag=!hidden]"
             }
 
             "represents direct entity types and type tags without a boolean flag" {
@@ -107,22 +221,33 @@ class EntitySelectorModelTest :
                 advancements.advancements.single().advancement shouldBe key("minecraft", "story/root")
             }
 
-            "rejects invalid public argument construction" {
-                shouldThrow<IllegalArgumentException> {
-                    EntitySelectorArgument.Limit(0)
-                }
+            "rejects Limit(0)" {
+                shouldThrow<IllegalArgumentException> { EntitySelectorArgument.Limit(0) }
+            }
+
+            "rejects Coordinate with NaN" {
                 shouldThrow<IllegalArgumentException> {
                     EntitySelectorArgument.Coordinate(SelectorCoordinate.X, Double.NaN)
                 }
-                shouldThrow<IllegalArgumentException> {
-                    SelectorStringCondition.Named("")
-                }
+            }
+
+            "rejects empty Named condition" {
+                shouldThrow<IllegalArgumentException> { SelectorStringCondition.Named("") }
+            }
+
+            "rejects SelectorScoreRequirement with spaces in objective" {
                 shouldThrow<IllegalArgumentException> {
                     SelectorScoreRequirement("bad objective", exactly(1))
                 }
+            }
+
+            "rejects SelectorAdvancementCriterion with spaces in criterion" {
                 shouldThrow<IllegalArgumentException> {
                     SelectorAdvancementCriterion("bad criterion", completed = true)
                 }
+            }
+
+            "rejects malformed SNBT source" {
                 shouldThrow<EntitySelectorParseException> {
                     SnbtCompoundSource.parse("definitely not SNBT")
                 }
@@ -163,7 +288,7 @@ class EntitySelectorModelTest :
             }
 
             "models tag and team presence explicitly" {
-                val parsed = parseSelector("@e[tag=,tag=!,team=red,team=!blue]")
+                val parsed = parseSelector("@e[tag=,tag=!,team=!red,team=!blue]")
 
                 parsed.arguments.filterIsInstance<EntitySelectorArgument.Tag>() shouldBe
                         listOf(
@@ -172,7 +297,7 @@ class EntitySelectorModelTest :
                         )
                 parsed.arguments.filterIsInstance<EntitySelectorArgument.Team>() shouldBe
                         listOf(
-                            EntitySelectorArgument.Team(SelectorStringCondition.Named("red")),
+                            EntitySelectorArgument.Team(SelectorStringCondition.Named("red", isNegated = true)),
                             EntitySelectorArgument.Team(SelectorStringCondition.Named("blue", isNegated = true)),
                         )
             }

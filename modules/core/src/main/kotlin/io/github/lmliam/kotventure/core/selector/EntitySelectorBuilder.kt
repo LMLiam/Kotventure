@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.core.selector
 
+import io.github.lmliam.kotventure.core.dsl.once
 import io.github.lmliam.kotventure.core.nbt.NbtCompound
 import io.github.lmliam.kotventure.core.nbt.NbtCompoundBuilder
 import io.github.lmliam.kotventure.core.nbt.NbtCompoundScope
@@ -10,34 +11,34 @@ import net.kyori.adventure.key.Key
  * compile-time: each factory narrows its lambda receiver to a capability scope.
  */
 internal class EntitySelectorBuilder : EntitySelectorScope {
-    var limit: Int? = null
+    var limit: Int? by once()
         private set
-    var distance: SelectorRange? = null
+    var distance: SelectorRange? by once()
         private set
-    var pitch: SelectorRange? = null
+    var pitch: SelectorRange? by once()
         private set
-    var yaw: SelectorRange? = null
+    var yaw: SelectorRange? by once()
         private set
-    var sort: SelectorSort? = null
+    var sort: SelectorSort? by once()
         private set
-    var level: SelectorIntRange? = null
+    var level: SelectorIntRange? by once()
         private set
 
-    val typeFilters = SelectorFilterGroup<String>("type", SelectorFilterPolicy.EXCLUSIVE)
-    val nameFilters = SelectorFilterGroup<String>("name", SelectorFilterPolicy.EXCLUSIVE)
-    val gamemodeFilters = SelectorFilterGroup<GameMode>("gamemode", SelectorFilterPolicy.EXCLUSIVE)
-    val teamFilters = SelectorFilterGroup<String>("team", SelectorFilterPolicy.EXCLUSIVE)
-    val tagFilters = SelectorFilterGroup<String>("tag", SelectorFilterPolicy.REPEATABLE)
-    val nbtFilters = SelectorFilterGroup<NbtCompound>("nbt", SelectorFilterPolicy.REPEATABLE)
-    val predicateFilters = SelectorFilterGroup<String>("predicate", SelectorFilterPolicy.REPEATABLE)
+    val typeFilters = SelectorFilterGroup<String>(SelectorArgumentKeyword.TYPE)
+    val nameFilters = SelectorFilterGroup<String>(SelectorArgumentKeyword.NAME)
+    val gamemodeFilters = SelectorFilterGroup<GameMode>(SelectorArgumentKeyword.GAMEMODE)
+    val teamFilters = SelectorFilterGroup<String>(SelectorArgumentKeyword.TEAM)
+    val tagFilters = SelectorFilterGroup<String>(SelectorArgumentKeyword.TAG)
+    val nbtFilters = SelectorFilterGroup<NbtCompound>(SelectorArgumentKeyword.NBT)
+    val predicateFilters = SelectorFilterGroup<String>(SelectorArgumentKeyword.PREDICATE)
 
     val coordinates: Map<SelectorCoordinate, Double>
         field = mutableMapOf()
 
-    var scores: Map<String, SelectorIntRange>? = null
+    var scores: Map<String, SelectorIntRange>? by once()
         private set
 
-    var advancements: Map<Key, AdvancementCondition>? = null
+    var advancements: Map<Key, AdvancementCondition>? by once()
         private set
 
     private var isConfiguring = false
@@ -81,7 +82,6 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     }
 
     override fun distance(range: SelectorRange) {
-        checkUnset("distance", distance)
         distance = range.requireAscending("distance").requireNonNegative("distance")
     }
 
@@ -90,7 +90,6 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     }
 
     override fun pitch(range: SelectorRange) {
-        checkUnset("pitch", pitch)
         pitch = range
     }
 
@@ -99,7 +98,6 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     }
 
     override fun yaw(range: SelectorRange) {
-        checkUnset("yaw", yaw)
         yaw = range
     }
 
@@ -124,7 +122,6 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     override fun name(name: String): SelectorFilterExpression = nameFilters.add(this, name)
 
     override fun level(range: SelectorIntRange) {
-        checkUnset("level", level)
         level = range.requireNonNegative("level")
     }
 
@@ -133,12 +130,10 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     }
 
     override fun scores(init: SelectorScoresScope.() -> Unit) {
-        checkUnset("scores", scores)
         scores = SelectorScoresBuilder().apply(init).scores
     }
 
     override fun advancements(init: SelectorAdvancementsScope.() -> Unit) {
-        checkUnset("advancements", advancements)
         advancements = SelectorAdvancementsBuilder().apply(init).advancements
     }
 
@@ -152,12 +147,10 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
 
     override fun limit(n: Int) {
         require(n > 0) { "Selector limit must be positive, got: $n" }
-        checkUnset("limit", limit)
         limit = n
     }
 
     override fun sort(sort: SelectorSort) {
-        checkUnset("sort", this.sort)
         this.sort = sort
     }
 
@@ -177,35 +170,32 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     }
 
     private fun validateFilters() {
-        typeFilters.validate()
-        nameFilters.validate()
-        gamemodeFilters.validate()
-        teamFilters.validate()
-        tagFilters.validate()
-        nbtFilters.validate()
-        predicateFilters.validate()
+        setOf(
+            typeFilters,
+            nameFilters,
+            gamemodeFilters,
+            teamFilters,
+            tagFilters,
+            nbtFilters,
+            predicateFilters,
+        ).forEach { it.validate() }
     }
 
     private fun bindCoordinates(bindings: List<Pair<SelectorCoordinate, Double>>) {
         val staged = mutableMapOf<SelectorCoordinate, Double>()
         bindings.forEach { (coordinate, value) ->
-            checkUnset(coordinate.argumentName, coordinates[coordinate] ?: staged[coordinate])
+            check(coordinate !in coordinates && coordinate !in staged) {
+                "Selector argument '${coordinate.argumentName}' may only appear once."
+            }
             staged[coordinate] = value
         }
         coordinates += staged
     }
 
-    private fun checkUnset(
-        argument: String,
-        current: Any?,
-    ) {
-        check(current == null) { "Selector argument '$argument' is already set; vanilla syntax allows it only once." }
-    }
-
     private fun validTeamName(team: String): String {
-        require(
-            team.isNotEmpty(),
-        ) { "Team name must not be empty; use team(none) or team(any) to filter by team presence." }
+        require(team.isNotEmpty()) {
+            "Team name must not be empty; use team(none) or team(any) to filter by team presence."
+        }
         require(team.all { it.isAllowedInUnquotedSelectorToken() }) {
             "Team name '$team' contains characters outside vanilla's unquoted-token syntax."
         }

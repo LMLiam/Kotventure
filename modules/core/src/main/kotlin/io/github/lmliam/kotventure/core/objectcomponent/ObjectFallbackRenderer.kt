@@ -4,12 +4,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ObjectComponent
 import net.kyori.adventure.text.renderer.TranslatableComponentRenderer
 
-/**
- * Renders object components to their fallback components where a fallback is configured.
- */
-public fun Component.renderObjectFallbacks(): Component = ObjectFallbackRenderer.render(this, Unit)
-
-private object ObjectFallbackRenderer : TranslatableComponentRenderer<Unit>() {
+internal object ObjectFallbackRenderer : TranslatableComponentRenderer<Unit>() {
     override fun renderObject(
         component: ObjectComponent,
         context: Unit,
