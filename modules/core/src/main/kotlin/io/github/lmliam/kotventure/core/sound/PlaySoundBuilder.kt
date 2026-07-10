@@ -12,7 +12,7 @@ internal class PlaySoundBuilder(
     internal constructor(name: Key) : this(SoundBuilder(name))
 
     private var playback: (Audience.(Sound) -> Unit)? by
-        once { "a playback context ('emitter' or 'at') is already set." }
+    once { "a playback context ('emitter' or 'at') is already set." }
 
     override fun emitter(emitter: Sound.Emitter) {
         playback = { sound -> playSound(sound, emitter) }
