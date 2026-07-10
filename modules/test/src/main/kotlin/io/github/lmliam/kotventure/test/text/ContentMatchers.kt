@@ -16,9 +16,9 @@ import net.kyori.adventure.text.TextComponent
  * contribute **no** characters — only nested [TextComponent] nodes do. This is
  * intentional structure-aware matching, not a client plain-text render.
  *
- * Contrast Adventure's
- * [net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer] (and
- * Kotventure's `toPlainText()` wrapper around it): those walk serializers and may
+ * Contrast Adventure's plain-text serializer
+ * (`net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer`) and
+ * Kotventure's `toPlainText()` wrapper around it: those walk serializers and may
  * emit keys, scores, or other resolved forms. Prefer these matchers when asserting
  * DSL/builder payload shape; use plain-text serialization when asserting what a
  * player would read after full serialization.
@@ -40,7 +40,7 @@ public fun containText(substring: String): Matcher<Component> =
  *
  * Same flattening rules as [containText]: every [TextComponent] node contributes
  * its content (not only leaves); this is exact equality over that concatenation, not
- * [net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer] output.
+ * Adventure plain-text serializer output.
  */
 public fun haveContent(text: String): Matcher<Component> =
     Matcher { value ->
