@@ -9,9 +9,12 @@ import kotlin.math.min
 /**
  * Immutable color gradient that interpolates across an ordered list of at least two [TextColor] stops.
  *
+ * Create instances with [gradient]; the constructor is internal so construction has a single public
+ * entry point.
+ *
  * @throws IllegalArgumentException if fewer than two stops are supplied.
  */
-public class ColorGradient public constructor(
+public class ColorGradient internal constructor(
     stops: Iterable<TextColor>,
 ) {
     /** The gradient's color stops, in order, as a defensive immutable copy. */
@@ -44,6 +47,8 @@ public class ColorGradient public constructor(
 /**
  * Creates a [ColorGradient] from two or more color stops.
  *
+ * This is the public construction entry for [ColorGradient].
+ *
  * @sample io.github.lmliam.kotventure.core.color.gradientSample
  *
  * @throws IllegalArgumentException if fewer than two stops are supplied.
@@ -52,6 +57,8 @@ public fun gradient(vararg stops: TextColor): ColorGradient = ColorGradient(stop
 
 /**
  * Creates a [ColorGradient] from an iterable of two or more color stops.
+ *
+ * This is the public construction entry for [ColorGradient] when stops are already a collection.
  *
  * @throws IllegalArgumentException if fewer than two stops are supplied.
  */
