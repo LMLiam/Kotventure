@@ -37,6 +37,10 @@ as human-authored PRs. If the repository falls back to `GITHUB_TOKEN`, release-p
 will
 suppress workflows triggered by that token's PR, tag, and release events.
 
+**Heavy CI on pure Release PRs:** Build, Qodana, and Dependency Review are skipped when the Release PR only changes
+the release-please allow-listed files (changelog, manifest, project version). Conventional Titles and Labeler still run.
+Manual commits that touch other paths re-enable heavy CI. See [CI.md](./CI.md).
+
 ## Publishing Coordination
 
 This workflow creates GitHub Releases and tags only. Maven Central publishing remains explicit and is tracked separately

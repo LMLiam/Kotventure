@@ -38,6 +38,8 @@ Dependency and plugin coordinates live in [`gradle/libs.versions.toml`](../gradl
 versions there first, then consume them through catalog aliases or the existing Gradle helper scripts that delegate to
 the catalog.
 
+CI architecture (workflows, release-please heavy-CI gate, local composites): see [`docs/CI.md`](../docs/CI.md).
+
 ### Coverage threshold policy
 
 We use [Kover](https://github.com/Kotlin/kotlinx-kover) for code coverage. `koverVerify` is wired into `check`, so
