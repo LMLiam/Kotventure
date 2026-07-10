@@ -11,10 +11,20 @@ concurrency:
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
+  gate:
+    name: Heavy CI gate
+    uses: ./.github/workflows/heavy-ci-gate.yml
+    permissions:
+      contents: read
+      pull-requests: read
+
   dependency-review:
     name: Review Dependency Changes
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
