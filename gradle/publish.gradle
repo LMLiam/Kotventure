@@ -21,7 +21,6 @@ def modulePath = project.path
 def publicationArtifactId = "kotventure-${moduleName}"
 def repositoryUrl = 'https://github.com/LMLiam/Kotventure'
 
-// Lazy: module build scripts set `description` after root `subprojects {}` applies this script.
 def publicationDescription = providers.provider {
     def value = project.description?.toString()?.trim()
     if (!value) {
@@ -46,7 +45,6 @@ publishing {
     }
 }
 
-// Wire the software component when the matching plugin is applied (no afterEvaluate).
 pluginManager.withPlugin('java') {
     publishing.publications.named('maven') {
         from components.java

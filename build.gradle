@@ -11,8 +11,6 @@ plugins {
 group = 'io.github.lmliam.kotventure'
 version = libs.versions.project.get()
 
-// Root needs repositories for aggregated Kover agent/report resolution (CI runs
-// koverXmlReport / koverHtmlReport on the root project).
 apply from: rootProject.file('gradle/repositories.gradle')
 
 subprojects {

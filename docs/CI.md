@@ -42,7 +42,7 @@ Shared definition: [`.github/code-paths-filter.yml`](../.github/code-paths-filte
    - **Gradle build** — `build`, Dokka, Kover reports.
 4. **`Build, Test, and Lint`** — required check; green when both jobs are skipped, fails if either fails.
 
-Both jobs check out full git history so Spotless `ratchetFrom 'origin/master'` can resolve during Gradle configuration (the Gradle job still configures Spotless even though it does not run format checks).
+Both jobs check out full git history so Spotless `ratchetFrom 'origin/master'` resolves.
 
 **Qodana** uses the same path list on `pull_request` so docs-only PRs do not start it. Keep `qodana.yml`
 `pull_request.paths` identical to the `code` list in `code-paths-filter.yml`.
