@@ -1,21 +1,17 @@
+import groovy.xml.XmlSlurper
+
 def bomConsumerModules = [
         'core',
         'minimessage',
         'serializer',
         'test',
-        'test-snapshot'
+        'test-snapshot',
 ]
 def bomConsumerArtifacts = bomConsumerModules.collect { moduleName ->
     "kotventure-${moduleName}".toString()
 }
 def bomConsumerRepositoryDir = rootProject.layout.buildDirectory.dir('bom-consumer-m2')
 
-repositories {
-    maven {
-        url = bomConsumerRepositoryDir
-    }
-    mavenCentral()
-}
 def jitpackBuild = providers.environmentVariable('JITPACK').orNull == 'true'
 def jitpackEnvironmentValue = { String name ->
     def value = providers.environmentVariable(name).orNull
@@ -44,56 +40,83 @@ subprojects { subproject ->
     }
 }
 
-configurations {
-    bomConsumerVerification {
-        canBeConsumed = false
-        canBeResolved = true
-        description = 'Resolves Kotventure modules through the published BOM without per-artifact versions.'
-    }
-}
+def bomPublishTasks = bomConsumerModules.collect { moduleName ->
+    ":${moduleName}:publishMavenPublicationToBomConsumerLocalRepository"
+} + [':bom:publishMavenPublicationToBomConsumerLocalRepository']
 
-dependencies {
-    bomConsumerVerification platform("${bomConsumerGroup}:kotventure-bom:${bomConsumerVersion}")
-    bomConsumerArtifacts.each { artifactName ->
-        bomConsumerVerification "${bomConsumerGroup}:${artifactName}"
-    }
-}
-
+/**
+ * Configuration-cache safe BOM check.
+ *
+ * Do not resolve a versionless consumer configuration as task file inputs: configuration-cache
+ * fingerprints those inputs before publish tasks run, which fails on a clean tree (and on CI).
+ * Instead, depend on the local-m2 publish tasks and assert the published BOM POM + module jars.
+ */
 tasks.register('verifyBomConsumerVersionlessDependencies') {
     group = 'verification'
-    description = 'Verifies that a consumer importing kotventure-bom can omit per-artifact versions.'
+    description = 'Verifies that the published BOM manages Kotventure module coordinates at the project version.'
 
-    bomConsumerModules.each { moduleName ->
-        dependsOn ":${moduleName}:publishMavenPublicationToBomConsumerLocalRepository"
-    }
-    dependsOn ':bom:publishMavenPublicationToBomConsumerLocalRepository'
+    dependsOn bomPublishTasks
+
+    def expectedGroup = bomConsumerGroup.toString()
+    def expectedVersion = bomConsumerVersion.toString()
+    def expectedArtifacts = bomConsumerArtifacts.collect { it.toString() }
+    def repositoryDir = bomConsumerRepositoryDir
+
+    inputs.property('expectedGroup', expectedGroup)
+    inputs.property('expectedVersion', expectedVersion)
+    inputs.property('expectedArtifacts', expectedArtifacts)
+    inputs.dir(repositoryDir)
 
     doLast {
-        def expectedGroup = bomConsumerGroup
-        def expectedVersion = bomConsumerVersion
-        def resolvedVersions = [:]
+        def repoRoot = repositoryDir.get().asFile
+        def groupPath = expectedGroup.replace('.', '/')
+        def coordinateDir = { String artifactId ->
+            new File(repoRoot, "${groupPath}/${artifactId}/${expectedVersion}")
+        }
+        def coordinateFile = { String artifactId, String extension ->
+            new File(coordinateDir(artifactId), "${artifactId}-${expectedVersion}.${extension}")
+        }
 
-        configurations.bomConsumerVerification.incoming.resolutionResult.allComponents.each { component ->
-            def moduleVersion = component.moduleVersion
-            if (moduleVersion != null &&
-                    moduleVersion.group == expectedGroup &&
-                    bomConsumerArtifacts.contains(moduleVersion.name)) {
-                resolvedVersions[moduleVersion.name] = moduleVersion.version
+        def bomPomFile = coordinateFile('kotventure-bom', 'pom')
+        if (!bomPomFile.isFile()) {
+            throw new GradleException("BOM consumer verification missing published BOM POM: ${bomPomFile}")
+        }
+
+        def managedVersions = [:]
+        def pom = new XmlSlurper().parse(bomPomFile)
+        pom.dependencyManagement.dependencies.dependency.each { dependency ->
+            def groupId = dependency.groupId.text()
+            def artifactId = dependency.artifactId.text()
+            if (groupId == expectedGroup && expectedArtifacts.contains(artifactId)) {
+                managedVersions[artifactId] = dependency.version.text()
             }
         }
 
-        def missingArtifacts = bomConsumerArtifacts.findAll { artifactName ->
-            !resolvedVersions.containsKey(artifactName)
-        }
-        if (!missingArtifacts.isEmpty()) {
-            throw new GradleException("BOM consumer verification did not resolve: ${missingArtifacts.join(', ')}")
+        def missingManaged = expectedArtifacts - managedVersions.keySet()
+        if (!missingManaged.isEmpty()) {
+            throw new GradleException(
+                    "BOM POM does not manage Kotventure artifacts (group '${expectedGroup}'): " +
+                            "${missingManaged.join(', ')}"
+            )
         }
 
-        def mismatchedVersions = resolvedVersions.findAll { artifactName, resolvedVersion ->
-            resolvedVersion != expectedVersion
+        def mismatchedManaged = managedVersions.findAll { artifactId, version ->
+            version != expectedVersion
         }
-        if (!mismatchedVersions.isEmpty()) {
-            throw new GradleException("BOM consumer verification resolved unexpected versions: ${mismatchedVersions}")
+        if (!mismatchedManaged.isEmpty()) {
+            throw new GradleException(
+                    "BOM POM manages unexpected versions (expected '${expectedVersion}'): ${mismatchedManaged}"
+            )
+        }
+
+        def missingJars = expectedArtifacts.findAll { artifactId ->
+            !coordinateFile(artifactId, 'jar').isFile()
+        }
+        if (!missingJars.isEmpty()) {
+            throw new GradleException(
+                    "BOM consumer local repository is missing module jars for version " +
+                            "'${expectedVersion}': ${missingJars.join(', ')}"
+            )
         }
     }
 }

@@ -1,8 +1,10 @@
+import groovy.xml.XmlSlurper
+
 apply plugin: 'maven-publish'
 
-def jitpackBuild = System.getenv('JITPACK') == 'true'
+def jitpackBuild = providers.environmentVariable('JITPACK').orNull == 'true'
 def jitpackEnvironmentValue = { String name ->
-    def value = System.getenv(name)
+    def value = providers.environmentVariable(name).orNull
     if (value == null || value.isBlank()) {
         throw new GradleException("JitPack publication requires the ${name} environment variable.")
     }
@@ -16,23 +18,16 @@ def publicationVersion = jitpackBuild
         : rootProject.version.toString()
 def moduleName = project.name
 def modulePath = project.path
-def moduleDescription = objects.property(String)
 def publicationArtifactId = "kotventure-${moduleName}"
 def repositoryUrl = 'https://github.com/LMLiam/Kotventure'
 
-afterEvaluate {
-    if (project.description != null) {
-        moduleDescription.set(project.description)
+// Lazy: module build scripts set `description` after root `subprojects {}` applies this script.
+def publicationDescription = providers.provider {
+    def value = project.description?.toString()?.trim()
+    if (!value) {
+        throw new GradleException("${modulePath} must define a project description for publication.")
     }
-    publishing.publications.named('maven') {
-        if (pluginManager.hasPlugin('java-platform')) {
-            from components.javaPlatform
-        } else if (pluginManager.hasPlugin('java')) {
-            from components.java
-        } else {
-            throw new GradleException("${modulePath} must apply java or java-platform to publish Maven metadata.")
-        }
-    }
+    value
 }
 
 publishing {
@@ -44,43 +39,67 @@ publishing {
 
             pom {
                 name = moduleName
-                description.set(moduleDescription)
+                description = publicationDescription
                 url = repositoryUrl
             }
         }
     }
 }
 
+// Wire the software component when the matching plugin is applied (no afterEvaluate).
+pluginManager.withPlugin('java') {
+    publishing.publications.named('maven') {
+        from components.java
+    }
+}
+pluginManager.withPlugin('java-platform') {
+    publishing.publications.named('maven') {
+        from components.javaPlatform
+    }
+}
+
 tasks.register('verifyMavenPublicationMetadata') {
     group = 'verification'
-    description = 'Verifies the Maven publication coordinates and POM metadata.'
+    description = 'Verifies the generated Maven POM coordinates and metadata.'
+
+    def expectedGroup = publicationGroup
+    def expectedArtifactId = publicationArtifactId
+    def expectedVersion = publicationVersion
+    def expectedName = moduleName
+    def expectedDescription = publicationDescription
+    def expectedUrl = repositoryUrl
+    def pathLabel = modulePath
+    def pomFile = layout.buildDirectory.file('publications/maven/pom-default.xml')
+
+    dependsOn tasks.named('generatePomFileForMavenPublication')
+    inputs.property('expectedGroup', expectedGroup)
+    inputs.property('expectedArtifactId', expectedArtifactId)
+    inputs.property('expectedVersion', expectedVersion)
+    inputs.property('expectedName', expectedName)
+    inputs.property('expectedDescription', expectedDescription)
+    inputs.property('expectedUrl', expectedUrl)
+    inputs.file(pomFile)
 
     doLast {
-        def publication = publishing.publications.findByName('maven')
-        if (publication == null) {
-            throw new GradleException("${modulePath} does not define a Maven publication named 'maven'.")
+        def pomPath = pomFile.get().asFile
+        if (!pomPath.isFile()) {
+            throw new GradleException("${pathLabel} missing generated POM at ${pomPath}.")
         }
-        if (publication.groupId != publicationGroup) {
-            throw new GradleException("${modulePath} publishes group '${publication.groupId}', expected '${publicationGroup}'.")
-        }
-        if (publication.artifactId != publicationArtifactId) {
-            throw new GradleException("${modulePath} publishes artifact '${publication.artifactId}', expected '${publicationArtifactId}'.")
-        }
-        if (publication.version != publicationVersion) {
-            throw new GradleException("${modulePath} publishes version '${publication.version}', expected '${publicationVersion}'.")
-        }
-        if (publication.pom.name.getOrNull() != moduleName) {
-            throw new GradleException("${modulePath} POM name must be '${moduleName}'.")
-        }
-        def expectedDescription = moduleDescription.getOrNull()
-        if (expectedDescription == null || expectedDescription.isBlank()) {
-            throw new GradleException("${modulePath} must define a project description for publication.")
-        }
-        if (publication.pom.description.getOrNull() != expectedDescription) {
-            throw new GradleException("${modulePath} POM description must match the project description.")
-        }
-        if (publication.pom.url.getOrNull() != repositoryUrl) {
-            throw new GradleException("${modulePath} POM URL must be '${repositoryUrl}'.")
+
+        def pom = new XmlSlurper().parse(pomPath)
+        def expectedByField = [
+                groupId    : expectedGroup,
+                artifactId : expectedArtifactId,
+                version    : expectedVersion,
+                name       : expectedName,
+                description: expectedDescription.get(),
+                url        : expectedUrl,
+        ]
+        expectedByField.each { field, expected ->
+            def actual = pom."$field".text()
+            if (actual != expected) {
+                throw new GradleException("${pathLabel} POM ${field} is '${actual}', expected '${expected}'.")
+            }
         }
     }
 }

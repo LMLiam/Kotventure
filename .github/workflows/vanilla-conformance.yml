@@ -8,6 +8,7 @@ on:
       - 'modules/core/**'
       - 'gradle/vanilla-conformance.gradle'
       - 'buildSrc/**'
+      - '.github/scripts/vanilla-fixture-cache-key.sh'
       - '.github/workflows/vanilla-conformance.yml'
       - '.github/actions/setup-jdk-gradle/**'
       - '.github/actions/publish-junit-report/**'
@@ -38,8 +39,36 @@ jobs:
       - name: Set up JDK and Gradle
         uses: ./.github/actions/setup-jdk-gradle
 
+      - name: Resolve Minecraft fixture cache key
+        id: fixture
+        run: .github/scripts/vanilla-fixture-cache-key.sh >> "$GITHUB_OUTPUT"
+
+      - name: Cache Minecraft conformance fixtures
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: modules/core/build/vanilla-conformance
+          key: ${{ steps.fixture.outputs.key }}
+
+      - name: Verify restored fixture checksum
+        run: |
+          set -euo pipefail
+          version="${{ steps.fixture.outputs.version }}"
+          expected="${{ steps.fixture.outputs.sha1 }}"
+          bundle="modules/core/build/vanilla-conformance/${version}/server-${version}-bundle.jar"
+          if [[ ! -f "$bundle" ]]; then
+            echo "No cached server bundle at $bundle; Gradle will download and verify."
+            exit 0
+          fi
+          actual="$(shasum -a 1 "$bundle" | awk '{ print $1 }')"
+          if [[ "$actual" != "$expected" ]]; then
+            echo "Cached fixture SHA-1 mismatch (expected $expected, got $actual); removing corrupted cache entry."
+            rm -f "$bundle"
+            exit 0
+          fi
+          echo "Cached fixture SHA-1 matches $expected."
+
       - name: Run vanilla conformance suites
-        run: ./gradlew :core:vanillaConformanceTest --no-daemon
+        run: ./gradlew :core:vanillaConformanceTest
 
       - name: Publish JUnit test report
         if: always()
