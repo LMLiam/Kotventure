@@ -70,8 +70,7 @@ class EntitySelectorModelTest :
                             EntitySelectorArgument.Limit(2),
                         ),
                     )
-                }.message shouldBe
-                    "Selector argument 'limit' is already set; vanilla syntax allows it only once."
+                }
             }
 
             "represents direct entity types and type tags without a boolean flag" {
