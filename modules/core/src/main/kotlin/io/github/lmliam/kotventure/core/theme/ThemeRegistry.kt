@@ -11,7 +11,8 @@ import kotlin.concurrent.withLock
  * at runtime.
  *
  * Lifecycle: [register] fails on duplicate names; [replace] and [unregister] support hot-reload
- * workflows where a theme is swapped or removed after startup.
+ * workflows where a theme is swapped or removed after startup. Prefer unregistering with the
+ * theme object (`themes.unregister(Brand)`) when it is available.
  */
 public class ThemeRegistry {
     private val lock = ReentrantLock()
@@ -71,7 +72,30 @@ public class ThemeRegistry {
     }
 
     /**
+     * Removes [provider] when it is the instance currently registered under [ThemeProvider.name].
+     *
+     * Prefer this overload when the theme object is known (`themes.unregister(Brand)`). After
+     * [replace] has installed a different instance under the same name, this is a no-op.
+     *
+     * When the removed provider was the default theme, the default is cleared.
+     *
+     * @return [provider] when it was removed, or null when it is not the registered instance.
+     */
+    public fun <T : ThemeProvider> unregister(provider: T): T? =
+        lock.withLock {
+            val current = providers[provider.name]
+            if (current !== provider) {
+                return@withLock null
+            }
+            removeRegistered(provider.name, provider)
+            provider
+        }
+
+    /**
      * Removes the theme registered as [name].
+     *
+     * Prefer [unregister] with the theme object when available; this overload is for dynamic
+     * lookup and interop where only the name is known.
      *
      * When the removed provider was the default theme, the default is cleared.
      *
@@ -79,10 +103,8 @@ public class ThemeRegistry {
      */
     public fun unregister(name: String): ThemeProvider? =
         lock.withLock {
-            val removed = providers.remove(name) ?: return@withLock null
-            if (defaultProvider === removed) {
-                defaultProvider = null
-            }
+            val removed = providers[name] ?: return@withLock null
+            removeRegistered(name, removed)
             removed
         }
 
@@ -102,6 +124,16 @@ public class ThemeRegistry {
         lock.withLock {
             defaultProvider
         }
+
+    private fun removeRegistered(
+        name: String,
+        removed: ThemeProvider,
+    ) {
+        providers.remove(name)
+        if (defaultProvider === removed) {
+            defaultProvider = null
+        }
+    }
 
     private fun requireProviderName(provider: ThemeProvider): String {
         val providerName = provider.name

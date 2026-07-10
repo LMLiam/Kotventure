@@ -65,6 +65,16 @@ class ThemeLookupTest :
                 }
             }
 
+            "unregisters a theme by object reference and returns the removed provider" {
+                val registry = ThemeRegistry()
+                val provider = TestThemeProvider("brand")
+
+                registry.register(provider)
+
+                registry.unregister(provider) shouldBe provider
+                registry.theme("brand").shouldBeNull()
+            }
+
             "unregisters a theme by name and returns the removed provider" {
                 val registry = ThemeRegistry()
                 val provider = TestThemeProvider("brand")
@@ -75,11 +85,37 @@ class ThemeLookupTest :
                 registry.theme("brand").shouldBeNull()
             }
 
-            "unregister returns null when the name is not registered" {
+            "unregister by object returns null when a different instance owns the name" {
+                val registry = ThemeRegistry()
+                val original = TestThemeProvider("brand")
+                val reloaded = TestThemeProvider("brand")
+
+                registry.register(original)
+                registry.replace(reloaded)
+
+                registry.unregister(original).shouldBeNull()
+                registry.theme("brand") shouldBe reloaded
+            }
+
+            "unregister by object returns null when the provider was never registered" {
+                ThemeRegistry().unregister(TestThemeProvider("brand")).shouldBeNull()
+            }
+
+            "unregister by name returns null when the name is not registered" {
                 ThemeRegistry().unregister("missing").shouldBeNull()
             }
 
-            "unregister clears the default when the default theme is removed" {
+            "unregister by object clears the default when the default theme is removed" {
+                val registry = ThemeRegistry()
+                val provider = TestThemeProvider("brand")
+
+                registry.register(provider, default = true)
+
+                registry.unregister(provider) shouldBe provider
+                registry.defaultTheme().shouldBeNull()
+            }
+
+            "unregister by name clears the default when the default theme is removed" {
                 val registry = ThemeRegistry()
                 val provider = TestThemeProvider("brand")
 
@@ -97,7 +133,7 @@ class ThemeLookupTest :
                 registry.register(brand, default = true)
                 registry.register(server)
 
-                registry.unregister("server") shouldBe server
+                registry.unregister(server) shouldBe server
                 registry.defaultTheme() shouldBe brand
             }
 
