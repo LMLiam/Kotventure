@@ -8,6 +8,7 @@ on:
       - 'modules/core/**'
       - 'gradle/vanilla-conformance.gradle'
       - 'buildSrc/**'
+      - '.github/scripts/vanilla-fixture-cache-key.sh'
       - '.github/workflows/vanilla-conformance.yml'
       - '.github/actions/setup-jdk-gradle/**'
       - '.github/actions/publish-junit-report/**'
@@ -40,23 +41,7 @@ jobs:
 
       - name: Resolve Minecraft fixture cache key
         id: fixture
-        run: |
-          set -euo pipefail
-          version="$(sed -n "s/^final String targetMinecraftVersion = '\\([^']*\\)'$/\\1/p" gradle/vanilla-conformance.gradle)"
-          sha1="$(sed -n "s/^final String serverBundleSha1 = '\\([^']*\\)'$/\\1/p" gradle/vanilla-conformance.gradle)"
-          if [[ -z "$version" || -z "$sha1" ]]; then
-            echo "Could not parse targetMinecraftVersion / serverBundleSha1 from gradle/vanilla-conformance.gradle" >&2
-            exit 1
-          fi
-          if [[ ! "$sha1" =~ ^[0-9a-f]{40}$ ]]; then
-            echo "serverBundleSha1 is not a 40-char hex SHA-1: $sha1" >&2
-            exit 1
-          fi
-          {
-            echo "version=$version"
-            echo "sha1=$sha1"
-            echo "key=vanilla-mc-${version}-${sha1}"
-          } >> "$GITHUB_OUTPUT"
+        run: .github/scripts/vanilla-fixture-cache-key.sh >> "$GITHUB_OUTPUT"
 
       - name: Cache Minecraft conformance fixtures
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0

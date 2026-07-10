@@ -5,7 +5,7 @@ def bomConsumerModules = [
         'minimessage',
         'serializer',
         'test',
-        'test-snapshot'
+        'test-snapshot',
 ]
 def bomConsumerArtifacts = bomConsumerModules.collect { moduleName ->
     "kotventure-${moduleName}".toString()
@@ -44,16 +44,18 @@ def bomPublishTasks = bomConsumerModules.collect { moduleName ->
     ":${moduleName}:publishMavenPublicationToBomConsumerLocalRepository"
 } + [':bom:publishMavenPublicationToBomConsumerLocalRepository']
 
-// Configuration-cache safe: verify published local-m2 layout + BOM POM managed GAVs.
-// Do not resolve a versionless configuration as task file inputs — CC fingerprints those
-// before publish tasks run, which fails on a clean tree (and on CI).
+/**
+ * Configuration-cache safe BOM check.
+ *
+ * Do not resolve a versionless consumer configuration as task file inputs: configuration-cache
+ * fingerprints those inputs before publish tasks run, which fails on a clean tree (and on CI).
+ * Instead, depend on the local-m2 publish tasks and assert the published BOM POM + module jars.
+ */
 tasks.register('verifyBomConsumerVersionlessDependencies') {
     group = 'verification'
-    description = 'Verifies that the published BOM manages versionless Kotventure module coordinates.'
+    description = 'Verifies that the published BOM manages Kotventure module coordinates at the project version.'
 
-    bomPublishTasks.each { taskPath ->
-        dependsOn taskPath
-    }
+    dependsOn bomPublishTasks
 
     def expectedGroup = bomConsumerGroup.toString()
     def expectedVersion = bomConsumerVersion.toString()
@@ -68,28 +70,29 @@ tasks.register('verifyBomConsumerVersionlessDependencies') {
     doLast {
         def repoRoot = repositoryDir.get().asFile
         def groupPath = expectedGroup.replace('.', '/')
-        def bomPomFile = new File(
-                repoRoot,
-                "${groupPath}/kotventure-bom/${expectedVersion}/kotventure-bom-${expectedVersion}.pom"
-        )
+        def coordinateDir = { String artifactId ->
+            new File(repoRoot, "${groupPath}/${artifactId}/${expectedVersion}")
+        }
+        def coordinateFile = { String artifactId, String extension ->
+            new File(coordinateDir(artifactId), "${artifactId}-${expectedVersion}.${extension}")
+        }
+
+        def bomPomFile = coordinateFile('kotventure-bom', 'pom')
         if (!bomPomFile.isFile()) {
             throw new GradleException("BOM consumer verification missing published BOM POM: ${bomPomFile}")
         }
 
-        def managedByArtifact = [:]
+        def managedVersions = [:]
         def pom = new XmlSlurper().parse(bomPomFile)
         pom.dependencyManagement.dependencies.dependency.each { dependency ->
             def groupId = dependency.groupId.text()
             def artifactId = dependency.artifactId.text()
-            def version = dependency.version.text()
             if (groupId == expectedGroup && expectedArtifacts.contains(artifactId)) {
-                managedByArtifact[artifactId] = version
+                managedVersions[artifactId] = dependency.version.text()
             }
         }
 
-        def missingManaged = expectedArtifacts.findAll { artifactName ->
-            !managedByArtifact.containsKey(artifactName)
-        }
+        def missingManaged = expectedArtifacts - managedVersions.keySet()
         if (!missingManaged.isEmpty()) {
             throw new GradleException(
                     "BOM POM does not manage Kotventure artifacts (group '${expectedGroup}'): " +
@@ -97,8 +100,8 @@ tasks.register('verifyBomConsumerVersionlessDependencies') {
             )
         }
 
-        def mismatchedManaged = managedByArtifact.findAll { artifactName, managedVersion ->
-            managedVersion != expectedVersion
+        def mismatchedManaged = managedVersions.findAll { artifactId, version ->
+            version != expectedVersion
         }
         if (!mismatchedManaged.isEmpty()) {
             throw new GradleException(
@@ -106,12 +109,8 @@ tasks.register('verifyBomConsumerVersionlessDependencies') {
             )
         }
 
-        def missingJars = expectedArtifacts.findAll { artifactName ->
-            def jar = new File(
-                    repoRoot,
-                    "${groupPath}/${artifactName}/${expectedVersion}/${artifactName}-${expectedVersion}.jar"
-            )
-            !jar.isFile()
+        def missingJars = expectedArtifacts.findAll { artifactId ->
+            !coordinateFile(artifactId, 'jar').isFile()
         }
         if (!missingJars.isEmpty()) {
             throw new GradleException(
