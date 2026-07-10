@@ -2,6 +2,7 @@ package io.github.lmliam.kotventure.core.color
 
 import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.text.text
+import io.github.lmliam.kotventure.test.compilation.assertDoesNotCompile
 import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.github.lmliam.kotventure.test.text.shouldHaveChildCount
@@ -14,6 +15,21 @@ import net.kyori.adventure.text.format.NamedTextColor
 class GradientDslTest :
     StringSpec(
         {
+            "constructs gradients only through the gradient factories" {
+                assertDoesNotCompile(
+                    "ColorGradientConstructorVisibilityTest.kt",
+                    """
+                    import io.github.lmliam.kotventure.core.color.ColorGradient
+                    import net.kyori.adventure.text.format.NamedTextColor
+
+                    fun invalid() {
+                        ColorGradient(listOf(NamedTextColor.RED, NamedTextColor.BLUE))
+                    }
+                    """.trimIndent(),
+                    "Cannot access",
+                )
+            }
+
             "renders a multi stop gradient as one styled child per code point" {
                 val message = gradientText("abcde", red, gold, aqua)
 
