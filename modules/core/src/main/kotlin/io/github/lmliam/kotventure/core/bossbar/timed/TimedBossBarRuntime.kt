@@ -57,7 +57,6 @@ internal class TimedBossBarRuntime(
             lock.withLock {
                 check(running) { "Cannot pause a finished or cancelled TimedBossBar." }
                 check(!paused) { "TimedBossBar is already paused." }
-                // Invalidate before exposing paused so a concurrent resume cannot share this task.
                 val detached = detachTask()
                 paused = true
                 detached
@@ -139,31 +138,49 @@ internal class TimedBossBarRuntime(
     }
 
     private fun onTick(generation: Int) {
-        val remainingNow = lock.withLock { advanceOrNull(generation) } ?: return
-        config.onTick?.invoke(owner, remainingNow)
-        if (remainingNow == Duration.ZERO) completeNaturally()
+        // At ZERO, mark natural stop under the same lock as the tick so cancel() from onTick
+        // cannot steal completion (onFinish must win) and a thrown onTick still finalises hide.
+        val outcome = lock.withLock { advanceOrNull(generation) } ?: return
+        var tickError: Throwable? = null
+        try {
+            config.onTick?.invoke(owner, outcome.remaining)
+        } catch (error: Throwable) {
+            tickError = error
+        }
+        if (outcome.shutdown != null) {
+            try {
+                finaliseShutdown(outcome.shutdown, config.onFinish)
+            } catch (error: Throwable) {
+                if (tickError != null) {
+                    tickError.addSuppressed(error)
+                    throw tickError
+                }
+                throw error
+            }
+        }
+        if (tickError != null) {
+            throw tickError
+        }
     }
 
-    private fun advanceOrNull(generation: Int): Duration? {
+    /**
+     * Advances remaining time under [lock]. When the tick lands on [Duration.ZERO], atomically
+     * marks the bar stopped and returns the [TimedBossBarShutdown] for outside-lock finalisation.
+     * Stale generations (detached tasks) are ignored.
+     */
+    private fun advanceOrNull(generation: Int): TickOutcome? {
         if (!running || paused || generation != tickGeneration) return null
         remainingTime = (remainingTime - config.every).coerceAtLeast(Duration.ZERO)
         bar.progress(config.progress.at(remaining = remainingTime, over = config.over))
         updateNameIfChanged(remainingTime)
-        return remainingTime
+        val remaining = remainingTime
+        val shutdown = if (remaining == Duration.ZERO) markStopped() else null
+        return TickOutcome(remaining = remaining, shutdown = shutdown)
     }
 
     private fun updateNameIfChanged(remaining: Duration) {
         val name = config.name(remaining)
         if (name != bar.name()) bar.name(name)
-    }
-
-    private fun completeNaturally() {
-        val shutdown =
-            lock.withLock {
-                if (!running) return
-                markStopped()
-            }
-        finaliseShutdown(shutdown, config.onFinish)
     }
 
     /**
@@ -178,4 +195,10 @@ internal class TimedBossBarRuntime(
             viewers = viewers.snapshotAndClear(),
         )
     }
+
+    /** Result of one locked tick advance; [shutdown] is non-null only on natural completion. */
+    private data class TickOutcome(
+        val remaining: Duration,
+        val shutdown: TimedBossBarShutdown?,
+    )
 }

@@ -699,5 +699,66 @@ class TimedBossBarDslTest :
                 creator.hidden shouldContainExactly listOf(timed.bar)
                 timed.isRunning shouldBe false
             }
+
+            "cancel from the final onTick does not override onFinish" {
+                val ticker = ManualTicker()
+                val audience = TimedBossBarRecordingAudience()
+                var finishes = 0
+                var cancels = 0
+
+                val timed =
+                    context(ticker) {
+                        audience.bossBar(over = 1.seconds) {
+                            name { text("X") }
+                            every(1.seconds)
+                            onTick { remaining ->
+                                if (remaining == Duration.ZERO) {
+                                    cancel()
+                                }
+                            }
+                            onFinish { finishes++ }
+                            onCancel { cancels++ }
+                        }
+                    }
+
+                ticker.advance(1.seconds)
+
+                finishes shouldBe 1
+                cancels shouldBe 0
+                timed.isRunning shouldBe false
+                audience.hidden shouldContainExactly listOf(timed.bar)
+            }
+
+            "exception from the final onTick still hides viewers, fires onFinish, and rethrows" {
+                val ticker = ManualTicker()
+                val audience = TimedBossBarRecordingAudience()
+                var finishes = 0
+                val boom = IllegalStateException("tick failed")
+
+                val timed =
+                    context(ticker) {
+                        audience.bossBar(over = 1.seconds) {
+                            name { text("X") }
+                            every(1.seconds)
+                            onTick { remaining ->
+                                if (remaining == Duration.ZERO) {
+                                    throw boom
+                                }
+                            }
+                            onFinish { finishes++ }
+                        }
+                    }
+
+                val thrown =
+                    shouldThrow<IllegalStateException> {
+                        ticker.advance(1.seconds)
+                    }
+
+                thrown shouldBe boom
+                finishes shouldBe 1
+                timed.isRunning shouldBe false
+                timed.remaining shouldBe Duration.ZERO
+                audience.hidden shouldContainExactly listOf(timed.bar)
+            }
         },
     )
