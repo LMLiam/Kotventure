@@ -199,7 +199,7 @@ val alert = sound(key("minecraft:block.bell.use")) {   // build once, share
 }
 player.play(alert)
 player.sound(key("minecraft:entity.pig.ambient")) {    // build + play one-shot
-    emitter(self)           // or at(x, y, z) — emitter-relative playback
+    emitter(self)           // follows the recipient; or at(x, y, z) — world position
 }
 player.stopSound { source(music) }
 player.stopSound { all() }
