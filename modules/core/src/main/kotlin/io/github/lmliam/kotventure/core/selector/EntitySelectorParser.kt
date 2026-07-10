@@ -65,14 +65,3 @@ private fun SelectorReader.readSelectorArgument(
 }
 
 private fun String.isSingletonSelectorArgument(): Boolean = this in singletonSelectorArgumentNames
-
-private val singletonSelectorArgumentNames: Set<String> =
-    buildSet {
-        addAll(SelectorCoordinate.entries.map { it.argumentName })
-        addAll(SelectorRangeArgument.entries.map { it.argumentName })
-        add(SelectorArgumentKeyword.LIMIT.sourceName)
-        add(SelectorArgumentKeyword.SORT.sourceName)
-        add(SelectorArgumentKeyword.LEVEL.sourceName)
-        add(SelectorArgumentKeyword.SCORES.sourceName)
-        add(SelectorArgumentKeyword.ADVANCEMENTS.sourceName)
-    }
