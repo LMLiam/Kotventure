@@ -1,7 +1,7 @@
 package io.github.lmliam.kotventure.core.component
 
 import io.github.lmliam.kotventure.core.dsl.once
-import io.github.lmliam.kotventure.core.style.OnceStyleScope
+import io.github.lmliam.kotventure.core.style.OnceStyleBuilder
 import io.github.lmliam.kotventure.core.style.StyleBuilder
 import io.github.lmliam.kotventure.core.style.StyleScope
 import net.kyori.adventure.key.Key
@@ -18,7 +18,7 @@ import net.kyori.adventure.text.ComponentBuilder as AdventureComponentBuilder
 
 internal open class ComponentBuilder<C : Component, B : AdventureComponentBuilder<C, B>>(
     protected val builder: B,
-) : OnceStyleScope(),
+) : OnceStyleBuilder(),
     ComponentScope {
     private var style: Style? by once()
 

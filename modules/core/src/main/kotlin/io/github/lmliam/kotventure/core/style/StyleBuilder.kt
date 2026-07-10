@@ -11,7 +11,7 @@ import net.kyori.adventure.text.format.TextDecoration.State
 
 internal class StyleBuilder(
     private val builder: Style.Builder,
-) : OnceStyleScope() {
+) : OnceStyleBuilder() {
     override fun applyColor(color: TextColor?) {
         builder.color(color)
     }
