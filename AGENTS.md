@@ -212,13 +212,19 @@ Qualitative metrics (reviewed, not measured — the review bar):
 ## 9. Project skills
 
 Reusable playbooks — available via the `Skill` tool (Claude Code: `.claude/skills/`) or the `skill` tool (Copilot/Codex:
-`.agents/skills/`):
+`.agents/skills/`). `.agents/skills/` is the source of truth; the `.claude/skills/` entries are symlinks to it.
+Index with use-when triggers: [`.agents/skills/README.md`](.agents/skills/README.md).
 
-- **`adding-a-dsl-feature`** — the end-to-end workflow for a new DSL feature.
+- **`adding-a-dsl-feature`** — the end-to-end issue-to-merge workflow for a new DSL feature.
 - **`idiomatic-kotlin-dsl`** — **required reading before designing or planning any API surface**: the resolution
-  ladder (property → delegate → typed key → string), the design pressure-test, and DSL idioms with do/don't examples.
+  ladder (property → delegate → typed key → string), the design pressure-test, and the house rules.
+- **`kotventure-reference`** — the project's own public surface per module, so code dogfoods existing entry points.
 - **`adventure-reference`** — a map of the Adventure API so you don't hallucinate types.
-- **`writing-component-tests`** — Kotest + the component matchers + snapshots.
+- **`minimessage-reference`** — MiniMessage: `mini(...)`, typed templates, validation, mini→DSL conversion.
+- **`writing-component-tests`** — Kotest + the component matchers, snapshot and compile-fail patterns.
+- **`documenting-public-api`** — KDoc contracts, link priority, `@sample` source sets, module READMEs.
+- **`fixing-ci-failures`** — what to do per red check, and which checks are known noise.
+- **`reviewing-contributions`** — the maintainer-side pass that lands someone else's PR.
 
 Write implementation plans to `.agents/plans/`.
 
