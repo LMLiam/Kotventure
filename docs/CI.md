@@ -12,13 +12,14 @@ For local development commands, see [CONTRIBUTING.md](../.github/CONTRIBUTING.md
 |----------|----------|---------|
 | **Build** | PR → `master`, push → `master` | Parallel format/lint + Gradle verify when code paths change; required check always reports |
 | **Qodana** | PR → `master` (path-filtered), weekly schedule, `workflow_dispatch` | Static analysis + SARIF to code scanning |
+| **CodeQL** | PR/push → `master` (path-filtered), weekly schedule, `workflow_dispatch` | Code scanning for Actions and Java/Kotlin |
 | **Vanilla Conformance** | Path-filtered PRs, weekly schedule, `workflow_dispatch` | MC-backed selector tests |
 | **Dependency Security Review** | PR → `master` | `dependency-review-action` |
 | **Conventional Titles** | `pull_request_target`, push `master` | PR title + commit subjects (`verb(area): …`) |
 | **Labeler** | `pull_request_target` | Path → `area:*` labels |
 | **Release Please** | push `master` | Opens/updates release PRs; tags/releases after merge |
 | **OpenSSF Scorecard** | weekly schedule, `branch_protection_rule`, `workflow_dispatch` | Supply-chain scorecard + SARIF |
-| **Heavy CI gate** | `workflow_call` only | Skip pure release-please PRs for Build and Qodana |
+| **Heavy CI gate** | `workflow_call` only | Skip pure release-please PRs for Build, Qodana, and CodeQL |
 
 ## When workflows run
 
@@ -51,21 +52,21 @@ Gradle does not run for docs-only / template-only changes. Markdown under `modul
 
 ### Push vs PR
 
-| Event | Build workflow | Lint + Gradle jobs | Qodana |
-|-------|:--------------:|:------------------:|:------:|
-| PR (code paths) | ✓ | ✓ | ✓ |
-| PR (docs/process only) | ✓ | — | — |
-| Push to `master` (code paths) | ✓ | ✓ | — |
-| Push to `master` (docs only) | ✓ | — | — |
-| Weekly schedule | — | — | ✓ |
-| `workflow_dispatch` | — | — | ✓ |
+| Event | Build workflow | Lint + Gradle jobs | Qodana | CodeQL |
+|-------|:--------------:|:------------------:|:------:|:------:|
+| PR (code paths) | ✓ | ✓ | ✓ | ✓ |
+| PR (docs/process only) | ✓ | — | — | — |
+| Push to `master` (code paths) | ✓ | ✓ | — | ✓ |
+| Push to `master` (docs only) | ✓ | — | — | — |
+| Weekly schedule | — | — | ✓ | ✓ |
+| `workflow_dispatch` | — | — | ✓ | ✓ |
 
 ### Heavy CI gate (release-please)
 
 Workflow: [`.github/workflows/heavy-ci-gate.yml`](../.github/workflows/heavy-ci-gate.yml).  
-**Used by:** Build, Qodana. Dependency Review is not gated.
+**Used by:** Build, Qodana, CodeQL. Dependency Review is not gated.
 
-Skips Build’s lint/Gradle jobs and Qodana when all of:
+Skips Build’s lint/Gradle jobs, Qodana, and CodeQL when all of:
 
 1. Event is a `pull_request`
 2. Head branch starts with `release-please--`
@@ -76,9 +77,17 @@ Skips Build’s lint/Gradle jobs and Qodana when all of:
 
 On Build, the required check still reports success when the gate skips the lint and Gradle jobs.
 
-If the PR has any other path change, Build/Qodana run when code paths match.
+If the PR has any other path change, Build/Qodana/CodeQL run when code paths match.
 
 When adding release-please `extra-files`, update the gate allow-list in the same PR.
+
+### CodeQL
+
+Workflow: [`.github/workflows/codeql.yml`](../.github/workflows/codeql.yml).
+
+- **Languages:** `actions` (build mode `none`) and `java-kotlin` (manual `./gradlew classes testClasses -x test`).
+- **Path filters** on PR/push match the Build/Qodana code path list; weekly schedule and `workflow_dispatch` always run.
+- Results upload to GitHub code scanning (same surface as Qodana/Scorecard SARIF).
 
 ## Local composite actions
 
@@ -107,6 +116,29 @@ Third-party actions are SHA-pinned with a version comment. Dependabot updates (`
 
 New composites that pin third-party actions need a matching Dependabot directory.
 
+## Branch protection (`master`)
+
+Repository ruleset **Master** (default branch):
+
+- Block force-push, branch deletion, and direct pushes (updates only via PR).
+- Pull requests: one approving review, code-owner review, dismiss stale reviews, resolve conversations, squash only.
+- Required status checks (must pass before merge):
+  - `Build, Test, and Lint`
+  - `Validate Pull Request Title`
+  - `Validate Commit Subjects`
+  - `Review Dependency Changes`
+- Code scanning gate for Qodana (`QDJVM`) alerts at medium-or-higher security / errors severity.
+- Maintainer bypass remains configured for emergency overrides.
+
+[CODEOWNERS](../.github/CODEOWNERS) assigns `@LMLiam` as default owner and explicitly for `.github/workflows/`,
+`.github/actions/`, `.github/scripts/`, and related CI config so code-owner review covers automation changes.
+
+## Dependency review
+
+Workflow: [`.github/workflows/dependency-review.yml`](../.github/workflows/dependency-review.yml). Runs on every PR to
+`master` (not heavy-CI-gated). Fails on **moderate** or higher severity advisories for scopes
+`runtime`, `development`, and `unknown`.
+
 ## Performance
 
 | Mechanism | Where |
@@ -126,7 +158,7 @@ New composites that pin third-party actions need a matching Dependabot directory
 ## Re-running CI
 
 - **Re-run failed jobs** / **Re-run all jobs** on an Actions run.
-- Qodana, Vanilla Conformance, and Scorecard also support `workflow_dispatch`.
+- Qodana, CodeQL, Vanilla Conformance, and Scorecard also support `workflow_dispatch`.
 
 ## Related docs
 

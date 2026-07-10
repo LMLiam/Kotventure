@@ -33,10 +33,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  checks: write
   contents: read
-  pull-requests: write
-  security-events: write
 
 jobs:
   gate:
@@ -52,6 +49,11 @@ jobs:
     if: needs.gate.outputs.run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      checks: write
+      contents: read
+      pull-requests: write
+      security-events: write
 
     steps:
       - name: Checkout
