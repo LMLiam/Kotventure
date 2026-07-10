@@ -1,68 +1,36 @@
 ---
 name: adventure-reference
-description: Use when you need an Adventure API and must not guess its shape — a map of components, style, events, serializers, audiences, MiniMessage, pagination and platforms with the real net.kyori types.
+description: Use when wrapping or calling any net.kyori Adventure API and its exact shape must not be guessed — components, style, click/hover events, audiences, titles, sounds, boss bars, books, NBT, serializers, keys, platforms. Use before writing code against an Adventure type you have not verified this session.
 ---
 
 # Adventure API reference
 
-A map of the API this project wraps. **Verify exact signatures against the Javadoc (https://jd.advntr.dev) or the
-dependency sources before use — do not invent methods.** Target is `adventure-api` 5.1.1 unless the roadmap issue
-explicitly says otherwise.
+A map of the API this project wraps. **Never ship a call you haven't confirmed exists.**
+Ground truth, in order of authority:
 
-## Components — `net.kyori.adventure.text`
+1. **Dependency sources** — open the class from the Gradle dependency in the IDE.
+2. **Javadoc** — https://jd.advntr.dev
+3. These reference files — a curated map of what Kotventure touches, not a full API listing.
 
-- `Component.text("...")` → `TextComponent.Builder` (`.content`, `.color`, `.decoration(TextDecoration, boolean)`,
-  `.append(Component)`, `.clickEvent`, `.hoverEvent`).
-- `Component.translatable(key, fallback, args)` → `TranslatableComponent`.
-- `Component.keybind(key)`, `Component.score(name, objective)`, `Component.selector(pattern)`.
-- NBT: `Component.blockNBT()`, `entityNBT()`, `storageNBT()` (path, `interpret`, separator, source).
-- Join: `Component.join(JoinConfiguration, components)`; `JoinConfiguration.separator(...)`, `.noSeparators()`.
+The target version is whatever `adventureApi` says in `gradle/libs.versions.toml` — check it;
+don't assume. Artifact coordinates are `net.kyori:adventure-*` (see the `[libraries]` section
+there for exactly which artifacts each module may use — `core` gets `adventure-api` only).
 
-## Style — `net.kyori.adventure.text.format`
+## Domain map
 
-- `Style.style { }`; `TextColor.color(rgb)` / `TextColor.fromHexString("#..")`; `NamedTextColor.*`.
-- `TextDecoration` (BOLD, ITALIC, UNDERLINED, STRIKETHROUGH, OBFUSCATED) with tri-state `TextDecoration.State`.
-- Gradients: interpolate with `TextColor.lerp(t, a, b)`.
-- `font(Key)`, `.insertion(String)`.
+| You need… | Read |
+|---|---|
+| `Component` factories: text, translatable, keybind, score, selector, NBT, object contents, join/newline, iteration | [references/components.md](references/components.md) |
+| `Style`, colors, `ShadowColor`, decorations + tri-state, fonts, insertion; `ClickEvent` (incl. callbacks), `HoverEvent` (text/item/entity) | [references/style-and-events.md](references/style-and-events.md) |
+| `Audience` operations: messages, chat + `SignedMessage`, titles, action bar, sounds, boss bars, books, tab list | [references/audiences.md](references/audiences.md) |
+| Serializers (Gson/JSON, legacy, plain), `Key`/`Keyed`, platform integration (Paper/Velocity/Fabric) | [references/serializers-and-platforms.md](references/serializers-and-platforms.md) |
+| MiniMessage (parsing, tag resolvers, placeholders, strict mode) | the `minimessage-reference` skill — it covers both the Adventure API and Kotventure's typed layer |
 
-## Events — `net.kyori.adventure.text.event`
+## Rules when wrapping
 
-- `ClickEvent.openUrl/openFile/runCommand/suggestCommand/changePage/copyToClipboard`.
-- `ClickEvent.callback(ClickCallback)` (server-side callback, supports options: uses, lifetime).
-- `HoverEvent.showText(Component)`, `showItem(ShowItem)`, `showEntity(ShowEntity)`.
-
-## Serializers
-
-- MiniMessage: `MiniMessage.miniMessage().deserialize(str, TagResolver...)` / `.serialize(component)` —
-  `adventure-text-minimessage`.
-- `GsonComponentSerializer.gson()` (JSON), `LegacyComponentSerializer.legacyAmpersand()/legacySection()`,
-  `PlainTextComponentSerializer.plainText()`.
-- ANSI: `ANSIComponentSerializer` — `adventure-text-serializer-ansi` (build the `ansi` module on this).
-
-## MiniMessage tags/resolvers — `net.kyori.adventure.text.minimessage`
-
-- `TagResolver`, `Placeholder.parsed/unparsed/component`, `TagResolver.resolver(...)`.
-- Builder/strict mode + `ParsingException` for validation work.
-
-## Audiences — `net.kyori.adventure.audience.Audience`
-
-- `sendMessage`, `sendActionBar`, `showTitle(Title)`, `clearTitle`.
-- `Title.title(main, subtitle, Title.Times.times(Duration, Duration, Duration))`.
-- `playSound(Sound)` / `stopSound`; `Sound.sound(key, source, volume, pitch)`, `Sound.Emitter`.
-- `openBook(Book)`; `Book.book(title, author, pages)`.
-- `showBossBar(BossBar)` / `hideBossBar`; `BossBar.bossBar(name, progress, color, overlay)`.
-- `sendPlayerListHeaderAndFooter(header, footer)`.
-
-## Extra feature modules
-
-- Pagination: `net.kyori.adventure.text.feature.pagination.Pagination` — `adventure-text-feature-pagination`.
-- Translation: `GlobalTranslator`, `TranslationStore` / `MiniMessageTranslationStore`, `TranslationRegistry`.
-
-## Platforms
-
-- **Paper / Velocity:** Adventure is native — `Player`/`CommandSender`/proxy sources implement `Audience` directly.
-- **Fabric:** `adventure-platform-fabric` → `FabricServerAudiences`.
-- `Key` (`net.kyori.adventure.key.Key`) for namespaced ids; `Keyed`/`Pointered` for identity & locale.
-
-When in doubt: open the relevant module's sources from the Gradle dependency, or the Javadoc — never ship an API call
-you haven't confirmed exists.
+- Builders must return the **real** `net.kyori` type; tests assert on it directly.
+- Adventure *value* types (components, styles, events, titles, sounds, books) are immutable —
+  "setters" return new instances; there is nothing to defensively copy. `BossBar` is the
+  exception: a live, mutable, shared object.
+- Watch nullability at the Kotlin/Java boundary: Adventure is annotated
+  (`@Nullable`/`@NotNull`), so Kotlin sees real types — trust the compiler, not memory.
