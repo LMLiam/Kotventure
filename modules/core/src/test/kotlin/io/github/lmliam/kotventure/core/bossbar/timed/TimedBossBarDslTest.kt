@@ -10,14 +10,13 @@ import io.github.lmliam.kotventure.core.time.ticks
 import io.github.lmliam.kotventure.test.bossbar.shouldHaveColor
 import io.github.lmliam.kotventure.test.bossbar.shouldHaveOverlay
 import io.github.lmliam.kotventure.test.bossbar.shouldHaveProgress
-import io.github.lmliam.kotventure.test.text.childAt
 import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.github.lmliam.kotventure.test.time.ManualTicker
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.floats.shouldBeWithinPercentageOf
+import io.kotest.matchers.floats.plusOrMinus
 import io.kotest.matchers.shouldBe
 import net.kyori.adventure.bossbar.BossBar
 import kotlin.time.Duration
@@ -26,7 +25,7 @@ import kotlin.time.Duration.Companion.seconds
 class TimedBossBarDslTest :
     StringSpec(
         {
-            "defaults to a 1→0 countdown and lands exactly on to" {
+            "defaults to a 1->0 countdown and lands exactly on to" {
                 val ticker = ManualTicker()
                 val audience = TimedBossBarRecordingAudience()
 
@@ -44,7 +43,7 @@ class TimedBossBarDslTest :
 
                 ticker.advance(5.seconds)
                 timed.remaining shouldBe 5.seconds
-                timed.bar.progress().shouldBeWithinPercentageOf(0.5f, 0.01)
+                timed.bar.progress() shouldBe (0.5f plusOrMinus 0.001f)
 
                 ticker.advance(5.seconds)
                 timed.remaining shouldBe Duration.ZERO
@@ -53,7 +52,7 @@ class TimedBossBarDslTest :
                 audience.hidden shouldContainExactly listOf(timed.bar)
             }
 
-            "interpolates arbitrary from→to progress" {
+            "interpolates arbitrary from->to progress" {
                 val ticker = ManualTicker()
                 val audience = TimedBossBarRecordingAudience()
 
@@ -68,7 +67,7 @@ class TimedBossBarDslTest :
 
                 timed.bar shouldHaveProgress 0.25f
                 ticker.advance(2.seconds)
-                timed.bar.progress().shouldBeWithinPercentageOf(0.5f, 0.01)
+                timed.bar.progress() shouldBe (0.5f plusOrMinus 0.001f)
                 ticker.advance(2.seconds)
                 timed.bar shouldHaveProgress 0.75f
             }
@@ -88,7 +87,6 @@ class TimedBossBarDslTest :
                 timed.show(extra)
 
                 ticker.advance(1.seconds)
-
                 creator.hidden shouldContainExactly listOf(timed.bar)
                 extra.hidden shouldContainExactly listOf(timed.bar)
                 timed.isRunning shouldBe false
@@ -140,8 +138,7 @@ class TimedBossBarDslTest :
                 timed.isPaused shouldBe true
                 ticker.advance(5.seconds)
                 timed.remaining shouldBe 7.seconds
-                // Countdown 1→0: after 3s of 10s, fill is 0.7 not 0.3.
-                timed.bar.progress().shouldBeWithinPercentageOf(0.7f, 0.01)
+                timed.bar.progress() shouldBe (0.7f plusOrMinus 0.001f)
 
                 timed.resume()
                 timed.isPaused shouldBe false
@@ -149,8 +146,6 @@ class TimedBossBarDslTest :
                 timed.remaining shouldBe 5.seconds
             }
 
-            // Controllable ticker: cancel is a no-op so a detached task can still fire — the race
-            // pause/resume leaves when the old callback runs after a replacement is scheduled.
             "stale ticker after pause/resume does not advance remaining" {
                 val actions = mutableListOf<() -> Unit>()
                 val ticker =
@@ -161,9 +156,7 @@ class TimedBossBarDslTest :
                         ): TickerTask {
                             actions += action
                             return object : TickerTask {
-                                override fun cancel() {
-                                    // Leave the callback invokable to model an in-flight/late fire.
-                                }
+                                override fun cancel() = Unit
                             }
                         }
                     }
@@ -185,7 +178,6 @@ class TimedBossBarDslTest :
                 timed.resume()
                 actions shouldHaveSize 2
 
-                // Stale generation from the pre-pause task must be a no-op after resume.
                 actions[0]()
                 timed.remaining shouldBe 9.seconds
 
@@ -235,7 +227,7 @@ class TimedBossBarDslTest :
                 timed.bar.name() shouldContainText "1s"
             }
 
-            "hook order is progress → name → onTick; onFinish fires once on natural completion" {
+            "hook order is progress -> name -> onTick; onFinish fires once on natural completion" {
                 val ticker = ManualTicker()
                 val audience = TimedBossBarRecordingAudience()
                 val events = mutableListOf<String>()
@@ -251,26 +243,20 @@ class TimedBossBarDslTest :
                             onTick { remaining ->
                                 events += "tick:${remaining.inWholeSeconds}:p=${bar.progress()}"
                             }
-                            onFinish {
-                                events += "finish"
-                            }
-                            onCancel {
-                                events += "cancel"
-                            }
+                            onFinish { events += "finish" }
+                            onCancel { events += "cancel" }
                         }
                     }
 
-                // Initial dynamic name render at construction (not a tick).
                 events.clear()
-
                 ticker.advance(2.seconds)
 
+                events shouldHaveSize 5
                 events[0] shouldBe "name:1"
                 events[1].startsWith("tick:1:p=") shouldBe true
                 events[2] shouldBe "name:0"
                 events[3].startsWith("tick:0:p=") shouldBe true
                 events[4] shouldBe "finish"
-                events shouldHaveSize 5
                 timed.bar shouldHaveProgress BossBar.MIN_PROGRESS
             }
 
@@ -322,16 +308,12 @@ class TimedBossBarDslTest :
 
                 shouldThrow<IllegalArgumentException> {
                     context(ticker) {
-                        audience.bossBar(over = Duration.ZERO) {
-                            name { text("Bad") }
-                        }
+                        audience.bossBar(over = Duration.ZERO) { name { text("Bad") } }
                     }
                 }
                 shouldThrow<IllegalArgumentException> {
                     context(ticker) {
-                        audience.bossBar(over = (-1).seconds) {
-                            name { text("Bad") }
-                        }
+                        audience.bossBar(over = (-1).seconds) { name { text("Bad") } }
                     }
                 }
             }
@@ -392,35 +374,30 @@ class TimedBossBarDslTest :
 
                 shouldThrow<IllegalStateException> {
                     context(ticker) {
-                        audience.bossBar(over = 1.seconds) {
-                            color(red)
-                        }
+                        audience.bossBar(over = 1.seconds) { color(red) }
                     }
                 }.message shouldBe "'name' is not set."
             }
 
             listOf(
-                "rejects a duplicate static name" to {
-                    val ticker = ManualTicker()
-                    context(ticker) {
+                "duplicate static name" to {
+                    context(ManualTicker()) {
                         TimedBossBarRecordingAudience().bossBar(over = 1.seconds) {
                             name { text("a") }
                             name { text("b") }
                         }
                     }
                 },
-                "rejects mixing static and dynamic name" to {
-                    val ticker = ManualTicker()
-                    context(ticker) {
+                "mixed static and dynamic name" to {
+                    context(ManualTicker()) {
                         TimedBossBarRecordingAudience().bossBar(over = 1.seconds) {
                             name { text("a") }
                             name { remaining -> text("$remaining") }
                         }
                     }
                 },
-                "rejects a duplicate progress" to {
-                    val ticker = ManualTicker()
-                    context(ticker) {
+                "duplicate progress" to {
+                    context(ManualTicker()) {
                         TimedBossBarRecordingAudience().bossBar(over = 1.seconds) {
                             name { text("a") }
                             progress(from = 1f, to = 0f)
@@ -428,9 +405,8 @@ class TimedBossBarDslTest :
                         }
                     }
                 },
-                "rejects a duplicate every" to {
-                    val ticker = ManualTicker()
-                    context(ticker) {
+                "duplicate every" to {
+                    context(ManualTicker()) {
                         TimedBossBarRecordingAudience().bossBar(over = 1.seconds) {
                             name { text("a") }
                             every(1.ticks)
@@ -438,9 +414,8 @@ class TimedBossBarDslTest :
                         }
                     }
                 },
-                "rejects a duplicate onTick" to {
-                    val ticker = ManualTicker()
-                    context(ticker) {
+                "duplicate onTick" to {
+                    context(ManualTicker()) {
                         TimedBossBarRecordingAudience().bossBar(over = 1.seconds) {
                             name { text("a") }
                             onTick { }
@@ -448,9 +423,8 @@ class TimedBossBarDslTest :
                         }
                     }
                 },
-                "rejects a duplicate onFinish" to {
-                    val ticker = ManualTicker()
-                    context(ticker) {
+                "duplicate onFinish" to {
+                    context(ManualTicker()) {
                         TimedBossBarRecordingAudience().bossBar(over = 1.seconds) {
                             name { text("a") }
                             onFinish { }
@@ -458,9 +432,8 @@ class TimedBossBarDslTest :
                         }
                     }
                 },
-                "rejects a duplicate onCancel" to {
-                    val ticker = ManualTicker()
-                    context(ticker) {
+                "duplicate onCancel" to {
+                    context(ManualTicker()) {
                         TimedBossBarRecordingAudience().bossBar(over = 1.seconds) {
                             name { text("a") }
                             onCancel { }
@@ -468,9 +441,8 @@ class TimedBossBarDslTest :
                         }
                     }
                 },
-                "rejects a duplicate color" to {
-                    val ticker = ManualTicker()
-                    context(ticker) {
+                "duplicate color" to {
+                    context(ManualTicker()) {
                         TimedBossBarRecordingAudience().bossBar(over = 1.seconds) {
                             name { text("a") }
                             color(red)
@@ -479,7 +451,7 @@ class TimedBossBarDslTest :
                     }
                 },
             ).forEach { (name, action) ->
-                name {
+                "rejects a $name" {
                     shouldThrow<IllegalStateException> { action() }
                 }
             }
@@ -507,9 +479,7 @@ class TimedBossBarDslTest :
 
                 val timed =
                     context(ticker) {
-                        audience.bossBar(over = 10.seconds) {
-                            name { text("X") }
-                        }
+                        audience.bossBar(over = 10.seconds) { name { text("X") } }
                     }
                 timed.cancel()
 
@@ -563,9 +533,7 @@ class TimedBossBarDslTest :
 
                 val timed =
                     context(ticker) {
-                        creator.bossBar(over = 5.seconds) {
-                            name { text("X") }
-                        }
+                        creator.bossBar(over = 5.seconds) { name { text("X") } }
                     }
                 timed.show(extra)
 
@@ -622,7 +590,6 @@ class TimedBossBarDslTest :
                 val timed =
                     context(ticker) {
                         audience.bossBar(over = 4.seconds) {
-                            // Initial 2; ticks render 2, 1, 1, 0 — only two actual changes.
                             name { remaining -> text("${(remaining.inWholeSeconds + 1) / 2}") }
                             every(1.seconds)
                         }
@@ -712,9 +679,7 @@ class TimedBossBarDslTest :
                             name { text("X") }
                             every(1.seconds)
                             onTick { remaining ->
-                                if (remaining == Duration.ZERO) {
-                                    cancel()
-                                }
+                                if (remaining == Duration.ZERO) cancel()
                             }
                             onFinish { finishes++ }
                             onCancel { cancels++ }
@@ -741,20 +706,14 @@ class TimedBossBarDslTest :
                             name { text("X") }
                             every(1.seconds)
                             onTick { remaining ->
-                                if (remaining == Duration.ZERO) {
-                                    throw boom
-                                }
+                                if (remaining == Duration.ZERO) throw boom
                             }
                             onFinish { finishes++ }
                         }
                     }
 
-                val thrown =
-                    shouldThrow<IllegalStateException> {
-                        ticker.advance(1.seconds)
-                    }
+                shouldThrow<IllegalStateException> { ticker.advance(1.seconds) } shouldBe boom
 
-                thrown shouldBe boom
                 finishes shouldBe 1
                 timed.isRunning shouldBe false
                 timed.remaining shouldBe Duration.ZERO

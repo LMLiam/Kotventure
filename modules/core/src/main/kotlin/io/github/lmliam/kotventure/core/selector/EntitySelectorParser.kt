@@ -2,6 +2,7 @@ package io.github.lmliam.kotventure.core.selector
 
 import io.github.lmliam.kotventure.core.selector.parsing.SelectorReader
 import io.github.lmliam.kotventure.core.selector.parsing.readArgumentValue
+import io.github.lmliam.kotventure.core.selector.readSelectorArgument
 
 /**
  * Parses Java Edition entity-selector source into an [EntitySelector].
@@ -50,7 +51,7 @@ private fun SelectorReader.readSelectorArgument(
     occurrences: SelectorArgumentOccurrences,
 ): EntitySelectorArgument {
     val nameOffset = offset
-    val name = readWhile { it != '=' && it != ',' && it != ']' }
+    val name = readWhile { it !in "=,]" }
     if (name.isEmpty()) failAt(nameOffset, "Expected selector argument")
     occurrences.recordName(name)?.let { failAt(nameOffset, it) }
     expect('=', "Expected '=' after selector argument '$name'")

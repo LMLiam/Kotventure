@@ -28,19 +28,19 @@ internal val SelectorArgumentKeyword.filterPolicy: SelectorFilterPolicy?
             SelectorArgumentKeyword.NAME,
             SelectorArgumentKeyword.GAMEMODE,
             SelectorArgumentKeyword.TEAM,
-            -> SelectorFilterPolicy.EXCLUSIVE
+                -> SelectorFilterPolicy.EXCLUSIVE
 
             SelectorArgumentKeyword.TAG,
             SelectorArgumentKeyword.NBT,
             SelectorArgumentKeyword.PREDICATE,
-            -> SelectorFilterPolicy.REPEATABLE
+                -> SelectorFilterPolicy.REPEATABLE
 
             SelectorArgumentKeyword.LEVEL,
             SelectorArgumentKeyword.LIMIT,
             SelectorArgumentKeyword.SORT,
             SelectorArgumentKeyword.SCORES,
             SelectorArgumentKeyword.ADVANCEMENTS,
-            -> null
+                -> null
         }
 
 /**

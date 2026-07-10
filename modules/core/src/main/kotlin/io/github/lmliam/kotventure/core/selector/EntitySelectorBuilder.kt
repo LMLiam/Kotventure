@@ -69,14 +69,14 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
 
     override fun origin(
         first: OriginCoordinate,
-        vararg rest: OriginCoordinate,
+        vararg rest: OriginCoordinate
     ) {
         bindCoordinates((listOf(first) + rest).map { it.coordinate to it.value })
     }
 
     override fun volume(
         first: VolumeDelta,
-        vararg rest: VolumeDelta,
+        vararg rest: VolumeDelta
     ) {
         bindCoordinates((listOf(first) + rest).map { it.coordinate to it.value })
     }
@@ -170,20 +170,22 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     }
 
     private fun validateFilters() {
-        typeFilters.validate()
-        nameFilters.validate()
-        gamemodeFilters.validate()
-        teamFilters.validate()
-        tagFilters.validate()
-        nbtFilters.validate()
-        predicateFilters.validate()
+        setOf(
+            typeFilters,
+            nameFilters,
+            gamemodeFilters,
+            teamFilters,
+            tagFilters,
+            nbtFilters,
+            predicateFilters,
+        ).forEach { it.validate() }
     }
 
     private fun bindCoordinates(bindings: List<Pair<SelectorCoordinate, Double>>) {
         val staged = mutableMapOf<SelectorCoordinate, Double>()
         bindings.forEach { (coordinate, value) ->
             check(coordinate !in coordinates && coordinate !in staged) {
-                "Selector argument '${coordinate.argumentName}' may only appear once (vanilla syntax allows a single occurrence)."
+                "Selector argument '${coordinate.argumentName}' may only appear once."
             }
             staged[coordinate] = value
         }
@@ -191,9 +193,9 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     }
 
     private fun validTeamName(team: String): String {
-        require(
-            team.isNotEmpty(),
-        ) { "Team name must not be empty; use team(none) or team(any) to filter by team presence." }
+        require(team.isNotEmpty()) {
+            "Team name must not be empty; use team(none) or team(any) to filter by team presence."
+        }
         require(team.all { it.isAllowedInUnquotedSelectorToken() }) {
             "Team name '$team' contains characters outside vanilla's unquoted-token syntax."
         }

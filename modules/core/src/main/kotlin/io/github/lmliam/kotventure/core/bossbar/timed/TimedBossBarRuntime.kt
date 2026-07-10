@@ -11,12 +11,16 @@ import kotlin.time.Duration
 /**
  * Lock-guarded lifecycle and tick progression for a [TimedBossBar].
  *
- * Owns running/paused state, remaining time, viewer tracking, and the ticker task. Adventure
+ * Owns running/paused state, remaining time, viewer tracking, and the ticker task.
+Adventure
  * show/hide and terminal hooks run outside the lock.
  *
- * **This-escape:** [owner] is the constructing [TimedBossBar]. [start] may schedule ticks before
- * that constructor returns, so [TimedBossBarConfig.onTick] can observe [owner] mid-construction
- * on a real scheduler thread. Callers must not assume the facade is fully initialised inside
+ * **This-escape:** [owner] is the constructing [TimedBossBar]. [start] may schedule
+ticks before
+ * that constructor returns, so [TimedBossBarConfig.onTick] can observe [owner]
+mid-construction
+ * on a real scheduler thread. Callers must not assume the facade is fully initialised
+inside
  * early hooks.
  */
 internal class TimedBossBarRuntime(
@@ -57,9 +61,7 @@ internal class TimedBossBarRuntime(
             lock.withLock {
                 check(running) { "Cannot pause a finished or cancelled TimedBossBar." }
                 check(!paused) { "TimedBossBar is already paused." }
-                val detached = detachTask()
-                paused = true
-                detached
+                detachTask().also { paused = true }
             }
         toCancel?.cancel()
     }
@@ -75,11 +77,7 @@ internal class TimedBossBarRuntime(
     }
 
     fun cancel() {
-        val shutdown =
-            lock.withLock {
-                if (!running) return
-                markStopped()
-            }
+        val shutdown = lock.withLock { if (running) markStopped() else null } ?: return
         finaliseShutdown(shutdown, config.onCancel)
     }
 
@@ -97,7 +95,7 @@ internal class TimedBossBarRuntime(
 
         audience.showBossBar(bar)
 
-        // If cancel/finish raced between track and show, undo the visible bar.
+        // If cancel/finish raced between track and show, undo the visible bar
         val stillTracked = lock.withLock { running && audience in viewers }
         if (!stillTracked) {
             audience.hideBossBar(bar)
@@ -132,9 +130,7 @@ internal class TimedBossBarRuntime(
 
     private fun detachTask(): TickerTask? {
         tickGeneration++
-        val current = task
-        task = null
-        return current
+        return task.also { task = null }
     }
 
     private fun onTick(generation: Int) {
@@ -151,16 +147,15 @@ internal class TimedBossBarRuntime(
     /**
      * Advances remaining time under [lock]. When the tick lands on [Duration.ZERO], atomically
      * marks the bar stopped and returns the [TimedBossBarShutdown] for outside-lock finalisation.
-     * Stale generations (detached tasks) are ignored.
+     * Stale generation (detached tasks) are ignored.
      */
     private fun advanceOrNull(generation: Int): TickOutcome? {
         if (!running || paused || generation != tickGeneration) return null
         remainingTime = (remainingTime - config.every).coerceAtLeast(Duration.ZERO)
         bar.progress(config.progress.at(remaining = remainingTime, over = config.over))
         updateNameIfChanged(remainingTime)
-        val remaining = remainingTime
-        val shutdown = if (remaining == Duration.ZERO) markStopped() else null
-        return TickOutcome(remaining = remaining, shutdown = shutdown)
+        val shutdown = if (remainingTime == Duration.ZERO) markStopped() else null
+        return TickOutcome(remaining = remainingTime, shutdown = shutdown)
     }
 
     private fun updateNameIfChanged(remaining: Duration) {

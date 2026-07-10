@@ -3,16 +3,20 @@ package io.github.lmliam.kotventure.core.selector
 /**
  * The entries of one selector argument, in call order.
  *
- * A statement's polarity is final once it completes (`!` applies before the next statement runs),
- * so an exclusive group can reject any addition after a positive entry at the offending call site.
- * The one violation only visible later — exclusions followed by a positive that never gets
+ * A statement's polarity is final once it completes (`!` applies before the next
+statement runs),
+ * so an exclusive group can reject any addition after a positive entry at the offending
+call site.
+ * The one violation only visible later — exclusions followed by a positive that never
+gets
  * negated — is caught by [validate] when the selector block ends.
  *
- * Policy is resolved from [keyword] via [SelectorArgumentKeyword.filterPolicy] so the builder
+ * Policy is resolved from [keyword] via [SelectorArgumentKeyword.filterPolicy] so the
+builder
  * cannot drift from model/parse validation.
  */
 internal class SelectorFilterGroup<T>(
-    keyword: SelectorArgumentKeyword,
+    keyword: SelectorArgumentKeyword
 ) {
     val argument: String = keyword.sourceName
     private val policy: SelectorFilterPolicy =
@@ -25,19 +29,26 @@ internal class SelectorFilterGroup<T>(
 
     fun add(
         owner: EntitySelectorBuilder,
-        value: T,
+        value: T
     ): SelectorFilterExpression = addEntry(owner, value, SelectorFilterPolarity.POSITIVE)
 
+    /**
+     * Adds [value] with a caller-fixed [polarity], returning nothing negatable:
+    presence filters
+     * (`tag(any)`, `team(none)`) already encode their polarity in the value, so `!`
+    must not be
+     * able to flip them again.
+     */
     fun addFixed(
         owner: EntitySelectorBuilder,
         value: T,
-        polarity: SelectorFilterPolarity,
+        polarity: SelectorFilterPolarity
     ) {
         addEntry(owner, value, polarity)
     }
 
     fun validate() {
-        if (policy == SelectorFilterPolicy.REPEATABLE) return
+        if (policy != SelectorFilterPolicy.EXCLUSIVE) return
 
         val hasPositive = entries.any { it.polarity == SelectorFilterPolarity.POSITIVE }
         val hasNegative = entries.any { it.polarity == SelectorFilterPolarity.NEGATIVE }
@@ -49,11 +60,11 @@ internal class SelectorFilterGroup<T>(
     private fun addEntry(
         owner: EntitySelectorBuilder,
         value: T,
-        polarity: SelectorFilterPolarity,
+        polarity: SelectorFilterPolarity
     ): SelectorFilterEntry<T> {
         if (policy == SelectorFilterPolicy.EXCLUSIVE) {
             check(entries.none { it.polarity == SelectorFilterPolarity.POSITIVE }) {
-                "Selector argument '$argument' is already set; vanilla syntax allows one positive value."
+                "Selector argument '$argument' is already set."
             }
         }
         return SelectorFilterEntry(owner, argument, value, polarity).also {
