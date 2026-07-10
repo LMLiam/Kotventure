@@ -53,6 +53,7 @@ internal class TimedBossBarRuntime(
     }
 
     fun resume() {
+        // Schedule under the lock so cancel cannot race a new task into existence after stop.
         lock.withLock {
             check(running) { "Cannot resume a finished or cancelled TimedBossBar." }
             check(paused) { "TimedBossBar is not paused." }
@@ -81,6 +82,7 @@ internal class TimedBossBarRuntime(
 
         audience.showBossBar(bar)
 
+        // If cancel/finish raced between track and show, undo the visible bar.
         val stillTracked = lock.withLock { running && audience in viewers }
         if (!stillTracked) {
             audience.hideBossBar(bar)
@@ -92,6 +94,10 @@ internal class TimedBossBarRuntime(
         audience.hideBossBar(bar)
     }
 
+    /**
+     * Cancels the detached ticker task, hides every snapshotted viewer (isolating per-viewer
+     * failures), then always runs the terminal [hook] once.
+     */
     fun finaliseShutdown(
         shutdown: TimedBossBarShutdown,
         hook: (TimedBossBar.() -> Unit)?,
@@ -142,6 +148,10 @@ internal class TimedBossBarRuntime(
         finaliseShutdown(shutdown, config.onFinish)
     }
 
+    /**
+     * Ends the bar under [lock]: clears running state, detaches the ticker task, and snapshots
+     * viewers. Adventure hide and task cancel happen outside the lock via [finaliseShutdown].
+     */
     private fun markStopped(): TimedBossBarShutdown {
         running = false
         paused = false

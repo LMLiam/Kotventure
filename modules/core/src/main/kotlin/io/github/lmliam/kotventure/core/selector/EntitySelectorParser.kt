@@ -64,22 +64,15 @@ private fun SelectorReader.readSelectorArgument(
     return readArgumentValue(head, name, nameOffset)
 }
 
-private fun String.isSingletonSelectorArgument(): Boolean =
-    when (this) {
-        "limit",
-        "sort",
-        "level",
-        "scores",
-        "advancements",
-        "distance",
-        "x_rotation",
-        "y_rotation",
-        "x",
-        "y",
-        "z",
-        "dx",
-        "dy",
-        "dz",
-        -> true
-        else -> false
+private fun String.isSingletonSelectorArgument(): Boolean = this in singletonSelectorArgumentNames
+
+private val singletonSelectorArgumentNames: Set<String> =
+    buildSet {
+        addAll(SelectorCoordinate.entries.map { it.argumentName })
+        addAll(SelectorRangeArgument.entries.map { it.argumentName })
+        add(SelectorArgumentKeyword.LIMIT.sourceName)
+        add(SelectorArgumentKeyword.SORT.sourceName)
+        add(SelectorArgumentKeyword.LEVEL.sourceName)
+        add(SelectorArgumentKeyword.SCORES.sourceName)
+        add(SelectorArgumentKeyword.ADVANCEMENTS.sourceName)
     }

@@ -61,6 +61,19 @@ class EntitySelectorModelTest :
                 negatable.count { it.isNegated } shouldBe 2
             }
 
+            "rejects duplicate singleton arguments on the model" {
+                shouldThrow<IllegalArgumentException> {
+                    EntitySelector(
+                        EntitySelectorHead.ENTITIES,
+                        listOf(
+                            EntitySelectorArgument.Limit(1),
+                            EntitySelectorArgument.Limit(2),
+                        ),
+                    )
+                }.message shouldBe
+                    "Selector argument 'limit' is already set; vanilla syntax allows it only once."
+            }
+
             "represents direct entity types and type tags without a boolean flag" {
                 val direct =
                     parseSelector("@e[type=minecraft:zombie]")
