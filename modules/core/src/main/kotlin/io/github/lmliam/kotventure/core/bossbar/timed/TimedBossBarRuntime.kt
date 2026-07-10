@@ -32,6 +32,12 @@ internal class TimedBossBarRuntime(
     private var running = true
     private var paused = false
 
+    /**
+     * Invalidated on every [detachTask] so a cancelled/stale ticker callback cannot advance after
+     * pause/resume schedules a replacement (cancel alone does not abort an in-flight action).
+     */
+    private var tickGeneration: Int = 0
+
     val remaining: Duration
         get() = lock.withLock { remainingTime }
 
@@ -51,8 +57,10 @@ internal class TimedBossBarRuntime(
             lock.withLock {
                 check(running) { "Cannot pause a finished or cancelled TimedBossBar." }
                 check(!paused) { "TimedBossBar is already paused." }
+                // Invalidate before exposing paused so a concurrent resume cannot share this task.
+                val detached = detachTask()
                 paused = true
-                detachTask()
+                detached
             }
         toCancel?.cancel()
     }
@@ -119,23 +127,25 @@ internal class TimedBossBarRuntime(
     }
 
     private fun startTicking() {
-        task = ticker.repeating(config.every) { onTick() }
+        val generation = tickGeneration
+        task = ticker.repeating(config.every) { onTick(generation) }
     }
 
     private fun detachTask(): TickerTask? {
+        tickGeneration++
         val current = task
         task = null
         return current
     }
 
-    private fun onTick() {
-        val remainingNow = lock.withLock { advanceOrNull() } ?: return
+    private fun onTick(generation: Int) {
+        val remainingNow = lock.withLock { advanceOrNull(generation) } ?: return
         config.onTick?.invoke(owner, remainingNow)
         if (remainingNow == Duration.ZERO) completeNaturally()
     }
 
-    private fun advanceOrNull(): Duration? {
-        if (!running || paused) return null
+    private fun advanceOrNull(generation: Int): Duration? {
+        if (!running || paused || generation != tickGeneration) return null
         remainingTime = (remainingTime - config.every).coerceAtLeast(Duration.ZERO)
         bar.progress(config.progress.at(remaining = remainingTime, over = config.over))
         updateNameIfChanged(remainingTime)

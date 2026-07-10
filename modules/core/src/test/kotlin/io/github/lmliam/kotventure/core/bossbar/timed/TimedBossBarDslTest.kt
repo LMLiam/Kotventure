@@ -4,6 +4,8 @@ import io.github.lmliam.kotventure.core.audience.bossBar
 import io.github.lmliam.kotventure.core.audience.hide
 import io.github.lmliam.kotventure.core.audience.show
 import io.github.lmliam.kotventure.core.text.text
+import io.github.lmliam.kotventure.core.time.Ticker
+import io.github.lmliam.kotventure.core.time.TickerTask
 import io.github.lmliam.kotventure.core.time.ticks
 import io.github.lmliam.kotventure.test.bossbar.shouldHaveColor
 import io.github.lmliam.kotventure.test.bossbar.shouldHaveOverlay
@@ -145,6 +147,50 @@ class TimedBossBarDslTest :
                 timed.isPaused shouldBe false
                 ticker.advance(2.seconds)
                 timed.remaining shouldBe 5.seconds
+            }
+
+            // Controllable ticker: cancel is a no-op so a detached task can still fire — the race
+            // pause/resume leaves when the old callback runs after a replacement is scheduled.
+            "stale ticker after pause/resume does not advance remaining" {
+                val actions = mutableListOf<() -> Unit>()
+                val ticker =
+                    object : Ticker {
+                        override fun repeating(
+                            interval: Duration,
+                            action: () -> Unit,
+                        ): TickerTask {
+                            actions += action
+                            return object : TickerTask {
+                                override fun cancel() {
+                                    // Leave the callback invokable to model an in-flight/late fire.
+                                }
+                            }
+                        }
+                    }
+                val audience = TimedBossBarRecordingAudience()
+
+                val timed =
+                    context(ticker) {
+                        audience.bossBar(over = 10.seconds) {
+                            name { text("Race") }
+                            every(1.seconds)
+                        }
+                    }
+
+                actions shouldHaveSize 1
+                actions[0]()
+                timed.remaining shouldBe 9.seconds
+
+                timed.pause()
+                timed.resume()
+                actions shouldHaveSize 2
+
+                // Stale generation from the pre-pause task must be a no-op after resume.
+                actions[0]()
+                timed.remaining shouldBe 9.seconds
+
+                actions[1]()
+                timed.remaining shouldBe 8.seconds
             }
 
             "dynamic name re-renders each tick" {
