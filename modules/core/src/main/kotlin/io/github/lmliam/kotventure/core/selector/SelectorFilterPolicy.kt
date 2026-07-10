@@ -44,29 +44,6 @@ internal val SelectorArgumentKeyword.filterPolicy: SelectorFilterPolicy?
         }
 
 /**
- * Returns an exclusive-policy violation message for recording [isExclusion] against prior polarity
- * flags, or `null` when the addition is allowed (including all [SelectorFilterPolicy.REPEATABLE]
- * cases).
- *
- * Callers update their polarity flags only when this returns `null`.
- */
-internal fun SelectorFilterPolicy.violationFor(
-    argument: String,
-    hasPositive: Boolean,
-    hasNegative: Boolean,
-    isExclusion: Boolean,
-): String? {
-    if (this == SelectorFilterPolicy.REPEATABLE) return null
-    if (hasPositive) {
-        return "Selector argument '$argument' is already set; vanilla syntax allows one positive value."
-    }
-    if (!isExclusion && hasNegative) {
-        return "Selector argument '$argument' cannot combine a positive value with exclusions."
-    }
-    return null
-}
-
-/**
  * Whether this filter-group entry is an exclusion for exclusive-policy purposes.
  *
  * Named/`!value` filters use [EntitySelectorArgument.Negatable.isNegated]. Presence filters encode

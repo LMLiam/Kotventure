@@ -36,17 +36,10 @@ public data class EntitySelector private constructor(
 
     init {
         arguments.forEach(head::requireSupportFor)
-        val seenSingletons = mutableSetOf<String>()
-        val filterPolarity = mutableMapOf<String, FilterPolarityState>()
+        val occurrences = SelectorArgumentOccurrences()
         for (argument in arguments) {
-            val singletonKey = argument.singletonKey
-            if (singletonKey != null) {
-                require(seenSingletons.add(singletonKey)) {
-                    "Selector argument '$singletonKey' may only appear once (vanilla syntax allows a single occurrence)."
-                }
-                continue
-            }
-            requireValidFilterGroupEntry(argument, filterPolarity)
+            val violation = occurrences.recordName(argument.argumentName) ?: occurrences.recordFilter(argument)
+            if (violation != null) throw IllegalArgumentException(violation)
         }
     }
 
@@ -63,31 +56,4 @@ public data class EntitySelector private constructor(
         }
 
     public override fun toString(): String = asString()
-}
-
-/**
- * Running positive/negative flags for one filter-group argument name while validating a list.
- */
-private class FilterPolarityState {
-    var hasPositive: Boolean = false
-    var hasNegative: Boolean = false
-}
-
-/**
- * Applies shared exclusive/repeatable policy for one filter-group argument, updating [states].
- *
- * @throws IllegalArgumentException when exclusive policy is violated
- */
-private fun requireValidFilterGroupEntry(
-    argument: EntitySelectorArgument,
-    states: MutableMap<String, FilterPolarityState>,
-) {
-    val keyword = argument.keyword ?: return
-    val policy = keyword.filterPolicy ?: return
-    val name = keyword.sourceName
-    val state = states.getOrPut(name) { FilterPolarityState() }
-    val isExclusion = (argument as EntitySelectorArgument.Negatable).isFilterExclusion
-    val violation = policy.violationFor(name, state.hasPositive, state.hasNegative, isExclusion)
-    require(violation == null) { violation!! }
-    if (isExclusion) state.hasNegative = true else state.hasPositive = true
 }

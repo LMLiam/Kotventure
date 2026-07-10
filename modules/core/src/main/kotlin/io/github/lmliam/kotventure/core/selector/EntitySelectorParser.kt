@@ -33,10 +33,9 @@ private fun SelectorReader.readSelectorArguments(head: EntitySelectorHead): List
     if (consume(']')) return emptyList()
 
     return buildList {
-        val seenSingletons = mutableSetOf<String>()
-        val filterPolarity = mutableMapOf<String, ParseFilterPolarityState>()
+        val occurrences = SelectorArgumentOccurrences()
         while (true) {
-            add(readSelectorArgument(head, seenSingletons, filterPolarity))
+            add(readSelectorArgument(head, occurrences))
             when {
                 consume(']') -> return@buildList
                 consume(',') -> if (peek() == ']') fail("Expected selector argument")
@@ -48,44 +47,14 @@ private fun SelectorReader.readSelectorArguments(head: EntitySelectorHead): List
 
 private fun SelectorReader.readSelectorArgument(
     head: EntitySelectorHead,
-    seenSingletons: MutableSet<String>,
-    filterPolarity: MutableMap<String, ParseFilterPolarityState>,
+    occurrences: SelectorArgumentOccurrences,
 ): EntitySelectorArgument {
     val nameOffset = offset
     val name = readWhile { it != '=' && it != ',' && it != ']' }
     if (name.isEmpty()) failAt(nameOffset, "Expected selector argument")
-    if (name in singletonSelectorArgumentNames && !seenSingletons.add(name)) {
-        failAt(
-            nameOffset,
-            "Selector argument '$name' may only appear once (vanilla syntax allows a single occurrence).",
-        )
-    }
+    occurrences.recordName(name)?.let { failAt(nameOffset, it) }
     expect('=', "Expected '=' after selector argument '$name'")
     val argument = readArgumentValue(head, name, nameOffset)
-    enforceFilterGroupPolicy(argument, name, nameOffset, filterPolarity)
+    occurrences.recordFilter(argument)?.let { failAt(nameOffset, it) }
     return argument
-}
-
-/**
- * Rejects exclusive filter-group violations at the offending argument name offset, using the same
- * policy and messages as [EntitySelector] / [SelectorFilterGroup].
- */
-private fun SelectorReader.enforceFilterGroupPolicy(
-    argument: EntitySelectorArgument,
-    name: String,
-    nameOffset: Int,
-    filterPolarity: MutableMap<String, ParseFilterPolarityState>,
-) {
-    val keyword = argument.keyword ?: return
-    val policy = keyword.filterPolicy ?: return
-    val state = filterPolarity.getOrPut(name) { ParseFilterPolarityState() }
-    val isExclusion = (argument as EntitySelectorArgument.Negatable).isFilterExclusion
-    val violation = policy.violationFor(name, state.hasPositive, state.hasNegative, isExclusion)
-    if (violation != null) failAt(nameOffset, violation)
-    if (isExclusion) state.hasNegative = true else state.hasPositive = true
-}
-
-private class ParseFilterPolarityState {
-    var hasPositive: Boolean = false
-    var hasNegative: Boolean = false
 }

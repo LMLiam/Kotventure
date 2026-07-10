@@ -43,8 +43,8 @@ internal val EntitySelectorArgument.argumentName: String
  * Vanilla argument names that may appear at most once in a selector (coordinates, ranges, and
  * non-filter-group keywords).
  *
- * Single source of truth for singleton policy: [EntitySelectorArgument.singletonKey] and the
- * parser both consult this set so model validation and parse-time rejection cannot diverge.
+ * Single source of truth for singleton policy: [SelectorArgumentOccurrences] consults this set for
+ * both model validation and parse-time rejection, so the two cannot diverge.
  */
 internal val singletonSelectorArgumentNames: Set<String> =
     buildSet {
@@ -56,12 +56,3 @@ internal val singletonSelectorArgumentNames: Set<String> =
         add(SelectorArgumentKeyword.SCORES.sourceName)
         add(SelectorArgumentKeyword.ADVANCEMENTS.sourceName)
     }
-
-/**
- * Key used for singleton uniqueness (DSL and parse). Filter-group arguments are multi-valued under
- * [SelectorFilterPolicy] and return `null`.
- *
- * Derived from [singletonSelectorArgumentNames] via [argumentName] — do not re-list singletons here.
- */
-internal val EntitySelectorArgument.singletonKey: String?
-    get() = argumentName.takeIf { it in singletonSelectorArgumentNames }

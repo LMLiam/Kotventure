@@ -182,19 +182,12 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     private fun bindCoordinates(bindings: List<Pair<SelectorCoordinate, Double>>) {
         val staged = mutableMapOf<SelectorCoordinate, Double>()
         bindings.forEach { (coordinate, value) ->
-            checkUnset(coordinate.argumentName, coordinates[coordinate] ?: staged[coordinate])
+            check(coordinate !in coordinates && coordinate !in staged) {
+                "Selector argument '${coordinate.argumentName}' may only appear once (vanilla syntax allows a single occurrence)."
+            }
             staged[coordinate] = value
         }
         coordinates += staged
-    }
-
-    private fun checkUnset(
-        argument: String,
-        current: Any?,
-    ) {
-        check(current == null) {
-            "Selector argument '$argument' may only appear once (vanilla syntax allows a single occurrence)."
-        }
     }
 
     private fun validTeamName(team: String): String {
