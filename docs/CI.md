@@ -10,26 +10,54 @@ For local development commands, see [CONTRIBUTING.md](../.github/CONTRIBUTING.md
 
 | Workflow | Triggers | Purpose |
 |----------|----------|---------|
-| **Build** | PR → `master`, push → `master` | `./gradlew build` (tests, Spotless/ktlint, Kover), Dokka, coverage artifacts |
-| **Qodana** | PR → `master`, push `master`, weekly schedule, `workflow_dispatch` | Static analysis + SARIF to code scanning |
+| **Build** | PR → `master` and push → `master`, **path-filtered** | `./gradlew build` (tests, Spotless/ktlint, Kover), Dokka, coverage artifacts |
+| **Qodana** | PR → `master` (**path-filtered**), weekly schedule, `workflow_dispatch` | Static analysis + SARIF to code scanning |
 | **Vanilla Conformance** | Path-filtered PRs, weekly schedule, `workflow_dispatch` | MC-backed selector tests |
-| **Dependency Security Review** | PR → `master` | `dependency-review-action` on every PR (manifest-focused analysis) |
+| **Dependency Security Review** | PR → `master` (every PR) | `dependency-review-action` (manifest-focused analysis) |
 | **Conventional Titles** | `pull_request_target`, push `master` | PR title + commit subjects (`verb(area): …`) |
 | **Labeler** | `pull_request_target` | Path → `area:*` labels |
 | **Release Please** | push `master` | Opens/updates release PRs; tags/releases after merge |
-| **OpenSSF Scorecard** | push `master`, schedule, `branch_protection_rule`, `workflow_dispatch` | Supply-chain scorecard + SARIF |
+| **OpenSSF Scorecard** | weekly schedule, `branch_protection_rule`, `workflow_dispatch` | Supply-chain scorecard + SARIF |
 | **Heavy CI gate** | `workflow_call` only | Shared skip logic for pure release-please PRs |
 
-## Heavy CI gate
+## When workflows run (waste control)
+
+### Path filters (Build + Qodana PRs)
+
+Build (PR and push) and Qodana (PR only) run only when at least one of these paths changes:
+
+- `modules/**`, `gradle/**`, `buildSrc/**`
+- Root Gradle entrypoints: `build.gradle`, `settings.gradle`, `gradle.properties`, `gradlew`, `gradlew.bat`
+- `qodana.yaml`, `jitpack.yml`, `release-please-config.json`
+- CI wiring: `.github/workflows/**`, `.github/actions/**`, `.github/scripts/**`, `.github/dependabot.yml`
+
+**Skipped examples:** docs-only PRs (`docs/**`, `*.md`), issue/PR templates, labeler config, CODEOWNERS, etc. Titles and Labeler still run on those PRs.
+
+Keep the Build and Qodana path lists in sync when adding new code or CI roots.
+
+### Push vs PR (Build / Qodana)
+
+| Event | Build | Qodana |
+|-------|:-----:|:------:|
+| PR (matching paths) | ✓ | ✓ |
+| Push to `master` (matching paths) | ✓ | — |
+| Weekly schedule | — | ✓ |
+| `workflow_dispatch` | — | ✓ |
+
+- **Build** still runs on path-matching pushes to `master` so direct commits and post-merge verification stay covered without a merge queue (CI-W4: keep push; path filters cut docs-only noise).
+- **Qodana** does **not** run on push to `master` (CI-W3): PR coverage + weekly + manual is enough and avoids a second long run on every merge.
+- **Scorecard** does **not** run on every master push (CI-W5): weekly + branch-protection + manual.
+
+### Heavy CI gate (release-please)
 
 Reusable workflow: [`.github/workflows/heavy-ci-gate.yml`](../.github/workflows/heavy-ci-gate.yml).
 
-**Used by:** Build, Qodana.
+**Used by:** Build, Qodana (CI-W2 — landed with #250).
 
 Dependency Security Review is **not** gated: it is cheap and should still run when release-please touches
 `gradle/libs.versions.toml` (even for a project-version bump, the full file is on the allow-list).
 
-### When heavy CI is skipped
+#### When the gate skips Build / Qodana jobs
 
 All of the following:
 
@@ -42,15 +70,17 @@ All of the following:
 
 That set matches what release-please is configured to touch (`release-please-config.json` + the manifest).
 
-### When heavy CI still runs on a release-please branch
+If the PR also matches Build/Qodana **path filters** only via `gradle/libs.versions.toml`, the workflow still starts, then the gate skips the heavy job (cheap gate-only run).
 
-If the PR includes **any other path** (manual commits that fix code, workflows, docs outside the allow-list, etc.), the
-gate sets `run=true` and Build / Qodana execute as usual.
+#### When heavy CI still runs on a release-please branch
 
-**Not gated:** Dependency Security Review, Conventional Titles, Labeler (cheap and useful on release PRs), Vanilla
-Conformance (path-filtered; release-please PRs do not match those paths).
+If the PR includes **any other path** (manual commits that fix code, workflows, etc.), the gate sets `run=true` and
+Build / Qodana execute as usual.
 
-### Keeping the allow-list in sync
+**Not gated:** Dependency Security Review, Conventional Titles, Labeler, Vanilla Conformance (path-filtered;
+release-please PRs do not match those paths).
+
+#### Keeping the allow-list in sync
 
 If you add `extra-files` (or otherwise expand what release-please edits), update the allow-list in
 `heavy-ci-gate.yml` **in the same PR** as the config change.
@@ -94,7 +124,7 @@ auto-updatable.
 
 - Use **Re-run failed jobs** / **Re-run all jobs** on the Actions run for the PR or push.
 - Build does not currently expose `workflow_dispatch` (empty commits still work if you need a fresh push run).
-- Qodana and Vanilla Conformance support `workflow_dispatch` for manual runs.
+- Qodana, Vanilla Conformance, and Scorecard support `workflow_dispatch` for manual runs.
 
 ## Related docs
 

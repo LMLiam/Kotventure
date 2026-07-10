@@ -1,13 +1,11 @@
 name: OpenSSF Scorecard
 
+# CI-W5: weekly + branch-protection + manual cover the signal without a full run on every master push.
 on:
   workflow_dispatch:
   branch_protection_rule:
   schedule:
     - cron: '41 4 * * 2'
-  push:
-    branches:
-      - master
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}

@@ -1,13 +1,28 @@
 name: Qodana
 
+# CI-W3: no push→master (PR + weekly + manual cover the signal without double-running on merge).
+# CI-W1: path filters on pull_request so docs-only PRs skip Qodana; schedule/dispatch always run.
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - master
   pull_request:
     branches:
       - master
+    paths:
+      - 'modules/**'
+      - 'gradle/**'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle.properties'
+      - 'gradlew'
+      - 'gradlew.bat'
+      - 'buildSrc/**'
+      - 'qodana.yaml'
+      - 'jitpack.yml'
+      - 'release-please-config.json'
+      - '.github/workflows/**'
+      - '.github/actions/**'
+      - '.github/scripts/**'
+      - '.github/dependabot.yml'
   schedule:
     - cron: '17 3 * * 1'
 

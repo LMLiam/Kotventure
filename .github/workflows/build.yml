@@ -1,12 +1,47 @@
 name: Build
 
+# Path filters (CI-W1 / CI-W4): skip docs-only and process-only changes.
+# Keep push→master so direct commits and merges still verify when code paths change.
+# Path lists are duplicated (GHA does not support YAML anchors).
 on:
   pull_request:
     branches:
       - master
+    paths:
+      - 'modules/**'
+      - 'gradle/**'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle.properties'
+      - 'gradlew'
+      - 'gradlew.bat'
+      - 'buildSrc/**'
+      - 'qodana.yaml'
+      - 'jitpack.yml'
+      - 'release-please-config.json'
+      - '.github/workflows/**'
+      - '.github/actions/**'
+      - '.github/scripts/**'
+      - '.github/dependabot.yml'
   push:
     branches:
       - master
+    paths:
+      - 'modules/**'
+      - 'gradle/**'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle.properties'
+      - 'gradlew'
+      - 'gradlew.bat'
+      - 'buildSrc/**'
+      - 'qodana.yaml'
+      - 'jitpack.yml'
+      - 'release-please-config.json'
+      - '.github/workflows/**'
+      - '.github/actions/**'
+      - '.github/scripts/**'
+      - '.github/dependabot.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
