@@ -128,7 +128,7 @@ internal fun escapeKotlinString(value: String): String =
                 '\t' -> append("\\t")
                 '$' -> append('\\').append('$')
                 else ->
-                    if (character.isISOControl() && character !in "\n\r\t") {
+                    if (character.isISOControl()) {
                         append("\\u%04X".format(Locale.ROOT, character.code))
                     } else {
                         append(character)
