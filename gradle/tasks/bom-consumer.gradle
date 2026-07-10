@@ -59,20 +59,26 @@ dependencies {
     }
 }
 
-def bomConsumerVerificationFiles = configurations.bomConsumerVerification
+def bomPublishTasks = bomConsumerModules.collect { moduleName ->
+    ":${moduleName}:publishMavenPublicationToBomConsumerLocalRepository"
+} + [':bom:publishMavenPublicationToBomConsumerLocalRepository']
+
+// FileCollection only — do not capture Configuration in the task for configuration-cache serialization.
+def bomConsumerResolvedFiles = objects.fileCollection()
+bomConsumerResolvedFiles.builtBy(bomPublishTasks)
+bomConsumerResolvedFiles.from(configurations.bomConsumerVerification)
 
 tasks.register('verifyBomConsumerVersionlessDependencies') {
     group = 'verification'
     description = 'Verifies that a consumer importing kotventure-bom can omit per-artifact versions.'
 
-    bomConsumerModules.each { moduleName ->
-        dependsOn ":${moduleName}:publishMavenPublicationToBomConsumerLocalRepository"
+    bomPublishTasks.each { taskPath ->
+        dependsOn taskPath
     }
-    dependsOn ':bom:publishMavenPublicationToBomConsumerLocalRepository'
 
-    def expectedVersion = bomConsumerVersion
-    def expectedArtifacts = bomConsumerArtifacts
-    def resolvedFiles = bomConsumerVerificationFiles
+    def expectedVersion = bomConsumerVersion.toString()
+    def expectedArtifacts = bomConsumerArtifacts.collect { it.toString() }
+    def resolvedFiles = bomConsumerResolvedFiles
 
     inputs.property('expectedVersion', expectedVersion)
     inputs.property('expectedArtifacts', expectedArtifacts)
