@@ -1,6 +1,5 @@
 name: OpenSSF Scorecard
 
-# Weekly + branch-protection + manual; not every master push.
 on:
   workflow_dispatch:
   branch_protection_rule:
@@ -8,7 +7,7 @@ on:
     - cron: '41 4 * * 2'
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions: { }
@@ -19,11 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
-      # Required for Scorecard to read repository content during analysis.
       contents: read
-      # Required to mint an OIDC token for Scorecard result publishing.
       id-token: write
-      # Required to upload SARIF results to GitHub code scanning.
       security-events: write
 
     steps:

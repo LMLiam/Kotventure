@@ -1,7 +1,5 @@
 name: Qodana
 
-# No push→master: PR + weekly + manual cover the signal without a second long run on every merge.
-# pull_request.paths must stay in sync with build.yml (PR and push paths) and docs/CI.md.
 on:
   workflow_dispatch:
   pull_request:
@@ -26,6 +24,7 @@ on:
       - '.github/actions/**'
       - '.github/scripts/**'
       - '.github/dependabot.yml'
+      - '.github/code-paths-filter.yml'
   schedule:
     - cron: '17 3 * * 1'
 
