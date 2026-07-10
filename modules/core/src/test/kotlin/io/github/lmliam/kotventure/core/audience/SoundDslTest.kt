@@ -263,6 +263,12 @@ class SoundDslTest :
                         source(music)
                     }
                 },
+                "rejects source then all" to {
+                    SoundRecordingAudience().stopSound {
+                        source(music)
+                        all()
+                    }
+                },
                 "rejects an empty stopSound block" to {
                     SoundRecordingAudience().stopSound { }
                 },
