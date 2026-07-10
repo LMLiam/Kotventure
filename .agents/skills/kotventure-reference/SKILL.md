@@ -11,7 +11,8 @@ The project **dogfoods its own DSL everywhere** — tests, samples, docs. Before
 `writing-component-tests`.)
 
 Base package: `io.github.lmliam.kotventure.<module>`. When unsure whether something exists,
-search the feature package first: `grep -rn "public fun" modules/core/src/main/kotlin/.../core/<feature>`.
+search the feature package first:
+`rg -n '^public (inline )?fun' modules/core/src/main/kotlin/io/github/lmliam/kotventure/core/<feature>`.
 
 ## Module map
 

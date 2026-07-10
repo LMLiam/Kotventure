@@ -9,7 +9,7 @@ The end-to-end, **small-slice** workflow: one issue → one focused, well-tested
 change → one reviewable PR. Copy this checklist into your progress tracking and work it in
 order:
 
-```
+```text
 - [ ] 1. Scope from the issue
 - [ ] 2. Design the surface (GATE: idiomatic-kotlin-dsl first)
 - [ ] 3. Plan (if the issue warrants one) → .agents/plans/

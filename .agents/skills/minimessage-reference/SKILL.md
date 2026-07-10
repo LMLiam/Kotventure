@@ -86,7 +86,8 @@ Validation runs Adventure's **strict** parser under the hood.
   `.editTags { }`; parse failures throw `ParsingException` (has position info).
 - Resolvers: `Placeholder.parsed(name, str)` / `.unparsed(name, str)` /
   `.component(name, c)`; combine with `TagResolver.resolver(...)`; custom tags implement
-  `Tag` via `(ArgumentQueue, Context) -> Tag` factories.
+  `TagResolver` — `resolve(name, ArgumentQueue, Context): Tag?` plus `has(name)` (live
+  example: `RecordingTagResolver` in the module's validation package).
 - Artifact `adventure-text-minimessage`; also available here: `adventure-nbt`
   (`CompoundBinaryTag`, `TagStringIO`) for hover-item data components.
 

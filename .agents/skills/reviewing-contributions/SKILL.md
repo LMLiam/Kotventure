@@ -15,8 +15,9 @@ Read the diff against the design skills before line-commenting:
 - `idiomatic-kotlin-dsl` — resolution ladder, pressure-test, house rules. A PR built on the
   wrong rung (typed keys + string overloads, runtime checks for compile-time facts) gets a
   **shape** conversation, not fifty nitpicks.
-- Hard structural rules: one top-level declaration per file, package-by-feature, `internal`
-  implementation, explicitApi + KDoc, tests included (`writing-component-tests`).
+- Hard structural rules: one top-level class/interface/object per file (feature-grouped
+  top-level functions/vals may share), package-by-feature, `internal` implementation,
+  `explicitApi()` + KDoc, tests included (`writing-component-tests`).
 
 **Rebuild-or-improve decision:** if the core design is right, improve in place. If the shape
 is wrong, rebuilding on the contributor's branch is usually cheaper and kinder than a

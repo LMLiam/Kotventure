@@ -14,8 +14,7 @@ Ground truth, in order of authority:
 
 The target version is whatever `adventureApi` says in `gradle/libs.versions.toml` — check it;
 don't assume. Artifact coordinates are `net.kyori:adventure-*` (see the `[libraries]` section
-there for exactly which artifacts each module may use — `core` gets `adventure-api` +
-`adventure-nbt` only).
+there for exactly which artifacts each module may use — `core` gets `adventure-api` only).
 
 ## Domain map
 
@@ -30,7 +29,8 @@ there for exactly which artifacts each module may use — `core` gets `adventure
 ## Rules when wrapping
 
 - Builders must return the **real** `net.kyori` type; tests assert on it directly.
-- Adventure objects are immutable — "setters" return new instances; there is nothing to
-  defensively copy.
+- Adventure *value* types (components, styles, events, titles, sounds, books) are immutable —
+  "setters" return new instances; there is nothing to defensively copy. `BossBar` is the
+  exception: a live, mutable, shared object.
 - Watch nullability at the Kotlin/Java boundary: Adventure is annotated
   (`@Nullable`/`@NotNull`), so Kotlin sees real types — trust the compiler, not memory.
