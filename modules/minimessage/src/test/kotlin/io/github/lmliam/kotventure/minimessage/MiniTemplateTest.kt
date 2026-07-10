@@ -16,30 +16,36 @@ import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.github.lmliam.kotventure.test.text.shouldHaveColor
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.shouldBe
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 
 // Fixtures declared at file scope so they exercise the object-init path and are shared across tests.
 
 private object WelcomeTemplate : MiniTemplate("<gold>Welcome <player>, <count> new messages</gold>") {
-    val player = placeholder<Component>("player")
-    val count = placeholder<Int>("count")
+    val player by placeholder<Component>()
+    val count by placeholder<Int>()
 }
 
 /** Declares an "unused" placeholder absent from the markup, making the definition invalid. */
 private object SparseTemplate : MiniTemplate("<gold>Hello <name></gold>") {
-    val name = placeholder<String>("name")
-    val unused = placeholder<Int>("unused")
+    val name by placeholder<String>()
+    val unused by placeholder<Int>()
 }
 
 /** Declares a "player" placeholder of a different type than [WelcomeTemplate]. */
 private object AltTemplate : MiniTemplate("<red>Alt <player>") {
-    val player = placeholder<String>("player")
+    val player by placeholder<String>()
 }
 
 /** Declares a "player" descriptor structurally equal to [WelcomeTemplate]'s, but a distinct object. */
 private object SameTypeAltTemplate : MiniTemplate("<red>Alt <player>") {
-    val player = placeholder<Component>("player")
+    val player by placeholder<Component>()
+}
+
+/** Tag name differs from the property name — explicit-name bridge for legacy/interop markup. */
+private object RenamedTagTemplate : MiniTemplate("<gold>Hi <user></gold>") {
+    val displayName = placeholder<String>("user")
 }
 
 class MiniTemplateTest :
@@ -222,12 +228,25 @@ class MiniTemplateTest :
                 }
             }
 
+            describe("delegated placeholder names") {
+                it("uses the property name as the MiniMessage tag") {
+                    WelcomeTemplate.player.name shouldBe "player"
+                    WelcomeTemplate.count.name shouldBe "count"
+                }
+
+                it("renders when the tag name is set explicitly and differs from the property") {
+                    val rendered = RenamedTagTemplate { displayName bind "Alex" }
+
+                    rendered shouldContainText "Alex"
+                }
+            }
+
             describe("definition validation") {
                 it("rejects duplicate placeholder names at construction") {
                     shouldThrow<IllegalArgumentException> {
                         object : MiniTemplate("<a>") {
                             @Suppress("unused")
-                            val first = placeholder<String>("a")
+                            val a by placeholder<String>()
 
                             @Suppress("unused")
                             val second = placeholder<Int>("a")

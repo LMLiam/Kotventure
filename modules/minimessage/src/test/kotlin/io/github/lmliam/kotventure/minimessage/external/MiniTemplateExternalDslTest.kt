@@ -9,8 +9,8 @@ import io.kotest.core.spec.style.StringSpec
 import net.kyori.adventure.text.Component
 
 private object ExternalWelcomeTemplate : MiniTemplate("<gold>Welcome <player>, <count> new messages</gold>") {
-    val player = placeholder<Component>("player")
-    val count = placeholder<Int>("count")
+    val player by placeholder<Component>()
+    val count by placeholder<Int>()
 }
 
 class MiniTemplateExternalDslTest :

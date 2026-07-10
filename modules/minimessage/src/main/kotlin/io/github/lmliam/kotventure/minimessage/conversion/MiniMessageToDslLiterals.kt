@@ -127,7 +127,54 @@ internal fun escapeKotlinString(value: String): String =
                 '\r' -> append("\\r")
                 '\t' -> append("\\t")
                 '$' -> append('\\').append('$')
-                else -> append(character)
+                else ->
+                    if (character.isISOControl()) {
+                        append("\\u%04X".format(Locale.ROOT, character.code))
+                    } else {
+                        append(character)
+                    }
             }
         }
+    }
+
+/** Emits a [Byte] literal, parenthesising negatives so the [Byte] type is preserved. */
+internal fun kotlinByteLiteral(value: Byte): String = if (value < 0) "($value).toByte()" else "$value.toByte()"
+
+/** Emits a [Short] literal, parenthesising negatives so the [Short] type is preserved. */
+internal fun kotlinShortLiteral(value: Short): String = if (value < 0) "($value).toShort()" else "$value.toShort()"
+
+/** Emits an [Int] literal, handling the special case of [Int.MIN_VALUE]. */
+internal fun kotlinIntLiteral(value: Int): String = if (value == Int.MIN_VALUE) "Int.MIN_VALUE" else value.toString()
+
+/** Emits a [Long] literal with an `L` suffix, handling the special case of [Long.MIN_VALUE]. */
+internal fun kotlinLongLiteral(value: Long): String = if (value == Long.MIN_VALUE) "Long.MIN_VALUE" else "${value}L"
+
+/** Emits a [Float] literal, including non-finite constants. */
+internal fun kotlinFloatLiteral(value: Float): String =
+    when {
+        value.isNaN() -> "Float.NaN"
+        value == Float.POSITIVE_INFINITY -> "Float.POSITIVE_INFINITY"
+        value == Float.NEGATIVE_INFINITY -> "Float.NEGATIVE_INFINITY"
+        else -> "${value}f"
+    }
+
+/** Emits a [Double] literal, including non-finite constants. */
+internal fun kotlinDoubleLiteral(value: Double): String =
+    when {
+        value.isNaN() -> "Double.NaN"
+        value == Double.POSITIVE_INFINITY -> "Double.POSITIVE_INFINITY"
+        value == Double.NEGATIVE_INFINITY -> "Double.NEGATIVE_INFINITY"
+        else -> value.toString()
+    }
+
+/** Emits a [Number] as the matching Kotlin source literal for MiniMessage ⇄ DSL conversion. */
+internal fun kotlinNumberLiteral(value: Number): String =
+    when (value) {
+        is Double -> kotlinDoubleLiteral(value)
+        is Float -> kotlinFloatLiteral(value)
+        is Long -> kotlinLongLiteral(value)
+        is Byte -> kotlinByteLiteral(value)
+        is Short -> kotlinShortLiteral(value)
+        is Int -> kotlinIntLiteral(value)
+        else -> value.toString()
     }

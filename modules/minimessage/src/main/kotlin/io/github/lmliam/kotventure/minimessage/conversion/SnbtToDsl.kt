@@ -53,21 +53,21 @@ private fun renderCompoundBody(compound: CompoundBinaryTag): String? =
 
 private fun renderTag(tag: BinaryTag): String? =
     when (tag) {
-        is ByteBinaryTag -> renderByteLiteral(tag.value())
-        is ShortBinaryTag -> renderShortLiteral(tag.value())
-        is IntBinaryTag -> renderIntLiteral(tag.value())
-        is LongBinaryTag -> renderLongLiteral(tag.value())
-        is FloatBinaryTag -> "${tag.value()}f"
-        is DoubleBinaryTag -> tag.value().toString()
+        is ByteBinaryTag -> kotlinByteLiteral(tag.value())
+        is ShortBinaryTag -> kotlinShortLiteral(tag.value())
+        is IntBinaryTag -> kotlinIntLiteral(tag.value())
+        is LongBinaryTag -> kotlinLongLiteral(tag.value())
+        is FloatBinaryTag -> kotlinFloatLiteral(tag.value())
+        is DoubleBinaryTag -> kotlinDoubleLiteral(tag.value())
         is StringBinaryTag -> "\"${escapeKotlinString(tag.value())}\""
         is ByteArrayBinaryTag ->
             tag.value().joinToString(", ", prefix = "byteArrayOf(", postfix = ")")
 
         is IntArrayBinaryTag ->
-            tag.value().joinToString(", ", prefix = "intArrayOf(", postfix = ")") { renderIntLiteral(it) }
+            tag.value().joinToString(", ", prefix = "intArrayOf(", postfix = ")") { kotlinIntLiteral(it) }
 
         is LongArrayBinaryTag ->
-            tag.value().joinToString(", ", prefix = "longArrayOf(", postfix = ")") { renderLongLiteral(it) }
+            tag.value().joinToString(", ", prefix = "longArrayOf(", postfix = ")") { kotlinLongLiteral(it) }
 
         is CompoundBinaryTag ->
             renderCompoundBody(tag)?.toCompoundLiteral()
@@ -86,15 +86,3 @@ private fun renderListLiteral(list: ListBinaryTag): String? {
 }
 
 private fun String.toCompoundLiteral(): String = if (isEmpty()) "{ }" else "{ $this }"
-
-/** Emits a [Byte] literal, parenthesising negatives to preserve the [Byte] type. */
-private fun renderByteLiteral(value: Byte): String = if (value < 0) "($value).toByte()" else "$value.toByte()"
-
-/** Emits a [Short] literal, parenthesising negatives to preserve the [Short] type. */
-private fun renderShortLiteral(value: Short): String = if (value < 0) "($value).toShort()" else "$value.toShort()"
-
-/** Emits an [Int] literal, handling the special case of [Int.MIN_VALUE]. */
-private fun renderIntLiteral(value: Int): String = if (value == Int.MIN_VALUE) "Int.MIN_VALUE" else value.toString()
-
-/** Emits a [Long] literal with an `L` suffix, handling the special case of [Long.MIN_VALUE]. */
-private fun renderLongLiteral(value: Long): String = if (value == Long.MIN_VALUE) "Long.MIN_VALUE" else "${value}L"
