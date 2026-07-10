@@ -1,7 +1,6 @@
 package io.github.lmliam.kotventure.core.selector.parsing
 
 import io.github.lmliam.kotventure.core.selector.isAllowedInUnquotedSelectorToken
-import io.github.lmliam.kotventure.core.selector.parsing.handleEscape
 
 /** Reads until the next selector value delimiter (`,`, `]`, or `}`). */
 internal fun SelectorReader.readValueToken(): String = readWhile { it !in ",]}" }

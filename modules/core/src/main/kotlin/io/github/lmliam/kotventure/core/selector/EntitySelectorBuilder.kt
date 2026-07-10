@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.core.selector
 
+import io.github.lmliam.kotventure.core.dsl.once
 import io.github.lmliam.kotventure.core.nbt.NbtCompound
 import io.github.lmliam.kotventure.core.nbt.NbtCompoundBuilder
 import io.github.lmliam.kotventure.core.nbt.NbtCompoundScope
@@ -10,17 +11,17 @@ import net.kyori.adventure.key.Key
  * compile-time: each factory narrows its lambda receiver to a capability scope.
  */
 internal class EntitySelectorBuilder : EntitySelectorScope {
-    var limit: Int? = null
+    var limit: Int? by once { alreadySet("limit") }
         private set
-    var distance: SelectorRange? = null
+    var distance: SelectorRange? by once { alreadySet("distance") }
         private set
-    var pitch: SelectorRange? = null
+    var pitch: SelectorRange? by once { alreadySet("pitch") }
         private set
-    var yaw: SelectorRange? = null
+    var yaw: SelectorRange? by once { alreadySet("yaw") }
         private set
-    var sort: SelectorSort? = null
+    var sort: SelectorSort? by once { alreadySet("sort") }
         private set
-    var level: SelectorIntRange? = null
+    var level: SelectorIntRange? by once { alreadySet("level") }
         private set
 
     val typeFilters = SelectorFilterGroup<String>("type", SelectorFilterPolicy.EXCLUSIVE)
@@ -34,10 +35,10 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     val coordinates: Map<SelectorCoordinate, Double>
         field = mutableMapOf()
 
-    var scores: Map<String, SelectorIntRange>? = null
+    var scores: Map<String, SelectorIntRange>? by once { alreadySet("scores") }
         private set
 
-    var advancements: Map<Key, AdvancementCondition>? = null
+    var advancements: Map<Key, AdvancementCondition>? by once { alreadySet("advancements") }
         private set
 
     private var isConfiguring = false
@@ -81,7 +82,6 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     }
 
     override fun distance(range: SelectorRange) {
-        checkUnset("distance", distance)
         distance = range.requireAscending("distance").requireNonNegative("distance")
     }
 
@@ -90,7 +90,6 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     }
 
     override fun pitch(range: SelectorRange) {
-        checkUnset("pitch", pitch)
         pitch = range
     }
 
@@ -99,7 +98,6 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     }
 
     override fun yaw(range: SelectorRange) {
-        checkUnset("yaw", yaw)
         yaw = range
     }
 
@@ -124,7 +122,6 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     override fun name(name: String): SelectorFilterExpression = nameFilters.add(this, name)
 
     override fun level(range: SelectorIntRange) {
-        checkUnset("level", level)
         level = range.requireNonNegative("level")
     }
 
@@ -133,12 +130,10 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     }
 
     override fun scores(init: SelectorScoresScope.() -> Unit) {
-        checkUnset("scores", scores)
         scores = SelectorScoresBuilder().apply(init).scores
     }
 
     override fun advancements(init: SelectorAdvancementsScope.() -> Unit) {
-        checkUnset("advancements", advancements)
         advancements = SelectorAdvancementsBuilder().apply(init).advancements
     }
 
@@ -152,12 +147,10 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
 
     override fun limit(n: Int) {
         require(n > 0) { "Selector limit must be positive, got: $n" }
-        checkUnset("limit", limit)
         limit = n
     }
 
     override fun sort(sort: SelectorSort) {
-        checkUnset("sort", this.sort)
         this.sort = sort
     }
 
@@ -199,7 +192,7 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
         argument: String,
         current: Any?,
     ) {
-        check(current == null) { "Selector argument '$argument' is already set; vanilla syntax allows it only once." }
+        check(current == null) { alreadySet(argument) }
     }
 
     private fun validTeamName(team: String): String {
@@ -212,6 +205,9 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
         return team
     }
 }
+
+private fun alreadySet(argument: String): String =
+    "Selector argument '$argument' is already set; vanilla syntax allows it only once."
 
 private val SelectorPresence.polarity: SelectorFilterPolarity
     get() =

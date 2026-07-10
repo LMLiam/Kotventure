@@ -7,9 +7,16 @@ package io.github.lmliam.kotventure.core.selector
  * Construct through a typed target factory such as [entities], or validate selector source with
  * [parseSelector].
  *
+ * Package orientation: **heads** ([EntitySelectorHead] + factories) narrow a capability **scope**;
+ * [EntitySelectorBuilder] is the single mutable backend (singleton slots fail fast; filter groups
+ * enforce exclusive/repeatable policy); this type plus sealed [EntitySelectorArgument] form the
+ * immutable **model**; [parseSelector] and `parsing/` produce the same model from vanilla source;
+ * [asString] is the single **render** path for DSL and parse.
+ *
  * @property head selector head (determines which arguments are valid)
  * @property arguments arguments in source or DSL rendering order (immutable list)
- * @throws IllegalArgumentException if any argument is incompatible with [head]
+ * @throws IllegalArgumentException if any argument is incompatible with [head], or a singleton
+ *   argument name appears more than once
  */
 @ConsistentCopyVisibility
 public data class EntitySelector private constructor(
@@ -29,6 +36,13 @@ public data class EntitySelector private constructor(
     init {
         // Validate that each argument is supported by this selector head
         arguments.forEach(head::requireSupportFor)
+        val seenSingletons = mutableSetOf<String>()
+        for (argument in arguments) {
+            val key = argument.singletonKey ?: continue
+            require(seenSingletons.add(key)) {
+                "Selector argument '$key' is already set; vanilla syntax allows it only once."
+            }
+        }
     }
 
     /**

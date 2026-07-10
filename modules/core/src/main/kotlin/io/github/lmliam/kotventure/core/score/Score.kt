@@ -3,7 +3,6 @@ package io.github.lmliam.kotventure.core.score
 import io.github.lmliam.kotventure.core.component.ComponentBuilder
 import io.github.lmliam.kotventure.core.component.ComponentScope
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.ScoreComponent
 
 /**
  * Builds a score [Component] — text the client resolves to a scoreboard value at display time.

@@ -23,7 +23,7 @@ internal class BossBarBuilder(
     }
 
     override fun progress(progress: Float) {
-        progressValue = progress
+        progressValue = progress.requireBossBarProgress()
     }
 
     internal fun build(): BossBar {

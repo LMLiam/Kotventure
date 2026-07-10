@@ -14,6 +14,7 @@ import io.github.lmliam.kotventure.test.text.shouldHaveDecoration
 import io.github.lmliam.kotventure.test.text.shouldHaveSelectorPattern
 import io.github.lmliam.kotventure.test.text.shouldHaveSelectorSeparator
 import io.github.lmliam.kotventure.test.text.shouldNotHaveSelectorSeparator
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import net.kyori.adventure.text.Component
@@ -152,6 +153,17 @@ class SelectorDslTest :
 
                 separator shouldHaveColor gray
                 separator shouldContainText " | "
+            }
+
+            "rejects a duplicate separator" {
+                val first = text(", ")
+                val second = text("; ")
+                shouldThrow<IllegalStateException> {
+                    selector(allPlayers()) {
+                        separator(first)
+                        separator(second)
+                    }
+                }.message shouldBe "'separator' is already set."
             }
 
             "applies style to the selector root" {

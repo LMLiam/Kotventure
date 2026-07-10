@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.core.bossbar.timed
 
+import io.github.lmliam.kotventure.core.bossbar.requireBossBarProgress
 import net.kyori.adventure.bossbar.BossBar
 import kotlin.time.Duration
 
@@ -30,10 +31,3 @@ internal data class TimedBossBarProgress(
         return from + ((to - from) * elapsedFraction).toFloat()
     }
 }
-
-private fun Float.requireBossBarProgress(label: String): Float =
-    also {
-        require(this in BossBar.MIN_PROGRESS..BossBar.MAX_PROGRESS) {
-            "'progress' $label must be in ${BossBar.MIN_PROGRESS}..${BossBar.MAX_PROGRESS}, got $this."
-        }
-    }

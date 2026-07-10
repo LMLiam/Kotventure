@@ -35,8 +35,9 @@ private fun SelectorReader.readSelectorArguments(head: EntitySelectorHead): List
     if (consume(']')) return emptyList()
 
     return buildList {
+        val seenSingletons = mutableSetOf<String>()
         while (true) {
-            add(readSelectorArgument(head))
+            add(readSelectorArgument(head, seenSingletons))
             when {
                 consume(']') -> return@buildList
                 consume(',') -> if (peek() == ']') fail("Expected selector argument")
@@ -46,10 +47,39 @@ private fun SelectorReader.readSelectorArguments(head: EntitySelectorHead): List
     }
 }
 
-private fun SelectorReader.readSelectorArgument(head: EntitySelectorHead): EntitySelectorArgument {
+private fun SelectorReader.readSelectorArgument(
+    head: EntitySelectorHead,
+    seenSingletons: MutableSet<String>,
+): EntitySelectorArgument {
     val nameOffset = offset
     val name = readWhile { it != '=' && it != ',' && it != ']' }
     if (name.isEmpty()) failAt(nameOffset, "Expected selector argument")
+    if (name.isSingletonSelectorArgument() && !seenSingletons.add(name)) {
+        failAt(
+            nameOffset,
+            "Selector argument '$name' is already set; vanilla syntax allows it only once.",
+        )
+    }
     expect('=', "Expected '=' after selector argument '$name'")
     return readArgumentValue(head, name, nameOffset)
 }
+
+private fun String.isSingletonSelectorArgument(): Boolean =
+    when (this) {
+        "limit",
+        "sort",
+        "level",
+        "scores",
+        "advancements",
+        "distance",
+        "x_rotation",
+        "y_rotation",
+        "x",
+        "y",
+        "z",
+        "dx",
+        "dy",
+        "dz",
+        -> true
+        else -> false
+    }

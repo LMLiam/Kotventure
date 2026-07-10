@@ -53,5 +53,16 @@ class EntitySelectorParserTest :
                 "@s[" shouldFailToParseAt "limit=1]"
                 "@s[" shouldFailToParseAt "sort=nearest]"
             }
+
+            "rejects duplicate singleton arguments" {
+                "@e[limit=1," shouldFailToParseAt "limit=2]"
+                "@e[x=1," shouldFailToParseAt "x=2]"
+                "@e[distance=..5," shouldFailToParseAt "distance=1..]"
+                "@e[sort=nearest," shouldFailToParseAt "sort=furthest]"
+            }
+
+            "allows repeated filter-group arguments" {
+                "@e[tag=a,tag=b,nbt={},nbt=!{}]".shouldBeCanonicalSelector()
+            }
         },
     )

@@ -32,8 +32,7 @@ public sealed interface CommonEntitySelectorScope {
     /**
      * Sets selector origin coordinates (vanilla `x`, `y`, `z`): `origin(12.5.x, 64.y)`.
      *
-     * Each coordinate binds once across the whole selector. Additional coordinates override
-     * previous ones.
+     * Each coordinate binds at most once across the whole selector (fail fast; not last-write-wins).
      *
      * @throws IllegalStateException if a supplied coordinate is already set
      * @sample io.github.lmliam.kotventure.core.selector.selectorPositionVolumeSample
@@ -46,7 +45,7 @@ public sealed interface CommonEntitySelectorScope {
     /**
      * Sets selector bounding-volume deltas (vanilla `dx`, `dy`, `dz`): `volume(16.dx, 8.dy)`.
      *
-     * Each delta binds once across the whole selector. Additional deltas override previous ones.
+     * Each delta binds at most once across the whole selector (fail fast; not last-write-wins).
      *
      * @throws IllegalStateException if a supplied delta is already set
      * @sample io.github.lmliam.kotventure.core.selector.selectorPositionVolumeSample

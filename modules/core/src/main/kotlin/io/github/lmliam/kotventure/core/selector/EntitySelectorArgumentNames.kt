@@ -38,3 +38,27 @@ internal val EntitySelectorArgument.argumentName: String
             is EntitySelectorArgument.Range -> argument.argumentName
             else -> checkNotNull(keyword) { "Keyword arguments always declare a keyword" }.sourceName
         }
+
+/**
+ * Key used for singleton uniqueness (DSL and parse). Filter-group arguments are multi-valued under
+ * [SelectorFilterPolicy] and return `null`.
+ */
+internal val EntitySelectorArgument.singletonKey: String?
+    get() =
+        when (this) {
+            is EntitySelectorArgument.Coordinate -> coordinate.argumentName
+            is EntitySelectorArgument.Range -> argument.argumentName
+            is EntitySelectorArgument.Level -> SelectorArgumentKeyword.LEVEL.sourceName
+            is EntitySelectorArgument.Limit -> SelectorArgumentKeyword.LIMIT.sourceName
+            is EntitySelectorArgument.Sort -> SelectorArgumentKeyword.SORT.sourceName
+            is EntitySelectorArgument.Scores -> SelectorArgumentKeyword.SCORES.sourceName
+            is EntitySelectorArgument.Advancements -> SelectorArgumentKeyword.ADVANCEMENTS.sourceName
+            is EntitySelectorArgument.GameMode,
+            is EntitySelectorArgument.Name,
+            is EntitySelectorArgument.Type,
+            is EntitySelectorArgument.Tag,
+            is EntitySelectorArgument.Team,
+            is EntitySelectorArgument.Nbt,
+            is EntitySelectorArgument.Predicate,
+            -> null
+        }

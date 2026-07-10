@@ -1,7 +1,5 @@
 package io.github.lmliam.kotventure.core.selector.parsing
 
-import io.github.lmliam.kotventure.core.selector.parsing.isAsciiDigit
-
 internal fun SelectorReader.readSelectorBoolean(): Boolean {
     val start = offset
     return when (val token = readValueToken()) {

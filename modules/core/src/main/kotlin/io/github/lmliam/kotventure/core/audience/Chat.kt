@@ -36,4 +36,4 @@ public fun Audience.chat(init: ChatScope.() -> Unit) {
 public fun Audience.chat(
     signed: SignedMessage,
     init: BoundChatScope.() -> Unit,
-): Unit = sendMessage(signed, BoundChatBuilder().apply(init).buildBound())
+): Unit = sendMessage(signed, BoundChatBuilder.Bound().apply(init).buildBound())
