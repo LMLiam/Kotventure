@@ -7,9 +7,21 @@ on:
   push:
     branches:
       - master
+  workflow_dispatch:
+    inputs:
+      tasks:
+        description: Gradle tasks (space-separated). Empty uses the default CI task set, or :module:build when module is set.
+        required: false
+        default: ''
+        type: string
+      module:
+        description: Optional Gradle project name (e.g. core, minimessage). Empty runs the full multi-project default.
+        required: false
+        default: ''
+        type: string
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -31,18 +43,30 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
-      code: ${{ steps.filter.outputs.code }}
+      code: ${{ steps.resolve.outputs.code }}
     steps:
       - name: Checkout
+        if: github.event_name != 'workflow_dispatch'
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
 
       - name: Path filter
         id: filter
+        if: github.event_name != 'workflow_dispatch'
         uses: dorny/paths-filter@d1c1ffe0248fe513906c8e24db8ea791d46f8590 # v3.0.3
         with:
           filters: .github/code-paths-filter.yml
+
+      - name: Resolve code-change flag
+        id: resolve
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "code=${{ steps.filter.outputs.code }}" >> "$GITHUB_OUTPUT"
+          fi
 
   lint:
     name: Format and lint
@@ -62,7 +86,15 @@ jobs:
         uses: ./.github/actions/setup-jdk-gradle
 
       - name: Run Spotless and ktlint
-        run: ./gradlew spotlessCheck ktlintCheck
+        run: |
+          set -euo pipefail
+          ./gradlew spotlessCheck ktlintCheck 2>&1 | tee lint.log
+
+      - name: Write job summary
+        if: always()
+        env:
+          GRADLE_TASKS: spotlessCheck ktlintCheck
+        run: bash .github/scripts/write-gradle-job-summary.sh lint.log
 
   gradle:
     name: Gradle build
@@ -84,8 +116,47 @@ jobs:
       - name: Set up JDK and Gradle
         uses: ./.github/actions/setup-jdk-gradle
 
+      - name: Resolve Gradle tasks
+        id: tasks
+        env:
+          INPUT_TASKS: ${{ github.event.inputs.tasks || '' }}
+          INPUT_MODULE: ${{ github.event.inputs.module || '' }}
+        run: |
+          set -euo pipefail
+          tasks="${INPUT_TASKS#"${INPUT_TASKS%%[![:space:]]*}"}"
+          tasks="${tasks%"${tasks##*[![:space:]]}"}"
+          module="${INPUT_MODULE#"${INPUT_MODULE%%[![:space:]]*}"}"
+          module="${module%"${module##*[![:space:]]}"}"
+
+          if [[ -n "$module" && ! "$module" =~ ^[A-Za-z0-9_-]+$ ]]; then
+            echo "Invalid module name: $module" >&2
+            exit 1
+          fi
+
+          if [[ -z "$tasks" ]]; then
+            if [[ -n "$module" ]]; then
+              tasks=":${module}:build"
+            else
+              tasks="build dokkaGenerate koverXmlReport koverHtmlReport"
+            fi
+          fi
+
+          echo "tasks=$tasks" >> "$GITHUB_OUTPUT"
+          echo "Resolved Gradle tasks: $tasks"
+
       - name: Run build, tests, and coverage
-        run: ./gradlew build dokkaGenerate koverXmlReport koverHtmlReport
+        env:
+          GRADLE_TASKS: ${{ steps.tasks.outputs.tasks }}
+        run: |
+          set -euo pipefail
+          # shellcheck disable=SC2086
+          ./gradlew ${GRADLE_TASKS} 2>&1 | tee gradle.log
+
+      - name: Write job summary
+        if: always()
+        env:
+          GRADLE_TASKS: ${{ steps.tasks.outputs.tasks }}
+        run: bash .github/scripts/write-gradle-job-summary.sh gradle.log
 
       - name: Publish JUnit test report
         if: always()

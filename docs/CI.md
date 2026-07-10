@@ -10,7 +10,7 @@ For local development commands, see [CONTRIBUTING.md](../.github/CONTRIBUTING.md
 
 | Workflow | Triggers | Purpose |
 |----------|----------|---------|
-| **Build** | PR → `master`, push → `master` | Parallel format/lint + Gradle verify when code paths change; required check always reports |
+| **Build** | PR → `master`, push → `master`, `workflow_dispatch` | Parallel format/lint + Gradle verify when code paths change; required check always reports |
 | **Qodana** | PR → `master` (path-filtered), weekly schedule, `workflow_dispatch` | Static analysis + SARIF to code scanning |
 | **CodeQL** | PR/push → `master` (path-filtered), weekly schedule, `workflow_dispatch` | Code scanning for Actions and Java/Kotlin |
 | **Vanilla Conformance** | Path-filtered PRs, weekly schedule, `workflow_dispatch` | MC-backed selector tests |
@@ -59,7 +59,18 @@ Gradle does not run for docs-only / template-only changes. Markdown under `modul
 | Push to `master` (code paths) | ✓ | ✓ | — | ✓ |
 | Push to `master` (docs only) | ✓ | — | — | — |
 | Weekly schedule | — | — | ✓ | ✓ |
-| `workflow_dispatch` | — | — | ✓ | ✓ |
+| `workflow_dispatch` | ✓ | ✓ | ✓ | ✓ |
+
+### Manual Build (`workflow_dispatch`)
+
+Actions → **Build** → **Run workflow**. Always runs Format and lint + Gradle build (path filter skipped).
+
+| Input | Default | Behaviour |
+|-------|---------|-----------|
+| `tasks` | empty | Default full set: `build dokkaGenerate koverXmlReport koverHtmlReport`. If only `module` is set: `:<module>:build` (includes tests when the project has them). |
+| `module` | empty | Optional project name (`core`, `minimessage`, `bom`, …). Ignored when `tasks` is non-empty (tasks run as typed). |
+
+Module names must match `[A-Za-z0-9_-]+`. Manual runs use a separate concurrency group from push/PR so they do not cancel each other.
 
 ### Heavy CI gate (release-please)
 
@@ -105,6 +116,9 @@ Checkout stays per-workflow (Qodana custom `ref` / history; Build uses full hist
 |--------|------|
 | [`.github/scripts/validate-conventional-title.sh`](../.github/scripts/validate-conventional-title.sh) | Title/commit subject format |
 | [`.github/scripts/normalize-qodana-sarif.sh`](../.github/scripts/normalize-qodana-sarif.sh) | Fix 0-based SARIF regions for GitHub code scanning |
+| [`.github/scripts/write-gradle-job-summary.sh`](../.github/scripts/write-gradle-job-summary.sh) | Job summary: Java/Gradle/Kotlin versions + failed tasks |
+
+Format and lint and Gradle build always write a job summary (toolchain + event; failed Gradle task names when the log contains `> Task … FAILED`).
 
 ## Action pins and Dependabot
 
@@ -117,22 +131,42 @@ Third-party actions are SHA-pinned with a version comment. Dependabot updates (`
 
 New composites that pin third-party actions need a matching Dependabot directory.
 
+| Ecosystem | Grouping | Open PR limit |
+|-----------|----------|---------------|
+| Gradle (`/`) | Minor + patch grouped (`gradle-minor-patch`); **majors ungrouped** (one PR each for review — Kotlin, Adventure, etc.) | 10 |
+| GitHub Actions (root + composites) | Minor + patch grouped; majors ungrouped | 10 (root), 5 (composites) |
+
 ## Branch protection (`master`)
 
 Repository ruleset **Master** (default branch):
 
 - Block force-push, branch deletion, and direct pushes (updates only via PR).
 - Pull requests: one approving review, code-owner review, dismiss stale reviews, resolve conversations, squash only.
-- Required status checks (must pass before merge):
-  - `Build, Test, and Lint`
-  - `Validate Pull Request Title`
-  - `Validate Commit Subjects`
-  - `Review Dependency Changes`
+- Required status checks (must pass before merge) — see [Required vs optional checks](#required-vs-optional-checks).
 - Code scanning gate for Qodana (`QDJVM`) alerts at medium-or-higher security / errors severity.
 - Maintainer bypass remains configured for emergency overrides.
 
 [CODEOWNERS](../.github/CODEOWNERS) assigns `@LMLiam` as default owner and explicitly for `.github/workflows/`,
 `.github/actions/`, `.github/scripts/`, and related CI config so code-owner review covers automation changes.
+
+## Required vs optional checks
+
+PRs show many checks; only a subset is merge-blocking via the **Master** ruleset.
+
+| Check | Merge gate | Notes |
+|-------|:----------:|-------|
+| **Build, Test, and Lint** | **Required** | Always reports; green when lint/Gradle are skipped (docs-only / pure release-please allow-list) |
+| **Validate Pull Request Title** | **Required** | Conventional PR title |
+| **Validate Commit Subjects** | **Required** | Conventional commit subjects on the PR |
+| **Review Dependency Changes** | **Required** | Dependency review; not heavy-CI-gated |
+| Format and lint / Gradle build | No | Nested under the Build aggregator |
+| Qodana / QDJVM | No* | Workflow is informational as a status check; **QDJVM** code-scanning alerts are ruleset-gated (medium-or-higher security / errors) |
+| CodeQL (`Analyze (…)` ) | No | SARIF to code scanning |
+| Vanilla conformance | No | Path-filtered |
+| Labeler / Apply area labels | No | Labelling only |
+| Scorecard | No | Schedule / dispatch |
+
+\*Qodana is **not** a required status check and is not marked `continue-on-error`. Failures remain visible on the PR without blocking merge by themselves; serious findings still surface through the QDJVM code-scanning ruleset rule.
 
 ## Dependency review
 
@@ -159,7 +193,8 @@ Workflow: [`.github/workflows/dependency-review.yml`](../.github/workflows/depen
 ## Re-running CI
 
 - **Re-run failed jobs** / **Re-run all jobs** on an Actions run.
-- Qodana, CodeQL, Vanilla Conformance, and Scorecard also support `workflow_dispatch`.
+- **Build**, Qodana, CodeQL, Vanilla Conformance, and Scorecard support `workflow_dispatch` (Build accepts optional `tasks` / `module` inputs).
+- Open the failed **Format and lint** or **Gradle build** job for the job summary (toolchain + failed tasks).
 
 ## Related docs
 
