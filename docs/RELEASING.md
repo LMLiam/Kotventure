@@ -11,8 +11,13 @@ The `Release Please` workflow runs on pushes to `master`. It reads `release-plea
 
 The workflow uses the `RELEASE_PLEASE_TOKEN` secret when it is configured, falling back to `GITHUB_TOKEN` otherwise.
 Prefer `RELEASE_PLEASE_TOKEN` for normal releases because PRs, tags, and releases created with the built-in
-`GITHUB_TOKEN` do not trigger follow-up workflows. Use a fine-grained PAT or GitHub App token for the GitHub Actions bot
-with repository access and the ability to write contents, issues, and pull requests.
+`GITHUB_TOKEN` do not trigger follow-up workflows.
+
+`RELEASE_PLEASE_TOKEN` is typically a fine-grained personal access token (or GitHub App installation token) with
+repository access to write contents, issues, and pull requests. Commits and PRs created with a **personal** PAT are
+attributed to that user account, so they look like human activity rather than a bot identity. Heavy CI therefore uses a
+**path-based** release-please gate (branch prefix + allow-listed files), not bot-actor detection — see [CI.md](./CI.md).
+A dedicated GitHub App or machine user token keeps the same workflow shape while making automation identity clearer.
 
 ## Version Policy
 
@@ -28,17 +33,17 @@ When adjusting release automation, verify the policy still matches [ROADMAP.md](
 
 ## Branch Protection
 
-Keep `master` protected and release through the Release PR. Branch protection must allow the GitHub Actions bot or the
-release bot behind `RELEASE_PLEASE_TOKEN` to create and update the Release PR branch, apply release labels, and merge
-only after the required checks pass.
+Keep `master` protected and release through the Release PR. The **Master** ruleset requires a PR, reviews, and the
+status checks listed in [CI.md](./CI.md) (including `Build, Test, and Lint` and Dependency Review). Release automation
+must create and update the Release PR branch and apply release labels; merge only after those required checks pass.
 
-If branch protection requires all PR checks, use `RELEASE_PLEASE_TOKEN` so the Release PR triggers the same CI workflows
-as human-authored PRs. If the repository falls back to `GITHUB_TOKEN`, release-please can still open PRs, but GitHub
-will
-suppress workflows triggered by that token's PR, tag, and release events.
+Use `RELEASE_PLEASE_TOKEN` so the Release PR triggers the same CI workflows as human-authored PRs. If the repository
+falls back to `GITHUB_TOKEN`, release-please can still open PRs, but GitHub will suppress workflows triggered by that
+token's PR, tag, and release events.
 
-Pure release-please PRs (changelog, manifest, and `gradle/libs.versions.toml` only) skip Build/Qodana Gradle work;
-Dependency Review, titles, and labels still run. See [CI.md](./CI.md).
+Pure release-please PRs (changelog, manifest, and `gradle/libs.versions.toml` only) skip Build/Qodana/CodeQL heavy work;
+Dependency Review and conventional title/commit checks still run and remain required. Labels still apply. See
+[CI.md](./CI.md).
 
 ## Publishing Coordination
 

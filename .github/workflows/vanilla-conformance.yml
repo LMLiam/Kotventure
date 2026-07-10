@@ -21,7 +21,6 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  checks: write
   contents: read
 
 jobs:
@@ -29,6 +28,9 @@ jobs:
     name: Vanilla conformance
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      checks: write
+      contents: read
 
     steps:
       - name: Checkout

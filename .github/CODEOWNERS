@@ -1,2 +1,9 @@
 # Default owner for everything in the repo.
 * @LMLiam
+
+# CI and automation surfaces — explicit code-owner review when rules require it.
+.github/workflows/ @LMLiam
+.github/actions/ @LMLiam
+.github/scripts/ @LMLiam
+.github/dependabot.yml @LMLiam
+.github/code-paths-filter.yml @LMLiam

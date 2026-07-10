@@ -1,0 +1,111 @@
+name: CodeQL
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'modules/**'
+      - 'gradle/**'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle.properties'
+      - 'gradlew'
+      - 'gradlew.bat'
+      - 'buildSrc/**'
+      - '.editorconfig'
+      - '.gitattributes'
+      - '.gitignore'
+      - 'qodana.yaml'
+      - 'jitpack.yml'
+      - 'release-please-config.json'
+      - '.github/workflows/**'
+      - '.github/actions/**'
+      - '.github/scripts/**'
+      - '.github/dependabot.yml'
+      - '.github/code-paths-filter.yml'
+  push:
+    branches:
+      - master
+    paths:
+      - 'modules/**'
+      - 'gradle/**'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle.properties'
+      - 'gradlew'
+      - 'gradlew.bat'
+      - 'buildSrc/**'
+      - '.editorconfig'
+      - '.gitattributes'
+      - '.gitignore'
+      - 'qodana.yaml'
+      - 'jitpack.yml'
+      - 'release-please-config.json'
+      - '.github/workflows/**'
+      - '.github/actions/**'
+      - '.github/scripts/**'
+      - '.github/dependabot.yml'
+      - '.github/code-paths-filter.yml'
+  schedule:
+    - cron: '23 5 * * 1'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    name: Heavy CI gate
+    uses: ./.github/workflows/heavy-ci-gate.yml
+    permissions:
+      contents: read
+      pull-requests: read
+
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: actions
+            build-mode: none
+          - language: java-kotlin
+            build-mode: manual
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+
+      - name: Set up JDK and Gradle
+        if: matrix.build-mode == 'manual'
+        uses: ./.github/actions/setup-jdk-gradle
+
+      - name: Build for CodeQL
+        if: matrix.build-mode == 'manual'
+        run: ./gradlew classes testClasses -x test -Pkotlin.incremental=false --no-build-cache --rerun-tasks
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4
+        with:
+          category: "/language:${{ matrix.language }}"
