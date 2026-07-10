@@ -75,12 +75,12 @@ class SoundDslTest :
                 returned shouldHaveVolume 2f
                 returned shouldHavePitch 0.5f
                 returned shouldBe
-                    Sound.sound(
-                        Key.key("minecraft:ui.button.click"),
-                        Sound.Source.MASTER,
-                        2f,
-                        0.5f,
-                    )
+                        Sound.sound(
+                            Key.key("minecraft:ui.button.click"),
+                            Sound.Source.MASTER,
+                            2f,
+                            0.5f,
+                        )
             }
 
             "plays a one-shot sound with emitter(self)" {
@@ -135,7 +135,7 @@ class SoundDslTest :
 
                 audience.played shouldHaveSize 1
                 audience.played.single() shouldBe
-                    SoundRecordingAudience.Played(alert, emitter = emitter)
+                        SoundRecordingAudience.Played(alert, emitter = emitter)
             }
 
             "play forwards a prebuilt sound at world position" {
@@ -146,7 +146,7 @@ class SoundDslTest :
 
                 audience.played shouldHaveSize 1
                 audience.played.single() shouldBe
-                    SoundRecordingAudience.Played(alert, x = 100.0, y = 64.0, z = 200.0)
+                        SoundRecordingAudience.Played(alert, x = 100.0, y = 64.0, z = 200.0)
             }
 
             "forwards sound build-and-play to every member of a composite audience" {
@@ -181,7 +181,7 @@ class SoundDslTest :
 
                 audience.stopped shouldHaveSize 1
                 audience.stopped.single() shouldBe
-                    SoundStop.namedOnSource(Key.key("minecraft:music.game"), Sound.Source.MUSIC)
+                        SoundStop.namedOnSource(Key.key("minecraft:music.game"), Sound.Source.MUSIC)
             }
 
             "stopSound source produces SoundStop.source" {

@@ -28,12 +28,12 @@ class SoundDslTest :
 
             "defaults match the raw Adventure factory" {
                 sound(key("minecraft:ambient.cave")) shouldBe
-                    Sound.sound(
-                        Key.key("minecraft:ambient.cave"),
-                        Sound.Source.MASTER,
-                        1f,
-                        1f,
-                    )
+                        Sound.sound(
+                            Key.key("minecraft:ambient.cave"),
+                            Sound.Source.MASTER,
+                            1f,
+                            1f,
+                        )
             }
 
             "builds a fully configured sound" {
