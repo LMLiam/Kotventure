@@ -23,7 +23,7 @@ class EntitySelectorParserTest :
                         append("x=1.5,y=-2,z=3,dx=0,dy=1,dz=-1,")
                         append("distance=..10,x_rotation=170..-170,y_rotation=-45..45,")
                         append("level=1..30,gamemode=!creative,limit=2,sort=nearest,")
-                        append("tag=!,tag=!hidden,team=!red,team=blue,")
+                        append("tag=!,tag=!hidden,team=!red,team=!blue,")
                         append("nbt={Tags:[\"boss\"],Data:[I;1,2]},")
                         append("nbt={Health:20.0f},")
                         append("scores={kills=5,balance=-10..},")
@@ -63,6 +63,33 @@ class EntitySelectorParserTest :
 
             "allows repeated filter-group arguments" {
                 "@e[tag=a,tag=b,nbt={},nbt=!{}]".shouldBeCanonicalSelector()
+            }
+
+            "allows multiple exclusive exclusions without a positive" {
+                "@e[name=!a,name=!b,type=!minecraft:zombie,type=!minecraft:skeleton]".shouldBeCanonicalSelector()
+                "@a[gamemode=!survival,gamemode=!creative,team=!red,team=!blue]".shouldBeCanonicalSelector()
+                "@e[team=!,team=!red]".shouldBeCanonicalSelector()
+            }
+
+            "rejects two positive exclusive filter-group values" {
+                "@e[name=a," shouldFailToParseAt "name=b]"
+                "@e[type=minecraft:zombie," shouldFailToParseAt "type=minecraft:skeleton]"
+                "@a[gamemode=survival," shouldFailToParseAt "gamemode=creative]"
+                "@e[team=red," shouldFailToParseAt "team=blue]"
+                "@e[team=," shouldFailToParseAt "team=red]"
+            }
+
+            "rejects exclusive positive mixed with exclusions" {
+                "@e[name=a," shouldFailToParseAt "name=!b]"
+                "@e[name=!a," shouldFailToParseAt "name=b]"
+                "@e[type=minecraft:zombie," shouldFailToParseAt "type=!minecraft:skeleton]"
+                "@e[type=!minecraft:zombie," shouldFailToParseAt "type=minecraft:skeleton]"
+                "@a[gamemode=survival," shouldFailToParseAt "gamemode=!creative]"
+                "@a[gamemode=!survival," shouldFailToParseAt "gamemode=creative]"
+                "@e[team=red," shouldFailToParseAt "team=!blue]"
+                "@e[team=!red," shouldFailToParseAt "team=blue]"
+                "@e[team=," shouldFailToParseAt "team=!red]"
+                "@e[team=!," shouldFailToParseAt "team=red]"
             }
         },
     )

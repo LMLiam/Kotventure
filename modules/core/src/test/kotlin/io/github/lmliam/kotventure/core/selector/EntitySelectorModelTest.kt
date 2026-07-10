@@ -73,6 +73,124 @@ class EntitySelectorModelTest :
                 }
             }
 
+            "rejects two positive exclusive filter-group values on the model" {
+                shouldThrow<IllegalArgumentException> {
+                    EntitySelector(
+                        EntitySelectorHead.ENTITIES,
+                        listOf(
+                            EntitySelectorArgument.Name("a", isNegated = false),
+                            EntitySelectorArgument.Name("b", isNegated = false),
+                        ),
+                    )
+                }
+
+                shouldThrow<IllegalArgumentException> {
+                    EntitySelector(
+                        EntitySelectorHead.ENTITIES,
+                        listOf(
+                            EntitySelectorArgument.Type(
+                                SelectorEntityType.Direct(key("minecraft", "zombie")),
+                                isNegated = false,
+                            ),
+                            EntitySelectorArgument.Type(
+                                SelectorEntityType.Direct(key("minecraft", "skeleton")),
+                                isNegated = false,
+                            ),
+                        ),
+                    )
+                }
+
+                shouldThrow<IllegalArgumentException> {
+                    EntitySelector(
+                        EntitySelectorHead.ALL_PLAYERS,
+                        listOf(
+                            EntitySelectorArgument.GameMode(GameMode.SURVIVAL, isNegated = false),
+                            EntitySelectorArgument.GameMode(GameMode.CREATIVE, isNegated = false),
+                        ),
+                    )
+                }
+
+                shouldThrow<IllegalArgumentException> {
+                    EntitySelector(
+                        EntitySelectorHead.ENTITIES,
+                        listOf(
+                            EntitySelectorArgument.Team(SelectorStringCondition.Named("red")),
+                            EntitySelectorArgument.Team(SelectorStringCondition.Named("blue")),
+                        ),
+                    )
+                }
+            }
+
+            "rejects exclusive positive mixed with exclusions on the model" {
+                shouldThrow<IllegalArgumentException> {
+                    EntitySelector(
+                        EntitySelectorHead.ENTITIES,
+                        listOf(
+                            EntitySelectorArgument.Name("a", isNegated = false),
+                            EntitySelectorArgument.Name("b", isNegated = true),
+                        ),
+                    )
+                }
+
+                shouldThrow<IllegalArgumentException> {
+                    EntitySelector(
+                        EntitySelectorHead.ENTITIES,
+                        listOf(
+                            EntitySelectorArgument.Name("a", isNegated = true),
+                            EntitySelectorArgument.Name("b", isNegated = false),
+                        ),
+                    )
+                }
+
+                shouldThrow<IllegalArgumentException> {
+                    EntitySelector(
+                        EntitySelectorHead.ENTITIES,
+                        listOf(
+                            EntitySelectorArgument.Type(
+                                SelectorEntityType.Direct(key("minecraft", "zombie")),
+                                isNegated = true,
+                            ),
+                            EntitySelectorArgument.Type(
+                                SelectorEntityType.Direct(key("minecraft", "skeleton")),
+                                isNegated = false,
+                            ),
+                        ),
+                    )
+                }
+
+                shouldThrow<IllegalArgumentException> {
+                    EntitySelector(
+                        EntitySelectorHead.ALL_PLAYERS,
+                        listOf(
+                            EntitySelectorArgument.GameMode(GameMode.SURVIVAL, isNegated = true),
+                            EntitySelectorArgument.GameMode(GameMode.CREATIVE, isNegated = false),
+                        ),
+                    )
+                }
+
+                shouldThrow<IllegalArgumentException> {
+                    EntitySelector(
+                        EntitySelectorHead.ENTITIES,
+                        listOf(
+                            EntitySelectorArgument.Team(SelectorStringCondition.Named("red", isNegated = true)),
+                            EntitySelectorArgument.Team(SelectorStringCondition.Named("blue")),
+                        ),
+                    )
+                }
+            }
+
+            "allows exclusive exclusions and repeatable mixed filter groups on the model" {
+                EntitySelector(
+                    EntitySelectorHead.ENTITIES,
+                    listOf(
+                        EntitySelectorArgument.Name("a", isNegated = true),
+                        EntitySelectorArgument.Name("b", isNegated = true),
+                        EntitySelectorArgument.Tag(SelectorStringCondition.Named("admin")),
+                        EntitySelectorArgument.Tag(SelectorStringCondition.Named("hidden", isNegated = true)),
+                    ),
+                ) shouldRenderAs "@e[name=!a,name=!b,tag=admin,tag=!hidden]"
+            }
+
             "represents direct entity types and type tags without a boolean flag" {
                 val direct =
                     parseSelector("@e[type=minecraft:zombie]")
@@ -175,7 +293,7 @@ class EntitySelectorModelTest :
             }
 
             "models tag and team presence explicitly" {
-                val parsed = parseSelector("@e[tag=,tag=!,team=red,team=!blue]")
+                val parsed = parseSelector("@e[tag=,tag=!,team=!red,team=!blue]")
 
                 parsed.arguments.filterIsInstance<EntitySelectorArgument.Tag>() shouldBe
                         listOf(
@@ -184,7 +302,7 @@ class EntitySelectorModelTest :
                         )
                 parsed.arguments.filterIsInstance<EntitySelectorArgument.Team>() shouldBe
                         listOf(
-                            EntitySelectorArgument.Team(SelectorStringCondition.Named("red")),
+                            EntitySelectorArgument.Team(SelectorStringCondition.Named("red", isNegated = true)),
                             EntitySelectorArgument.Team(SelectorStringCondition.Named("blue", isNegated = true)),
                         )
             }

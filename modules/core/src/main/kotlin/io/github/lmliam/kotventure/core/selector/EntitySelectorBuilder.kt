@@ -24,13 +24,13 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     var level: SelectorIntRange? by once { alreadySet("level") }
         private set
 
-    val typeFilters = SelectorFilterGroup<String>("type", SelectorFilterPolicy.EXCLUSIVE)
-    val nameFilters = SelectorFilterGroup<String>("name", SelectorFilterPolicy.EXCLUSIVE)
-    val gamemodeFilters = SelectorFilterGroup<GameMode>("gamemode", SelectorFilterPolicy.EXCLUSIVE)
-    val teamFilters = SelectorFilterGroup<String>("team", SelectorFilterPolicy.EXCLUSIVE)
-    val tagFilters = SelectorFilterGroup<String>("tag", SelectorFilterPolicy.REPEATABLE)
-    val nbtFilters = SelectorFilterGroup<NbtCompound>("nbt", SelectorFilterPolicy.REPEATABLE)
-    val predicateFilters = SelectorFilterGroup<String>("predicate", SelectorFilterPolicy.REPEATABLE)
+    val typeFilters = SelectorFilterGroup<String>(SelectorArgumentKeyword.TYPE)
+    val nameFilters = SelectorFilterGroup<String>(SelectorArgumentKeyword.NAME)
+    val gamemodeFilters = SelectorFilterGroup<GameMode>(SelectorArgumentKeyword.GAMEMODE)
+    val teamFilters = SelectorFilterGroup<String>(SelectorArgumentKeyword.TEAM)
+    val tagFilters = SelectorFilterGroup<String>(SelectorArgumentKeyword.TAG)
+    val nbtFilters = SelectorFilterGroup<NbtCompound>(SelectorArgumentKeyword.NBT)
+    val predicateFilters = SelectorFilterGroup<String>(SelectorArgumentKeyword.PREDICATE)
 
     val coordinates: Map<SelectorCoordinate, Double>
         field = mutableMapOf()
@@ -206,8 +206,7 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     }
 }
 
-private fun alreadySet(argument: String): String =
-    "Selector argument '$argument' is already set; vanilla syntax allows it only once."
+private fun alreadySet(argument: String): String = selectorSingletonAlreadySetMessage(argument)
 
 private val SelectorPresence.polarity: SelectorFilterPolarity
     get() =

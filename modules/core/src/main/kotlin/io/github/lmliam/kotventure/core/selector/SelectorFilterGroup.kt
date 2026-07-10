@@ -7,11 +7,19 @@ package io.github.lmliam.kotventure.core.selector
  * so an exclusive group can reject any addition after a positive entry at the offending call site.
  * The one violation only visible later — exclusions followed by a positive that never gets
  * negated — is caught by [validate] when the selector block ends.
+ *
+ * Policy is resolved from [keyword] via [SelectorArgumentKeyword.filterPolicy] so the builder
+ * cannot drift from model/parse validation.
  */
 internal class SelectorFilterGroup<T>(
-    val argument: String,
-    private val policy: SelectorFilterPolicy,
+    keyword: SelectorArgumentKeyword,
 ) {
+    val argument: String = keyword.sourceName
+    private val policy: SelectorFilterPolicy =
+        requireNotNull(keyword.filterPolicy) {
+            "Selector argument '${keyword.sourceName}' is not a filter group"
+        }
+
     val entries: List<SelectorFilterEntry<T>>
         field = mutableListOf()
 
@@ -34,7 +42,7 @@ internal class SelectorFilterGroup<T>(
         val hasPositive = entries.any { it.polarity == SelectorFilterPolarity.POSITIVE }
         val hasNegative = entries.any { it.polarity == SelectorFilterPolarity.NEGATIVE }
         check(!(hasPositive && hasNegative)) {
-            "Selector argument '$argument' cannot combine a positive value with exclusions."
+            exclusivePolarityMixMessage(argument)
         }
     }
 
@@ -45,7 +53,7 @@ internal class SelectorFilterGroup<T>(
     ): SelectorFilterEntry<T> {
         if (policy == SelectorFilterPolicy.EXCLUSIVE) {
             check(entries.none { it.polarity == SelectorFilterPolarity.POSITIVE }) {
-                "Selector argument '$argument' is already set; vanilla syntax allows one positive value."
+                exclusivePositiveAlreadySetMessage(argument)
             }
         }
         return SelectorFilterEntry(owner, argument, value, polarity).also {

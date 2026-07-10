@@ -2,8 +2,6 @@ package io.github.lmliam.kotventure.core.selector
 
 import io.github.lmliam.kotventure.core.selector.parsing.SelectorReader
 import io.github.lmliam.kotventure.core.selector.parsing.readArgumentValue
-import io.github.lmliam.kotventure.core.selector.readSelectorArgument
-import io.github.lmliam.kotventure.core.selector.readSelectorArguments
 
 /**
  * Parses Java Edition entity-selector source into an [EntitySelector].
@@ -36,8 +34,9 @@ private fun SelectorReader.readSelectorArguments(head: EntitySelectorHead): List
 
     return buildList {
         val seenSingletons = mutableSetOf<String>()
+        val filterPolarity = mutableMapOf<String, ParseFilterPolarityState>()
         while (true) {
-            add(readSelectorArgument(head, seenSingletons))
+            add(readSelectorArgument(head, seenSingletons, filterPolarity))
             when {
                 consume(']') -> return@buildList
                 consume(',') -> if (peek() == ']') fail("Expected selector argument")
@@ -50,18 +49,40 @@ private fun SelectorReader.readSelectorArguments(head: EntitySelectorHead): List
 private fun SelectorReader.readSelectorArgument(
     head: EntitySelectorHead,
     seenSingletons: MutableSet<String>,
+    filterPolarity: MutableMap<String, ParseFilterPolarityState>,
 ): EntitySelectorArgument {
     val nameOffset = offset
     val name = readWhile { it != '=' && it != ',' && it != ']' }
     if (name.isEmpty()) failAt(nameOffset, "Expected selector argument")
-    if (name.isSingletonSelectorArgument() && !seenSingletons.add(name)) {
-        failAt(
-            nameOffset,
-            "Selector argument '$name' is already set; vanilla syntax allows it only once.",
-        )
+    if (name in singletonSelectorArgumentNames && !seenSingletons.add(name)) {
+        failAt(nameOffset, selectorSingletonAlreadySetMessage(name))
     }
     expect('=', "Expected '=' after selector argument '$name'")
-    return readArgumentValue(head, name, nameOffset)
+    val argument = readArgumentValue(head, name, nameOffset)
+    enforceFilterGroupPolicy(argument, name, nameOffset, filterPolarity)
+    return argument
 }
 
-private fun String.isSingletonSelectorArgument(): Boolean = this in singletonSelectorArgumentNames
+/**
+ * Rejects exclusive filter-group violations at the offending argument name offset, using the same
+ * policy and messages as [EntitySelector] / [SelectorFilterGroup].
+ */
+private fun SelectorReader.enforceFilterGroupPolicy(
+    argument: EntitySelectorArgument,
+    name: String,
+    nameOffset: Int,
+    filterPolarity: MutableMap<String, ParseFilterPolarityState>,
+) {
+    val keyword = argument.keyword ?: return
+    val policy = keyword.filterPolicy ?: return
+    val state = filterPolarity.getOrPut(name) { ParseFilterPolarityState() }
+    val isExclusion = (argument as EntitySelectorArgument.Negatable).isFilterExclusion
+    val violation = policy.violationFor(name, state.hasPositive, state.hasNegative, isExclusion)
+    if (violation != null) failAt(nameOffset, violation)
+    if (isExclusion) state.hasNegative = true else state.hasPositive = true
+}
+
+private class ParseFilterPolarityState {
+    var hasPositive: Boolean = false
+    var hasNegative: Boolean = false
+}

@@ -15,8 +15,9 @@ package io.github.lmliam.kotventure.core.selector
  *
  * @property head selector head (determines which arguments are valid)
  * @property arguments arguments in source or DSL rendering order (immutable list)
- * @throws IllegalArgumentException if any argument is incompatible with [head], or a singleton
- *   argument name appears more than once
+ * @throws IllegalArgumentException if any argument is incompatible with [head], a singleton
+ *   argument name appears more than once, or an exclusive filter group
+ *   (`name`/`type`/`gamemode`/`team`) has two positives or mixes a positive with exclusions
  */
 @ConsistentCopyVisibility
 public data class EntitySelector private constructor(
@@ -34,14 +35,18 @@ public data class EntitySelector private constructor(
     ) : this(head, arguments.toList())
 
     init {
-        // Validate that each argument is supported by this selector head
         arguments.forEach(head::requireSupportFor)
         val seenSingletons = mutableSetOf<String>()
+        val filterPolarity = mutableMapOf<String, FilterPolarityState>()
         for (argument in arguments) {
-            val key = argument.singletonKey ?: continue
-            require(seenSingletons.add(key)) {
-                "Selector argument '$key' is already set; vanilla syntax allows it only once."
+            val singletonKey = argument.singletonKey
+            if (singletonKey != null) {
+                require(seenSingletons.add(singletonKey)) {
+                    selectorSingletonAlreadySetMessage(singletonKey)
+                }
+                continue
             }
+            requireValidFilterGroupEntry(argument, filterPolarity)
         }
     }
 
@@ -58,4 +63,31 @@ public data class EntitySelector private constructor(
         }
 
     public override fun toString(): String = asString()
+}
+
+/**
+ * Running positive/negative flags for one filter-group argument name while validating a list.
+ */
+private class FilterPolarityState {
+    var hasPositive: Boolean = false
+    var hasNegative: Boolean = false
+}
+
+/**
+ * Applies shared exclusive/repeatable policy for one filter-group argument, updating [states].
+ *
+ * @throws IllegalArgumentException when exclusive policy is violated
+ */
+private fun requireValidFilterGroupEntry(
+    argument: EntitySelectorArgument,
+    states: MutableMap<String, FilterPolarityState>,
+) {
+    val keyword = argument.keyword ?: return
+    val policy = keyword.filterPolicy ?: return
+    val name = keyword.sourceName
+    val state = states.getOrPut(name) { FilterPolarityState() }
+    val isExclusion = (argument as EntitySelectorArgument.Negatable).isFilterExclusion
+    val violation = policy.violationFor(name, state.hasPositive, state.hasNegative, isExclusion)
+    require(violation == null) { violation!! }
+    if (isExclusion) state.hasNegative = true else state.hasPositive = true
 }
