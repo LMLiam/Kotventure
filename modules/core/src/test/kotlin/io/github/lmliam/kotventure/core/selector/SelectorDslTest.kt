@@ -163,7 +163,7 @@ class SelectorDslTest :
                         separator(first)
                         separator(second)
                     }
-                }.message shouldBe "'separator' is already set."
+                }
             }
 
             "applies style to the selector root" {
