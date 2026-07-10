@@ -55,7 +55,10 @@ private fun SelectorReader.readSelectorArgument(
     val name = readWhile { it != '=' && it != ',' && it != ']' }
     if (name.isEmpty()) failAt(nameOffset, "Expected selector argument")
     if (name in singletonSelectorArgumentNames && !seenSingletons.add(name)) {
-        failAt(nameOffset, selectorSingletonAlreadySetMessage(name))
+        failAt(
+            nameOffset,
+            "Selector argument '$name' may only appear once (vanilla syntax allows a single occurrence).",
+        )
     }
     expect('=', "Expected '=' after selector argument '$name'")
     val argument = readArgumentValue(head, name, nameOffset)

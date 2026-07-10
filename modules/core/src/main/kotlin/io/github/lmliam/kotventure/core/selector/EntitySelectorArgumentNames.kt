@@ -65,11 +65,3 @@ internal val singletonSelectorArgumentNames: Set<String> =
  */
 internal val EntitySelectorArgument.singletonKey: String?
     get() = argumentName.takeIf { it in singletonSelectorArgumentNames }
-
-/**
- * Fail-fast message when a singleton selector argument appears more than once.
- *
- * Shared by the DSL builder, model constructor, and parser so wording stays identical.
- */
-internal fun selectorSingletonAlreadySetMessage(argument: String): String =
-    "Selector argument '$argument' may only appear once (vanilla syntax allows a single occurrence)."

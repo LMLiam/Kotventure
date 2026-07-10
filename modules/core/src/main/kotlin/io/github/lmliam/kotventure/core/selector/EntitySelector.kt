@@ -42,7 +42,7 @@ public data class EntitySelector private constructor(
             val singletonKey = argument.singletonKey
             if (singletonKey != null) {
                 require(seenSingletons.add(singletonKey)) {
-                    selectorSingletonAlreadySetMessage(singletonKey)
+                    "Selector argument '$singletonKey' may only appear once (vanilla syntax allows a single occurrence)."
                 }
                 continue
             }

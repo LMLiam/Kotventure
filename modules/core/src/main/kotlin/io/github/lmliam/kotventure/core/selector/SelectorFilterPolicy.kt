@@ -44,20 +44,6 @@ internal val SelectorArgumentKeyword.filterPolicy: SelectorFilterPolicy?
         }
 
 /**
- * Error when an exclusive group already holds a positive and another entry is attempted.
- *
- * Used by the DSL (positive already committed), the model, and the parser.
- */
-internal fun exclusivePositiveAlreadySetMessage(argument: String): String =
-    "Selector argument '$argument' is already set; vanilla syntax allows one positive value."
-
-/**
- * Error when an exclusive group mixes a positive value with exclusions.
- */
-internal fun exclusivePolarityMixMessage(argument: String): String =
-    "Selector argument '$argument' cannot combine a positive value with exclusions."
-
-/**
  * Returns an exclusive-policy violation message for recording [isExclusion] against prior polarity
  * flags, or `null` when the addition is allowed (including all [SelectorFilterPolicy.REPEATABLE]
  * cases).
@@ -71,8 +57,12 @@ internal fun SelectorFilterPolicy.violationFor(
     isExclusion: Boolean,
 ): String? {
     if (this == SelectorFilterPolicy.REPEATABLE) return null
-    if (hasPositive) return exclusivePositiveAlreadySetMessage(argument)
-    if (!isExclusion && hasNegative) return exclusivePolarityMixMessage(argument)
+    if (hasPositive) {
+        return "Selector argument '$argument' is already set; vanilla syntax allows one positive value."
+    }
+    if (!isExclusion && hasNegative) {
+        return "Selector argument '$argument' cannot combine a positive value with exclusions."
+    }
     return null
 }
 

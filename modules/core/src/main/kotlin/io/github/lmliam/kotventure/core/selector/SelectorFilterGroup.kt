@@ -42,7 +42,7 @@ internal class SelectorFilterGroup<T>(
         val hasPositive = entries.any { it.polarity == SelectorFilterPolarity.POSITIVE }
         val hasNegative = entries.any { it.polarity == SelectorFilterPolarity.NEGATIVE }
         check(!(hasPositive && hasNegative)) {
-            exclusivePolarityMixMessage(argument)
+            "Selector argument '$argument' cannot combine a positive value with exclusions."
         }
     }
 
@@ -53,7 +53,7 @@ internal class SelectorFilterGroup<T>(
     ): SelectorFilterEntry<T> {
         if (policy == SelectorFilterPolicy.EXCLUSIVE) {
             check(entries.none { it.polarity == SelectorFilterPolarity.POSITIVE }) {
-                exclusivePositiveAlreadySetMessage(argument)
+                "Selector argument '$argument' is already set; vanilla syntax allows one positive value."
             }
         }
         return SelectorFilterEntry(owner, argument, value, polarity).also {

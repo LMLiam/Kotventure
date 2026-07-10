@@ -12,7 +12,6 @@ internal class SelectorComponentBuilder(
     pattern: String,
 ) : ComponentBuilder<SelectorComponent, SelectorComponent.Builder>(Component.selector().pattern(pattern)),
     SelectorScope {
-    // once() guard only; the Adventure builder holds the value
     private var separator: Unit? by once()
 
     override fun separator(separator: ComponentLike) {

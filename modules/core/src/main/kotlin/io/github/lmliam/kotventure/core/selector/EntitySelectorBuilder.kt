@@ -11,17 +11,17 @@ import net.kyori.adventure.key.Key
  * compile-time: each factory narrows its lambda receiver to a capability scope.
  */
 internal class EntitySelectorBuilder : EntitySelectorScope {
-    var limit: Int? by once { alreadySet("limit") }
+    var limit: Int? by once()
         private set
-    var distance: SelectorRange? by once { alreadySet("distance") }
+    var distance: SelectorRange? by once()
         private set
-    var pitch: SelectorRange? by once { alreadySet("pitch") }
+    var pitch: SelectorRange? by once()
         private set
-    var yaw: SelectorRange? by once { alreadySet("yaw") }
+    var yaw: SelectorRange? by once()
         private set
-    var sort: SelectorSort? by once { alreadySet("sort") }
+    var sort: SelectorSort? by once()
         private set
-    var level: SelectorIntRange? by once { alreadySet("level") }
+    var level: SelectorIntRange? by once()
         private set
 
     val typeFilters = SelectorFilterGroup<String>(SelectorArgumentKeyword.TYPE)
@@ -35,10 +35,10 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     val coordinates: Map<SelectorCoordinate, Double>
         field = mutableMapOf()
 
-    var scores: Map<String, SelectorIntRange>? by once { alreadySet("scores") }
+    var scores: Map<String, SelectorIntRange>? by once()
         private set
 
-    var advancements: Map<Key, AdvancementCondition>? by once { alreadySet("advancements") }
+    var advancements: Map<Key, AdvancementCondition>? by once()
         private set
 
     private var isConfiguring = false
@@ -192,7 +192,9 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
         argument: String,
         current: Any?,
     ) {
-        check(current == null) { alreadySet(argument) }
+        check(current == null) {
+            "Selector argument '$argument' may only appear once (vanilla syntax allows a single occurrence)."
+        }
     }
 
     private fun validTeamName(team: String): String {
@@ -205,8 +207,6 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
         return team
     }
 }
-
-private fun alreadySet(argument: String): String = selectorSingletonAlreadySetMessage(argument)
 
 private val SelectorPresence.polarity: SelectorFilterPolarity
     get() =
