@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any release.
 
+## [0.14.1](https://github.com/LMLiam/Kotventure/compare/0.14.0...0.14.1) (2026-07-10)
+
+
+### 🔧 Refactors
+
+* **core:** DSL fail-fast, selector parity, and package hygiene ([#263](https://github.com/LMLiam/Kotventure/issues/263)) ([dd99f8c](https://github.com/LMLiam/Kotventure/commit/dd99f8cc1aedb0bd6a2900f69a922b636d84a900))
+
 ## [0.14.0](https://github.com/LMLiam/Kotventure/compare/0.13.0...0.14.0) (2026-07-10)
 
 
