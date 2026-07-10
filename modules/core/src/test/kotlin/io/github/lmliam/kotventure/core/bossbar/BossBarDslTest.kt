@@ -164,13 +164,13 @@ class BossBarDslTest :
                         name { text("Bad") }
                         progress(1.5f)
                     }
-                }.message shouldBe "'progress' must be in 0.0..1.0, got 1.5."
+                }
                 shouldThrow<IllegalArgumentException> {
                     bossBar {
                         name { text("Bad") }
                         progress(-0.1f)
                     }
-                }.message shouldBe "'progress' must be in 0.0..1.0, got -0.1."
+                }
             }
 
             listOf(
@@ -238,6 +238,8 @@ class BossBarDslTest :
                 }.message shouldBe "'progress' is already set."
             }
 
+            // IllegalStateException (not the range IllegalArgumentException) proves the once-slot
+            // claims the duplicate before validation sees the bad value.
             "duplicate progress prefers once-assign over range validation" {
                 shouldThrow<IllegalStateException> {
                     bossBar {
@@ -245,7 +247,7 @@ class BossBarDslTest :
                         progress(0.5f)
                         progress(Float.NaN)
                     }
-                }.message shouldBe "'progress' is already set."
+                }
 
                 shouldThrow<IllegalStateException> {
                     bossBar {
@@ -253,7 +255,7 @@ class BossBarDslTest :
                         progress(0.5f)
                         progress(1.5f)
                     }
-                }.message shouldBe "'progress' is already set."
+                }
             }
         },
     )

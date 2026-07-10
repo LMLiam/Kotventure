@@ -61,121 +61,102 @@ class EntitySelectorModelTest :
                 negatable.count { it.isNegated } shouldBe 2
             }
 
-            "rejects duplicate singleton arguments on the model" {
-                shouldThrow<IllegalArgumentException> {
-                    EntitySelector(
-                        EntitySelectorHead.ENTITIES,
-                        listOf(
-                            EntitySelectorArgument.Limit(1),
-                            EntitySelectorArgument.Limit(2),
+            listOf(
+                Triple(
+                    "model rejects a duplicate singleton argument",
+                    EntitySelectorHead.ENTITIES,
+                    listOf(
+                        EntitySelectorArgument.Limit(1),
+                        EntitySelectorArgument.Limit(2),
+                    ),
+                ),
+                Triple(
+                    "model rejects two positive name filters",
+                    EntitySelectorHead.ENTITIES,
+                    listOf(
+                        EntitySelectorArgument.Name("a", isNegated = false),
+                        EntitySelectorArgument.Name("b", isNegated = false),
+                    ),
+                ),
+                Triple(
+                    "model rejects two positive type filters",
+                    EntitySelectorHead.ENTITIES,
+                    listOf(
+                        EntitySelectorArgument.Type(
+                            SelectorEntityType.Direct(key("minecraft", "zombie")),
+                            isNegated = false,
                         ),
-                    )
-                }
-            }
-
-            "rejects two positive exclusive filter-group values on the model" {
-                shouldThrow<IllegalArgumentException> {
-                    EntitySelector(
-                        EntitySelectorHead.ENTITIES,
-                        listOf(
-                            EntitySelectorArgument.Name("a", isNegated = false),
-                            EntitySelectorArgument.Name("b", isNegated = false),
+                        EntitySelectorArgument.Type(
+                            SelectorEntityType.Direct(key("minecraft", "skeleton")),
+                            isNegated = false,
                         ),
-                    )
-                }
-
-                shouldThrow<IllegalArgumentException> {
-                    EntitySelector(
-                        EntitySelectorHead.ENTITIES,
-                        listOf(
-                            EntitySelectorArgument.Type(
-                                SelectorEntityType.Direct(key("minecraft", "zombie")),
-                                isNegated = false,
-                            ),
-                            EntitySelectorArgument.Type(
-                                SelectorEntityType.Direct(key("minecraft", "skeleton")),
-                                isNegated = false,
-                            ),
+                    ),
+                ),
+                Triple(
+                    "model rejects two positive gamemode filters",
+                    EntitySelectorHead.ALL_PLAYERS,
+                    listOf(
+                        EntitySelectorArgument.GameMode(GameMode.SURVIVAL, isNegated = false),
+                        EntitySelectorArgument.GameMode(GameMode.CREATIVE, isNegated = false),
+                    ),
+                ),
+                Triple(
+                    "model rejects two positive team filters",
+                    EntitySelectorHead.ENTITIES,
+                    listOf(
+                        EntitySelectorArgument.Team(SelectorStringCondition.Named("red")),
+                        EntitySelectorArgument.Team(SelectorStringCondition.Named("blue")),
+                    ),
+                ),
+                Triple(
+                    "model rejects a name exclusion after a positive name",
+                    EntitySelectorHead.ENTITIES,
+                    listOf(
+                        EntitySelectorArgument.Name("a", isNegated = false),
+                        EntitySelectorArgument.Name("b", isNegated = true),
+                    ),
+                ),
+                Triple(
+                    "model rejects a positive name after name exclusions",
+                    EntitySelectorHead.ENTITIES,
+                    listOf(
+                        EntitySelectorArgument.Name("a", isNegated = true),
+                        EntitySelectorArgument.Name("b", isNegated = false),
+                    ),
+                ),
+                Triple(
+                    "model rejects a positive type after a type exclusion",
+                    EntitySelectorHead.ENTITIES,
+                    listOf(
+                        EntitySelectorArgument.Type(
+                            SelectorEntityType.Direct(key("minecraft", "zombie")),
+                            isNegated = true,
                         ),
-                    )
-                }
-
-                shouldThrow<IllegalArgumentException> {
-                    EntitySelector(
-                        EntitySelectorHead.ALL_PLAYERS,
-                        listOf(
-                            EntitySelectorArgument.GameMode(GameMode.SURVIVAL, isNegated = false),
-                            EntitySelectorArgument.GameMode(GameMode.CREATIVE, isNegated = false),
+                        EntitySelectorArgument.Type(
+                            SelectorEntityType.Direct(key("minecraft", "skeleton")),
+                            isNegated = false,
                         ),
-                    )
-                }
-
-                shouldThrow<IllegalArgumentException> {
-                    EntitySelector(
-                        EntitySelectorHead.ENTITIES,
-                        listOf(
-                            EntitySelectorArgument.Team(SelectorStringCondition.Named("red")),
-                            EntitySelectorArgument.Team(SelectorStringCondition.Named("blue")),
-                        ),
-                    )
-                }
-            }
-
-            "rejects exclusive positive mixed with exclusions on the model" {
-                shouldThrow<IllegalArgumentException> {
-                    EntitySelector(
-                        EntitySelectorHead.ENTITIES,
-                        listOf(
-                            EntitySelectorArgument.Name("a", isNegated = false),
-                            EntitySelectorArgument.Name("b", isNegated = true),
-                        ),
-                    )
-                }
-
-                shouldThrow<IllegalArgumentException> {
-                    EntitySelector(
-                        EntitySelectorHead.ENTITIES,
-                        listOf(
-                            EntitySelectorArgument.Name("a", isNegated = true),
-                            EntitySelectorArgument.Name("b", isNegated = false),
-                        ),
-                    )
-                }
-
-                shouldThrow<IllegalArgumentException> {
-                    EntitySelector(
-                        EntitySelectorHead.ENTITIES,
-                        listOf(
-                            EntitySelectorArgument.Type(
-                                SelectorEntityType.Direct(key("minecraft", "zombie")),
-                                isNegated = true,
-                            ),
-                            EntitySelectorArgument.Type(
-                                SelectorEntityType.Direct(key("minecraft", "skeleton")),
-                                isNegated = false,
-                            ),
-                        ),
-                    )
-                }
-
-                shouldThrow<IllegalArgumentException> {
-                    EntitySelector(
-                        EntitySelectorHead.ALL_PLAYERS,
-                        listOf(
-                            EntitySelectorArgument.GameMode(GameMode.SURVIVAL, isNegated = true),
-                            EntitySelectorArgument.GameMode(GameMode.CREATIVE, isNegated = false),
-                        ),
-                    )
-                }
-
-                shouldThrow<IllegalArgumentException> {
-                    EntitySelector(
-                        EntitySelectorHead.ENTITIES,
-                        listOf(
-                            EntitySelectorArgument.Team(SelectorStringCondition.Named("red", isNegated = true)),
-                            EntitySelectorArgument.Team(SelectorStringCondition.Named("blue")),
-                        ),
-                    )
+                    ),
+                ),
+                Triple(
+                    "model rejects a positive gamemode after a gamemode exclusion",
+                    EntitySelectorHead.ALL_PLAYERS,
+                    listOf(
+                        EntitySelectorArgument.GameMode(GameMode.SURVIVAL, isNegated = true),
+                        EntitySelectorArgument.GameMode(GameMode.CREATIVE, isNegated = false),
+                    ),
+                ),
+                Triple(
+                    "model rejects a positive team after a team exclusion",
+                    EntitySelectorHead.ENTITIES,
+                    listOf(
+                        EntitySelectorArgument.Team(SelectorStringCondition.Named("red", isNegated = true)),
+                        EntitySelectorArgument.Team(SelectorStringCondition.Named("blue")),
+                    ),
+                ),
+            ).forEach { (name, head, arguments) ->
+                name {
+                    shouldThrow<IllegalArgumentException> { EntitySelector(head, arguments) }
                 }
             }
 
