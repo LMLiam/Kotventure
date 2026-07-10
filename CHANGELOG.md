@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any release.
 
+## [0.12.0](https://github.com/LMLiam/Kotventure/compare/0.11.0...0.12.0) (2026-07-10)
+
+
+### ✨ Features
+
+* **audience:** add the sound dsl ([#242](https://github.com/LMLiam/Kotventure/issues/242)) ([a8932fb](https://github.com/LMLiam/Kotventure/commit/a8932fbd9cc9dea0d97bcd6520600d784ff9ca2f))
+
 ## [0.11.0](https://github.com/LMLiam/Kotventure/compare/0.10.0...0.11.0) (2026-07-09)
 
 
