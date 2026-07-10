@@ -20,6 +20,13 @@ def moduleDescription = objects.property(String)
 def publicationArtifactId = "kotventure-${moduleName}"
 def repositoryUrl = 'https://github.com/LMLiam/Kotventure'
 
+def actualGroupId = objects.property(String)
+def actualArtifactId = objects.property(String)
+def actualVersion = objects.property(String)
+def actualPomName = objects.property(String)
+def actualPomDescription = objects.property(String)
+def actualPomUrl = objects.property(String)
+
 afterEvaluate {
     if (project.description != null) {
         moduleDescription.set(project.description)
@@ -33,6 +40,14 @@ afterEvaluate {
             throw new GradleException("${modulePath} must apply java or java-platform to publish Maven metadata.")
         }
     }
+
+    def publication = publishing.publications.getByName('maven')
+    actualGroupId.set(publication.groupId)
+    actualArtifactId.set(publication.artifactId)
+    actualVersion.set(publication.version)
+    actualPomName.set(publication.pom.name.getOrNull() ?: '')
+    actualPomDescription.set(publication.pom.description.getOrNull() ?: '')
+    actualPomUrl.set(publication.pom.url.getOrNull() ?: '')
 }
 
 publishing {
@@ -55,32 +70,48 @@ tasks.register('verifyMavenPublicationMetadata') {
     group = 'verification'
     description = 'Verifies the Maven publication coordinates and POM metadata.'
 
+    def expectedGroup = publicationGroup
+    def expectedArtifactId = publicationArtifactId
+    def expectedVersion = publicationVersion
+    def expectedName = moduleName
+    def expectedUrl = repositoryUrl
+    def expectedDescription = moduleDescription
+
+    inputs.property('expectedGroup', expectedGroup)
+    inputs.property('expectedArtifactId', expectedArtifactId)
+    inputs.property('expectedVersion', expectedVersion)
+    inputs.property('expectedName', expectedName)
+    inputs.property('expectedUrl', expectedUrl)
+    inputs.property('expectedDescription', expectedDescription)
+    inputs.property('actualGroupId', actualGroupId)
+    inputs.property('actualArtifactId', actualArtifactId)
+    inputs.property('actualVersion', actualVersion)
+    inputs.property('actualPomName', actualPomName)
+    inputs.property('actualPomDescription', actualPomDescription)
+    inputs.property('actualPomUrl', actualPomUrl)
+
     doLast {
-        def publication = publishing.publications.findByName('maven')
-        if (publication == null) {
-            throw new GradleException("${modulePath} does not define a Maven publication named 'maven'.")
+        if (actualGroupId.get() != expectedGroup) {
+            throw new GradleException("${modulePath} publishes group '${actualGroupId.get()}', expected '${expectedGroup}'.")
         }
-        if (publication.groupId != publicationGroup) {
-            throw new GradleException("${modulePath} publishes group '${publication.groupId}', expected '${publicationGroup}'.")
+        if (actualArtifactId.get() != expectedArtifactId) {
+            throw new GradleException("${modulePath} publishes artifact '${actualArtifactId.get()}', expected '${expectedArtifactId}'.")
         }
-        if (publication.artifactId != publicationArtifactId) {
-            throw new GradleException("${modulePath} publishes artifact '${publication.artifactId}', expected '${publicationArtifactId}'.")
+        if (actualVersion.get() != expectedVersion) {
+            throw new GradleException("${modulePath} publishes version '${actualVersion.get()}', expected '${expectedVersion}'.")
         }
-        if (publication.version != publicationVersion) {
-            throw new GradleException("${modulePath} publishes version '${publication.version}', expected '${publicationVersion}'.")
+        if (actualPomName.get() != expectedName) {
+            throw new GradleException("${modulePath} POM name must be '${expectedName}'.")
         }
-        if (publication.pom.name.getOrNull() != moduleName) {
-            throw new GradleException("${modulePath} POM name must be '${moduleName}'.")
-        }
-        def expectedDescription = moduleDescription.getOrNull()
-        if (expectedDescription == null || expectedDescription.isBlank()) {
+        def descriptionValue = expectedDescription.getOrNull()
+        if (descriptionValue == null || descriptionValue.isBlank()) {
             throw new GradleException("${modulePath} must define a project description for publication.")
         }
-        if (publication.pom.description.getOrNull() != expectedDescription) {
+        if (actualPomDescription.get() != descriptionValue) {
             throw new GradleException("${modulePath} POM description must match the project description.")
         }
-        if (publication.pom.url.getOrNull() != repositoryUrl) {
-            throw new GradleException("${modulePath} POM URL must be '${repositoryUrl}'.")
+        if (actualPomUrl.get() != expectedUrl) {
+            throw new GradleException("${modulePath} POM URL must be '${expectedUrl}'.")
         }
     }
 }

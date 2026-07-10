@@ -59,6 +59,8 @@ dependencies {
     }
 }
 
+def bomConsumerVerificationFiles = configurations.bomConsumerVerification
+
 tasks.register('verifyBomConsumerVersionlessDependencies') {
     group = 'verification'
     description = 'Verifies that a consumer importing kotventure-bom can omit per-artifact versions.'
@@ -68,32 +70,26 @@ tasks.register('verifyBomConsumerVersionlessDependencies') {
     }
     dependsOn ':bom:publishMavenPublicationToBomConsumerLocalRepository'
 
+    def expectedVersion = bomConsumerVersion
+    def expectedArtifacts = bomConsumerArtifacts
+    def resolvedFiles = bomConsumerVerificationFiles
+
+    inputs.property('expectedVersion', expectedVersion)
+    inputs.property('expectedArtifacts', expectedArtifacts)
+    inputs.files(resolvedFiles)
+
     doLast {
-        def expectedGroup = bomConsumerGroup
-        def expectedVersion = bomConsumerVersion
-        def resolvedVersions = [:]
-
-        configurations.bomConsumerVerification.incoming.resolutionResult.allComponents.each { component ->
-            def moduleVersion = component.moduleVersion
-            if (moduleVersion != null &&
-                    moduleVersion.group == expectedGroup &&
-                    bomConsumerArtifacts.contains(moduleVersion.name)) {
-                resolvedVersions[moduleVersion.name] = moduleVersion.version
-            }
-        }
-
-        def missingArtifacts = bomConsumerArtifacts.findAll { artifactName ->
-            !resolvedVersions.containsKey(artifactName)
+        def resolvedNames = resolvedFiles.files.collect { file -> file.name.toString() }.toSet()
+        def missingArtifacts = expectedArtifacts.findAll { artifactName ->
+            def expectedJar = "${artifactName}-${expectedVersion}.jar".toString()
+            !resolvedNames.any { name -> name == expectedJar }
         }
         if (!missingArtifacts.isEmpty()) {
-            throw new GradleException("BOM consumer verification did not resolve: ${missingArtifacts.join(', ')}")
-        }
-
-        def mismatchedVersions = resolvedVersions.findAll { artifactName, resolvedVersion ->
-            resolvedVersion != expectedVersion
-        }
-        if (!mismatchedVersions.isEmpty()) {
-            throw new GradleException("BOM consumer verification resolved unexpected versions: ${mismatchedVersions}")
+            throw new GradleException(
+                    "BOM consumer verification did not resolve versionless artifacts " +
+                            "(expected version '${expectedVersion}'): ${missingArtifacts.join(', ')}. " +
+                            "Resolved files: ${resolvedNames.sort().join(', ')}"
+            )
         }
     }
 }

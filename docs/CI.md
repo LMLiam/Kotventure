@@ -102,6 +102,16 @@ Third-party actions are SHA-pinned with a version comment. Dependabot updates (`
 
 New composites that pin third-party actions need a matching Dependabot directory.
 
+## Performance
+
+| Mechanism | Where |
+|-----------|--------|
+| Configuration cache + build cache | `gradle.properties` (`org.gradle.configuration-cache`, `org.gradle.caching`) |
+| Dependency / wrapper caches | `setup-gradle` via `.github/actions/setup-jdk-gradle` |
+| Minecraft conformance fixtures | `actions/cache` on `modules/core/build/vanilla-conformance` (key = MC version + SHA-1 from `gradle/vanilla-conformance.gradle`) |
+
+The Gradle Build job checks out full git history so Spotless `ratchetFrom 'origin/master'` works.
+
 ## Re-running CI
 
 - **Re-run failed jobs** / **Re-run all jobs** on an Actions run.

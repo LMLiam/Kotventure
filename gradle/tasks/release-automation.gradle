@@ -7,24 +7,30 @@ tasks.register('verifyReleaseVersionConsistency') {
     group = 'verification'
     description = 'Verifies the project version is consistent across the catalog, the project, and the release manifest.'
 
-    doLast {
-        def catalogVersion = rootProject.extensions
-                .getByType(VersionCatalogsExtension)
-                .named('libs')
-                .findVersion('project')
-                .orElseThrow { new GradleException('gradle/libs.versions.toml must define versions.project.') }
-                .requiredVersion
+    def catalogVersion = rootProject.extensions
+            .getByType(VersionCatalogsExtension)
+            .named('libs')
+            .findVersion('project')
+            .orElseThrow { new GradleException('gradle/libs.versions.toml must define versions.project.') }
+            .requiredVersion
+    def projectVersion = rootProject.version.toString()
+    def manifestFile = rootProject.layout.projectDirectory.file('.release-please-manifest.json')
 
-        if (rootProject.version.toString() != catalogVersion) {
-            throw new GradleException("Root project version '${rootProject.version}' must match versions.project '${catalogVersion}'.")
+    inputs.property('catalogVersion', catalogVersion)
+    inputs.property('projectVersion', projectVersion)
+    inputs.file(manifestFile)
+
+    doLast {
+        if (projectVersion != catalogVersion) {
+            throw new GradleException("Root project version '${projectVersion}' must match versions.project '${catalogVersion}'.")
         }
 
-        def manifestFile = rootProject.file('.release-please-manifest.json')
-        if (!manifestFile.isFile()) {
+        def manifestPath = manifestFile.asFile
+        if (!manifestPath.isFile()) {
             throw new GradleException('Missing required release file: .release-please-manifest.json')
         }
 
-        def manifestVersion = new JsonSlurper().parse(manifestFile)['.']
+        def manifestVersion = new JsonSlurper().parse(manifestPath)['.']
         if (manifestVersion != catalogVersion) {
             throw new GradleException(".release-please-manifest.json version '${manifestVersion}' must match versions.project '${catalogVersion}'.")
         }

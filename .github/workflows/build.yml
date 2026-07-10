@@ -63,7 +63,7 @@ jobs:
         uses: ./.github/actions/setup-jdk-gradle
 
       - name: Run build, tests, coverage, and formatting checks
-        run: ./gradlew build dokkaGenerate koverXmlReport koverHtmlReport spotlessCheck ktlintCheck --no-daemon
+        run: ./gradlew build dokkaGenerate koverXmlReport koverHtmlReport spotlessCheck ktlintCheck
 
       - name: Publish JUnit test report
         if: always()
