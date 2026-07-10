@@ -16,8 +16,8 @@ public interface PlaySoundScope : SoundScope {
      * Mutually exclusive with [at] — Adventure's [Audience.playSound][net.kyori.adventure.audience.Audience.playSound]
      * overloads cannot express both.
      *
-     * @throws IllegalStateException when [emitter] is already set in this block or the other
-     *   playback slot is set.
+     * @throws IllegalStateException when a playback context (either 'emitter' or 'at') is already
+     *   set in this block.
      */
     public fun emitter(emitter: Sound.Emitter)
 
@@ -35,8 +35,8 @@ public interface PlaySoundScope : SoundScope {
      * Mutually exclusive with [emitter] — Adventure's
      * [Audience.playSound][net.kyori.adventure.audience.Audience.playSound] overloads cannot express both.
      *
-     * @throws IllegalStateException when [at] is already set in this block or the other playback
-     *   slot is set.
+     * @throws IllegalStateException when a playback context (either 'emitter' or 'at') is already
+     *   set in this block.
      */
     public fun at(
         x: Double,

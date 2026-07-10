@@ -11,12 +11,11 @@ internal class PlaySoundBuilder(
     SoundScope by sound {
     internal constructor(name: Key) : this(SoundBuilder(name))
 
-    private var emitter: Sound.Emitter? by once()
-    private var position: SoundPosition? by once { "'at' is already set." }
+    private var playback: (Audience.(Sound) -> Unit)? by
+        once { "a playback context ('emitter' or 'at') is already set." }
 
     override fun emitter(emitter: Sound.Emitter) {
-        check(position == null) { "'emitter' cannot be set when 'at' is already set." }
-        this.emitter = emitter
+        playback = { sound -> playSound(sound, emitter) }
     }
 
     override fun at(
@@ -24,19 +23,12 @@ internal class PlaySoundBuilder(
         y: Double,
         z: Double,
     ) {
-        check(emitter == null) { "'at' cannot be set when 'emitter' is already set." }
-        position = SoundPosition(x, y, z)
+        playback = { sound -> playSound(sound, x, y, z) }
     }
 
     internal fun playOn(audience: Audience): Sound {
         val built = sound.build()
-        val emitter = emitter
-        val position = position
-        when {
-            emitter != null -> audience.playSound(built, emitter)
-            position != null -> audience.playSound(built, position.x, position.y, position.z)
-            else -> audience.playSound(built)
-        }
+        (playback ?: Audience::playSound)(audience, built)
         return built
     }
 }
