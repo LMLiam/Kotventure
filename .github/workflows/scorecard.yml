@@ -1,6 +1,6 @@
 name: OpenSSF Scorecard
 
-# CI-W5: weekly + branch-protection + manual cover the signal without a full run on every master push.
+# Weekly + branch-protection + manual; not every master push.
 on:
   workflow_dispatch:
   branch_protection_rule:

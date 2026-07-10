@@ -1,8 +1,9 @@
 name: Build
 
-# Path filters (CI-W1 / CI-W4): skip docs-only and process-only changes.
+# Inclusive path filters: skip docs-only and process-only changes.
 # Keep push→master so direct commits and merges still verify when code paths change.
-# Path lists are duplicated (GHA does not support YAML anchors).
+# Duplicate this list in qodana.yml (pull_request.paths) and document it in docs/CI.md —
+# GitHub Actions does not support YAML anchors.
 on:
   pull_request:
     branches:
@@ -16,6 +17,9 @@ on:
       - 'gradlew'
       - 'gradlew.bat'
       - 'buildSrc/**'
+      - '.editorconfig'
+      - '.gitattributes'
+      - '.gitignore'
       - 'qodana.yaml'
       - 'jitpack.yml'
       - 'release-please-config.json'
@@ -35,6 +39,9 @@ on:
       - 'gradlew'
       - 'gradlew.bat'
       - 'buildSrc/**'
+      - '.editorconfig'
+      - '.gitattributes'
+      - '.gitignore'
       - 'qodana.yaml'
       - 'jitpack.yml'
       - 'release-please-config.json'

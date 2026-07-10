@@ -20,20 +20,26 @@ For local development commands, see [CONTRIBUTING.md](../.github/CONTRIBUTING.md
 | **OpenSSF Scorecard** | weekly schedule, `branch_protection_rule`, `workflow_dispatch` | Supply-chain scorecard + SARIF |
 | **Heavy CI gate** | `workflow_call` only | Shared skip logic for pure release-please PRs |
 
-## When workflows run (waste control)
+## When workflows run
 
-### Path filters (Build + Qodana PRs)
+### Path filters (Build + Qodana)
 
-Build (PR and push) and Qodana (PR only) run only when at least one of these paths changes:
+Build (PR and push) and Qodana (PR only) start only when at least one of these paths changes:
 
 - `modules/**`, `gradle/**`, `buildSrc/**`
 - Root Gradle entrypoints: `build.gradle`, `settings.gradle`, `gradle.properties`, `gradlew`, `gradlew.bat`
+- Style roots: `.editorconfig`, `.gitattributes`, `.gitignore`
 - `qodana.yaml`, `jitpack.yml`, `release-please-config.json`
 - CI wiring: `.github/workflows/**`, `.github/actions/**`, `.github/scripts/**`, `.github/dependabot.yml`
 
-**Skipped examples:** docs-only PRs (`docs/**`, `*.md`), issue/PR templates, labeler config, CODEOWNERS, etc. Titles and Labeler still run on those PRs.
+**Typically skipped:** pure `docs/**` changes, root markdown that is not under `modules/**`, issue/PR templates,
+labeler config, CODEOWNERS. Titles and Labeler still run on those PRs.
 
-Keep the Build and Qodana path lists in sync when adding new code or CI roots.
+Keep the path lists in **`build.yml`** (PR and push) and **`qodana.yml`** (PR) identical. GitHub Actions does not
+support YAML anchors, so the three copies are intentional.
+
+If Build is later made a **required** status check, path-filtered PRs will not report a Build check at all—use a
+ruleset exemption or an always-green companion job before requiring it.
 
 ### Push vs PR (Build / Qodana)
 
@@ -44,15 +50,17 @@ Keep the Build and Qodana path lists in sync when adding new code or CI roots.
 | Weekly schedule | — | ✓ |
 | `workflow_dispatch` | — | ✓ |
 
-- **Build** still runs on path-matching pushes to `master` so direct commits and post-merge verification stay covered without a merge queue (CI-W4: keep push; path filters cut docs-only noise).
-- **Qodana** does **not** run on push to `master` (CI-W3): PR coverage + weekly + manual is enough and avoids a second long run on every merge.
-- **Scorecard** does **not** run on every master push (CI-W5): weekly + branch-protection + manual.
+- **Build** still runs on path-matching pushes to `master` so direct commits and post-merge verification stay covered
+  without a merge queue. Path filters avoid docs-only merge noise.
+- **Qodana** does **not** run on push to `master`: PR coverage + weekly + manual is enough and avoids a second long run
+  on every merge.
+- **Scorecard** does **not** run on every master push: weekly + branch-protection + manual.
 
 ### Heavy CI gate (release-please)
 
 Reusable workflow: [`.github/workflows/heavy-ci-gate.yml`](../.github/workflows/heavy-ci-gate.yml).
 
-**Used by:** Build, Qodana (CI-W2 — landed with #250).
+**Used by:** Build, Qodana.
 
 Dependency Security Review is **not** gated: it is cheap and should still run when release-please touches
 `gradle/libs.versions.toml` (even for a project-version bump, the full file is on the allow-list).
@@ -70,7 +78,8 @@ All of the following:
 
 That set matches what release-please is configured to touch (`release-please-config.json` + the manifest).
 
-If the PR also matches Build/Qodana **path filters** only via `gradle/libs.versions.toml`, the workflow still starts, then the gate skips the heavy job (cheap gate-only run).
+If the PR also matches Build/Qodana path filters only via `gradle/libs.versions.toml`, the workflow still starts, then
+the gate skips the heavy job (cheap gate-only run).
 
 #### When heavy CI still runs on a release-please branch
 
@@ -122,8 +131,9 @@ auto-updatable.
 
 ## Re-running CI
 
-- Use **Re-run failed jobs** / **Re-run all jobs** on the Actions run for the PR or push.
-- Build does not currently expose `workflow_dispatch` (empty commits still work if you need a fresh push run).
+- Use **Re-run failed jobs** / **Re-run all jobs** on an existing Actions run for the PR or push.
+- Build has no `workflow_dispatch`. Empty commits **do not** re-trigger path-filtered Build (no path matches). To force
+  a Build, change a filtered path or re-run from the Actions UI.
 - Qodana, Vanilla Conformance, and Scorecard support `workflow_dispatch` for manual runs.
 
 ## Related docs
