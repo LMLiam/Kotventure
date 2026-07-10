@@ -23,7 +23,10 @@ internal class BossBarBuilder(
     }
 
     override fun progress(progress: Float) {
-        progressValue = progress.requireBossBarProgress()
+        // Claim the once-slot before range validation so a second call always throws
+        // IllegalStateException, even when the new value is out of range (e.g. NaN, 1.5f).
+        progressValue = progress
+        progress.requireBossBarProgress()
     }
 
     internal fun build(): BossBar {

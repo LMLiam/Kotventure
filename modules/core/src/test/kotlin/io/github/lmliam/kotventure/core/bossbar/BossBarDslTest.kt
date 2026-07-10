@@ -237,5 +237,23 @@ class BossBarDslTest :
                     }
                 }.message shouldBe "'progress' is already set."
             }
+
+            "duplicate progress prefers once-assign over range validation" {
+                shouldThrow<IllegalStateException> {
+                    bossBar {
+                        name { text("a") }
+                        progress(0.5f)
+                        progress(Float.NaN)
+                    }
+                }.message shouldBe "'progress' is already set."
+
+                shouldThrow<IllegalStateException> {
+                    bossBar {
+                        name { text("a") }
+                        progress(0.5f)
+                        progress(1.5f)
+                    }
+                }.message shouldBe "'progress' is already set."
+            }
         },
     )
