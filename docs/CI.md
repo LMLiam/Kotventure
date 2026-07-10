@@ -10,7 +10,7 @@ For local development commands, see [CONTRIBUTING.md](../.github/CONTRIBUTING.md
 
 | Workflow | Triggers | Purpose |
 |----------|----------|---------|
-| **Build** | PR → `master`, push → `master` | Gradle verify when code paths change; required check always reports |
+| **Build** | PR → `master`, push → `master` | Parallel format/lint + Gradle verify when code paths change; required check always reports |
 | **Qodana** | PR → `master` (path-filtered), weekly schedule, `workflow_dispatch` | Static analysis + SARIF to code scanning |
 | **Vanilla Conformance** | Path-filtered PRs, weekly schedule, `workflow_dispatch` | MC-backed selector tests |
 | **Dependency Security Review** | PR → `master` | `dependency-review-action` |
@@ -36,8 +36,13 @@ Shared definition: [`.github/code-paths-filter.yml`](../.github/code-paths-filte
 **Build** starts on every PR/push to `master`, then:
 
 1. **Heavy CI gate** — skip pure release-please allow-list PRs.
-2. **Path filter** — skip Gradle when no `code` paths changed.
-3. **`Build, Test, and Lint`** — required check; green when Gradle is skipped, fails when Gradle fails.
+2. **Path filter** — skip Gradle work when no `code` paths changed.
+3. **Parallel jobs** (when code paths change):
+   - **Format and lint** — `spotlessCheck` + `ktlintCheck`.
+   - **Gradle build** — `build`, Dokka, Kover reports.
+4. **`Build, Test, and Lint`** — required check; green when both jobs are skipped, fails if either fails.
+
+Both jobs check out full git history so Spotless `ratchetFrom 'origin/master'` resolves.
 
 **Qodana** uses the same path list on `pull_request` so docs-only PRs do not start it. Keep `qodana.yml`
 `pull_request.paths` identical to the `code` list in `code-paths-filter.yml`.
@@ -46,8 +51,8 @@ Gradle does not run for docs-only / template-only changes. Markdown under `modul
 
 ### Push vs PR
 
-| Event | Build workflow | Gradle | Qodana |
-|-------|:--------------:|:------:|:------:|
+| Event | Build workflow | Lint + Gradle jobs | Qodana |
+|-------|:--------------:|:------------------:|:------:|
 | PR (code paths) | ✓ | ✓ | ✓ |
 | PR (docs/process only) | ✓ | — | — |
 | Push to `master` (code paths) | ✓ | ✓ | — |
@@ -60,7 +65,7 @@ Gradle does not run for docs-only / template-only changes. Markdown under `modul
 Workflow: [`.github/workflows/heavy-ci-gate.yml`](../.github/workflows/heavy-ci-gate.yml).  
 **Used by:** Build, Qodana. Dependency Review is not gated.
 
-Skips the Gradle / Qodana jobs when all of:
+Skips Build’s lint/Gradle jobs and Qodana when all of:
 
 1. Event is a `pull_request`
 2. Head branch starts with `release-please--`
@@ -69,7 +74,7 @@ Skips the Gradle / Qodana jobs when all of:
    - `.release-please-manifest.json`
    - `gradle/libs.versions.toml`
 
-On Build, the required check still reports success when the gate skips Gradle.
+On Build, the required check still reports success when the gate skips the lint and Gradle jobs.
 
 If the PR has any other path change, Build/Qodana run when code paths match.
 
@@ -82,7 +87,7 @@ When adding release-please `extra-files`, update the gate allow-list in the same
 | **setup-jdk-gradle** | [`.github/actions/setup-jdk-gradle`](../.github/actions/setup-jdk-gradle/action.yml) | Build, Vanilla Conformance |
 | **publish-junit-report** | [`.github/actions/publish-junit-report`](../.github/actions/publish-junit-report/action.yml) | Build, Vanilla Conformance |
 
-Checkout stays per-workflow (Qodana custom `ref` / history; Build full history on the Gradle job).
+Checkout stays per-workflow (Qodana custom `ref` / history; Build uses full history on both parallel jobs).
 
 ## Scripts
 
@@ -110,7 +115,13 @@ New composites that pin third-party actions need a matching Dependabot directory
 | Dependency / wrapper caches | `setup-gradle` defaults in `.github/actions/setup-jdk-gradle` |
 | Minecraft conformance fixtures | `actions/cache` on `modules/core/build/vanilla-conformance`; cache key is derived at runtime from `targetMinecraftVersion` and `serverBundleSha1` in `gradle/vanilla-conformance.gradle`. Restored bundles are SHA-1 re-checked before Gradle runs. |
 
-The Gradle Build job checks out full git history so Spotless `ratchetFrom 'origin/master'` works. Job splits and remote build cache stay deferred until wall-clock needs them.
+### Artifacts (Gradle build job)
+
+| Artifact | When |
+|----------|------|
+| Test results / HTML test reports | Always (including failed runs) |
+| Kover coverage report | Always (including failed runs) |
+| Module jars under `build/libs` | Only on **job failure**, or on **push to `master`** |
 
 ## Re-running CI
 

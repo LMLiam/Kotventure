@@ -44,13 +44,6 @@ def bomPublishTasks = bomConsumerModules.collect { moduleName ->
     ":${moduleName}:publishMavenPublicationToBomConsumerLocalRepository"
 } + [':bom:publishMavenPublicationToBomConsumerLocalRepository']
 
-/**
- * Configuration-cache safe BOM check.
- *
- * Do not resolve a versionless consumer configuration as task file inputs: configuration-cache
- * fingerprints those inputs before publish tasks run, which fails on a clean tree (and on CI).
- * Instead, depend on the local-m2 publish tasks and assert the published BOM POM + module jars.
- */
 tasks.register('verifyBomConsumerVersionlessDependencies') {
     group = 'verification'
     description = 'Verifies that the published BOM manages Kotventure module coordinates at the project version.'

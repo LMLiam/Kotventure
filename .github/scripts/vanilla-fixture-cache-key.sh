@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-# Reads MC version + server bundle SHA-1 from gradle/vanilla-conformance.gradle and prints
-# GitHub Actions outputs: version, sha1, key.
 set -euo pipefail
 
 pins_file="${1:-gradle/vanilla-conformance.gradle}"
