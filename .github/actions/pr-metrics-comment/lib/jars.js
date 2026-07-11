@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const { sanitizeModule } = require('./names.js');
+const { countClassEntries } = require('./zip.js');
 
 function parseModuleJar(filename) {
   if (!filename.endsWith('.jar') || filename.includes('-sources') || filename.includes('-javadoc')) {
@@ -42,11 +43,12 @@ function collectJars(rootDir) {
       if (!parsed) {
         continue;
       }
-      const size = fs.statSync(full).size;
       const prev = bestVersion.get(parsed.module);
       if (!prev || versionKey(parsed.version) > versionKey(prev.version)) {
-        bestVersion.set(parsed.module, { version: parsed.version, size });
-        sizes.set(parsed.module, size);
+        const size = fs.statSync(full).size;
+        const classes = countClassEntries(fs.readFileSync(full));
+        bestVersion.set(parsed.module, { version: parsed.version });
+        sizes.set(parsed.module, { size, classes });
       }
     }
   }

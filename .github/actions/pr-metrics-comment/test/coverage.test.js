@@ -11,6 +11,8 @@ const sampleXml = [
   '<counter type="LINE" missed="99" covered="1"/>',
   '</class>',
   '<sourcefile name="Texts.kt">',
+  '<line nr="5" mi="0" ci="3" mb="0" cb="0"/>',
+  '<line nr="6" mi="2" ci="0" mb="0" cb="0"/>',
   '<counter type="LINE" missed="99" covered="1"/>',
   '</sourcefile>',
   '<counter type="LINE" missed="10" covered="90"/>',
@@ -54,6 +56,12 @@ test('skips packages without a LINE counter', () => {
   const xml = '<report><package name="io/github/lmliam/kotventure/core/text"></package></report>';
   const result = parseCoverage(xml);
   assert.equal(result.modules.size, 0);
+});
+
+test('exposes per-sourcefile line coverage keyed by package path', () => {
+  const result = parseCoverage(sampleXml);
+  const lines = result.files.get('io/github/lmliam/kotventure/core/text/Texts.kt');
+  assert.deepEqual([...lines.entries()], [[5, true], [6, false]]);
 });
 
 test('maps foreign packages to their first path segment', () => {

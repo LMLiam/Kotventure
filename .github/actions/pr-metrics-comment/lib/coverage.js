@@ -26,11 +26,29 @@ function packageLineCounter(packageBody) {
   return { missed: parseInt(match[1], 10), covered: parseInt(match[2], 10) };
 }
 
+function sourcefileLines(packageName, packageBody, files) {
+  const sourcefileRegex = /<sourcefile name="([^"]+)">([\s\S]*?)<\/sourcefile>/g;
+  const lineRegex = /<line nr="(\d+)" mi="(\d+)" ci="(\d+)"/g;
+  let sourcefileMatch;
+  while ((sourcefileMatch = sourcefileRegex.exec(packageBody)) !== null) {
+    const lines = new Map();
+    let lineMatch;
+    while ((lineMatch = lineRegex.exec(sourcefileMatch[2])) !== null) {
+      lines.set(parseInt(lineMatch[1], 10), parseInt(lineMatch[3], 10) > 0);
+    }
+    if (lines.size > 0) {
+      files.set(`${packageName}/${sourcefileMatch[1]}`, lines);
+    }
+  }
+}
+
 function parseCoverage(xml) {
   const modules = new Map();
+  const files = new Map();
   const packageRegex = /<package name="([^"]+)">([\s\S]*?)<\/package>/g;
   let packageMatch;
   while ((packageMatch = packageRegex.exec(xml)) !== null) {
+    sourcefileLines(packageMatch[1], packageMatch[2], files);
     const counters = packageLineCounter(packageMatch[2]);
     if (!counters) {
       continue;
@@ -56,7 +74,7 @@ function parseCoverage(xml) {
       totalCovered += data.covered;
     }
   }
-  return { modules, totalMissed, totalCovered };
+  return { modules, totalMissed, totalCovered, files };
 }
 
 module.exports = { parseCoverage };
