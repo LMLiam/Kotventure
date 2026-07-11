@@ -155,11 +155,11 @@ PRs show many checks; only a subset is merge-blocking via the **Master** ruleset
 
 | Check | Merge gate | Notes |
 |-------|:----------:|-------|
-| **CI / Status** | **Required** | Aggregates lint + build + deps; green when skipped (docs-only / release-please) |
-| **PR / Title** | **Required** | Conventional PR title |
-| **PR / Commits** | **Required** | Conventional commit subjects |
-| **CI / Dependencies** | **Required** | Dependency review |
-| Lint / Build / Vanilla | No | Under the CI Status aggregator |
+| **Status** | **Required** | Aggregates lint + build + deps; green when skipped (docs-only / release-please) |
+| **Title** | **Required** | Conventional PR title (from `pr.yml`) |
+| **Commits** | **Required** | Conventional commit subjects (from `pr.yml`) |
+| **Dependencies** | **Required** | Dependency review |
+| Lint / Build / Vanilla | No | Under the Status aggregator |
 | Qodana / QDJVM | No* | QDJVM code-scanning alerts are ruleset-gated |
 | CodeQL | No | SARIF to code scanning |
 | Scorecard | No | Schedule / dispatch |

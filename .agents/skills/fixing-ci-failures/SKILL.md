@@ -16,14 +16,14 @@ toolchain versions + failed task names), then reproduce locally — never push b
 
 | Red check | Cause | Fix |
 |---|---|---|
-| **CI / Status** (aggregator) | Lint, Build, or Dependencies failed | Open the failed nested job below |
-| CI / Lint — declaration check | More than one top-level class/interface/object in a main-source file | Split the file (AGENTS.md §5 hard rule); reproduce with `.github/scripts/check-one-declaration-per-file.sh` |
-| CI / Lint | `spotlessCheck` / `ktlintCheck` | `./gradlew ktlintFormat` (or `spotlessApply`), commit. **Continuation indent is 8 spaces (IntelliJ style) and the ktlint indent rule is disabled** — formatters won't fix indentation; write it by hand or IDE-reformat |
-| CI / Build — test failure | Kotest suite red | `./gradlew test` locally; failed-run artifacts include HTML test reports |
-| CI / Build — `koverVerify` | Aggregated line coverage < 85% (`gradle/coverage.gradle`) | **Add tests — never lower the threshold to pass.** `./gradlew koverHtmlReport` → `build/reports/kover/html/index.html` shows uncovered lines per class. (Raising the threshold intentionally: see policy in `.github/CONTRIBUTING.md`) |
-| CI / Build — compile | Often `explicitApi()`: missing visibility / return type on public API | Add explicit modifiers + KDoc; see `documenting-public-api` |
-| **PR / Title** / **PR / Commits** | Not `verb(area): something` (lowercase, scope required — `^[a-z]+\([a-z0-9][a-z0-9-]*\): \S.*$`) | Edit the PR title in the UI; for commits, rewrite with `git rebase` and force-push — history rewriting on feature branches is fine here |
-| **CI / Dependencies** | New/updated dependency has a moderate+ advisory | Bump to a patched version or justify/replace; not gated behind the release-please gate, runs on every PR |
+| **Status** (aggregator) | Lint, Build, or Dependencies failed | Open the failed nested job below |
+| Lint — declaration check | More than one top-level class/interface/object in a main-source file | Split the file (AGENTS.md §5 hard rule); reproduce with `.github/scripts/check-one-declaration-per-file.sh` |
+| Lint | `spotlessCheck` / `ktlintCheck` | `./gradlew ktlintFormat` (or `spotlessApply`), commit. **Continuation indent is 8 spaces (IntelliJ style) and the ktlint indent rule is disabled** — formatters won't fix indentation; write it by hand or IDE-reformat |
+| Build — test failure | Kotest suite red | `./gradlew test` locally; failed-run artifacts include HTML test reports |
+| Build — `koverVerify` | Aggregated line coverage < 85% (`gradle/coverage.gradle`) | **Add tests — never lower the threshold to pass.** `./gradlew koverHtmlReport` → `build/reports/kover/html/index.html` shows uncovered lines per class. (Raising the threshold intentionally: see policy in `.github/CONTRIBUTING.md`) |
+| Build — compile | Often `explicitApi()`: missing visibility / return type on public API | Add explicit modifiers + KDoc; see `documenting-public-api` |
+| **Title** / **Commits** | Not `verb(area): something` (lowercase, scope required — `^[a-z]+\([a-z0-9][a-z0-9-]*\): \S.*$`) | Edit the PR title in the UI; for commits, rewrite with `git rebase` and force-push — history rewriting on feature branches is fine here |
+| **Dependencies** | New/updated dependency has a moderate+ advisory | Bump to a patched version or justify/replace; not gated behind the release-please gate, runs on every PR |
 
 ## Known noise — do not "fix" these
 
