@@ -5,6 +5,7 @@ on:
     branches: [master]
   push:
     branches: [master]
+  merge_group:
   schedule:
     - cron: '17 3 * * 1'
   workflow_dispatch:
@@ -34,7 +35,7 @@ permissions:
 # ║  Tier 1 ─ Core          Lint ┤ Build (parallel, first feedback)            ║
 # ║  Tier 2 ─ Analysis      CodeQL │ Qodana │ Vanilla (after T1 passes)        ║
 # ║  Policy ─ Independent   Dependencies │ Commits                             ║
-# ║  Status ─ Aggregator    Required check (merge gate)                        ║
+# ║  Status ─ Aggregator    Required check (merge gate + merge queue)          ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
 jobs:
@@ -62,6 +63,34 @@ jobs:
               core.setOutput('run', 'true');
             };
 
+            const releaseOnlyFiles = new Set([
+              'CHANGELOG.md',
+              '.release-please-manifest.json',
+            ]);
+
+            if (context.eventName === 'push') {
+              const commitMsg = context.payload.head_commit?.message || '';
+              if (/^chore\(master\): release\b/.test(commitMsg)) {
+                const comparison = await github.rest.repos.compareCommits({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  base: context.payload.before,
+                  head: context.payload.after,
+                });
+                const unexpected = comparison.data.files
+                  .map(f => f.filename)
+                  .filter(name => !releaseOnlyFiles.has(name));
+                if (unexpected.length === 0) {
+                  core.info('Release-please merge commit (changelog/manifest only); skip heavy CI.');
+                  core.setOutput('run', 'false');
+                  return;
+                }
+                core.info(`Release commit has non-release changes; run heavy CI: ${unexpected.join(', ')}`);
+              }
+              ALWAYS();
+              return;
+            }
+
             if (context.eventName !== 'pull_request') {
               core.info(`Event ${context.eventName}: always run heavy CI.`);
               ALWAYS();
@@ -74,12 +103,6 @@ jobs:
               ALWAYS();
               return;
             }
-
-            const releaseOnlyFiles = new Set([
-              'CHANGELOG.md',
-              '.release-please-manifest.json',
-              'gradle/libs.versions.toml',
-            ]);
 
             const files = await github.paginate(github.rest.pulls.listFiles, {
               owner: context.repo.owner,
@@ -109,17 +132,17 @@ jobs:
     timeout-minutes: 5
     outputs:
       code: ${{ steps.resolve.outputs.code }}
-      vanilla: ${{ steps.filter.outputs.vanilla }}
+      vanilla: ${{ steps.resolve.outputs.vanilla }}
     steps:
       - name: Checkout
-        if: github.event_name != 'workflow_dispatch' && github.event_name != 'schedule'
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
 
       - name: Path filter
         id: filter
-        if: github.event_name != 'workflow_dispatch' && github.event_name != 'schedule'
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
         uses: dorny/paths-filter@d1c1ffe0248fe513906c8e24db8ea791d46f8590 # v3.0.3
         with:
           filters: |
@@ -153,12 +176,18 @@ jobs:
 
       - name: Resolve flags
         id: resolve
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          FILTER_CODE: ${{ steps.filter.outputs.code }}
+          FILTER_VANILLA: ${{ steps.filter.outputs.vanilla }}
         run: |
           set -euo pipefail
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" || "${{ github.event_name }}" == "schedule" ]]; then
-            echo "code=true" >> "$GITHUB_OUTPUT"
+          if [[ "$EVENT_NAME" == "pull_request" || "$EVENT_NAME" == "push" ]]; then
+            echo "code=${FILTER_CODE}" >> "$GITHUB_OUTPUT"
+            echo "vanilla=${FILTER_VANILLA}" >> "$GITHUB_OUTPUT"
           else
-            echo "code=${{ steps.filter.outputs.code }}" >> "$GITHUB_OUTPUT"
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            echo "vanilla=true" >> "$GITHUB_OUTPUT"
           fi
 
   # ╭──────────────────────────────────────────────────────────────────────────╮
@@ -177,6 +206,12 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+
+      - name: Check one type declaration per file
+        run: bash .github/scripts/check-one-declaration-per-file.sh
+
+      - name: Test pr-metrics-comment action
+        run: node --test .github/actions/pr-metrics-comment/test/*.test.js
 
       - name: Run linters
         uses: ./.github/actions/gradle-job
@@ -212,7 +247,7 @@ jobs:
 
           if [[ -z "$tasks" ]]; then
             if [[ -n "$module" ]]; then
-              tasks=":${module}:build"
+              tasks=":${module}:build koverVerify verifyBomConsumerVersionlessDependencies verifyReleaseVersionConsistency koverXmlReport koverHtmlReport dokkaGenerate"
             else
               tasks="build dokkaGenerate koverXmlReport koverHtmlReport"
             fi
@@ -231,6 +266,17 @@ jobs:
         uses: ./.github/actions/gradle-job
         with:
           tasks: ${{ steps.tasks.outputs.tasks }}
+
+      - name: Collect CI metrics
+        run: bash .github/scripts/collect-ci-metrics.sh
+
+      - name: Upload CI metrics
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ci-metrics
+          path: ci-metrics.json
+          if-no-files-found: ignore
+          retention-days: 14
 
       - name: Publish JUnit test report
         if: always()
@@ -257,7 +303,46 @@ jobs:
           name: coverage-report
           path: build/reports/kover
           if-no-files-found: ignore
-          retention-days: 7
+          retention-days: 14
+
+      - name: Upload module jars
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: module-jars
+          path: build/libs/kotventure-*.jar
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Stage baseline cache tree
+        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/master'
+        run: |
+          set -euo pipefail
+          rm -rf .ci-baseline
+          mkdir -p .ci-baseline/libs
+          if [[ -f build/reports/kover/report.xml ]]; then
+            cp build/reports/kover/report.xml .ci-baseline/report.xml
+          fi
+          if [[ -f ci-metrics.json ]]; then
+            cp ci-metrics.json .ci-baseline/ci-metrics.json
+          fi
+          cp build/libs/kotventure-*.jar .ci-baseline/libs/ 2>/dev/null || true
+
+      - name: Cache baseline coverage and jars for PRs
+        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: .ci-baseline
+          key: ci-baseline-${{ github.sha }}
+
+      - name: Upload Dokka preview
+        if: success() && github.event_name == 'pull_request'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: dokka-preview
+          path: modules/*/build/dokka/html
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Upload build artifacts
         if: failure() || (github.event_name == 'push' && github.ref == 'refs/heads/master')
@@ -267,6 +352,121 @@ jobs:
           path: build/libs
           if-no-files-found: ignore
           retention-days: 7
+
+  pr-feedback:
+    name: PR feedback
+    needs: [build]
+    if: >-
+      always()
+      && github.event_name == 'pull_request'
+      && needs.build.result != 'cancelled'
+      && needs.build.result != 'skipped'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Restore base baseline cache
+        id: base-cache
+        continue-on-error: true
+        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: .ci-baseline
+          key: ci-baseline-${{ github.event.pull_request.base.sha }}
+          fail-on-cache-miss: false
+
+      - name: Materialize base paths from cache
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          mkdir -p base-coverage base-libs base-metrics
+          if [[ -f .ci-baseline/report.xml ]]; then
+            cp .ci-baseline/report.xml base-coverage/report.xml
+          fi
+          if [[ -f .ci-baseline/ci-metrics.json ]]; then
+            cp .ci-baseline/ci-metrics.json base-metrics/ci-metrics.json
+          fi
+          if compgen -G '.ci-baseline/libs/kotventure-*.jar' > /dev/null; then
+            cp .ci-baseline/libs/kotventure-*.jar base-libs/
+          fi
+
+      - name: Download head coverage report
+        continue-on-error: true
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: coverage-report
+          path: build/reports/kover
+
+      - name: Download head module jars
+        continue-on-error: true
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: module-jars
+          path: pr-libs
+
+      - name: Download head CI metrics
+        continue-on-error: true
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: ci-metrics
+          path: head-metrics
+
+      - name: Download base artifacts from CI run
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: bash .github/scripts/download-base-metrics.sh
+
+      - name: Decide if base jar rebuild is needed
+        id: need-base-jars
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          if find base-libs -name 'kotventure-*.jar' 2>/dev/null | grep -q .; then
+            echo "needed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "needed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up JDK and Gradle for base jar fallback
+        if: steps.need-base-jars.outputs.needed == 'true'
+        continue-on-error: true
+        uses: ./.github/actions/setup-jdk-gradle
+        with:
+          build-scan-publish: 'false'
+
+      - name: Build base jars if still missing
+        if: steps.need-base-jars.outputs.needed == 'true'
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ''
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: bash .github/scripts/build-base-jars.sh
+
+      - name: Resolve base label
+        id: base-label
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: echo "label=${BASE_REF}@${BASE_SHA:0:7}" >> "$GITHUB_OUTPUT"
+
+      - name: Post metrics comment
+        continue-on-error: true
+        uses: ./.github/actions/pr-metrics-comment
+        with:
+          head-coverage-path: build/reports/kover/report.xml
+          base-coverage-path: base-coverage/report.xml
+          head-libs-dir: pr-libs
+          base-libs-dir: base-libs
+          base-label: ${{ steps.base-label.outputs.label }}
 
   # ╭──────────────────────────────────────────────────────────────────────────╮
   # │ Tier 2: Deep Analysis (runs only after Tier 1 passes)                    │
@@ -357,7 +557,7 @@ jobs:
   vanilla:
     name: Vanilla conformance
     needs: [lint, build, changes]
-    if: needs.changes.outputs.vanilla == 'true' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    if: needs.changes.outputs.vanilla == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -410,6 +610,7 @@ jobs:
           check_name: Vanilla Conformance Report
           report_paths: modules/core/build/test-results/vanillaConformanceTest/TEST-*.xml
 
+
   # ╭──────────────────────────────────────────────────────────────────────────╮
   # │ Policy (independent of tiers)                                            │
   # ╰──────────────────────────────────────────────────────────────────────────╯
@@ -441,7 +642,7 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
-          ref: ${{ github.event.repository.default_branch }}
+          ref: ${{ github.sha }}
           persist-credentials: false
 
       - name: Collect pushed commit subjects
@@ -451,10 +652,10 @@ jobs:
         run: |
           if [[ "$BEFORE_SHA" =~ ^0+$ ]]; then
             git log --format=%s "$HEAD_SHA" > commit-subjects.txt
-          elif git merge-base --is-ancestor "$BEFORE_SHA" "$HEAD_SHA" 2>/dev/null; then
+          elif git cat-file -e "${BEFORE_SHA}^{commit}" 2>/dev/null && git merge-base --is-ancestor "$BEFORE_SHA" "$HEAD_SHA" 2>/dev/null; then
             git log --format=%s "$BEFORE_SHA..$HEAD_SHA" > commit-subjects.txt
           else
-            git log --format=%s "$HEAD_SHA" > commit-subjects.txt
+            git log --format=%s -1 "$HEAD_SHA" > commit-subjects.txt
           fi
 
       - name: Validate commit subjects
@@ -472,16 +673,26 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Evaluate
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          GATE_RESULT: ${{ needs.gate.result }}
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          LINT_RESULT: ${{ needs.lint.result }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          VANILLA_RESULT: ${{ needs.vanilla.result }}
+          DEPS_RESULT: ${{ needs.dependencies.result }}
+          GATE_RUN: ${{ needs.gate.outputs.run }}
+          CODE_CHANGED: ${{ needs.changes.outputs.code }}
         run: |
           set -euo pipefail
-          gate="${{ needs.gate.result }}"
-          changes="${{ needs.changes.result }}"
-          lint="${{ needs.lint.result }}"
-          build="${{ needs.build.result }}"
-          vanilla="${{ needs.vanilla.result }}"
-          deps="${{ needs.dependencies.result }}"
-          run="${{ needs.gate.outputs.run }}"
-          code="${{ needs.changes.outputs.code }}"
+          gate="$GATE_RESULT"
+          changes="$CHANGES_RESULT"
+          lint="$LINT_RESULT"
+          build="$BUILD_RESULT"
+          vanilla="$VANILLA_RESULT"
+          deps="$DEPS_RESULT"
+          run="$GATE_RUN"
+          code="$CODE_CHANGED"
 
           if [[ "$gate" == "failure" || "$gate" == "cancelled" ]]; then
             echo "::error::Gate failed ($gate)"
@@ -489,7 +700,11 @@ jobs:
           fi
 
           if [[ "$run" != "true" ]]; then
-            echo "::notice::Skipped (pure release-please PR)."
+            if [[ "$EVENT_NAME" == "push" ]]; then
+              echo "::notice::Skipped (release-please merge commit)."
+            else
+              echo "::notice::Skipped (pure release-please PR)."
+            fi
             exit 0
           fi
 

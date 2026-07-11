@@ -72,8 +72,8 @@ verb(area): something
 
 - All lowercase `verb` and `area`; a `(area)` scope is **required**, followed by `:`, a space, and a non-empty summary.
 - Pattern: `^[a-z]+\([a-z0-9][a-z0-9-]*\): [^[:space:]].*$`
-- This is enforced in CI by the **Conventional Titles** workflow (`.github/workflows/conventional-titles.yml`), which
-  runs `.github/scripts/validate-conventional-title.sh`.
+- This is enforced in CI by the **PR** workflow (`.github/workflows/pr.yml`, Title + Commits jobs) and by the
+  **CI** workflow’s Commits job on push to `master`, both running `.github/scripts/validate-conventional-title.sh`.
 
 **Recommended `verb`s:** `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`, `build`, `perf`.
 

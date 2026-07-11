@@ -193,7 +193,9 @@ Qualitative metrics (reviewed, not measured — the review bar):
 ## 7. Commits, PRs, branches (enforced in CI)
 
 - **Titles and every commit subject** follow `verb(area): something` (all lowercase verb + area). Enforced by
-  `.github/workflows/conventional-titles.yml`. Recommended verbs/areas are listed in `CONTRIBUTING.md`.
+  the **PR** workflow (`.github/workflows/pr.yml`) for titles/subjects on PRs and the **CI** workflow
+  (`.github/workflows/ci.yml`) for subjects on push to `master`. Recommended verbs/areas are listed in
+  `CONTRIBUTING.md`.
 - **Branch:** `type/issue-<n>/short-desc` (e.g. `feat/issue-19/style-dsl`).
 - **Link issues:** `Closes #<n>` in the PR; pick the matching PR template.
 - **Project metadata:** if the issue is attached to a GitHub Project (for example `Kotventure Roadmap`), attach the PR

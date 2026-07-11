@@ -9,6 +9,10 @@ inputs:
     description: JDK version override.
     required: false
     default: '25'
+  build-scan:
+    description: Publish a Gradle Build Scan (slow — disables effective local build-cache reuse). Default off.
+    required: false
+    default: 'false'
 
 runs:
   using: composite
@@ -17,16 +21,38 @@ runs:
       uses: ./.github/actions/setup-jdk-gradle
       with:
         java-version: ${{ inputs.java-version }}
+        build-scan-publish: ${{ inputs.build-scan }}
 
     - name: Run Gradle
       id: gradle
       shell: bash
       env:
         GRADLE_TASKS: ${{ inputs.tasks }}
+        BUILD_SCAN: ${{ inputs.build-scan }}
+        GITHUB_TOKEN: ''
       run: |
         set -euo pipefail
+        scan_flag=""
+        if [[ "$BUILD_SCAN" == "true" ]]; then
+          scan_flag="--scan"
+        fi
+        gradle_start=$(date +%s)
         # shellcheck disable=SC2086
-        ./gradlew ${GRADLE_TASKS} 2>&1 | tee gradle.log
+        ./gradlew ${GRADLE_TASKS} ${scan_flag} 2>&1 | tee gradle.log
+        echo $(( $(date +%s) - gradle_start )) > gradle-duration.txt
+        scan_url=$(grep -oE 'https://gradle\.com/s/[A-Za-z0-9_-]+' gradle.log | head -n1 || true)
+        if [[ -z "$scan_url" ]]; then
+          scan_url=$(grep -oE 'https://[^[:space:]]*scans\.gradle\.com[^[:space:]]*' gradle.log | head -n1 || true)
+        fi
+        if [[ -n "$scan_url" ]]; then
+          {
+            echo "scan-url<<EOF"
+            echo "$scan_url"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          echo "### Build Scan" >> "$GITHUB_STEP_SUMMARY"
+          echo "[Open scan]($scan_url)" >> "$GITHUB_STEP_SUMMARY"
+        fi
 
     - name: Write job summary
       if: always()

@@ -6,4 +6,3 @@
 .github/actions/ @LMLiam
 .github/scripts/ @LMLiam
 .github/dependabot.yml @LMLiam
-.github/code-paths-filter.yml @LMLiam

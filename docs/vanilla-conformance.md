@@ -39,9 +39,9 @@ then checks:
 
 Failures include the selector, the vanilla parser offset, and its grammar diagnostic. The task is
 not part of `check` — the fixture download needs network access to Mojang, which must never gate the
-offline-safe build. CI runs it through the
-[`vanilla-conformance` workflow](../.github/workflows/vanilla-conformance.yml) on core-path pull
-requests, a weekly schedule, and manual dispatch.
+offline-safe build. CI runs it as the **Vanilla conformance** job in
+[`ci.yml`](../.github/workflows/ci.yml) on core-path pull requests, pushes, a weekly schedule, and
+manual dispatch (see [CI.md](./CI.md)).
 
 ## Updating the baseline
 
