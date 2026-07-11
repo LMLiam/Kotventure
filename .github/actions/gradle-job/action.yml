@@ -1,18 +1,10 @@
 name: Gradle Job
-description: Checkout, set up JDK/Gradle, run tasks, and write a job summary.
+description: Set up JDK/Gradle, run tasks, and write a job summary. Requires checkout before use.
 
 inputs:
   tasks:
     description: Space-separated Gradle tasks to run.
     required: true
-  fetch-depth:
-    description: Git fetch depth (0 for full history).
-    required: false
-    default: '0'
-  ref:
-    description: Git ref to check out.
-    required: false
-    default: ''
   java-version:
     description: JDK version override.
     required: false
@@ -21,13 +13,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Checkout
-      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      with:
-        fetch-depth: ${{ inputs.fetch-depth }}
-        ref: ${{ inputs.ref || github.ref }}
-        persist-credentials: false
-
     - name: Set up JDK and Gradle
       uses: ./.github/actions/setup-jdk-gradle
       with:
