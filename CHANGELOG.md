@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any release.
 
+## [0.15.2](https://github.com/LMLiam/Kotventure/compare/0.15.1...0.15.2) (2026-07-11)
+
+
+### 🔧 Refactors
+
+* **ci:** consolidate 10 workflows into 4 ([#271](https://github.com/LMLiam/Kotventure/issues/271)) ([45cae08](https://github.com/LMLiam/Kotventure/commit/45cae08c4a57894ea916983ac0f423dce24801d1))
+
 ## [0.15.1](https://github.com/LMLiam/Kotventure/compare/0.15.0...0.15.1) (2026-07-10)
 
 
