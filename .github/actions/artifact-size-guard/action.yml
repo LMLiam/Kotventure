@@ -1,0 +1,118 @@
+name: Artifact Size Guard
+description: Track JAR sizes per module and warn on unexpected growth.
+
+inputs:
+  threshold:
+    description: Percentage growth threshold to trigger a warning (e.g. 10).
+    required: false
+    default: '10'
+
+runs:
+  using: composite
+  steps:
+    - name: Measure and compare artifact sizes
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+      with:
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+          const { execSync } = require('child_process');
+          const threshold = parseInt('${{ inputs.threshold }}');
+
+          // Collect current JAR sizes
+          const current = new Map();
+          const modulesDir = 'modules';
+          const modules = fs.readdirSync(modulesDir).filter(d =>
+            fs.statSync(path.join(modulesDir, d)).isDirectory()
+          );
+
+          for (const mod of modules) {
+            const libsDir = path.join(modulesDir, mod, 'build', 'libs');
+            if (!fs.existsSync(libsDir)) continue;
+            const jars = fs.readdirSync(libsDir).filter(f => f.endsWith('.jar') && !f.includes('-sources') && !f.includes('-javadoc'));
+            let totalSize = 0;
+            for (const jar of jars) {
+              totalSize += fs.statSync(path.join(libsDir, jar)).size;
+            }
+            if (totalSize > 0) {
+              current.set(mod, totalSize);
+            }
+          }
+
+          if (current.size === 0) {
+            core.info('No JAR artifacts found to measure.');
+            return;
+          }
+
+          // Try to load baseline from artifact
+          const baselinePath = '.github/artifact-sizes.json';
+          let baseline = new Map();
+          if (fs.existsSync(baselinePath)) {
+            const data = JSON.parse(fs.readFileSync(baselinePath, 'utf8'));
+            baseline = new Map(Object.entries(data));
+          }
+
+          // Compare and report
+          const warnings = [];
+          let table = '| Module | Size | Baseline | Delta |\n|--------|------|----------|-------|\n';
+
+          for (const [mod, size] of [...current.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
+            const sizeKb = (size / 1024).toFixed(1);
+            const baseSize = baseline.get(mod);
+            if (baseSize) {
+              const baseKb = (baseSize / 1024).toFixed(1);
+              const delta = ((size - baseSize) / baseSize * 100).toFixed(1);
+              const sign = delta > 0 ? '+' : '';
+              const warn = parseFloat(delta) > threshold ? ' ⚠️' : '';
+              table += `| ${mod} | ${sizeKb} KB | ${baseKb} KB | ${sign}${delta}%${warn} |\n`;
+              if (parseFloat(delta) > threshold) {
+                warnings.push(`${mod}: ${sign}${delta}% (${sizeKb} KB vs ${baseKb} KB baseline)`);
+              }
+            } else {
+              table += `| ${mod} | ${sizeKb} KB | — | new |\n`;
+            }
+          }
+
+          // Write current sizes as new baseline
+          const output = {};
+          for (const [k, v] of current) output[k] = v;
+          fs.writeFileSync(baselinePath, JSON.stringify(output, null, 2) + '\n');
+
+          // Post comment on PR
+          const marker = '<!-- artifact-size-guard -->';
+          let body = `${marker}\n## 📦 Artifact Sizes\n\n${table}\n`;
+          if (warnings.length > 0) {
+            body += `\n> [!WARNING]\n> Modules exceeding ${threshold}% growth threshold:\n`;
+            for (const w of warnings) {
+              body += `> - ${w}\n`;
+            }
+          }
+          body += '\n<sub>Compared against committed baseline</sub>';
+
+          const { data: comments } = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          });
+
+          const existing = comments.find(c => c.body.startsWith(marker));
+          if (existing) {
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: existing.id,
+              body,
+            });
+          } else {
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
+          }
+
+          if (warnings.length > 0) {
+            core.warning(`Artifact size growth exceeds ${threshold}%: ${warnings.join('; ')}`);
+          }

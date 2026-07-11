@@ -21,12 +21,15 @@ For local development commands, see [CONTRIBUTING.md](../.github/CONTRIBUTING.md
 CI
 │
 ├─ Tier 0: Triage ─────────────────────────────────────────────────
-│   ├─ Gate              (skip pure release-please PRs)
-│   └─ Detect changes    (path filter → code, vanilla flags)
+│   ├─ Gate              (skip release-please PRs + merge commits)
+│   └─ Detect changes    (path filter → code, vanilla, per-module)
 │
 ├─ Tier 1: Core (parallel, fast feedback) ─────────────────────────
 │   ├─ Lint              (spotlessCheck + ktlintCheck)
-│   └─ Build             (compile + test + Dokka + Kover)
+│   └─ Build             (compile + test + Dokka + Kover + scan)
+│       ├─ 📊 Coverage comment (PR)
+│       ├─ 📦 Artifact size guard (PR)
+│       └─ 📖 Dokka preview artifact (PR)
 │
 ├─ Tier 2: Deep Analysis (after Tier 1 passes) ────────────────────
 │   ├─ CodeQL            (actions + java-kotlin matrix)
@@ -43,6 +46,8 @@ CI
 
 Tier 2 runs only after Tier 1 passes — no point running expensive analysis on code that doesn't compile
 or pass lint. The Status job always runs and reports a single required check that gates merges.
+
+The `merge_group` trigger is configured so the workflow is ready for GitHub's merge queue.
 
 ## When workflows run
 
@@ -80,15 +85,27 @@ Module names must match `[A-Za-z0-9_-]+`.
 
 ### Heavy CI gate (release-please)
 
-Integrated into the CI workflow's `gate` job.
+Integrated into the CI workflow's `gate` job. Handles both PRs and push-to-master merge commits.
 
-Skips heavy jobs when all of:
+Skips heavy jobs when:
 
-1. Event is a `pull_request`
-2. Head branch starts with `release-please--`
-3. Changed files are only: `CHANGELOG.md`, `.release-please-manifest.json`, `gradle/libs.versions.toml`
+- **PR:** head branch starts with `release-please--` and changed files are release-only
+- **Push:** commit message matches `chore(master): release` and changed files are release-only
+
+Release-only files: `CHANGELOG.md`, `.release-please-manifest.json`, `gradle/libs.versions.toml`.
 
 When adding release-please `extra-files`, update the gate allow-list in `ci.yml`.
+
+### Module-scoped builds (PRs)
+
+On PRs, the path filter detects which modules changed. When only a subset changed (and `buildSrc`/`gradle`
+are untouched), the Build job runs only `:<module>:build` for affected modules instead of a full `build`.
+Push-to-master, schedule, and dispatch always run the full build.
+
+### Merge queue
+
+The CI workflow includes a `merge_group` trigger, making it compatible with GitHub's merge queue. Enable
+the merge queue in repository settings when ready — CI will automatically validate the merged result.
 
 ## PR workflow jobs
 
@@ -105,9 +122,11 @@ Title and Commits are required status checks.
 
 | Action | Path | Used by |
 |--------|------|---------|
-| **gradle-job** | `.github/actions/gradle-job` | CI (Lint, Build) — checkout + JDK/Gradle setup + run tasks + job summary |
+| **gradle-job** | `.github/actions/gradle-job` | CI (Lint, Build) — JDK/Gradle setup + run tasks + build scan + job summary |
 | **setup-jdk-gradle** | `.github/actions/setup-jdk-gradle` | gradle-job, Vanilla, CodeQL — JDK + Gradle wrapper/dependency caches |
 | **publish-junit-report** | `.github/actions/publish-junit-report` | CI (Build, Vanilla) — JUnit XML → Checks annotations |
+| **coverage-comment** | `.github/actions/coverage-comment` | CI (Build, PRs) — per-module coverage table as PR comment |
+| **artifact-size-guard** | `.github/actions/artifact-size-guard` | CI (Build, PRs) — JAR size tracking with growth warnings |
 
 ## Scripts
 
@@ -182,6 +201,7 @@ PRs show many checks; only a subset is merge-blocking via the **Master** ruleset
 |----------|------|
 | Test results / HTML test reports | Always (including failed runs) |
 | Kover coverage report | Always (including failed runs) |
+| Dokka preview | PRs only (on success) — rendered KDoc HTML, 14-day retention |
 | Module jars under `build/libs` | Only on **job failure**, or on **push to `master`** |
 
 ## Re-running CI

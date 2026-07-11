@@ -5,6 +5,7 @@ on:
     branches: [master]
   push:
     branches: [master]
+  merge_group:
   schedule:
     - cron: '17 3 * * 1'
   workflow_dispatch:
@@ -34,7 +35,7 @@ permissions:
 # ║  Tier 1 ─ Core          Lint ┤ Build (parallel, first feedback)            ║
 # ║  Tier 2 ─ Analysis      CodeQL │ Qodana │ Vanilla (after T1 passes)        ║
 # ║  Policy ─ Independent   Dependencies │ Commits                             ║
-# ║  Status ─ Aggregator    Required check (merge gate)                        ║
+# ║  Status ─ Aggregator    Required check (merge gate + merge queue)          ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
 jobs:
@@ -62,24 +63,49 @@ jobs:
               core.setOutput('run', 'true');
             };
 
+            const releaseOnlyFiles = new Set([
+              'CHANGELOG.md',
+              '.release-please-manifest.json',
+              'gradle/libs.versions.toml',
+            ]);
+
+            // Push: detect release-please merge commits
+            if (context.eventName === 'push') {
+              const commitMsg = context.payload.head_commit?.message || '';
+              if (/^chore\(master\): release\b/.test(commitMsg)) {
+                const comparison = await github.rest.repos.compareCommits({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  base: context.payload.before,
+                  head: context.payload.after,
+                });
+                const unexpected = comparison.data.files
+                  .map(f => f.filename)
+                  .filter(name => !releaseOnlyFiles.has(name));
+                if (unexpected.length === 0) {
+                  core.info('Release-please merge commit (release-only files); skip heavy CI.');
+                  core.setOutput('run', 'false');
+                  return;
+                }
+                core.info(`Release commit has non-release changes; run heavy CI: ${unexpected.join(', ')}`);
+              }
+              ALWAYS();
+              return;
+            }
+
             if (context.eventName !== 'pull_request') {
               core.info(`Event ${context.eventName}: always run heavy CI.`);
               ALWAYS();
               return;
             }
 
+            // PR: detect release-please branches
             const headRef = context.payload.pull_request.head.ref;
             if (!headRef.startsWith('release-please--')) {
               core.info(`Branch ${headRef}: not a release-please PR; run heavy CI.`);
               ALWAYS();
               return;
             }
-
-            const releaseOnlyFiles = new Set([
-              'CHANGELOG.md',
-              '.release-please-manifest.json',
-              'gradle/libs.versions.toml',
-            ]);
 
             const files = await github.paginate(github.rest.pulls.listFiles, {
               owner: context.repo.owner,
@@ -110,6 +136,7 @@ jobs:
     outputs:
       code: ${{ steps.resolve.outputs.code }}
       vanilla: ${{ steps.filter.outputs.vanilla }}
+      modules: ${{ steps.resolve.outputs.modules }}
     steps:
       - name: Checkout
         if: github.event_name != 'workflow_dispatch' && github.event_name != 'schedule'
@@ -150,15 +177,52 @@ jobs:
               - '.github/workflows/ci.yml'
               - '.github/actions/setup-jdk-gradle/**'
               - '.github/actions/publish-junit-report/**'
+            core:
+              - 'modules/core/**'
+            minimessage:
+              - 'modules/minimessage/**'
+            serializer:
+              - 'modules/serializer/**'
+            test:
+              - 'modules/test/**'
+            test-snapshot:
+              - 'modules/test-snapshot/**'
+            buildSrc:
+              - 'buildSrc/**'
+              - 'gradle/**'
+              - 'build.gradle'
+              - 'settings.gradle'
 
       - name: Resolve flags
         id: resolve
+        env:
+          FILTER_CORE: ${{ steps.filter.outputs.core }}
+          FILTER_MINIMESSAGE: ${{ steps.filter.outputs.minimessage }}
+          FILTER_SERIALIZER: ${{ steps.filter.outputs.serializer }}
+          FILTER_TEST: ${{ steps.filter.outputs.test }}
+          FILTER_TEST_SNAPSHOT: ${{ steps.filter.outputs.test-snapshot }}
+          FILTER_BUILDSRC: ${{ steps.filter.outputs.buildSrc }}
         run: |
           set -euo pipefail
           if [[ "${{ github.event_name }}" == "workflow_dispatch" || "${{ github.event_name }}" == "schedule" ]]; then
             echo "code=true" >> "$GITHUB_OUTPUT"
+            echo "modules=all" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "code=${{ steps.filter.outputs.code }}" >> "$GITHUB_OUTPUT"
+            echo "modules=all" >> "$GITHUB_OUTPUT"
           else
             echo "code=${{ steps.filter.outputs.code }}" >> "$GITHUB_OUTPUT"
+            if [[ "$FILTER_BUILDSRC" == "true" ]]; then
+              echo "modules=all" >> "$GITHUB_OUTPUT"
+            else
+              changed=""
+              [[ "$FILTER_CORE" == "true" ]] && changed="${changed:+$changed,}core"
+              [[ "$FILTER_MINIMESSAGE" == "true" ]] && changed="${changed:+$changed,}minimessage"
+              [[ "$FILTER_SERIALIZER" == "true" ]] && changed="${changed:+$changed,}serializer"
+              [[ "$FILTER_TEST" == "true" ]] && changed="${changed:+$changed,}test"
+              [[ "$FILTER_TEST_SNAPSHOT" == "true" ]] && changed="${changed:+$changed,}test-snapshot"
+              echo "modules=${changed:-all}" >> "$GITHUB_OUTPUT"
+            fi
           fi
 
   # ╭──────────────────────────────────────────────────────────────────────────╮
@@ -192,12 +256,14 @@ jobs:
     permissions:
       checks: write
       contents: read
+      pull-requests: write
     steps:
       - name: Resolve Gradle tasks
         id: tasks
         env:
           INPUT_TASKS: ${{ github.event.inputs.tasks || '' }}
           INPUT_MODULE: ${{ github.event.inputs.module || '' }}
+          CHANGED_MODULES: ${{ needs.changes.outputs.modules }}
         run: |
           set -euo pipefail
           tasks="${INPUT_TASKS#"${INPUT_TASKS%%[![:space:]]*}"}"
@@ -213,6 +279,15 @@ jobs:
           if [[ -z "$tasks" ]]; then
             if [[ -n "$module" ]]; then
               tasks=":${module}:build"
+            elif [[ "$CHANGED_MODULES" != "all" && -n "$CHANGED_MODULES" ]]; then
+              # Module-scoped build: only build changed modules
+              tasks=""
+              IFS=',' read -ra mods <<< "$CHANGED_MODULES"
+              for mod in "${mods[@]}"; do
+                tasks="$tasks :${mod}:build"
+              done
+              # Always run aggregate tasks
+              tasks="$tasks koverXmlReport koverHtmlReport"
             else
               tasks="build dokkaGenerate koverXmlReport koverHtmlReport"
             fi
@@ -239,6 +314,14 @@ jobs:
           check_name: Test Report
           report_paths: modules/*/build/test-results/test/TEST-*.xml
 
+      - name: Post coverage comment
+        if: always() && github.event_name == 'pull_request'
+        uses: ./.github/actions/coverage-comment
+
+      - name: Report artifact sizes
+        if: always() && github.event_name == 'pull_request'
+        uses: ./.github/actions/artifact-size-guard
+
       - name: Upload test results and reports
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -258,6 +341,15 @@ jobs:
           path: build/reports/kover
           if-no-files-found: ignore
           retention-days: 7
+
+      - name: Upload Dokka preview
+        if: success() && github.event_name == 'pull_request'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: dokka-preview
+          path: build/dokka
+          if-no-files-found: ignore
+          retention-days: 14
 
       - name: Upload build artifacts
         if: failure() || (github.event_name == 'push' && github.ref == 'refs/heads/master')
@@ -409,6 +501,7 @@ jobs:
         with:
           check_name: Vanilla Conformance Report
           report_paths: modules/core/build/test-results/vanillaConformanceTest/TEST-*.xml
+
 
   # ╭──────────────────────────────────────────────────────────────────────────╮
   # │ Policy (independent of tiers)                                            │

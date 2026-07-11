@@ -82,3 +82,35 @@ updates:
       - "dependencies"
     commit-message:
       prefix: "chore(ci)"
+
+  - package-ecosystem: "github-actions"
+    directory: "/.github/actions/coverage-comment"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      github-actions:
+        update-types:
+          - "minor"
+          - "patch"
+    labels:
+      - "type: chore"
+      - "dependencies"
+    commit-message:
+      prefix: "chore(ci)"
+
+  - package-ecosystem: "github-actions"
+    directory: "/.github/actions/artifact-size-guard"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      github-actions:
+        update-types:
+          - "minor"
+          - "patch"
+    labels:
+      - "type: chore"
+      - "dependencies"
+    commit-message:
+      prefix: "chore(ci)"
