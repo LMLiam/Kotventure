@@ -33,6 +33,7 @@ runs:
     - name: Build metrics comment
       uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
       env:
+        ACTION_PATH: ${{ github.action_path }}
         HEAD_COVERAGE_PATH: ${{ inputs.head-coverage-path }}
         BASE_COVERAGE_PATH: ${{ inputs.base-coverage-path }}
         HEAD_LIBS_DIR: ${{ inputs.head-libs-dir }}
@@ -41,5 +42,5 @@ runs:
         BASE_LABEL: ${{ inputs.base-label }}
       with:
         script: |
-          const run = require(`${process.env.GITHUB_ACTION_PATH}/lib/main.js`);
+          const run = require(`${process.env.ACTION_PATH}/lib/main.js`);
           await run({ github, context, core });
