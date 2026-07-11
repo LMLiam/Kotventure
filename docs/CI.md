@@ -106,20 +106,21 @@ dependent-module compiles on every code PR.
 
 ### Merge queue
 
-The CI workflow includes a `merge_group` trigger and runs full Build for those events.
-Dependency-review remains PR-only; Status tolerates a non-failure skip for that job on non-PR events.
+CI is merge-queue ready: `ci.yml` and `pr.yml` both listen for `merge_group` (full Build; Title /
+Commits report success placeholders so required checks still exist). Dependency-review remains
+PR-only; Status tolerates a non-failure skip for that job on non-PR events.
+
+Enable the queue in the repo **Master** ruleset (**merge_queue**, squash) or under branch protection
+when the feature is available for the account. Until then, normal PR squash-merge still works.
 
 ### PR metrics (coverage + artifact sizes)
 
-After Build, the **PR feedback** job posts **one** bot comment (`<!-- pr-metrics -->`) with Mermaid
-**vertical bars** (for each module: adjacent `… pr` / `… base` bars so the height gap is the delta):
+After Build, the **PR feedback** job posts **one** bot comment (`<!-- pr-metrics -->`):
 
-- Per-module **line coverage**
-- Per-module **JAR sizes** in KB; warn above 10% growth
-- Collapsed **data tables** under each chart for exact numbers
-
-(Mermaid cannot draw true multi-colour clustered series without zero-stubs, so pairs use a single
-bar series with PR/base labels.)
+- Mermaid **delta-only** vertical bar charts (PR − base) for coverage (pp) and JAR size (%)
+- Charts are **omitted** when base data is missing or every module is unchanged (below a small epsilon)
+- Collapsed **data tables** always include absolute PR/base values and deltas when available
+- JAR growth still warns above 10%
 
 Baseline resolution order (prefer cache, avoid rebuilds):
 

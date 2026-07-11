@@ -3,9 +3,10 @@ name: PR
 on:
   pull_request_target:
     types: [opened, edited, synchronize, reopened, ready_for_review]
+  merge_group:
 
 concurrency:
-  group: pr-${{ github.event.pull_request.number }}
+  group: pr-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -23,13 +24,19 @@ jobs:
       contents: read
       pull-requests: read
     steps:
+      - name: Merge queue placeholder
+        if: github.event_name == 'merge_group'
+        run: echo "Title already validated on the PR; reporting success for merge_group."
+
       - name: Checkout trusted validator
+        if: github.event_name == 'pull_request_target'
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
 
       - name: Validate pull request title
+        if: github.event_name == 'pull_request_target'
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: bash .github/scripts/validate-conventional-title.sh "$PR_TITLE"
@@ -43,7 +50,12 @@ jobs:
       contents: read
       pull-requests: read
     steps:
+      - name: Merge queue placeholder
+        if: github.event_name == 'merge_group'
+        run: echo "Commits already validated on the PR; reporting success for merge_group."
+
       - name: Checkout trusted validator
+        if: github.event_name == 'pull_request_target'
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
@@ -51,17 +63,20 @@ jobs:
           persist-credentials: false
 
       - name: Collect commit subjects
+        if: github.event_name == 'pull_request_target'
         env:
           GH_TOKEN: ${{ github.token }}
           COMMITS_URL: ${{ github.event.pull_request.commits_url }}
         run: gh api --paginate "$COMMITS_URL" --jq '.[].commit.message | split("\n")[0]' > commit-subjects.txt
 
       - name: Validate commit subjects
+        if: github.event_name == 'pull_request_target'
         run: bash .github/scripts/validate-conventional-title.sh --stdin < commit-subjects.txt
 
   # ─── Labels ─────────────────────────────────────────────────────────────────
   labels:
     name: Labels
+    if: github.event_name == 'pull_request_target'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
