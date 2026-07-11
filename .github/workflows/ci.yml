@@ -27,9 +27,22 @@ concurrency:
 permissions:
   contents: read
 
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║  CI Pipeline                                                               ║
+# ║                                                                            ║
+# ║  Tier 0 ─ Triage        Gate → Changes (fast, always runs)                ║
+# ║  Tier 1 ─ Core          Lint ┤ Build (parallel, first feedback)            ║
+# ║  Tier 2 ─ Analysis      CodeQL │ Qodana │ Vanilla (after T1 passes)        ║
+# ║  Policy ─ Independent   Dependencies │ Commits                             ║
+# ║  Status ─ Aggregator    Required check (merge gate)                        ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
+
 jobs:
 
-  # ─── Gate ────────────────────────────────────────────────────────────────────
+  # ╭──────────────────────────────────────────────────────────────────────────╮
+  # │ Tier 0: Triage                                                           │
+  # ╰──────────────────────────────────────────────────────────────────────────╯
+
   gate:
     name: Gate
     runs-on: ubuntu-latest
@@ -88,7 +101,6 @@ jobs:
             core.info(`Release-please PR has non-release changes; run heavy CI: ${unexpected.join(', ')}`);
             ALWAYS();
 
-  # ─── Path detection ──────────────────────────────────────────────────────────
   changes:
     name: Detect changes
     needs: gate
@@ -149,7 +161,10 @@ jobs:
             echo "code=${{ steps.filter.outputs.code }}" >> "$GITHUB_OUTPUT"
           fi
 
-  # ─── Lint ────────────────────────────────────────────────────────────────────
+  # ╭──────────────────────────────────────────────────────────────────────────╮
+  # │ Tier 1: Core (fast feedback — lint and build in parallel)                │
+  # ╰──────────────────────────────────────────────────────────────────────────╯
+
   lint:
     name: Lint
     needs: [gate, changes]
@@ -157,27 +172,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - name: Run linters
+        uses: ./.github/actions/gradle-job
         with:
-          fetch-depth: 0
-          persist-credentials: false
+          tasks: spotlessCheck ktlintCheck
 
-      - name: Set up JDK and Gradle
-        uses: ./.github/actions/setup-jdk-gradle
-
-      - name: Run Spotless and ktlint
-        run: |
-          set -euo pipefail
-          ./gradlew spotlessCheck ktlintCheck 2>&1 | tee lint.log
-
-      - name: Write job summary
-        if: always()
-        env:
-          GRADLE_TASKS: spotlessCheck ktlintCheck
-        run: bash .github/scripts/write-gradle-job-summary.sh lint.log
-
-  # ─── Build ──────────────────────────────────────────────────────────────────
   build:
     name: Build
     needs: [gate, changes]
@@ -188,15 +187,6 @@ jobs:
       checks: write
       contents: read
     steps:
-      - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-
-      - name: Set up JDK and Gradle
-        uses: ./.github/actions/setup-jdk-gradle
-
       - name: Resolve Gradle tasks
         id: tasks
         env:
@@ -225,19 +215,10 @@ jobs:
           echo "tasks=$tasks" >> "$GITHUB_OUTPUT"
           echo "Resolved Gradle tasks: $tasks"
 
-      - name: Run build, tests, and coverage
-        env:
-          GRADLE_TASKS: ${{ steps.tasks.outputs.tasks }}
-        run: |
-          set -euo pipefail
-          # shellcheck disable=SC2086
-          ./gradlew ${GRADLE_TASKS} 2>&1 | tee gradle.log
-
-      - name: Write job summary
-        if: always()
-        env:
-          GRADLE_TASKS: ${{ steps.tasks.outputs.tasks }}
-        run: bash .github/scripts/write-gradle-job-summary.sh gradle.log
+      - name: Run build
+        uses: ./.github/actions/gradle-job
+        with:
+          tasks: ${{ steps.tasks.outputs.tasks }}
 
       - name: Publish JUnit test report
         if: always()
@@ -275,13 +256,96 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-  # ─── Vanilla conformance ─────────────────────────────────────────────────────
+  # ╭──────────────────────────────────────────────────────────────────────────╮
+  # │ Tier 2: Deep Analysis (runs only after Tier 1 passes)                    │
+  # ╰──────────────────────────────────────────────────────────────────────────╯
+
+  codeql:
+    name: CodeQL (${{ matrix.language }})
+    needs: [lint, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: actions
+            build-mode: none
+          - language: java-kotlin
+            build-mode: manual
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@99df26d4f13ea111d4ec1a7dddef6063f76b97e9 # v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+
+      - name: Set up JDK and Gradle
+        if: matrix.build-mode == 'manual'
+        uses: ./.github/actions/setup-jdk-gradle
+
+      - name: Build for CodeQL
+        if: matrix.build-mode == 'manual'
+        run: ./gradlew classes testClasses -x test -Pkotlin.incremental=false --no-build-cache --rerun-tasks
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@99df26d4f13ea111d4ec1a7dddef6063f76b97e9 # v4
+        with:
+          category: "/language:${{ matrix.language }}"
+
+  qodana:
+    name: Qodana
+    needs: [lint, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      checks: write
+      contents: read
+      pull-requests: write
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Scan with Qodana
+        uses: JetBrains/qodana-action@4861e015da555e86a72b862892aba6c2b93e6891 # v2026.1.3
+        with:
+          cache-dir: ${{ runner.temp }}/qodana/caches
+          use-caches: true
+          primary-cache-key: qodana-2026.1-${{ runner.os }}-${{ hashFiles('qodana.yaml', 'settings.gradle', 'build.gradle', 'gradle.properties', 'gradle/**/*.gradle', 'gradle/libs.versions.toml') }}
+          additional-cache-key: qodana-2026.1-${{ runner.os }}-
+          upload-result: true
+        env:
+          QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
+
+      - name: Normalize Qodana SARIF regions
+        if: always()
+        shell: bash
+        run: bash .github/scripts/normalize-qodana-sarif.sh "${{ runner.temp }}/qodana/results/qodana.sarif.json"
+
+      - name: Upload Qodana results to code scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@99df26d4f13ea111d4ec1a7dddef6063f76b97e9 # v4
+        with:
+          sarif_file: ${{ runner.temp }}/qodana/results/qodana.sarif.json
+
   vanilla:
     name: Vanilla conformance
-    needs: [gate, changes]
-    if: |
-      needs.gate.outputs.run == 'true' &&
-      (needs.changes.outputs.vanilla == 'true' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+    needs: [lint, build, changes]
+    if: needs.changes.outputs.vanilla == 'true' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -334,7 +398,10 @@ jobs:
           check_name: Vanilla Conformance Report
           report_paths: modules/core/build/test-results/vanillaConformanceTest/TEST-*.xml
 
-  # ─── Dependency review ───────────────────────────────────────────────────────
+  # ╭──────────────────────────────────────────────────────────────────────────╮
+  # │ Policy (independent of tiers)                                            │
+  # ╰──────────────────────────────────────────────────────────────────────────╯
+
   dependencies:
     name: Dependencies
     if: github.event_name == 'pull_request'
@@ -352,93 +419,6 @@ jobs:
           fail-on-severity: moderate
           fail-on-scopes: runtime,development,unknown
 
-  # ─── CodeQL ──────────────────────────────────────────────────────────────────
-  codeql:
-    name: CodeQL (${{ matrix.language }})
-    needs: [gate, changes]
-    if: needs.gate.outputs.run == 'true' && needs.changes.outputs.code == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - language: actions
-            build-mode: none
-          - language: java-kotlin
-            build-mode: manual
-    steps:
-      - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          persist-credentials: false
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@99df26d4f13ea111d4ec1a7dddef6063f76b97e9 # v4
-        with:
-          languages: ${{ matrix.language }}
-          build-mode: ${{ matrix.build-mode }}
-
-      - name: Set up JDK and Gradle
-        if: matrix.build-mode == 'manual'
-        uses: ./.github/actions/setup-jdk-gradle
-
-      - name: Build for CodeQL
-        if: matrix.build-mode == 'manual'
-        run: ./gradlew classes testClasses -x test -Pkotlin.incremental=false --no-build-cache --rerun-tasks
-
-      - name: Perform CodeQL analysis
-        uses: github/codeql-action/analyze@99df26d4f13ea111d4ec1a7dddef6063f76b97e9 # v4
-        with:
-          category: "/language:${{ matrix.language }}"
-
-  # ─── Qodana ──────────────────────────────────────────────────────────────────
-  qodana:
-    name: Qodana
-    needs: [gate, changes]
-    if: needs.gate.outputs.run == 'true' && needs.changes.outputs.code == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    permissions:
-      checks: write
-      contents: read
-      pull-requests: write
-      security-events: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-          fetch-depth: 0
-          persist-credentials: false
-
-      - name: Scan with Qodana
-        uses: JetBrains/qodana-action@4861e015da555e86a72b862892aba6c2b93e6891 # v2026.1.3
-        with:
-          cache-dir: ${{ runner.temp }}/qodana/caches
-          use-caches: true
-          primary-cache-key: qodana-2026.1-${{ runner.os }}-${{ hashFiles('qodana.yaml', 'settings.gradle', 'build.gradle', 'gradle.properties', 'gradle/**/*.gradle', 'gradle/libs.versions.toml') }}
-          additional-cache-key: qodana-2026.1-${{ runner.os }}-
-          upload-result: true
-        env:
-          QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
-
-      - name: Normalize Qodana SARIF regions
-        if: always()
-        shell: bash
-        run: bash .github/scripts/normalize-qodana-sarif.sh "${{ runner.temp }}/qodana/results/qodana.sarif.json"
-
-      - name: Upload Qodana results to code scanning
-        if: always()
-        uses: github/codeql-action/upload-sarif@99df26d4f13ea111d4ec1a7dddef6063f76b97e9 # v4
-        with:
-          sarif_file: ${{ runner.temp }}/qodana/results/qodana.sarif.json
-
-  # ─── Commit subjects (push to master) ─────────────────────────────────────────
   commits:
     name: Commits
     if: github.event_name == 'push'
@@ -468,7 +448,10 @@ jobs:
       - name: Validate commit subjects
         run: bash .github/scripts/validate-conventional-title.sh --stdin < commit-subjects.txt
 
-  # ─── Status (required check) ────────────────────────────────────────────────
+  # ╭──────────────────────────────────────────────────────────────────────────╮
+  # │ Status (required merge-gate check)                                       │
+  # ╰──────────────────────────────────────────────────────────────────────────╯
+
   status:
     name: Status
     if: always()
@@ -488,38 +471,38 @@ jobs:
           code="${{ needs.changes.outputs.code }}"
 
           if [[ "$gate" == "failure" || "$gate" == "cancelled" ]]; then
-            echo "Gate failed ($gate)"
+            echo "::error::Gate failed ($gate)"
             exit 1
           fi
 
           if [[ "$run" != "true" ]]; then
-            echo "Skipped (pure release-please PR)."
+            echo "::notice::Skipped (pure release-please PR)."
             exit 0
           fi
 
           if [[ "$changes" == "failure" || "$changes" == "cancelled" ]]; then
-            echo "Change detection failed ($changes)"
+            echo "::error::Change detection failed ($changes)"
             exit 1
           fi
 
           if [[ "$code" != "true" ]]; then
-            echo "Skipped (no code paths changed)."
+            echo "::notice::Skipped (no code paths changed)."
             exit 0
           fi
 
           if [[ "$lint" != "success" ]]; then
-            echo "Lint: $lint"
+            echo "::error::Lint: $lint"
             exit 1
           fi
 
           if [[ "$build" != "success" ]]; then
-            echo "Build: $build"
+            echo "::error::Build: $build"
             exit 1
           fi
 
           if [[ "$deps" == "failure" ]]; then
-            echo "Dependencies: $deps"
+            echo "::error::Dependencies: $deps"
             exit 1
           fi
 
-          echo "All required checks passed."
+          echo "::notice::All required checks passed."

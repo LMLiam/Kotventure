@@ -15,24 +15,34 @@ For local development commands, see [CONTRIBUTING.md](../.github/CONTRIBUTING.md
 | **Release** | `release.yml` | push `master` | Opens/updates release PRs; tags/releases after merge |
 | **OpenSSF Scorecard** | `scorecard.yml` | weekly schedule, `branch_protection_rule`, `workflow_dispatch` | Supply-chain scorecard + SARIF |
 
-## CI workflow jobs
+## CI pipeline tiers
 
 ```
 CI
-├─ Gate              (skip pure release-please PRs)
-├─ Detect changes    (path filter → code, vanilla flags)
-├─ Lint              (spotlessCheck + ktlintCheck)
-├─ Build             (compile + test + Dokka + Kover)
-├─ Vanilla conformance  (MC-backed selector tests, path-filtered)
-├─ Dependencies      (dependency-review-action, PRs only)
-├─ CodeQL            (actions + java-kotlin matrix)
-├─ Qodana            (static analysis + SARIF)
-├─ Commits           (push-to-master subject validation)
-└─ Status            (required check: aggregates lint + build + deps)
+│
+├─ Tier 0: Triage ─────────────────────────────────────────────────
+│   ├─ Gate              (skip pure release-please PRs)
+│   └─ Detect changes    (path filter → code, vanilla flags)
+│
+├─ Tier 1: Core (parallel, fast feedback) ─────────────────────────
+│   ├─ Lint              (spotlessCheck + ktlintCheck)
+│   └─ Build             (compile + test + Dokka + Kover)
+│
+├─ Tier 2: Deep Analysis (after Tier 1 passes) ────────────────────
+│   ├─ CodeQL            (actions + java-kotlin matrix)
+│   ├─ Qodana            (static analysis + SARIF)
+│   └─ Vanilla conformance  (MC-backed selector tests, path-filtered)
+│
+├─ Policy (independent of tiers) ──────────────────────────────────
+│   ├─ Dependencies      (dependency-review-action, PRs only)
+│   └─ Commits           (push-to-master subject validation)
+│
+└─ Status (required merge-gate check) ─────────────────────────────
+    └─ Aggregates Tier 1 + Dependencies
 ```
 
-All heavy jobs (Lint, Build, Vanilla, CodeQL, Qodana) require the Gate to pass and code paths to change.
-The Status job always runs and reports a single required check that gates merges.
+Tier 2 runs only after Tier 1 passes — no point running expensive analysis on code that doesn't compile
+or pass lint. The Status job always runs and reports a single required check that gates merges.
 
 ## When workflows run
 
@@ -95,8 +105,9 @@ Title and Commits are required status checks.
 
 | Action | Path | Used by |
 |--------|------|---------|
-| **setup-jdk-gradle** | `.github/actions/setup-jdk-gradle` | CI (Build, Lint, Vanilla, CodeQL) |
-| **publish-junit-report** | `.github/actions/publish-junit-report` | CI (Build, Vanilla) |
+| **gradle-job** | `.github/actions/gradle-job` | CI (Lint, Build) — checkout + JDK/Gradle setup + run tasks + job summary |
+| **setup-jdk-gradle** | `.github/actions/setup-jdk-gradle` | gradle-job, Vanilla, CodeQL — JDK + Gradle wrapper/dependency caches |
+| **publish-junit-report** | `.github/actions/publish-junit-report` | CI (Build, Vanilla) — JUnit XML → Checks annotations |
 
 ## Scripts
 
@@ -114,6 +125,7 @@ Third-party actions are SHA-pinned with a version comment. Dependabot updates (`
 `.github/dependabot.yml`):
 
 - `/` — workflows
+- `/.github/actions/gradle-job`
 - `/.github/actions/setup-jdk-gradle`
 - `/.github/actions/publish-junit-report`
 
