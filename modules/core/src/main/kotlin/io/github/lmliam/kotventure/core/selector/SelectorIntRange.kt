@@ -24,6 +24,7 @@ public data class SelectorIntRange internal constructor(
                 else -> "${minimum.renderedBound()}..${maximum.renderedBound()}"
             }
 
+    /** The vanilla selector-argument rendering (`5`, `1..`, `..3`, `1..3`). */
     override fun toString(): String = rendered
 }
 

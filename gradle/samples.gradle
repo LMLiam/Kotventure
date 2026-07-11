@@ -30,6 +30,7 @@ dokka {
     }
     dokkaSourceSets.configureEach {
         samples.from(file('src/samples/kotlin'))
+        reportUndocumented.set(true)
     }
 }
 

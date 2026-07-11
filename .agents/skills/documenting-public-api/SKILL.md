@@ -6,9 +6,11 @@ description: Use when writing or reviewing KDoc, adding a public declaration (ex
 # Documenting public API
 
 `explicitApi()` is on for every library module (missing visibility/return types fail
-compilation), KDoc on every public/`protected` declaration is enforced in review, and Dokka
-runs with `failOnWarning` in CI — an unresolvable KDoc link fails `dokkaGenerate`. Docs are
-part of the change, written alongside the code — not after.
+compilation) and Dokka runs with `failOnWarning` + `reportUndocumented`: an undocumented
+public declaration or an unresolvable KDoc link fails `dokkaGenerate` in CI. This includes
+deliberate `toString`/`equals`/`hashCode` overrides and companion objects — give them a
+one-line contract (`/** Value equality over the node list. */`). Docs are part of the
+change, written alongside the code — not after.
 
 ## What KDoc must say
 

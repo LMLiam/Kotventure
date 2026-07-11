@@ -68,6 +68,12 @@ public class ManualTicker : Ticker {
         currentTime = end
     }
 
+    /**
+     * Schedules [action] every [interval] of manual time; first run falls due at
+     * current time + [interval] and fires only when [advance] crosses it.
+     *
+     * @throws IllegalArgumentException when [interval] is not positive.
+     */
     override fun repeating(
         interval: Duration,
         action: () -> Unit,

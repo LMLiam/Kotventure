@@ -85,6 +85,9 @@ jobs:
       - name: Set up JDK and Gradle
         uses: ./.github/actions/setup-jdk-gradle
 
+      - name: Check one type declaration per file
+        run: bash .github/scripts/check-one-declaration-per-file.sh
+
       - name: Run Spotless and ktlint
         run: |
           set -euo pipefail

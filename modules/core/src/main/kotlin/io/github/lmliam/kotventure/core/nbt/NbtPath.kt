@@ -39,9 +39,12 @@ public class NbtPath internal constructor(
      */
     public fun asString(): String = renderNodes(nodes)
 
+    /** Same rendering as [asString]. */
     override fun toString(): String = asString()
 
+    /** Value equality over the node list. */
     override fun equals(other: Any?): Boolean = other is NbtPath && nodes == other.nodes
 
+    /** Consistent with [equals]: derived from the node list. */
     override fun hashCode(): Int = nodes.hashCode()
 }

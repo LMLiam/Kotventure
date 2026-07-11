@@ -225,8 +225,10 @@ Index with use-when triggers: [`.agents/skills/README.md`](.agents/skills/README
 - **`documenting-public-api`** — KDoc contracts, link priority, `@sample` source sets, module READMEs.
 - **`fixing-ci-failures`** — what to do per red check, and which checks are known noise.
 - **`reviewing-contributions`** — the maintainer-side pass that lands someone else's PR.
+- **`pickup-issue`** / **`land-pr`** — user-invoked entry points (`/pickup-issue <n>`, `/land-pr <n>`) that drive the
+  two workflows above from an issue/PR number.
 
-Write implementation plans to `.agents/plans/`.
+Write implementation plans to `.agents/plans/` (git-ignored scratch space).
 
 ## 10. Don't touch without a reason tied to your issue
 

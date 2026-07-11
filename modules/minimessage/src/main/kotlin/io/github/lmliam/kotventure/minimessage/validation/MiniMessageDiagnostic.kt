@@ -25,6 +25,7 @@ public sealed interface MiniMessageDiagnostic {
         public val startIndex: Int,
         public val endIndex: Int,
     ) : MiniMessageDiagnostic {
+        /** Position sentinels for [MalformedTag]. */
         public companion object {
             /**
              * Sentinel used when Adventure did not report a source position for the malformed tag.
@@ -56,6 +57,8 @@ public sealed interface MiniMessageDiagnostic {
 
     /**
      * The validation engine failed outside Adventure's documented parsing exception path.
+     *
+     * @property message Human-readable description of the unexpected engine failure.
      */
     public data class ValidationEngineFailure(
         public val message: String,

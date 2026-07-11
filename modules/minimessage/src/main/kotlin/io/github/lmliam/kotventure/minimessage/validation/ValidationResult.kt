@@ -36,6 +36,7 @@ public sealed interface ValidationResult {
             require(diagnostics.isNotEmpty()) { "Failure must carry at least one diagnostic." }
         }
 
+        /** Factory for [Failure] values. */
         public companion object {
             /** Creates a [Failure] with a defensive copy of [diagnostics]. */
             public operator fun invoke(diagnostics: List<MiniMessageDiagnostic>): Failure =
