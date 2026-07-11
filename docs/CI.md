@@ -38,7 +38,7 @@ CI
 │   └─ Commits           (push-to-master subject validation)
 │
 └─ Status (required merge-gate check) ─────────────────────────────
-    └─ Aggregates Tier 1 + Dependencies
+    └─ Aggregates Tier 1 + Vanilla + Dependencies
 ```
 
 Tier 2 runs only after Tier 1 passes — no point running expensive analysis on code that doesn't compile
@@ -155,11 +155,12 @@ PRs show many checks; only a subset is merge-blocking via the **Master** ruleset
 
 | Check | Merge gate | Notes |
 |-------|:----------:|-------|
-| **Status** | **Required** | Aggregates lint + build + deps; green when skipped (docs-only / release-please) |
+| **Status** | **Required** | Aggregates lint + build + vanilla + deps; green when skipped (docs-only / release-please) |
 | **Title** | **Required** | Conventional PR title (from `pr.yml`) |
 | **Commits** | **Required** | Conventional commit subjects (from `pr.yml`) |
 | **Dependencies** | **Required** | Dependency review |
-| Lint / Build / Vanilla | No | Under the Status aggregator |
+| Lint / Build | No | Under the Status aggregator |
+| Vanilla conformance | No | Under the Status aggregator; path-filtered |
 | Qodana / QDJVM | No* | QDJVM code-scanning alerts are ruleset-gated |
 | CodeQL | No | SARIF to code scanning |
 | Scorecard | No | Schedule / dispatch |

@@ -10,7 +10,7 @@ concurrency:
 
 permissions:
   contents: read
-  pull-requests: write
+  pull-requests: read
 
 jobs:
 
@@ -64,6 +64,9 @@ jobs:
     name: Labels
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - name: Label by changed paths
         uses: actions/labeler@b8dd2d9be0f68b860e7dae5dae7d772984eacd6d # v6.2.0

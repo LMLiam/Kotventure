@@ -467,7 +467,7 @@ jobs:
   status:
     name: Status
     if: always()
-    needs: [gate, changes, lint, build, dependencies]
+    needs: [gate, changes, lint, build, vanilla, dependencies]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -478,6 +478,7 @@ jobs:
           changes="${{ needs.changes.result }}"
           lint="${{ needs.lint.result }}"
           build="${{ needs.build.result }}"
+          vanilla="${{ needs.vanilla.result }}"
           deps="${{ needs.dependencies.result }}"
           run="${{ needs.gate.outputs.run }}"
           code="${{ needs.changes.outputs.code }}"
@@ -509,6 +510,11 @@ jobs:
 
           if [[ "$build" != "success" ]]; then
             echo "::error::Build: $build"
+            exit 1
+          fi
+
+          if [[ "$vanilla" == "failure" ]]; then
+            echo "::error::Vanilla conformance: $vanilla"
             exit 1
           fi
 
