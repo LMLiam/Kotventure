@@ -1,0 +1,74 @@
+name: PR
+
+on:
+  pull_request_target:
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+
+  # ─── Title validation ────────────────────────────────────────────────────────
+  title:
+    name: Title
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout trusted validator
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Validate pull request title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: bash .github/scripts/validate-conventional-title.sh "$PR_TITLE"
+
+  # ─── Commit subjects ────────────────────────────────────────────────────────
+  commits:
+    name: Commits
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout trusted validator
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Collect commit subjects
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMITS_URL: ${{ github.event.pull_request.commits_url }}
+        run: gh api --paginate "$COMMITS_URL" --jq '.[].commit.message | split("\n")[0]' > commit-subjects.txt
+
+      - name: Validate commit subjects
+        run: bash .github/scripts/validate-conventional-title.sh --stdin < commit-subjects.txt
+
+  # ─── Labels ─────────────────────────────────────────────────────────────────
+  labels:
+    name: Labels
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Label by changed paths
+        uses: actions/labeler@b8dd2d9be0f68b860e7dae5dae7d772984eacd6d # v6.2.0
+        with:
+          sync-labels: true

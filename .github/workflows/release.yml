@@ -1,34 +1,27 @@
-name: Release Please
+name: Release
 
 on:
   push:
     branches:
       - master
 
-permissions:
-  # Release-please creates Git tags and GitHub Releases.
-  contents: write
-  # Release-please manages release lifecycle labels.
-  issues: write
-  # Release-please opens and updates Release PRs.
-  pull-requests: write
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+permissions: {}
 
 jobs:
   release-please:
     name: Release Please
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
-      tag_name: ${{ steps.release.outputs.tag_name }}
-
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
     steps:
       - name: Run release-please
-        id: release
         uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5
         with:
           token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
