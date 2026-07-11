@@ -193,28 +193,28 @@ runs:
             return ['```mermaid', '---', 'config:', ...config, '---', ...bodyLines, '```'].join('\n');
           }
 
-          // Grouped vertical bars: mermaid cannot natively cluster series, so each module
-          // expands to adjacent PR/base slots with zero-padded dual bar series.
-          function groupedVerticalBars({ title, categories, prValues, baseValues, yLabel, yMin, yMax, palette }) {
+          // Mermaid xyChart cannot cluster multi-series bars (zeros still draw stubs and
+          // series stack). Use one vertical series with adjacent PR/base slots so the
+          // height gap between neighbours is the delta, with no phantom zero bars.
+          function pairedVerticalBars({ title, categories, prValues, baseValues, yLabel, yMin, yMax, color }) {
             const hasBase = Array.isArray(baseValues) && baseValues.length === categories.length;
             const labels = [];
-            const prSeries = [];
-            const baseSeries = [];
+            const values = [];
             for (let i = 0; i < categories.length; i++) {
               const cat = categories[i];
               if (hasBase) {
-                labels.push(`${cat}·pr`);
-                labels.push(`${cat}·base`);
-                prSeries.push(round1(prValues[i]), 0);
-                baseSeries.push(0, round1(baseValues[i]));
+                labels.push(`${cat} pr`);
+                labels.push(`${cat} base`);
+                values.push(round1(prValues[i]));
+                values.push(round1(baseValues[i]));
               } else {
                 labels.push(cat);
-                prSeries.push(round1(prValues[i]));
+                values.push(round1(prValues[i]));
               }
             }
             const barCount = labels.length;
-            const width = Math.max(640, Math.min(1100, 120 + barCount * 70));
-            const height = 420;
+            const width = Math.max(720, Math.min(1200, 100 + barCount * 88));
+            const height = 440;
             const config = [
               '  xyChart:',
               `    width: ${width}`,
@@ -231,7 +231,7 @@ runs:
               '      yAxisTitleColor: "#94a3b8"',
               '      yAxisTickColor: "#334155"',
               '      yAxisLineColor: "#334155"',
-              '      plotColorPalette: "' + (palette || '#a78bfa, #22d3ee') + '"',
+              '      plotColorPalette: "' + (color || '#a78bfa') + '"',
             ];
             const axisLabels = labels.map((l) => `"${l}"`).join(', ');
             const lines = [
@@ -239,11 +239,8 @@ runs:
               `  title "${title}"`,
               `  x-axis [${axisLabels}]`,
               `  y-axis "${yLabel}" ${yMin} --> ${yMax}`,
-              `  bar [${prSeries.join(', ')}]`,
+              `  bar [${values.join(', ')}]`,
             ];
-            if (hasBase) {
-              lines.push(`  bar [${baseSeries.join(', ')}]`);
-            }
             return mermaidFence(config, lines);
           }
 
@@ -273,7 +270,7 @@ runs:
           sections.push('');
           sections.push(`vs **${baseLabel}**`);
           sections.push('');
-          sections.push('Grouped bars: **violet = PR** · **cyan = base** (gap = delta).');
+          sections.push('Each module is a **PR / base** pair of vertical bars — height gap is the delta.');
           sections.push('');
 
           if (headCoverage) {
@@ -335,7 +332,7 @@ runs:
               sections.push('_Base coverage unavailable — PR only._');
               sections.push('');
             }
-            sections.push(groupedVerticalBars({
+            sections.push(pairedVerticalBars({
               title: 'Line coverage by module',
               categories,
               prValues: headVals,
@@ -343,7 +340,7 @@ runs:
               yLabel: 'Coverage %',
               yMin,
               yMax: 100,
-              palette: '#a78bfa, #22d3ee',
+              color: '#a78bfa',
             }));
             sections.push('');
             sections.push(detailsTable('Coverage data table', table));
@@ -396,7 +393,7 @@ runs:
               sections.push('_Base JARs unavailable — PR only._');
               sections.push('');
             }
-            sections.push(groupedVerticalBars({
+            sections.push(pairedVerticalBars({
               title: 'Module JAR size (KB)',
               categories,
               prValues: headKb,
@@ -404,7 +401,7 @@ runs:
               yLabel: 'KB',
               yMin: 0,
               yMax,
-              palette: '#34d399, #818cf8',
+              color: '#34d399',
             }));
             sections.push('');
             sections.push(detailsTable('Artifact size data table', table));

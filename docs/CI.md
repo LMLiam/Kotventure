@@ -112,11 +112,14 @@ Dependency-review remains PR-only; Status tolerates a non-failure skip for that 
 ### PR metrics (coverage + artifact sizes)
 
 After Build, the **PR feedback** job posts **one** bot comment (`<!-- pr-metrics -->`) with Mermaid
-**vertical grouped bars** (adjacent PR vs base bar per module so the height gap is the delta):
+**vertical bars** (for each module: adjacent `… pr` / `… base` bars so the height gap is the delta):
 
-- Per-module **line coverage** (PR · base)
-- Per-module **JAR sizes** in KB (PR · base); warn above 10% growth
+- Per-module **line coverage**
+- Per-module **JAR sizes** in KB; warn above 10% growth
 - Collapsed **data tables** under each chart for exact numbers
+
+(Mermaid cannot draw true multi-colour clustered series without zero-stubs, so pairs use a single
+bar series with PR/base labels.)
 
 Baseline resolution order (prefer cache, avoid rebuilds):
 
