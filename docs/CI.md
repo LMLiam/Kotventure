@@ -112,10 +112,11 @@ Dependency-review remains PR-only; Status tolerates a non-failure skip for that 
 ### PR metrics (coverage + artifact sizes)
 
 After Build, the **PR feedback** job posts **one** bot comment (`<!-- pr-metrics -->`) with Mermaid
-charts (horizontal bar = PR, line = base when available):
+**vertical grouped bars** (adjacent PR vs base bar per module so the height gap is the delta):
 
-- Per-module **line coverage** vs base, plus total and compact callouts
-- Per-module **JAR sizes** vs base, optional **size delta %** chart (warn above 10%)
+- Per-module **line coverage** (PR · base)
+- Per-module **JAR sizes** in KB (PR · base); warn above 10% growth
+- Collapsed **data tables** under each chart for exact numbers
 
 Baseline resolution order (prefer cache, avoid rebuilds):
 
