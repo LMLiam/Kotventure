@@ -18,6 +18,18 @@ inputs:
     description: Directory tree of base module JARs.
     required: false
     default: 'base-libs'
+  head-metrics-path:
+    description: Path to head ci-metrics.json (tests, duration).
+    required: false
+    default: 'head-metrics/ci-metrics.json'
+  base-metrics-path:
+    description: Path to base ci-metrics.json.
+    required: false
+    default: 'base-metrics/ci-metrics.json'
+  coverage-gate-file:
+    description: Gradle script declaring coverageLineThreshold, for gate-headroom reporting.
+    required: false
+    default: 'gradle/coverage.gradle'
   threshold:
     description: JAR size growth warning threshold percent.
     required: false
@@ -38,8 +50,13 @@ runs:
         BASE_COVERAGE_PATH: ${{ inputs.base-coverage-path }}
         HEAD_LIBS_DIR: ${{ inputs.head-libs-dir }}
         BASE_LIBS_DIR: ${{ inputs.base-libs-dir }}
+        HEAD_METRICS_PATH: ${{ inputs.head-metrics-path }}
+        BASE_METRICS_PATH: ${{ inputs.base-metrics-path }}
+        GATE_FILE: ${{ inputs.coverage-gate-file }}
         THRESHOLD: ${{ inputs.threshold }}
         BASE_LABEL: ${{ inputs.base-label }}
+        RUN_ID: ${{ github.run_id }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       with:
         script: |
           const run = require(`${process.env.ACTION_PATH}/lib/main.js`);
