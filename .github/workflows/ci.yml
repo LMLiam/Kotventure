@@ -176,12 +176,15 @@ jobs:
 
       - name: Resolve flags
         id: resolve
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          FILTER_CODE: ${{ steps.filter.outputs.code }}
         run: |
           set -euo pipefail
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" || "${{ github.event_name }}" == "schedule" ]]; then
+          if [[ "$EVENT_NAME" == "workflow_dispatch" || "$EVENT_NAME" == "schedule" ]]; then
             echo "code=true" >> "$GITHUB_OUTPUT"
           else
-            echo "code=${{ steps.filter.outputs.code }}" >> "$GITHUB_OUTPUT"
+            echo "code=${FILTER_CODE}" >> "$GITHUB_OUTPUT"
           fi
 
   # ╭──────────────────────────────────────────────────────────────────────────╮
@@ -691,16 +694,26 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Evaluate
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          GATE_RESULT: ${{ needs.gate.result }}
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          LINT_RESULT: ${{ needs.lint.result }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          VANILLA_RESULT: ${{ needs.vanilla.result }}
+          DEPS_RESULT: ${{ needs.dependencies.result }}
+          GATE_RUN: ${{ needs.gate.outputs.run }}
+          CODE_CHANGED: ${{ needs.changes.outputs.code }}
         run: |
           set -euo pipefail
-          gate="${{ needs.gate.result }}"
-          changes="${{ needs.changes.result }}"
-          lint="${{ needs.lint.result }}"
-          build="${{ needs.build.result }}"
-          vanilla="${{ needs.vanilla.result }}"
-          deps="${{ needs.dependencies.result }}"
-          run="${{ needs.gate.outputs.run }}"
-          code="${{ needs.changes.outputs.code }}"
+          gate="$GATE_RESULT"
+          changes="$CHANGES_RESULT"
+          lint="$LINT_RESULT"
+          build="$BUILD_RESULT"
+          vanilla="$VANILLA_RESULT"
+          deps="$DEPS_RESULT"
+          run="$GATE_RUN"
+          code="$CODE_CHANGED"
 
           if [[ "$gate" == "failure" || "$gate" == "cancelled" ]]; then
             echo "::error::Gate failed ($gate)"
@@ -708,7 +721,7 @@ jobs:
           fi
 
           if [[ "$run" != "true" ]]; then
-            if [[ "${{ github.event_name }}" == "push" ]]; then
+            if [[ "$EVENT_NAME" == "push" ]]; then
               echo "::notice::Skipped (release-please merge commit)."
             else
               echo "::notice::Skipped (pure release-please PR)."

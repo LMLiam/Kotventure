@@ -143,7 +143,7 @@ server later, set the Develocity URL / access key inputs on `setup-gradle` inste
 |---------|-----------|
 | Default workflow permissions | `contents: read` |
 | Build job | `checks: write` + `contents: read` — no PR write; Gradle runs with `GITHUB_TOKEN` cleared |
-| PR feedback job | `actions: read` + `pull-requests: write` + `contents: read` — metrics comment + download base-run artifacts; no Gradle on the happy path |
+| PR feedback job | `actions: read` + `pull-requests: write` + `contents: read` — posts metrics comment; prefers cache/artifacts for base jars/coverage, falls back to a base jar-only Gradle build with `GITHUB_TOKEN` cleared |
 | Build scans | On by default (public); see above |
 | Dokka preview artifact | Untrusted HTML from the PR build; open locally with care; 14-day retention; not published as Pages |
 
