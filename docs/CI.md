@@ -115,24 +115,35 @@ Dependency-review remains PR-only; Status tolerates a non-failure skip for that 
 Enable the queue in the repo **Master** ruleset (**merge_queue**, squash) or under branch protection
 when the feature is available for the account. Until then, normal PR squash-merge still works.
 
-### PR metrics (coverage + artifact sizes)
+### PR metrics (coverage, patch coverage, sizes, API, tests)
 
 After Build, the **PR feedback** job posts **one** bot comment (`<!-- pr-metrics -->`):
 
-- Mermaid **delta-only** vertical bar charts (PR − base) for coverage (pp) and JAR size (%)
-- Charts are **omitted** when base data is missing or every module is unchanged (below a small epsilon)
-- Collapsed **data tables** always include absolute PR/base values and deltas when available
-- JAR growth still warns above 10%
+- A never-collapsed **verdict line** (✅/⚠️): total coverage + delta + gate headroom, patch
+  coverage, aggregate JAR delta, test count delta, public-API delta
+- **Patch coverage** — % of changed executable lines covered, from the PR's GitHub diff joined
+  with Kover's per-line XML data; uncovered added lines listed as `file.kt:12–15` ranges
+- Mermaid **delta-only** bar charts (PR − base) for coverage (pp) and JAR size (%), bars sorted
+  by |Δ|; collapsed data tables carry absolute values (JAR table includes `.class` entry counts)
+- **Public API delta** — added/removed `public` declarations counted from the diff (grep
+  heuristic until the apiDump baseline lands); rendered as a collapsed diff block
+- Collapsed **build stats**: test/skipped counts and indicative build wall time
+- Warnings: JAR growth >10%, total coverage drop ≥0.5pp, coverage within 0.5pp of the Kover gate
+  (threshold parsed from `gradle/coverage.gradle` at runtime)
+- Footer links: workflow run, `dokka-preview` artifact, `gradle-test-results` artifact
+- When nothing changed, the body collapses to the verdict line plus "No metric changes"
 
 Baseline resolution order (prefer cache, avoid rebuilds):
 
-1. **Actions cache** key `ci-baseline-<base-sha>` (written on successful `master` pushes)
-2. **Artifacts** from a successful CI run for the base commit (`coverage-report`, `module-jars`)
+1. **Actions cache** key `ci-baseline-<base-sha>` (written on successful `master` pushes; holds
+   the Kover report, module jars, and `ci-metrics.json`)
+2. **Artifacts** from a successful CI run for the base commit (`coverage-report`, `module-jars`,
+   `ci-metrics`)
 3. **Fallback:** jar-only Gradle build of the base SHA (coverage stays absolute if no base report)
 
 The comment is built by `.github/actions/pr-metrics-comment` — a thin `action.yml` entry over plain
-Node modules in `lib/` (Kover XML parsing, JAR scanning, Mermaid rendering, comment upsert), unit
-tested with `node:test` in `test/`. The Lint job runs those tests.
+Node modules in `lib/` (patch/coverage/jar/zip parsing, `lib/sections/` renderers, comment upsert),
+unit tested with `node:test` in `test/`. The Lint job runs those tests.
 
 ### Build Scans
 
@@ -190,8 +201,9 @@ PR feedback is non-gating (`continue-on-error`); failures there do not fail Buil
 | `normalize-qodana-sarif.sh` | Fix 0-based SARIF regions for GitHub code scanning |
 | `write-gradle-job-summary.sh` | Job summary: Java/Gradle/Kotlin versions + failed tasks |
 | `vanilla-fixture-cache-key.sh` | Compute MC fixture cache key |
-| `download-base-metrics.sh` | PR feedback: fetch base coverage/jars from the base commit's CI run |
+| `download-base-metrics.sh` | PR feedback: fetch base coverage/jars/metrics from the base commit's CI run |
 | `build-base-jars.sh` | PR feedback: last-resort jar-only Gradle build of the base SHA |
+| `collect-ci-metrics.sh` | Build: test/skipped counts + build duration → `ci-metrics.json` |
 
 ## Action pins and Dependabot
 
@@ -253,6 +265,7 @@ PRs show many checks; only a subset is merge-blocking via the **Master** ruleset
 | Test results / HTML test reports | Always (including failed runs) |
 | Kover coverage report | Always (including failed runs); 14-day retention |
 | Module jars (`module-jars`) | Always when present; used as PR head metrics + base download fallback |
+| CI metrics (`ci-metrics`) | On successful builds — test counts + duration for the PR comment |
 | Dokka preview | PRs only (on success) — rendered KDoc HTML, 14-day retention; treat as untrusted HTML |
 | Full `build/libs` upload | Only on **job failure**, or on **push to `master`** |
 

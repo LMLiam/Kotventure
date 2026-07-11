@@ -3,12 +3,14 @@ set -euo pipefail
 
 need_coverage=false
 need_jars=false
+need_metrics=false
 [[ -f base-coverage/report.xml ]] || need_coverage=true
+[[ -f base-metrics/ci-metrics.json ]] || need_metrics=true
 if ! find base-libs -name 'kotventure-*.jar' 2>/dev/null | grep -q .; then
   need_jars=true
 fi
-if [[ "$need_coverage" != "true" && "$need_jars" != "true" ]]; then
-  echo "Base coverage and jars present from cache"
+if [[ "$need_coverage" != "true" && "$need_jars" != "true" && "$need_metrics" != "true" ]]; then
+  echo "Base coverage, jars, and metrics present from cache"
   exit 0
 fi
 
@@ -31,6 +33,15 @@ if [[ "$need_coverage" == "true" ]]; then
   report=$(find base-coverage-dl -name report.xml 2>/dev/null | head -1 || true)
   if [[ -n "${report:-}" ]]; then
     cp "$report" base-coverage/report.xml
+  fi
+fi
+
+if [[ "$need_metrics" == "true" ]]; then
+  mkdir -p base-metrics base-metrics-dl
+  gh run download "$run_id" -n ci-metrics -D base-metrics-dl || true
+  metrics=$(find base-metrics-dl -name ci-metrics.json 2>/dev/null | head -1 || true)
+  if [[ -n "${metrics:-}" ]]; then
+    cp "$metrics" base-metrics/ci-metrics.json
   fi
 fi
 

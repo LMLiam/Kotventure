@@ -36,8 +36,10 @@ runs:
         if [[ "$BUILD_SCAN" == "true" ]]; then
           scan_flag="--scan"
         fi
+        gradle_start=$(date +%s)
         # shellcheck disable=SC2086
         ./gradlew ${GRADLE_TASKS} ${scan_flag} 2>&1 | tee gradle.log
+        echo $(( $(date +%s) - gradle_start )) > gradle-duration.txt
         scan_url=$(grep -oE 'https://gradle\.com/s/[A-Za-z0-9_-]+' gradle.log | head -n1 || true)
         if [[ -z "$scan_url" ]]; then
           scan_url=$(grep -oE 'https://[^[:space:]]*scans\.gradle\.com[^[:space:]]*' gradle.log | head -n1 || true)

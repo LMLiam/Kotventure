@@ -267,6 +267,17 @@ jobs:
         with:
           tasks: ${{ steps.tasks.outputs.tasks }}
 
+      - name: Collect CI metrics
+        run: bash .github/scripts/collect-ci-metrics.sh
+
+      - name: Upload CI metrics
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ci-metrics
+          path: ci-metrics.json
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Publish JUnit test report
         if: always()
         uses: ./.github/actions/publish-junit-report
@@ -311,6 +322,9 @@ jobs:
           mkdir -p .ci-baseline/libs
           if [[ -f build/reports/kover/report.xml ]]; then
             cp build/reports/kover/report.xml .ci-baseline/report.xml
+          fi
+          if [[ -f ci-metrics.json ]]; then
+            cp ci-metrics.json .ci-baseline/ci-metrics.json
           fi
           cp build/libs/kotventure-*.jar .ci-baseline/libs/ 2>/dev/null || true
 
@@ -372,9 +386,12 @@ jobs:
         continue-on-error: true
         run: |
           set -euo pipefail
-          mkdir -p base-coverage base-libs
+          mkdir -p base-coverage base-libs base-metrics
           if [[ -f .ci-baseline/report.xml ]]; then
             cp .ci-baseline/report.xml base-coverage/report.xml
+          fi
+          if [[ -f .ci-baseline/ci-metrics.json ]]; then
+            cp .ci-baseline/ci-metrics.json base-metrics/ci-metrics.json
           fi
           if compgen -G '.ci-baseline/libs/kotventure-*.jar' > /dev/null; then
             cp .ci-baseline/libs/kotventure-*.jar base-libs/
@@ -393,6 +410,13 @@ jobs:
         with:
           name: module-jars
           path: pr-libs
+
+      - name: Download head CI metrics
+        continue-on-error: true
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: ci-metrics
+          path: head-metrics
 
       - name: Download base artifacts from CI run
         continue-on-error: true
