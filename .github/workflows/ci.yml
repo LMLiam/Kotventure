@@ -132,17 +132,17 @@ jobs:
     timeout-minutes: 5
     outputs:
       code: ${{ steps.resolve.outputs.code }}
-      vanilla: ${{ steps.filter.outputs.vanilla }}
+      vanilla: ${{ steps.resolve.outputs.vanilla }}
     steps:
       - name: Checkout
-        if: github.event_name != 'workflow_dispatch' && github.event_name != 'schedule'
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
 
       - name: Path filter
         id: filter
-        if: github.event_name != 'workflow_dispatch' && github.event_name != 'schedule'
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
         uses: dorny/paths-filter@d1c1ffe0248fe513906c8e24db8ea791d46f8590 # v3.0.3
         with:
           filters: |
@@ -179,12 +179,15 @@ jobs:
         env:
           EVENT_NAME: ${{ github.event_name }}
           FILTER_CODE: ${{ steps.filter.outputs.code }}
+          FILTER_VANILLA: ${{ steps.filter.outputs.vanilla }}
         run: |
           set -euo pipefail
-          if [[ "$EVENT_NAME" == "workflow_dispatch" || "$EVENT_NAME" == "schedule" ]]; then
-            echo "code=true" >> "$GITHUB_OUTPUT"
-          else
+          if [[ "$EVENT_NAME" == "pull_request" || "$EVENT_NAME" == "push" ]]; then
             echo "code=${FILTER_CODE}" >> "$GITHUB_OUTPUT"
+            echo "vanilla=${FILTER_VANILLA}" >> "$GITHUB_OUTPUT"
+          else
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            echo "vanilla=true" >> "$GITHUB_OUTPUT"
           fi
 
   # ╭──────────────────────────────────────────────────────────────────────────╮
@@ -206,6 +209,9 @@ jobs:
 
       - name: Check one type declaration per file
         run: bash .github/scripts/check-one-declaration-per-file.sh
+
+      - name: Test pr-metrics-comment action
+        run: node --test .github/actions/pr-metrics-comment/test/*.test.js
 
       - name: Run linters
         uses: ./.github/actions/gradle-job
@@ -393,44 +399,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        run: |
-          set -euo pipefail
-          need_coverage=false
-          need_jars=false
-          [[ -f base-coverage/report.xml ]] || need_coverage=true
-          if ! find base-libs -name 'kotventure-*.jar' 2>/dev/null | grep -q .; then
-            need_jars=true
-          fi
-          if [[ "$need_coverage" != "true" && "$need_jars" != "true" ]]; then
-            echo "Base coverage and jars present from cache"
-            exit 0
-          fi
-          run_id=$(gh run list \
-            --workflow ci.yml \
-            --commit "$BASE_SHA" \
-            --status success \
-            --limit 5 \
-            --json databaseId \
-            --jq '.[0].databaseId // empty')
-          if [[ -z "$run_id" ]]; then
-            echo "No successful CI run for base $BASE_SHA"
-            exit 1
-          fi
-          echo "Using base CI run $run_id for $BASE_SHA"
-          if [[ "$need_coverage" == "true" ]]; then
-            mkdir -p base-coverage base-coverage-dl
-            gh run download "$run_id" -n coverage-report -D base-coverage-dl || true
-            report=$(find base-coverage-dl -name report.xml 2>/dev/null | head -1 || true)
-            if [[ -n "${report:-}" ]]; then
-              cp "$report" base-coverage/report.xml
-            fi
-          fi
-          if [[ "$need_jars" == "true" ]]; then
-            mkdir -p base-libs base-libs-dl
-            gh run download "$run_id" -n module-jars -D base-libs-dl || \
-              gh run download "$run_id" -n gradle-build-artifacts -D base-libs-dl || true
-            find base-libs-dl -name 'kotventure-*.jar' -exec cp {} base-libs/ \; 2>/dev/null || true
-          fi
+        run: bash .github/scripts/download-base-metrics.sh
 
       - name: Decide if base jar rebuild is needed
         id: need-base-jars
@@ -456,28 +425,14 @@ jobs:
         env:
           GITHUB_TOKEN: ''
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        run: |
-          set -euo pipefail
-          git fetch --depth=1 origin "$BASE_SHA"
-          rm -rf base-src
-          git worktree add --detach base-src "$BASE_SHA"
-          tasks=()
-          for dir in base-src/modules/*/; do
-            name="${dir#base-src/modules/}"
-            name="${name%/}"
-            [[ "$name" == "bom" ]] && continue
-            if [[ -f "${dir}build.gradle" || -f "${dir}build.gradle.kts" ]]; then
-              tasks+=(":${name}:jar")
-            fi
-          done
-          if [[ ${#tasks[@]} -eq 0 ]]; then
-            echo "No module jar tasks on base"
-            exit 1
-          fi
-          echo "Building base jars: ${tasks[*]}"
-          (cd base-src && ./gradlew "${tasks[@]}")
-          mkdir -p base-libs
-          cp base-src/build/libs/kotventure-*.jar base-libs/ 2>/dev/null || true
+        run: bash .github/scripts/build-base-jars.sh
+
+      - name: Resolve base label
+        id: base-label
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: echo "label=${BASE_REF}@${BASE_SHA:0:7}" >> "$GITHUB_OUTPUT"
 
       - name: Post metrics comment
         continue-on-error: true
@@ -487,7 +442,7 @@ jobs:
           base-coverage-path: base-coverage/report.xml
           head-libs-dir: pr-libs
           base-libs-dir: base-libs
-          base-label: ${{ github.event.pull_request.base.ref }}@${{ github.event.pull_request.base.sha }}
+          base-label: ${{ steps.base-label.outputs.label }}
 
   # ╭──────────────────────────────────────────────────────────────────────────╮
   # │ Tier 2: Deep Analysis (runs only after Tier 1 passes)                    │
@@ -578,7 +533,7 @@ jobs:
   vanilla:
     name: Vanilla conformance
     needs: [lint, build, changes]
-    if: needs.changes.outputs.vanilla == 'true' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    if: needs.changes.outputs.vanilla == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:

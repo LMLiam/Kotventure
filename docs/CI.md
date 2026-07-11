@@ -45,7 +45,8 @@ CI
 Tier 2 runs only after Tier 1 passes — no point running expensive analysis on code that doesn't compile
 or pass lint. The Status job always runs and reports a single required check that gates merges.
 
-The workflow listens for `merge_group` events and always runs a full multi-project Build for those runs.
+The workflow listens for `merge_group` events; like schedule and dispatch runs, they skip the path
+filter and always run the full pipeline (Build, Vanilla, Qodana, CodeQL).
 
 ## When workflows run
 
@@ -67,7 +68,7 @@ Defined inline in `ci.yml` (the `changes` job path filter):
 | PR (docs/process only) | ✓ | — | — | — |
 | Push to `master` (code paths) | ✓ | ✓ | ✓ | ✓ |
 | Push to `master` (docs only) | ✓ | — | — | — |
-| `merge_group` (code paths) | ✓ | ✓ (full build) | ✓ | ✓ |
+| `merge_group` | ✓ | ✓ (path filter skipped) | ✓ | ✓ |
 | Weekly schedule | ✓ | ✓ | ✓ | ✓ |
 | `workflow_dispatch` | ✓ | ✓ | ✓ | ✓ |
 
@@ -106,9 +107,10 @@ dependent-module compiles on every code PR.
 
 ### Merge queue
 
-CI is merge-queue ready: `ci.yml` and `pr.yml` both listen for `merge_group` (full Build; Title /
-Commits report success placeholders so required checks still exist). Dependency-review remains
-PR-only; Status tolerates a non-failure skip for that job on non-PR events.
+CI is merge-queue ready: `ci.yml` and `pr.yml` both listen for `merge_group`. Queue batches skip the
+path filter and run the full pipeline including Vanilla conformance (the queue is the last gate before
+`master`); Title / Commits report success placeholders so required checks still exist.
+Dependency-review remains PR-only; Status tolerates a non-failure skip for that job on non-PR events.
 
 Enable the queue in the repo **Master** ruleset (**merge_queue**, squash) or under branch protection
 when the feature is available for the account. Until then, normal PR squash-merge still works.
@@ -128,7 +130,9 @@ Baseline resolution order (prefer cache, avoid rebuilds):
 2. **Artifacts** from a successful CI run for the base commit (`coverage-report`, `module-jars`)
 3. **Fallback:** jar-only Gradle build of the base SHA (coverage stays absolute if no base report)
 
-Legacy separate coverage / size comments are deleted when the combined comment is posted.
+The comment is built by `.github/actions/pr-metrics-comment` — a thin `action.yml` entry over plain
+Node modules in `lib/` (Kover XML parsing, JAR scanning, Mermaid rendering, comment upsert), unit
+tested with `node:test` in `test/`. The Lint job runs those tests.
 
 ### Build Scans
 
@@ -173,7 +177,7 @@ Title and Commits are required status checks.
 | **pr-metrics-comment** | `.github/actions/pr-metrics-comment` | CI (PR feedback) — single coverage + JAR size comment |
 
 Lint also runs `.github/scripts/check-one-declaration-per-file.sh` (one top-level type per main-source
-file) before Spotless/ktlint.
+file) and the `pr-metrics-comment` unit tests (`node --test`) before Spotless/ktlint.
 
 PR feedback is non-gating (`continue-on-error`); failures there do not fail Build or Status.
 
@@ -186,24 +190,19 @@ PR feedback is non-gating (`continue-on-error`); failures there do not fail Buil
 | `normalize-qodana-sarif.sh` | Fix 0-based SARIF regions for GitHub code scanning |
 | `write-gradle-job-summary.sh` | Job summary: Java/Gradle/Kotlin versions + failed tasks |
 | `vanilla-fixture-cache-key.sh` | Compute MC fixture cache key |
+| `download-base-metrics.sh` | PR feedback: fetch base coverage/jars from the base commit's CI run |
+| `build-base-jars.sh` | PR feedback: last-resort jar-only Gradle build of the base SHA |
 
 ## Action pins and Dependabot
 
-Third-party actions are SHA-pinned with a version comment. Dependabot updates (`github-actions` in
-`.github/dependabot.yml`):
-
-- `/` — workflows
-- `/.github/actions/gradle-job`
-- `/.github/actions/setup-jdk-gradle`
-- `/.github/actions/publish-junit-report`
-- `/.github/actions/pr-metrics-comment`
-
-New composites that pin third-party actions need a matching Dependabot directory.
+Third-party actions are SHA-pinned with a version comment. Dependabot updates them via a single
+`github-actions` entry in `.github/dependabot.yml` with `directories: ["/", "/.github/actions/*"]` —
+new composites are covered automatically, no config change needed.
 
 | Ecosystem | Grouping | Open PR limit |
 |-----------|----------|---------------|
 | Gradle (`/`) | Minor + patch grouped (`gradle-minor-patch`); **majors ungrouped** | 10 |
-| GitHub Actions (root + composites) | Minor + patch grouped; majors ungrouped | 10 (root), 5 (composites) |
+| GitHub Actions (root + composites) | Minor + patch grouped; majors ungrouped | 10 |
 
 ## Branch protection (`master`)
 
