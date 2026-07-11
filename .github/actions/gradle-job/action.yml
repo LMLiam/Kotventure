@@ -10,9 +10,9 @@ inputs:
     required: false
     default: '25'
   build-scan:
-    description: Request a Gradle Build Scan (adds --scan). Requires Develocity/TOS configuration to publish.
+    description: Publish a Gradle Build Scan via setup-gradle TOS accept (and --scan).
     required: false
-    default: 'false'
+    default: 'true'
 
 runs:
   using: composite
@@ -21,6 +21,7 @@ runs:
       uses: ./.github/actions/setup-jdk-gradle
       with:
         java-version: ${{ inputs.java-version }}
+        build-scan-publish: ${{ inputs.build-scan }}
 
     - name: Run Gradle
       id: gradle
@@ -38,6 +39,9 @@ runs:
         # shellcheck disable=SC2086
         ./gradlew ${GRADLE_TASKS} ${scan_flag} 2>&1 | tee gradle.log
         scan_url=$(grep -oE 'https://gradle\.com/s/[A-Za-z0-9_-]+' gradle.log | head -n1 || true)
+        if [[ -z "$scan_url" ]]; then
+          scan_url=$(grep -oE 'https://[^[:space:]]*scans\.gradle\.com[^[:space:]]*' gradle.log | head -n1 || true)
+        fi
         if [[ -n "$scan_url" ]]; then
           {
             echo "scan-url<<EOF"

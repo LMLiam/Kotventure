@@ -1,0 +1,335 @@
+name: PR Metrics Comment
+description: Post one PR comment with coverage (head vs base) and JAR size deltas.
+
+inputs:
+  head-coverage-path:
+    description: Path to head Kover XML report.
+    required: false
+    default: 'build/reports/kover/report.xml'
+  base-coverage-path:
+    description: Path to base Kover XML report (optional; absolute coverage only if missing).
+    required: false
+    default: 'base-coverage/report.xml'
+  head-libs-dir:
+    description: Directory tree of head module JARs.
+    required: false
+    default: 'pr-libs'
+  base-libs-dir:
+    description: Directory tree of base module JARs.
+    required: false
+    default: 'base-libs'
+  threshold:
+    description: JAR size growth warning threshold percent.
+    required: false
+    default: '10'
+  base-label:
+    description: Label for the base side in the comment footer.
+    required: false
+    default: 'PR base'
+
+runs:
+  using: composite
+  steps:
+    - name: Build metrics comment
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+      env:
+        HEAD_COVERAGE_PATH: ${{ inputs.head-coverage-path }}
+        BASE_COVERAGE_PATH: ${{ inputs.base-coverage-path }}
+        HEAD_LIBS_DIR: ${{ inputs.head-libs-dir }}
+        BASE_LIBS_DIR: ${{ inputs.base-libs-dir }}
+        THRESHOLD: ${{ inputs.threshold }}
+        BASE_LABEL: ${{ inputs.base-label }}
+      with:
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+
+          const headCoveragePath = process.env.HEAD_COVERAGE_PATH || 'build/reports/kover/report.xml';
+          const baseCoveragePath = process.env.BASE_COVERAGE_PATH || 'base-coverage/report.xml';
+          const headLibsDir = process.env.HEAD_LIBS_DIR || 'pr-libs';
+          const baseLibsDir = process.env.BASE_LIBS_DIR || 'base-libs';
+          const baseLabel = (process.env.BASE_LABEL || 'PR base').replace(/[\r\n|`]/g, '');
+          const rawThreshold = process.env.THRESHOLD || '10';
+          const parsedThreshold = Number.parseInt(rawThreshold, 10);
+          const growthThreshold = Number.isFinite(parsedThreshold) && parsedThreshold >= 0 ? parsedThreshold : 10;
+
+          function sanitizeModule(name) {
+            const cleaned = String(name).replace(/[^a-zA-Z0-9_-]/g, '');
+            return cleaned || 'unknown';
+          }
+
+          function moduleFromPackage(pkg) {
+            const parts = pkg.split('/');
+            const kotIdx = parts.indexOf('kotventure');
+            if (kotIdx < 0) {
+              return sanitizeModule(parts[0] || 'unknown');
+            }
+            const after = parts.slice(kotIdx + 1);
+            if (after[0] === 'test' && after[1] === 'snapshot') {
+              return 'test-snapshot';
+            }
+            return sanitizeModule(after[0] || 'unknown');
+          }
+
+          function packageLineCounter(packageBody) {
+            const stripped = packageBody
+              .replace(/<class[\s\S]*?<\/class>/g, '')
+              .replace(/<sourcefile[\s\S]*?<\/sourcefile>/g, '');
+            const match = stripped.match(/<counter type="LINE" missed="(\d+)" covered="(\d+)"\/>/);
+            if (!match) {
+              return null;
+            }
+            return { missed: parseInt(match[1], 10), covered: parseInt(match[2], 10) };
+          }
+
+          function parseCoverage(reportPath) {
+            if (!fs.existsSync(reportPath)) {
+              return null;
+            }
+            const xml = fs.readFileSync(reportPath, 'utf8');
+            const moduleMap = new Map();
+            const packageRegex = /<package name="([^"]+)">([\s\S]*?)<\/package>/g;
+            let packageMatch;
+            while ((packageMatch = packageRegex.exec(xml)) !== null) {
+              const counters = packageLineCounter(packageMatch[2]);
+              if (!counters) {
+                continue;
+              }
+              const moduleName = moduleFromPackage(packageMatch[1]);
+              if (!moduleMap.has(moduleName)) {
+                moduleMap.set(moduleName, { missed: 0, covered: 0 });
+              }
+              const entry = moduleMap.get(moduleName);
+              entry.missed += counters.missed;
+              entry.covered += counters.covered;
+            }
+            const rootXml = xml.replace(/<package[\s\S]*?<\/package>/g, '');
+            const totalMatch = rootXml.match(/<counter type="LINE" missed="(\d+)" covered="(\d+)"\/>/);
+            let totalMissed = 0;
+            let totalCovered = 0;
+            if (totalMatch) {
+              totalMissed = parseInt(totalMatch[1], 10);
+              totalCovered = parseInt(totalMatch[2], 10);
+            } else {
+              for (const data of moduleMap.values()) {
+                totalMissed += data.missed;
+                totalCovered += data.covered;
+              }
+            }
+            return { modules: moduleMap, totalMissed, totalCovered };
+          }
+
+          function pct(covered, missed) {
+            const total = covered + missed;
+            return total > 0 ? (covered / total) * 100 : 0;
+          }
+
+          function formatPct(value) {
+            return `${value.toFixed(1)}%`;
+          }
+
+          function parseModuleJar(filename) {
+            if (!filename.endsWith('.jar') || filename.includes('-sources') || filename.includes('-javadoc')) {
+              return null;
+            }
+            const match = filename.match(/^kotventure-(.+)-(\d+\.\d+\.\d+(?:[-+][A-Za-z0-9.]+)?)\.jar$/);
+            if (!match) {
+              return null;
+            }
+            return { module: sanitizeModule(match[1]), version: match[2] };
+          }
+
+          function versionKey(version) {
+            return version.split(/[.+-]/).map((part) => {
+              const n = Number.parseInt(part, 10);
+              return Number.isFinite(n) ? n.toString().padStart(8, '0') : part;
+            }).join('.');
+          }
+
+          function collectJars(rootDir) {
+            const sizes = new Map();
+            const bestVersion = new Map();
+            if (!fs.existsSync(rootDir)) {
+              return sizes;
+            }
+            function walk(dir) {
+              for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+                const full = path.join(dir, entry.name);
+                if (entry.isDirectory()) {
+                  walk(full);
+                  continue;
+                }
+                if (!entry.isFile()) {
+                  continue;
+                }
+                const parsed = parseModuleJar(entry.name);
+                if (!parsed) {
+                  continue;
+                }
+                const size = fs.statSync(full).size;
+                const prev = bestVersion.get(parsed.module);
+                if (!prev || versionKey(parsed.version) > versionKey(prev.version)) {
+                  bestVersion.set(parsed.module, { version: parsed.version, size });
+                  sizes.set(parsed.module, size);
+                }
+              }
+            }
+            walk(rootDir);
+            return sizes;
+          }
+
+          const headCoverage = parseCoverage(headCoveragePath);
+          const baseCoverage = parseCoverage(baseCoveragePath);
+          const headJars = collectJars(headLibsDir);
+          const baseJars = collectJars(baseLibsDir);
+
+          if (!headCoverage && headJars.size === 0) {
+            core.warning('No head coverage report or JARs found; skipping metrics comment');
+            return;
+          }
+
+          const sections = [];
+          sections.push('## CI metrics');
+          sections.push('');
+          sections.push(`Compared against **${baseLabel}** (cached baseline when available).`);
+          sections.push('');
+
+          if (headCoverage) {
+            const hasBase = !!baseCoverage;
+            let table = hasBase
+              ? '| Module | Head | Base | Δ |\n|--------|------|------|---|\n'
+              : '| Module | Coverage |\n|--------|----------|\n';
+            const names = new Set([...headCoverage.modules.keys()]);
+            if (hasBase) {
+              for (const name of baseCoverage.modules.keys()) {
+                names.add(name);
+              }
+            }
+            for (const name of [...names].sort((a, b) => a.localeCompare(b))) {
+              const head = headCoverage.modules.get(name);
+              const base = hasBase ? baseCoverage.modules.get(name) : null;
+              if (head && base) {
+                const headPct = pct(head.covered, head.missed);
+                const basePct = pct(base.covered, base.missed);
+                const delta = headPct - basePct;
+                const sign = delta > 0 ? '+' : '';
+                table += `| ${name} | ${formatPct(headPct)} | ${formatPct(basePct)} | ${sign}${delta.toFixed(1)}pp |\n`;
+              } else if (head) {
+                const headPct = pct(head.covered, head.missed);
+                table += hasBase
+                  ? `| ${name} | ${formatPct(headPct)} | — | new |\n`
+                  : `| ${name} | ${formatPct(headPct)} |\n`;
+              } else if (base) {
+                table += `| ${name} | — | ${formatPct(pct(base.covered, base.missed))} | removed |\n`;
+              }
+            }
+            const headTotal = pct(headCoverage.totalCovered, headCoverage.totalMissed);
+            if (hasBase) {
+              const baseTotal = pct(baseCoverage.totalCovered, baseCoverage.totalMissed);
+              const delta = headTotal - baseTotal;
+              const sign = delta > 0 ? '+' : '';
+              table += `| **Total** | **${formatPct(headTotal)}** | **${formatPct(baseTotal)}** | **${sign}${delta.toFixed(1)}pp** |\n`;
+            } else {
+              table += `| **Total** | **${formatPct(headTotal)}** |\n`;
+            }
+            sections.push('### Coverage');
+            sections.push('');
+            sections.push(table);
+            if (!hasBase) {
+              sections.push('');
+              sections.push('_Base coverage unavailable — absolute head coverage only._');
+            }
+            sections.push('');
+          }
+
+          if (headJars.size > 0) {
+            const warnings = [];
+            const modules = new Set([...headJars.keys(), ...baseJars.keys()]);
+            let table = '| Module | PR | Base | Delta |\n|--------|----|------|-------|\n';
+            for (const mod of [...modules].sort((a, b) => a.localeCompare(b))) {
+              const size = headJars.get(mod);
+              const baseSize = baseJars.get(mod);
+              if (typeof size === 'number' && typeof baseSize === 'number' && baseSize > 0) {
+                const sizeKb = (size / 1024).toFixed(1);
+                const baseKb = (baseSize / 1024).toFixed(1);
+                const delta = ((size - baseSize) / baseSize * 100).toFixed(1);
+                const sign = Number(delta) > 0 ? '+' : '';
+                const warn = parseFloat(delta) > growthThreshold ? ' !' : '';
+                table += `| ${mod} | ${sizeKb} KB | ${baseKb} KB | ${sign}${delta}%${warn} |\n`;
+                if (parseFloat(delta) > growthThreshold) {
+                  warnings.push(`${mod}: ${sign}${delta}%`);
+                }
+              } else if (typeof size === 'number') {
+                table += `| ${mod} | ${(size / 1024).toFixed(1)} KB | — | new |\n`;
+              } else if (typeof baseSize === 'number') {
+                table += `| ${mod} | — | ${(baseSize / 1024).toFixed(1)} KB | removed |\n`;
+              }
+            }
+            sections.push('### Artifact sizes');
+            sections.push('');
+            sections.push(table);
+            if (baseJars.size === 0) {
+              sections.push('');
+              sections.push('_Base JARs unavailable — head sizes only._');
+            }
+            if (warnings.length > 0) {
+              sections.push('');
+              sections.push(`> [!WARNING]`);
+              sections.push(`> Modules exceeding ${growthThreshold}% JAR growth:`);
+              for (const w of warnings) {
+                sections.push(`> - ${w}`);
+              }
+              core.warning(`Artifact size growth exceeds ${growthThreshold}%: ${warnings.join('; ')}`);
+            }
+            sections.push('');
+          }
+
+          sections.push(`<sub>Single metrics comment · marker updated in place</sub>`);
+
+          const marker = '<!-- pr-metrics -->';
+          const fullBody = `${marker}\n${sections.join('\n')}`;
+          const legacyMarkers = ['<!-- coverage-comment -->', '<!-- artifact-size-guard -->'];
+
+          const comments = await github.paginate(github.rest.issues.listComments, {
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+            per_page: 100,
+          });
+
+          const botComments = comments.filter((c) => c.user?.login === 'github-actions[bot]');
+          const existing = botComments.find((c) => c.body.startsWith(marker));
+          if (existing) {
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: existing.id,
+              body: fullBody,
+            });
+          } else {
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: fullBody,
+            });
+          }
+
+          for (const legacy of legacyMarkers) {
+            for (const c of botComments) {
+              if (c.body.startsWith(legacy) && !c.body.startsWith(marker)) {
+                try {
+                  await github.rest.issues.deleteComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    comment_id: c.id,
+                  });
+                } catch (e) {
+                  core.info(`Could not delete legacy comment ${c.id}: ${e.message}`);
+                }
+              }
+            }
+          }
+
+          core.info('PR metrics comment posted');

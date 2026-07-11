@@ -60,6 +60,6 @@ by SHA-1; a cache-download failure is retryable.
 - CI supports `workflow_dispatch` with optional `tasks` (default
   `build dokkaGenerate koverXmlReport koverHtmlReport`) and `module` (runs
   `:<module>:build` plus root verification: kover/BOM/release/Dokka reports) inputs; path
-  filters are skipped on manual runs.
+  filters are skipped on manual runs. Default PR/push Build is always a full multi-project set.
 - Docs-only PRs legitimately skip heavy jobs — a green Status check with skipped jobs is
   correct, not a bug (markdown under `modules/**` counts as code, though).

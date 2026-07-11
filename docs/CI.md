@@ -22,12 +22,12 @@ CI
 │
 ├─ Tier 0: Triage ─────────────────────────────────────────────────
 │   ├─ Gate              (skip release-please PRs + merge commits)
-│   └─ Detect changes    (path filter → code, vanilla, per-module)
+│   └─ Detect changes    (path filter → code, vanilla)
 │
 ├─ Tier 1: Core (parallel, fast feedback) ─────────────────────────
-│   ├─ Lint              (spotlessCheck + ktlintCheck)
-│   └─ Build             (compile + test + Dokka + Kover gate + reports)
-│       └─ PR feedback   (coverage comment + artifact size guard; non-gating)
+│   ├─ Lint              (declaration check + spotlessCheck + ktlintCheck)
+│   └─ Build             (full multi-project build + Dokka + Kover + Build Scan)
+│       └─ PR feedback   (one metrics comment: coverage Δ + JAR sizes; non-gating)
 │
 ├─ Tier 2: Deep Analysis (after Tier 1 passes) ────────────────────
 │   ├─ CodeQL            (actions + java-kotlin matrix)
@@ -45,7 +45,7 @@ CI
 Tier 2 runs only after Tier 1 passes — no point running expensive analysis on code that doesn't compile
 or pass lint. The Status job always runs and reports a single required check that gates merges.
 
-The workflow listens for `merge_group` events and always uses a full multi-module Build for those runs.
+The workflow listens for `merge_group` events and always runs a full multi-project Build for those runs.
 
 ## When workflows run
 
@@ -97,31 +97,45 @@ Release-only files: `CHANGELOG.md`, `.release-please-manifest.json`.
 
 When adding release-please `extra-files`, update the gate allow-list in `ci.yml`.
 
-### Module-scoped builds (PRs)
+### Full builds
 
-On PRs, the path filter detects which modules changed (`core`, `minimessage`, `serializer`, `test`,
-`test-snapshot`). When only a subset changed and `buildSrc` / `gradle/**` / root `build.gradle` /
-`settings.gradle` are untouched, Build runs `:<module>:build` for those modules plus **root**
-verification:
-
-- `koverVerify` (aggregated 85% coverage gate)
-- `verifyBomConsumerVersionlessDependencies`
-- `verifyReleaseVersionConsistency`
-- `koverXmlReport` / `koverHtmlReport`
-- `dokkaGenerate`
-
-Push, `merge_group`, schedule, and dispatch always use a full multi-project build (`modules=all`).
-Empty module matches fall back to `all`. `bom`-only and other non-module code paths also fall back
-to `all`.
-
-Green Status on a module-scoped PR means the reduced compile/test set **and** the root verification
-tasks above succeeded — not that every module was rebuilt from scratch as a consumer of API changes.
-Downstream modules are still exercised when Kover/report tasks pull their test tasks.
+PR, push, `merge_group`, schedule, and dispatch all run a **full multi-project** default task set
+(`build dokkaGenerate koverXmlReport koverHtmlReport`). Path filters only decide *whether* heavy CI
+runs (code vs docs), not which modules compile. That keeps the coverage gate, BOM checks, and
+dependent-module compiles on every code PR.
 
 ### Merge queue
 
-The CI workflow includes a `merge_group` trigger. Merge-queue runs force `modules=all` (full Build).
+The CI workflow includes a `merge_group` trigger and runs full Build for those events.
 Dependency-review remains PR-only; Status tolerates a non-failure skip for that job on non-PR events.
+
+### PR metrics (coverage + artifact sizes)
+
+After Build, the **PR feedback** job posts **one** bot comment (`<!-- pr-metrics -->`) with:
+
+- Per-module **line coverage** for head vs base (percentage points delta when base is available)
+- Per-module **JAR sizes** for head vs base (percent growth; warn above 10%)
+
+Baseline resolution order (prefer cache, avoid rebuilds):
+
+1. **Actions cache** key `ci-baseline-<base-sha>` (written on successful `master` pushes)
+2. **Artifacts** from a successful CI run for the base commit (`coverage-report`, `module-jars`)
+3. **Fallback:** jar-only Gradle build of the base SHA (coverage stays absolute if no base report)
+
+Legacy separate coverage / size comments are deleted when the combined comment is posted.
+
+### Build Scans
+
+`setup-jdk-gradle` enables public Gradle Build Scans by default via `gradle/actions/setup-gradle`:
+
+- `build-scan-publish: true`
+- Terms of Use URL: `https://gradle.com/terms-of-service`
+- Terms agreed: `yes`
+
+`gradle-job` also passes `--scan` and links the scan URL in the job summary when present. Scans are
+**public** on scans.gradle.com (task graph, dependency versions, environment metadata). Turn off with
+`build-scan: false` / `build-scan-publish: false` on a caller if needed. For a private Develocity
+server later, set the Develocity URL / access key inputs on `setup-gradle` instead of public scans.
 
 ### Trust and permissions
 
@@ -129,8 +143,8 @@ Dependency-review remains PR-only; Status tolerates a non-failure skip for that 
 |---------|-----------|
 | Default workflow permissions | `contents: read` |
 | Build job | `checks: write` + `contents: read` — no PR write; Gradle runs with `GITHUB_TOKEN` cleared |
-| PR feedback job | `pull-requests: write` + `contents: read` — posts comments only; does not run Gradle |
-| Build scans | Off by default (`gradle-job` `build-scan: false`). Enabling `--scan` requires Develocity/TOS setup and an explicit privacy decision |
+| PR feedback job | `actions: read` + `pull-requests: write` + `contents: read` — metrics comment + download base-run artifacts; no Gradle on the happy path |
+| Build scans | On by default (public); see above |
 | Dokka preview artifact | Untrusted HTML from the PR build; open locally with care; 14-day retention; not published as Pages |
 
 ## PR workflow jobs
@@ -148,20 +162,15 @@ Title and Commits are required status checks.
 
 | Action | Path | Used by |
 |--------|------|---------|
-| **gradle-job** | `.github/actions/gradle-job` | CI (Lint, Build) — JDK/Gradle setup + run tasks + optional build scan + job summary |
-| **setup-jdk-gradle** | `.github/actions/setup-jdk-gradle` | gradle-job, Vanilla, CodeQL, PR feedback (base jars) — JDK + Gradle caches |
+| **gradle-job** | `.github/actions/gradle-job` | CI (Lint, Build) — JDK/Gradle setup + run tasks + Build Scan + job summary |
+| **setup-jdk-gradle** | `.github/actions/setup-jdk-gradle` | gradle-job, Vanilla, CodeQL, PR feedback fallback — JDK + Gradle caches + scan TOS |
 | **publish-junit-report** | `.github/actions/publish-junit-report` | CI (Build, Vanilla) — JUnit XML → Checks annotations |
-| **coverage-comment** | `.github/actions/coverage-comment` | CI (PR feedback) — absolute per-module coverage table as PR comment |
-| **artifact-size-guard** | `.github/actions/artifact-size-guard` | CI (PR feedback) — PR jars vs jars built from the PR base ref |
+| **pr-metrics-comment** | `.github/actions/pr-metrics-comment` | CI (PR feedback) — single coverage + JAR size comment |
 
 Lint also runs `.github/scripts/check-one-declaration-per-file.sh` (one top-level type per main-source
 file) before Spotless/ktlint.
 
-Coverage and size comments are non-gating (`continue-on-error` on the PR feedback job). Failures there
-do not fail Build or Status.
-
-Artifact sizes: Build uploads head `build/libs/kotventure-*.jar`; PR feedback checks out the PR base
-SHA, runs module `jar` tasks there, and compares the two sides (no committed size baseline).
+PR feedback is non-gating (`continue-on-error`); failures there do not fail Build or Status.
 
 ## Scripts
 
@@ -182,8 +191,7 @@ Third-party actions are SHA-pinned with a version comment. Dependabot updates (`
 - `/.github/actions/gradle-job`
 - `/.github/actions/setup-jdk-gradle`
 - `/.github/actions/publish-junit-report`
-- `/.github/actions/coverage-comment`
-- `/.github/actions/artifact-size-guard`
+- `/.github/actions/pr-metrics-comment`
 
 New composites that pin third-party actions need a matching Dependabot directory.
 
@@ -194,11 +202,11 @@ New composites that pin third-party actions need a matching Dependabot directory
 
 ## Branch protection (`master`)
 
-Repository ruleset **Master** (default branch):
+Repository ruleset **Master** (default branch), verified via the rulesets API:
 
 - Block force-push, branch deletion, and direct pushes (updates only via PR).
 - Pull requests: one approving review, code-owner review, dismiss stale reviews, resolve conversations, squash only.
-- Required status checks — see [Required vs optional checks](#required-vs-optional-checks).
+- Required status checks (strict, must be up to date with base): **Status**, **Title**, **Commits**, **Dependencies**.
 - Code scanning gate for Qodana (`QDJVM`) alerts at medium-or-higher security / errors severity.
 - Maintainer bypass remains configured for emergency overrides.
 
@@ -216,7 +224,7 @@ PRs show many checks; only a subset is merge-blocking via the **Master** ruleset
 | **Commits** | **Required** | Conventional commit subjects (from `pr.yml`) |
 | **Dependencies** | **Required** | Dependency review |
 | Lint / Build | No | Under the Status aggregator |
-| PR feedback | No | Coverage/size comments only; not part of Status |
+| PR feedback | No | Metrics comment only; not part of Status |
 | Vanilla conformance | No | Under the Status aggregator; path-filtered |
 | Qodana / QDJVM | No* | QDJVM code-scanning alerts are ruleset-gated |
 | CodeQL | No | SARIF to code scanning |
@@ -232,17 +240,17 @@ PRs show many checks; only a subset is merge-blocking via the **Master** ruleset
 | Configuration cache + local build cache | `gradle.properties`; CI restores via `setup-gradle` |
 | Dependency / wrapper caches | `setup-gradle` defaults in `.github/actions/setup-jdk-gradle` |
 | Minecraft conformance fixtures | `actions/cache`; key derived from `targetMinecraftVersion` and `serverBundleSha1` |
-| Module-scoped PR builds | Compile/test focused on changed modules; root Kover/BOM/release/Dokka verification still run |
+| PR metrics baselines | `actions/cache` key `ci-baseline-<sha>` on master push; artifact download fallback; jar rebuild last |
 
 ### Artifacts (Build job)
 
 | Artifact | When |
 |----------|------|
 | Test results / HTML test reports | Always (including failed runs) |
-| Kover coverage report | Always (including failed runs) |
-| Module jars (`module-jars`) | PRs only — head jars for the size guard (base jars are built in PR feedback) |
+| Kover coverage report | Always (including failed runs); 14-day retention |
+| Module jars (`module-jars`) | Always when present; used as PR head metrics + base download fallback |
 | Dokka preview | PRs only (on success) — rendered KDoc HTML, 14-day retention; treat as untrusted HTML |
-| Module jars under `build/libs` | Only on **job failure**, or on **push to `master`** |
+| Full `build/libs` upload | Only on **job failure**, or on **push to `master`** |
 
 ## Re-running CI
 
