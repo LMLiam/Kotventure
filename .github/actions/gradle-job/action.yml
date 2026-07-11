@@ -10,9 +10,9 @@ inputs:
     required: false
     default: '25'
   build-scan:
-    description: Publish a Gradle Build Scan via setup-gradle TOS accept (and --scan).
+    description: Publish a Gradle Build Scan (slow — disables effective local build-cache reuse). Default off.
     required: false
-    default: 'true'
+    default: 'false'
 
 runs:
   using: composite

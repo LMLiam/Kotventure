@@ -7,9 +7,9 @@ inputs:
     required: false
     default: '25'
   build-scan-publish:
-    description: Publish a public Gradle Build Scan (requires TOS agreement inputs).
+    description: Publish a Gradle Build Scan (Develocity injection). Off by default — turns off local build-cache hits.
     required: false
-    default: 'true'
+    default: 'false'
 
 runs:
   using: composite
@@ -20,9 +20,14 @@ runs:
         distribution: temurin
         java-version: ${{ inputs.java-version }}
 
-    - name: Set up Gradle
+    - name: Set up Gradle (with Build Scan)
+      if: inputs.build-scan-publish == 'true'
       uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6.2.0
       with:
-        build-scan-publish: ${{ inputs.build-scan-publish }}
+        build-scan-publish: true
         build-scan-terms-of-use-url: https://gradle.com/terms-of-service
         build-scan-terms-of-use-agree: 'yes'
+
+    - name: Set up Gradle
+      if: inputs.build-scan-publish != 'true'
+      uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6.2.0

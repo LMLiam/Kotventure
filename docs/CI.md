@@ -128,16 +128,15 @@ Legacy separate coverage / size comments are deleted when the combined comment i
 
 ### Build Scans
 
-`setup-jdk-gradle` enables public Gradle Build Scans by default via `gradle/actions/setup-gradle`:
+**Off by default.** Enabling `build-scan: true` on `gradle-job` (or `build-scan-publish: true` on
+`setup-jdk-gradle`) injects Develocity and publishes a public scan — but it also **wrecks local
+build-cache hit rates** (observed: ~55 cache hits / 26s → ~1 cache hit / ~4 minutes on the same task
+set). Prefer leaving scans off for PR/push CI.
 
-- `build-scan-publish: true`
-- Terms of Use URL: `https://gradle.com/terms-of-service`
-- Terms agreed: `yes`
-
-`gradle-job` also passes `--scan` and links the scan URL in the job summary when present. Scans are
-**public** on scans.gradle.com (task graph, dependency versions, environment metadata). Turn off with
-`build-scan: false` / `build-scan-publish: false` on a caller if needed. For a private Develocity
-server later, set the Develocity URL / access key inputs on `setup-gradle` instead of public scans.
+To capture a scan occasionally (for example a manual diagnostic run), pass
+`build-scan: true` into `gradle-job`; that agrees to Gradle’s terms via `setup-gradle` and appends
+`--scan`. For a private Develocity server, configure Develocity URL / access key on `setup-gradle`
+instead of public scans.
 
 ### Trust and permissions
 
@@ -146,7 +145,7 @@ server later, set the Develocity URL / access key inputs on `setup-gradle` inste
 | Default workflow permissions | `contents: read` |
 | Build job | `checks: write` + `contents: read` — no PR write; Gradle runs with `GITHUB_TOKEN` cleared |
 | PR feedback job | `actions: read` + `pull-requests: write` + `contents: read` — posts metrics comment; prefers cache/artifacts for base jars/coverage, falls back to a base jar-only Gradle build with `GITHUB_TOKEN` cleared |
-| Build scans | On by default (public); see above |
+| Build scans | Off by default (cache-friendly); opt-in via `build-scan: true` |
 | Dokka preview artifact | Untrusted HTML from the PR build; open locally with care; 14-day retention; not published as Pages |
 
 ## PR workflow jobs
