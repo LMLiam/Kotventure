@@ -38,10 +38,11 @@ toolchain versions + failed task names), then reproduce locally — never push b
 
 - **Never hand-edit `CHANGELOG.md`** — release-please generates it from conventional commit
   subjects. Fix a wrong changelog entry by fixing the squash-merge subject, not the file.
-- Pure release PRs (branch `release-please--*`, touching only `CHANGELOG.md`,
-  `.release-please-manifest.json`, `gradle/libs.versions.toml`) skip heavy CI jobs via
-  the Gate job in `ci.yml`; the required Status check still reports green. If a release PR
-  unexpectedly runs heavy CI, it has an extra changed path.
+- Pure release PRs (branch `release-please--*`, touching only `CHANGELOG.md` and
+  `.release-please-manifest.json`) skip heavy CI jobs via the Gate job in `ci.yml`; the
+  required Status check still reports green. Version-catalog changes
+  (`gradle/libs.versions.toml`) always run heavy CI. If a release PR unexpectedly runs
+  heavy CI, it has an extra changed path.
 - Adding release-please `extra-files`? Update the gate allow-list in the `gate` job of
   `.github/workflows/ci.yml` in the same PR.
 - Release flow details: [`docs/RELEASING.md`](../../../docs/RELEASING.md).
@@ -58,6 +59,7 @@ by SHA-1; a cache-download failure is retryable.
 - Actions → failed run → **Re-run failed jobs** for genuine infra flake only.
 - CI supports `workflow_dispatch` with optional `tasks` (default
   `build dokkaGenerate koverXmlReport koverHtmlReport`) and `module` (runs
-  `:<module>:build`) inputs; path filters are skipped on manual runs.
+  `:<module>:build` plus root verification: kover/BOM/release/Dokka reports) inputs; path
+  filters are skipped on manual runs.
 - Docs-only PRs legitimately skip heavy jobs — a green Status check with skipped jobs is
   correct, not a bug (markdown under `modules/**` counts as code, though).

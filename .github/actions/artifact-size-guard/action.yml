@@ -106,11 +106,13 @@ runs:
           const baseline = collectJars(baselineLibsDir);
 
           if (current.size === 0) {
-            core.info(`No PR JAR artifacts found under ${currentLibsDir}`);
+            core.warning(`No PR JAR artifacts found under ${currentLibsDir}`);
             return;
           }
           if (baseline.size === 0) {
             core.warning(`No base JAR artifacts found under ${baselineLibsDir}; sizes reported without delta`);
+          } else {
+            core.info(`Compared ${current.size} PR module jar(s) against ${baseline.size} base jar(s)`);
           }
 
           const warnings = [];
@@ -175,4 +177,6 @@ runs:
 
           if (warnings.length > 0) {
             core.warning(`Artifact size growth exceeds ${growthThreshold}%: ${warnings.join('; ')}`);
+          } else {
+            core.info('Artifact size comment posted (no modules over threshold)');
           }

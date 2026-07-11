@@ -149,10 +149,13 @@ Title and Commits are required status checks.
 | Action | Path | Used by |
 |--------|------|---------|
 | **gradle-job** | `.github/actions/gradle-job` | CI (Lint, Build) — JDK/Gradle setup + run tasks + optional build scan + job summary |
-| **setup-jdk-gradle** | `.github/actions/setup-jdk-gradle` | gradle-job, Vanilla, CodeQL — JDK + Gradle wrapper/dependency caches |
+| **setup-jdk-gradle** | `.github/actions/setup-jdk-gradle` | gradle-job, Vanilla, CodeQL, PR feedback (base jars) — JDK + Gradle caches |
 | **publish-junit-report** | `.github/actions/publish-junit-report` | CI (Build, Vanilla) — JUnit XML → Checks annotations |
 | **coverage-comment** | `.github/actions/coverage-comment` | CI (PR feedback) — absolute per-module coverage table as PR comment |
 | **artifact-size-guard** | `.github/actions/artifact-size-guard` | CI (PR feedback) — PR jars vs jars built from the PR base ref |
+
+Lint also runs `.github/scripts/check-one-declaration-per-file.sh` (one top-level type per main-source
+file) before Spotless/ktlint.
 
 Coverage and size comments are non-gating (`continue-on-error` on the PR feedback job). Failures there
 do not fail Build or Status.
