@@ -285,10 +285,8 @@ runs:
             sections.push('');
           }
 
-          sections.push(`<sub>Single metrics comment · marker updated in place</sub>`);
-
           const marker = '<!-- pr-metrics -->';
-          const fullBody = `${marker}\n${sections.join('\n')}`;
+          const fullBody = `${marker}\n${sections.join('\n')}`.trimEnd() + '\n';
           const legacyMarkers = ['<!-- coverage-comment -->', '<!-- artifact-size-guard -->'];
 
           const comments = await github.paginate(github.rest.issues.listComments, {
