@@ -1,19 +1,23 @@
 name: Artifact Size Guard
-description: Track JAR sizes per module and warn on unexpected growth against the committed baseline.
+description: Compare PR module JAR sizes against jars built from the PR base ref and warn on growth.
 
 inputs:
   threshold:
     description: Percentage growth threshold to trigger a warning (e.g. 10).
     required: false
     default: '10'
-  libs-dir:
-    description: Directory containing versioned module JARs (root build/libs in this repo).
+  current-libs-dir:
+    description: Directory tree containing PR (head) versioned module JARs.
     required: false
-    default: 'build/libs'
-  baseline-path:
-    description: Path to the committed baseline JSON map of module → size in bytes.
+    default: 'pr-libs'
+  baseline-libs-dir:
+    description: Directory tree containing base-ref versioned module JARs.
     required: false
-    default: '.github/artifact-sizes.json'
+    default: 'base/build/libs'
+  base-label:
+    description: Human-readable label for the base side (shown in the comment footer).
+    required: false
+    default: 'PR base'
 
 runs:
   using: composite
@@ -23,21 +27,23 @@ runs:
       uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
       env:
         THRESHOLD: ${{ inputs.threshold }}
-        LIBS_DIR: ${{ inputs.libs-dir }}
-        BASELINE_PATH: ${{ inputs.baseline-path }}
+        CURRENT_LIBS_DIR: ${{ inputs.current-libs-dir }}
+        BASELINE_LIBS_DIR: ${{ inputs.baseline-libs-dir }}
+        BASE_LABEL: ${{ inputs.base-label }}
       with:
         script: |
           const fs = require('fs');
           const path = require('path');
 
           const rawThreshold = process.env.THRESHOLD || '10';
-          const threshold = Number.parseInt(rawThreshold, 10);
-          if (!Number.isFinite(threshold) || threshold < 0) {
+          const parsedThreshold = Number.parseInt(rawThreshold, 10);
+          if (!Number.isFinite(parsedThreshold) || parsedThreshold < 0) {
             core.warning(`Invalid threshold '${rawThreshold}'; defaulting to 10`);
           }
-          const growthThreshold = Number.isFinite(threshold) && threshold >= 0 ? threshold : 10;
-          const libsDir = process.env.LIBS_DIR || 'build/libs';
-          const baselinePath = process.env.BASELINE_PATH || '.github/artifact-sizes.json';
+          const growthThreshold = Number.isFinite(parsedThreshold) && parsedThreshold >= 0 ? parsedThreshold : 10;
+          const currentLibsDir = process.env.CURRENT_LIBS_DIR || 'pr-libs';
+          const baselineLibsDir = process.env.BASELINE_LIBS_DIR || 'base/build/libs';
+          const baseLabel = (process.env.BASE_LABEL || 'PR base').replace(/[\r\n|`]/g, '');
 
           function sanitizeModule(name) {
             const cleaned = String(name).replace(/[^a-zA-Z0-9_-]/g, '');
@@ -62,66 +68,84 @@ runs:
             }).join('.');
           }
 
-          const current = new Map();
-          if (!fs.existsSync(libsDir)) {
-            core.info(`No libs directory at ${libsDir}`);
-            return;
+          function collectJars(rootDir) {
+            const sizes = new Map();
+            const bestVersion = new Map();
+            if (!fs.existsSync(rootDir)) {
+              return sizes;
+            }
+
+            function walk(dir) {
+              for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+                const full = path.join(dir, entry.name);
+                if (entry.isDirectory()) {
+                  walk(full);
+                  continue;
+                }
+                if (!entry.isFile()) {
+                  continue;
+                }
+                const parsed = parseModuleJar(entry.name);
+                if (!parsed) {
+                  continue;
+                }
+                const size = fs.statSync(full).size;
+                const prev = bestVersion.get(parsed.module);
+                if (!prev || versionKey(parsed.version) > versionKey(prev.version)) {
+                  bestVersion.set(parsed.module, { version: parsed.version, size });
+                  sizes.set(parsed.module, size);
+                }
+              }
+            }
+
+            walk(rootDir);
+            return sizes;
           }
 
-          const bestVersion = new Map();
-          for (const file of fs.readdirSync(libsDir)) {
-            const parsed = parseModuleJar(file);
-            if (!parsed) {
-              continue;
-            }
-            const size = fs.statSync(path.join(libsDir, file)).size;
-            const prev = bestVersion.get(parsed.module);
-            if (!prev || versionKey(parsed.version) > versionKey(prev.version)) {
-              bestVersion.set(parsed.module, { version: parsed.version, size });
-              current.set(parsed.module, size);
-            }
-          }
+          const current = collectJars(currentLibsDir);
+          const baseline = collectJars(baselineLibsDir);
 
           if (current.size === 0) {
-            core.info('No JAR artifacts found to measure.');
+            core.info(`No PR JAR artifacts found under ${currentLibsDir}`);
             return;
           }
-
-          let baseline = new Map();
-          if (fs.existsSync(baselinePath)) {
-            const data = JSON.parse(fs.readFileSync(baselinePath, 'utf8'));
-            baseline = new Map(Object.entries(data).map(([k, v]) => [sanitizeModule(k), v]));
+          if (baseline.size === 0) {
+            core.warning(`No base JAR artifacts found under ${baselineLibsDir}; sizes reported without delta`);
           }
 
           const warnings = [];
-          let table = '| Module | Size | Baseline | Delta |\n|--------|------|----------|-------|\n';
+          const modules = new Set([...current.keys(), ...baseline.keys()]);
+          let table = '| Module | PR | Base | Delta |\n|--------|----|------|-------|\n';
 
-          for (const [mod, size] of [...current.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
-            const sizeKb = (size / 1024).toFixed(1);
+          for (const mod of [...modules].sort((a, b) => a.localeCompare(b))) {
+            const size = current.get(mod);
             const baseSize = baseline.get(mod);
-            if (typeof baseSize === 'number' && baseSize > 0) {
+            if (typeof size === 'number' && typeof baseSize === 'number' && baseSize > 0) {
+              const sizeKb = (size / 1024).toFixed(1);
               const baseKb = (baseSize / 1024).toFixed(1);
               const delta = ((size - baseSize) / baseSize * 100).toFixed(1);
               const sign = Number(delta) > 0 ? '+' : '';
               const warn = parseFloat(delta) > growthThreshold ? ' !' : '';
               table += `| ${mod} | ${sizeKb} KB | ${baseKb} KB | ${sign}${delta}%${warn} |\n`;
               if (parseFloat(delta) > growthThreshold) {
-                warnings.push(`${mod}: ${sign}${delta}% (${sizeKb} KB vs ${baseKb} KB baseline)`);
+                warnings.push(`${mod}: ${sign}${delta}% (${sizeKb} KB vs ${baseKb} KB base)`);
               }
-            } else {
-              table += `| ${mod} | ${sizeKb} KB | — | new |\n`;
+            } else if (typeof size === 'number') {
+              table += `| ${mod} | ${(size / 1024).toFixed(1)} KB | — | new |\n`;
+            } else if (typeof baseSize === 'number') {
+              table += `| ${mod} | — | ${(baseSize / 1024).toFixed(1)} KB | removed |\n`;
             }
           }
 
           const marker = '<!-- artifact-size-guard -->';
           let body = `${marker}\n## Artifact Sizes\n\n${table}\n`;
           if (warnings.length > 0) {
-            body += `\n> [!WARNING]\n> Modules exceeding ${growthThreshold}% growth threshold:\n`;
+            body += `\n> [!WARNING]\n> Modules exceeding ${growthThreshold}% growth vs ${baseLabel}:\n`;
             for (const w of warnings) {
               body += `> - ${w}\n`;
             }
           }
-          body += '\n<sub>Compared against committed `.github/artifact-sizes.json` (not updated by CI)</sub>';
+          body += `\n<sub>PR jars vs jars built from ${baseLabel} (same module name, latest versioned jar each side)</sub>`;
 
           const comments = await github.paginate(github.rest.issues.listComments, {
             owner: context.repo.owner,

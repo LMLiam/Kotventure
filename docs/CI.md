@@ -152,14 +152,13 @@ Title and Commits are required status checks.
 | **setup-jdk-gradle** | `.github/actions/setup-jdk-gradle` | gradle-job, Vanilla, CodeQL — JDK + Gradle wrapper/dependency caches |
 | **publish-junit-report** | `.github/actions/publish-junit-report` | CI (Build, Vanilla) — JUnit XML → Checks annotations |
 | **coverage-comment** | `.github/actions/coverage-comment` | CI (PR feedback) — absolute per-module coverage table as PR comment |
-| **artifact-size-guard** | `.github/actions/artifact-size-guard` | CI (PR feedback) — JAR size vs committed `.github/artifact-sizes.json` |
+| **artifact-size-guard** | `.github/actions/artifact-size-guard` | CI (PR feedback) — PR jars vs jars built from the PR base ref |
 
 Coverage and size comments are non-gating (`continue-on-error` on the PR feedback job). Failures there
 do not fail Build or Status.
 
-Artifact sizes are measured from root `build/libs/kotventure-*.jar` (this repo redirects module jars
-there). Baseline updates are **manual commits** to `.github/artifact-sizes.json`; CI never rewrites
-that file.
+Artifact sizes: Build uploads head `build/libs/kotventure-*.jar`; PR feedback checks out the PR base
+SHA, runs module `jar` tasks there, and compares the two sides (no committed size baseline).
 
 ## Scripts
 
@@ -238,7 +237,7 @@ PRs show many checks; only a subset is merge-blocking via the **Master** ruleset
 |----------|------|
 | Test results / HTML test reports | Always (including failed runs) |
 | Kover coverage report | Always (including failed runs) |
-| Module jars (`module-jars`) | PRs only — input for the size guard |
+| Module jars (`module-jars`) | PRs only — head jars for the size guard (base jars are built in PR feedback) |
 | Dokka preview | PRs only (on success) — rendered KDoc HTML, 14-day retention; treat as untrusted HTML |
 | Module jars under `build/libs` | Only on **job failure**, or on **push to `master`** |
 

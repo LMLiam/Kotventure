@@ -364,12 +364,12 @@ jobs:
       && needs.build.result != 'cancelled'
       && needs.build.result != 'skipped'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 20
     permissions:
       contents: read
       pull-requests: write
     steps:
-      - name: Checkout
+      - name: Checkout PR head
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
@@ -381,20 +381,64 @@ jobs:
           name: coverage-report
           path: build/reports/kover
 
-      - name: Download module jars
+      - name: Download PR module jars
         continue-on-error: true
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: module-jars
-          path: build/libs
+          path: pr-libs
 
       - name: Post coverage comment
         continue-on-error: true
         uses: ./.github/actions/coverage-comment
 
+      - name: Checkout PR base for jar baseline
+        continue-on-error: true
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: base
+          persist-credentials: false
+
+      - name: Set up JDK and Gradle for base jars
+        continue-on-error: true
+        uses: ./.github/actions/setup-jdk-gradle
+
+      - name: Build base module jars
+        id: base-jars
+        continue-on-error: true
+        working-directory: base
+        env:
+          GITHUB_TOKEN: ''
+        run: |
+          set -euo pipefail
+          if [[ ! -x ./gradlew ]]; then
+            echo "Base checkout missing gradlew; skip size baseline."
+            exit 1
+          fi
+          tasks=()
+          for dir in modules/*/; do
+            name="${dir#modules/}"
+            name="${name%/}"
+            [[ "$name" == "bom" ]] && continue
+            if [[ -f "${dir}build.gradle" || -f "${dir}build.gradle.kts" ]]; then
+              tasks+=(":${name}:jar")
+            fi
+          done
+          if [[ ${#tasks[@]} -eq 0 ]]; then
+            echo "No module jar tasks found on base; skip size baseline."
+            exit 1
+          fi
+          echo "Building base jars: ${tasks[*]}"
+          ./gradlew "${tasks[@]}"
+
       - name: Report artifact sizes
         continue-on-error: true
         uses: ./.github/actions/artifact-size-guard
+        with:
+          current-libs-dir: pr-libs
+          baseline-libs-dir: base/build/libs
+          base-label: ${{ github.event.pull_request.base.ref }}@${{ github.event.pull_request.base.sha }}
 
   # ╭──────────────────────────────────────────────────────────────────────────╮
   # │ Tier 2: Deep Analysis (runs only after Tier 1 passes)                    │
