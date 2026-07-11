@@ -66,10 +66,8 @@ jobs:
             const releaseOnlyFiles = new Set([
               'CHANGELOG.md',
               '.release-please-manifest.json',
-              'gradle/libs.versions.toml',
             ]);
 
-            // Push: detect release-please merge commits
             if (context.eventName === 'push') {
               const commitMsg = context.payload.head_commit?.message || '';
               if (/^chore\(master\): release\b/.test(commitMsg)) {
@@ -83,7 +81,7 @@ jobs:
                   .map(f => f.filename)
                   .filter(name => !releaseOnlyFiles.has(name));
                 if (unexpected.length === 0) {
-                  core.info('Release-please merge commit (release-only files); skip heavy CI.');
+                  core.info('Release-please merge commit (changelog/manifest only); skip heavy CI.');
                   core.setOutput('run', 'false');
                   return;
                 }
@@ -99,7 +97,6 @@ jobs:
               return;
             }
 
-            // PR: detect release-please branches
             const headRef = context.payload.pull_request.head.ref;
             if (!headRef.startsWith('release-please--')) {
               core.info(`Branch ${headRef}: not a release-please PR; run heavy CI.`);
@@ -207,7 +204,7 @@ jobs:
           if [[ "${{ github.event_name }}" == "workflow_dispatch" || "${{ github.event_name }}" == "schedule" ]]; then
             echo "code=true" >> "$GITHUB_OUTPUT"
             echo "modules=all" >> "$GITHUB_OUTPUT"
-          elif [[ "${{ github.event_name }}" == "push" ]]; then
+          elif [[ "${{ github.event_name }}" == "push" || "${{ github.event_name }}" == "merge_group" ]]; then
             echo "code=${{ steps.filter.outputs.code }}" >> "$GITHUB_OUTPUT"
             echo "modules=all" >> "$GITHUB_OUTPUT"
           else
@@ -256,7 +253,6 @@ jobs:
     permissions:
       checks: write
       contents: read
-      pull-requests: write
     steps:
       - name: Resolve Gradle tasks
         id: tasks
@@ -278,16 +274,14 @@ jobs:
 
           if [[ -z "$tasks" ]]; then
             if [[ -n "$module" ]]; then
-              tasks=":${module}:build"
+              tasks=":${module}:build koverVerify verifyBomConsumerVersionlessDependencies verifyReleaseVersionConsistency koverXmlReport koverHtmlReport dokkaGenerate"
             elif [[ "$CHANGED_MODULES" != "all" && -n "$CHANGED_MODULES" ]]; then
-              # Module-scoped build: only build changed modules
               tasks=""
               IFS=',' read -ra mods <<< "$CHANGED_MODULES"
               for mod in "${mods[@]}"; do
                 tasks="$tasks :${mod}:build"
               done
-              # Always run aggregate tasks
-              tasks="$tasks koverXmlReport koverHtmlReport"
+              tasks="$tasks koverVerify verifyBomConsumerVersionlessDependencies verifyReleaseVersionConsistency koverXmlReport koverHtmlReport dokkaGenerate"
             else
               tasks="build dokkaGenerate koverXmlReport koverHtmlReport"
             fi
@@ -314,14 +308,6 @@ jobs:
           check_name: Test Report
           report_paths: modules/*/build/test-results/test/TEST-*.xml
 
-      - name: Post coverage comment
-        if: always() && github.event_name == 'pull_request'
-        uses: ./.github/actions/coverage-comment
-
-      - name: Report artifact sizes
-        if: always() && github.event_name == 'pull_request'
-        uses: ./.github/actions/artifact-size-guard
-
       - name: Upload test results and reports
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -342,6 +328,15 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+      - name: Upload module jars for size guard
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: module-jars
+          path: build/libs/kotventure-*.jar
+          if-no-files-found: ignore
+          retention-days: 3
+
       - name: Upload Dokka preview
         if: success() && github.event_name == 'pull_request'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -359,6 +354,47 @@ jobs:
           path: build/libs
           if-no-files-found: ignore
           retention-days: 7
+
+  pr-feedback:
+    name: PR feedback
+    needs: [build]
+    if: >-
+      always()
+      && github.event_name == 'pull_request'
+      && needs.build.result != 'cancelled'
+      && needs.build.result != 'skipped'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Download coverage report
+        continue-on-error: true
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: coverage-report
+          path: build/reports/kover
+
+      - name: Download module jars
+        continue-on-error: true
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: module-jars
+          path: build/libs
+
+      - name: Post coverage comment
+        continue-on-error: true
+        uses: ./.github/actions/coverage-comment
+
+      - name: Report artifact sizes
+        continue-on-error: true
+        uses: ./.github/actions/artifact-size-guard
 
   # ╭──────────────────────────────────────────────────────────────────────────╮
   # │ Tier 2: Deep Analysis (runs only after Tier 1 passes)                    │
@@ -582,7 +618,11 @@ jobs:
           fi
 
           if [[ "$run" != "true" ]]; then
-            echo "::notice::Skipped (pure release-please PR)."
+            if [[ "${{ github.event_name }}" == "push" ]]; then
+              echo "::notice::Skipped (release-please merge commit)."
+            else
+              echo "::notice::Skipped (pure release-please PR)."
+            fi
             exit 0
           fi
 

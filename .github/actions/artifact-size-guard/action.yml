@@ -1,11 +1,19 @@
 name: Artifact Size Guard
-description: Track JAR sizes per module and warn on unexpected growth.
+description: Track JAR sizes per module and warn on unexpected growth against the committed baseline.
 
 inputs:
   threshold:
     description: Percentage growth threshold to trigger a warning (e.g. 10).
     required: false
     default: '10'
+  libs-dir:
+    description: Directory containing versioned module JARs (root build/libs in this repo).
+    required: false
+    default: 'build/libs'
+  baseline-path:
+    description: Path to the committed baseline JSON map of module → size in bytes.
+    required: false
+    default: '.github/artifact-sizes.json'
 
 runs:
   using: composite
@@ -13,30 +21,64 @@ runs:
     - name: Measure and compare artifact sizes
       if: github.event_name == 'pull_request'
       uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+      env:
+        THRESHOLD: ${{ inputs.threshold }}
+        LIBS_DIR: ${{ inputs.libs-dir }}
+        BASELINE_PATH: ${{ inputs.baseline-path }}
       with:
         script: |
           const fs = require('fs');
           const path = require('path');
-          const { execSync } = require('child_process');
-          const threshold = parseInt('${{ inputs.threshold }}');
 
-          // Collect current JAR sizes
-          const current = new Map();
-          const modulesDir = 'modules';
-          const modules = fs.readdirSync(modulesDir).filter(d =>
-            fs.statSync(path.join(modulesDir, d)).isDirectory()
-          );
+          const rawThreshold = process.env.THRESHOLD || '10';
+          const threshold = Number.parseInt(rawThreshold, 10);
+          if (!Number.isFinite(threshold) || threshold < 0) {
+            core.warning(`Invalid threshold '${rawThreshold}'; defaulting to 10`);
+          }
+          const growthThreshold = Number.isFinite(threshold) && threshold >= 0 ? threshold : 10;
+          const libsDir = process.env.LIBS_DIR || 'build/libs';
+          const baselinePath = process.env.BASELINE_PATH || '.github/artifact-sizes.json';
 
-          for (const mod of modules) {
-            const libsDir = path.join(modulesDir, mod, 'build', 'libs');
-            if (!fs.existsSync(libsDir)) continue;
-            const jars = fs.readdirSync(libsDir).filter(f => f.endsWith('.jar') && !f.includes('-sources') && !f.includes('-javadoc'));
-            let totalSize = 0;
-            for (const jar of jars) {
-              totalSize += fs.statSync(path.join(libsDir, jar)).size;
+          function sanitizeModule(name) {
+            const cleaned = String(name).replace(/[^a-zA-Z0-9_-]/g, '');
+            return cleaned || 'unknown';
+          }
+
+          function parseModuleJar(filename) {
+            if (!filename.endsWith('.jar') || filename.includes('-sources') || filename.includes('-javadoc')) {
+              return null;
             }
-            if (totalSize > 0) {
-              current.set(mod, totalSize);
+            const match = filename.match(/^kotventure-(.+)-(\d+\.\d+\.\d+(?:[-+][A-Za-z0-9.]+)?)\.jar$/);
+            if (!match) {
+              return null;
+            }
+            return { module: sanitizeModule(match[1]), version: match[2] };
+          }
+
+          function versionKey(version) {
+            return version.split(/[.+-]/).map((part) => {
+              const n = Number.parseInt(part, 10);
+              return Number.isFinite(n) ? n.toString().padStart(8, '0') : part;
+            }).join('.');
+          }
+
+          const current = new Map();
+          if (!fs.existsSync(libsDir)) {
+            core.info(`No libs directory at ${libsDir}`);
+            return;
+          }
+
+          const bestVersion = new Map();
+          for (const file of fs.readdirSync(libsDir)) {
+            const parsed = parseModuleJar(file);
+            if (!parsed) {
+              continue;
+            }
+            const size = fs.statSync(path.join(libsDir, file)).size;
+            const prev = bestVersion.get(parsed.module);
+            if (!prev || versionKey(parsed.version) > versionKey(prev.version)) {
+              bestVersion.set(parsed.module, { version: parsed.version, size });
+              current.set(parsed.module, size);
             }
           }
 
@@ -45,28 +87,25 @@ runs:
             return;
           }
 
-          // Try to load baseline from artifact
-          const baselinePath = '.github/artifact-sizes.json';
           let baseline = new Map();
           if (fs.existsSync(baselinePath)) {
             const data = JSON.parse(fs.readFileSync(baselinePath, 'utf8'));
-            baseline = new Map(Object.entries(data));
+            baseline = new Map(Object.entries(data).map(([k, v]) => [sanitizeModule(k), v]));
           }
 
-          // Compare and report
           const warnings = [];
           let table = '| Module | Size | Baseline | Delta |\n|--------|------|----------|-------|\n';
 
           for (const [mod, size] of [...current.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
             const sizeKb = (size / 1024).toFixed(1);
             const baseSize = baseline.get(mod);
-            if (baseSize) {
+            if (typeof baseSize === 'number' && baseSize > 0) {
               const baseKb = (baseSize / 1024).toFixed(1);
               const delta = ((size - baseSize) / baseSize * 100).toFixed(1);
-              const sign = delta > 0 ? '+' : '';
-              const warn = parseFloat(delta) > threshold ? ' ⚠️' : '';
+              const sign = Number(delta) > 0 ? '+' : '';
+              const warn = parseFloat(delta) > growthThreshold ? ' !' : '';
               table += `| ${mod} | ${sizeKb} KB | ${baseKb} KB | ${sign}${delta}%${warn} |\n`;
-              if (parseFloat(delta) > threshold) {
+              if (parseFloat(delta) > growthThreshold) {
                 warnings.push(`${mod}: ${sign}${delta}% (${sizeKb} KB vs ${baseKb} KB baseline)`);
               }
             } else {
@@ -74,29 +113,26 @@ runs:
             }
           }
 
-          // Write current sizes as new baseline
-          const output = {};
-          for (const [k, v] of current) output[k] = v;
-          fs.writeFileSync(baselinePath, JSON.stringify(output, null, 2) + '\n');
-
-          // Post comment on PR
           const marker = '<!-- artifact-size-guard -->';
-          let body = `${marker}\n## 📦 Artifact Sizes\n\n${table}\n`;
+          let body = `${marker}\n## Artifact Sizes\n\n${table}\n`;
           if (warnings.length > 0) {
-            body += `\n> [!WARNING]\n> Modules exceeding ${threshold}% growth threshold:\n`;
+            body += `\n> [!WARNING]\n> Modules exceeding ${growthThreshold}% growth threshold:\n`;
             for (const w of warnings) {
               body += `> - ${w}\n`;
             }
           }
-          body += '\n<sub>Compared against committed baseline</sub>';
+          body += '\n<sub>Compared against committed `.github/artifact-sizes.json` (not updated by CI)</sub>';
 
-          const { data: comments } = await github.rest.issues.listComments({
+          const comments = await github.paginate(github.rest.issues.listComments, {
             owner: context.repo.owner,
             repo: context.repo.repo,
             issue_number: context.issue.number,
+            per_page: 100,
           });
 
-          const existing = comments.find(c => c.body.startsWith(marker));
+          const existing = comments.find(
+            (c) => c.user?.login === 'github-actions[bot]' && c.body.startsWith(marker)
+          );
           if (existing) {
             await github.rest.issues.updateComment({
               owner: context.repo.owner,
@@ -114,5 +150,5 @@ runs:
           }
 
           if (warnings.length > 0) {
-            core.warning(`Artifact size growth exceeds ${threshold}%: ${warnings.join('; ')}`);
+            core.warning(`Artifact size growth exceeds ${growthThreshold}%: ${warnings.join('; ')}`);
           }

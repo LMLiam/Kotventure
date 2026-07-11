@@ -1,5 +1,5 @@
 name: Coverage Comment
-description: Post a PR comment showing per-module coverage delta against the base branch.
+description: Post a PR comment with absolute per-module line coverage from a Kover XML report.
 
 inputs:
   report-path:
@@ -13,12 +13,13 @@ runs:
     - name: Parse coverage and post comment
       if: github.event_name == 'pull_request'
       uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+      env:
+        REPORT_PATH: ${{ inputs.report-path }}
       with:
         script: |
           const fs = require('fs');
-          const path = require('path');
 
-          const reportPath = '${{ inputs.report-path }}';
+          const reportPath = process.env.REPORT_PATH || 'build/reports/kover/report.xml';
           if (!fs.existsSync(reportPath)) {
             core.warning(`Coverage report not found at ${reportPath}`);
             return;
@@ -26,39 +27,68 @@ runs:
 
           const xml = fs.readFileSync(reportPath, 'utf8');
 
-          // Parse module coverage from Kover XML (JaCoCo format)
-          const modules = [];
-          const packageRegex = /<package name="([^"]+)"[\s\S]*?<counter type="LINE" missed="(\d+)" covered="(\d+)"\/>/g;
-          let match;
-          const moduleMap = new Map();
-
-          while ((match = packageRegex.exec(xml)) !== null) {
-            const pkg = match[1];
-            const missed = parseInt(match[2]);
-            const covered = parseInt(match[3]);
-            // Extract module from package (e.g. "com/kotventure/core/..." -> "core")
+          function moduleFromPackage(pkg) {
             const parts = pkg.split('/');
             const kotIdx = parts.indexOf('kotventure');
-            const moduleName = kotIdx >= 0 && kotIdx + 1 < parts.length ? parts[kotIdx + 1] : parts[0];
+            if (kotIdx < 0) {
+              return sanitizeModule(parts[0] || 'unknown');
+            }
+            const after = parts.slice(kotIdx + 1);
+            if (after[0] === 'test' && after[1] === 'snapshot') {
+              return 'test-snapshot';
+            }
+            return sanitizeModule(after[0] || 'unknown');
+          }
 
+          function sanitizeModule(name) {
+            const cleaned = String(name).replace(/[^a-zA-Z0-9_-]/g, '');
+            return cleaned || 'unknown';
+          }
+
+          function packageLineCounter(packageBody) {
+            const stripped = packageBody
+              .replace(/<class[\s\S]*?<\/class>/g, '')
+              .replace(/<sourcefile[\s\S]*?<\/sourcefile>/g, '');
+            const match = stripped.match(/<counter type="LINE" missed="(\d+)" covered="(\d+)"\/>/);
+            if (!match) {
+              return null;
+            }
+            return { missed: parseInt(match[1], 10), covered: parseInt(match[2], 10) };
+          }
+
+          const moduleMap = new Map();
+          const packageRegex = /<package name="([^"]+)">([\s\S]*?)<\/package>/g;
+          let packageMatch;
+          while ((packageMatch = packageRegex.exec(xml)) !== null) {
+            const counters = packageLineCounter(packageMatch[2]);
+            if (!counters) {
+              continue;
+            }
+            const moduleName = moduleFromPackage(packageMatch[1]);
             if (!moduleMap.has(moduleName)) {
               moduleMap.set(moduleName, { missed: 0, covered: 0 });
             }
-            const m = moduleMap.get(moduleName);
-            m.missed += missed;
-            m.covered += covered;
+            const entry = moduleMap.get(moduleName);
+            entry.missed += counters.missed;
+            entry.covered += counters.covered;
           }
 
-          // Also try top-level counter
-          const totalRegex = /<counter type="LINE" missed="(\d+)" covered="(\d+)"\/>/g;
-          let totalMissed = 0, totalCovered = 0;
-          let totalMatch;
-          while ((totalMatch = totalRegex.exec(xml)) !== null) {
-            totalMissed = parseInt(totalMatch[1]);
-            totalCovered = parseInt(totalMatch[2]);
+          const rootXml = xml.replace(/<package[\s\S]*?<\/package>/g, '');
+          const totalMatch = rootXml.match(/<counter type="LINE" missed="(\d+)" covered="(\d+)"\/>/);
+          let totalMissed = 0;
+          let totalCovered = 0;
+          if (totalMatch) {
+            totalMissed = parseInt(totalMatch[1], 10);
+            totalCovered = parseInt(totalMatch[2], 10);
+          } else {
+            for (const data of moduleMap.values()) {
+              totalMissed += data.missed;
+              totalCovered += data.covered;
+            }
           }
-          const totalPct = totalCovered + totalMissed > 0
-            ? ((totalCovered / (totalCovered + totalMissed)) * 100).toFixed(1)
+          const totalLines = totalCovered + totalMissed;
+          const totalPct = totalLines > 0
+            ? ((totalCovered / totalLines) * 100).toFixed(1)
             : '0.0';
 
           let table = '| Module | Coverage |\n|--------|----------|\n';
@@ -69,19 +99,19 @@ runs:
           }
           table += `| **Total** | **${totalPct}%** |\n`;
 
-          const body = `## 📊 Coverage Report\n\n${table}\n\n<sub>Generated from Kover XML report</sub>`;
-
-          // Find and update existing comment or create new one
           const marker = '<!-- coverage-comment -->';
-          const fullBody = `${marker}\n${body}`;
+          const fullBody = `${marker}\n## Coverage Report\n\n${table}\n\n<sub>Absolute per-module line coverage from this run's Kover XML (not a base-branch delta)</sub>`;
 
-          const { data: comments } = await github.rest.issues.listComments({
+          const comments = await github.paginate(github.rest.issues.listComments, {
             owner: context.repo.owner,
             repo: context.repo.repo,
             issue_number: context.issue.number,
+            per_page: 100,
           });
 
-          const existing = comments.find(c => c.body.startsWith(marker));
+          const existing = comments.find(
+            (c) => c.user?.login === 'github-actions[bot]' && c.body.startsWith(marker)
+          );
           if (existing) {
             await github.rest.issues.updateComment({
               owner: context.repo.owner,
