@@ -1,5 +1,5 @@
 name: PR Metrics Comment
-description: Post one PR comment with coverage (head vs base) and JAR size deltas.
+description: Post one PR comment with Mermaid charts for coverage and JAR size deltas.
 
 inputs:
   head-coverage-path:
@@ -57,6 +57,12 @@ runs:
           function sanitizeModule(name) {
             const cleaned = String(name).replace(/[^a-zA-Z0-9_-]/g, '');
             return cleaned || 'unknown';
+          }
+
+          function chartLabel(name) {
+            return sanitizeModule(name)
+              .replace(/^test-snapshot$/, 'test-snap')
+              .replace(/^minimessage$/, 'mini');
           }
 
           function moduleFromPackage(pkg) {
@@ -179,6 +185,48 @@ runs:
             return sizes;
           }
 
+          function round1(n) {
+            return Math.round(n * 10) / 10;
+          }
+
+          function mermaidFence(config, bodyLines) {
+            return ['```mermaid', '---', 'config:', ...config, '---', ...bodyLines, '```'].join('\n');
+          }
+
+          function xyChart({ title, labels, yLabel, yMin, yMax, barValues, lineValues, width, height, palette }) {
+            const config = [
+              '  xyChart:',
+              `    width: ${width || 720}`,
+              `    height: ${height || 340}`,
+              '    chartOrientation: horizontal',
+              '  themeVariables:',
+              '    xyChart:',
+              '      backgroundColor: "transparent"',
+              '      titleColor: "#c4b5fd"',
+              '      xAxisLabelColor: "#94a3b8"',
+              '      xAxisTitleColor: "#94a3b8"',
+              '      xAxisTickColor: "#334155"',
+              '      xAxisLineColor: "#334155"',
+              '      yAxisLabelColor: "#94a3b8"',
+              '      yAxisTitleColor: "#94a3b8"',
+              '      yAxisTickColor: "#334155"',
+              '      yAxisLineColor: "#334155"',
+              '      plotColorPalette: "' + (palette || '#a78bfa, #22d3ee') + '"',
+            ];
+            const axisLabels = labels.map((l) => `"${l}"`).join(', ');
+            const lines = [
+              'xychart-beta',
+              `  title "${title}"`,
+              `  x-axis [${axisLabels}]`,
+              `  y-axis "${yLabel}" ${yMin} --> ${yMax}`,
+              `  bar [${barValues.map((v) => round1(v)).join(', ')}]`,
+            ];
+            if (lineValues && lineValues.length === barValues.length) {
+              lines.push(`  line [${lineValues.map((v) => round1(v)).join(', ')}]`);
+            }
+            return mermaidFence(config, lines);
+          }
+
           const headCoverage = parseCoverage(headCoveragePath);
           const baseCoverage = parseCoverage(baseCoveragePath);
           const headJars = collectJars(headLibsDir);
@@ -192,97 +240,173 @@ runs:
           const sections = [];
           sections.push('## CI metrics');
           sections.push('');
-          sections.push(`Compared against **${baseLabel}** (cached baseline when available).`);
+          sections.push(`vs **${baseLabel}**`);
           sections.push('');
 
           if (headCoverage) {
             const hasBase = !!baseCoverage;
-            let table = hasBase
-              ? '| Module | Head | Base | Δ |\n|--------|------|------|---|\n'
-              : '| Module | Coverage |\n|--------|----------|\n';
             const names = new Set([...headCoverage.modules.keys()]);
             if (hasBase) {
               for (const name of baseCoverage.modules.keys()) {
                 names.add(name);
               }
             }
-            for (const name of [...names].sort((a, b) => a.localeCompare(b))) {
+            const ordered = [...names].sort((a, b) => a.localeCompare(b));
+            const labels = [];
+            const headVals = [];
+            const baseVals = [];
+            const callouts = [];
+
+            for (const name of ordered) {
               const head = headCoverage.modules.get(name);
               const base = hasBase ? baseCoverage.modules.get(name) : null;
-              if (head && base) {
-                const headPct = pct(head.covered, head.missed);
-                const basePct = pct(base.covered, base.missed);
+              const headPct = head ? pct(head.covered, head.missed) : null;
+              const basePct = base ? pct(base.covered, base.missed) : null;
+              if (headPct == null && basePct == null) {
+                continue;
+              }
+              labels.push(chartLabel(name));
+              headVals.push(headPct != null ? headPct : 0);
+              baseVals.push(basePct != null ? basePct : 0);
+              if (headPct != null && basePct != null) {
                 const delta = headPct - basePct;
                 const sign = delta > 0 ? '+' : '';
-                table += `| ${name} | ${formatPct(headPct)} | ${formatPct(basePct)} | ${sign}${delta.toFixed(1)}pp |\n`;
-              } else if (head) {
-                const headPct = pct(head.covered, head.missed);
-                table += hasBase
-                  ? `| ${name} | ${formatPct(headPct)} | — | new |\n`
-                  : `| ${name} | ${formatPct(headPct)} |\n`;
-              } else if (base) {
-                table += `| ${name} | — | ${formatPct(pct(base.covered, base.missed))} | removed |\n`;
+                callouts.push(`\`${name}\` **${formatPct(headPct)}** (${sign}${delta.toFixed(1)}pp)`);
+              } else if (headPct != null) {
+                callouts.push(`\`${name}\` **${formatPct(headPct)}**${hasBase ? ' · new' : ''}`);
+              } else {
+                callouts.push(`\`${name}\` removed from head`);
               }
             }
+
             const headTotal = pct(headCoverage.totalCovered, headCoverage.totalMissed);
+            let totalLine = `**Total** ${formatPct(headTotal)}`;
             if (hasBase) {
               const baseTotal = pct(baseCoverage.totalCovered, baseCoverage.totalMissed);
               const delta = headTotal - baseTotal;
               const sign = delta > 0 ? '+' : '';
-              table += `| **Total** | **${formatPct(headTotal)}** | **${formatPct(baseTotal)}** | **${sign}${delta.toFixed(1)}pp** |\n`;
-            } else {
-              table += `| **Total** | **${formatPct(headTotal)}** |\n`;
+              totalLine += ` · base ${formatPct(baseTotal)} · ${sign}${delta.toFixed(1)}pp`;
             }
+
+            const allCoverage = [...headVals, ...(hasBase ? baseVals : [])].filter((v) => v > 0);
+            const yMin = allCoverage.length ? Math.max(0, Math.floor((Math.min(...allCoverage) - 5) / 5) * 5) : 0;
+
             sections.push('### Coverage');
             sections.push('');
-            sections.push(table);
-            if (!hasBase) {
-              sections.push('');
-              sections.push('_Base coverage unavailable — absolute head coverage only._');
-            }
+            sections.push(hasBase ? 'Bars = **PR** · line = **base**' : 'Bars = **PR** (base report unavailable)');
+            sections.push('');
+            sections.push(xyChart({
+              title: 'Line coverage by module',
+              labels,
+              yLabel: 'Coverage %',
+              yMin,
+              yMax: 100,
+              barValues: headVals,
+              lineValues: hasBase ? baseVals : null,
+              width: 700,
+              height: Math.max(280, 80 + labels.length * 42),
+              palette: '#a78bfa, #22d3ee',
+            }));
+            sections.push('');
+            sections.push(totalLine);
+            sections.push('');
+            sections.push(callouts.join(' · '));
             sections.push('');
           }
 
           if (headJars.size > 0) {
             const warnings = [];
-            const modules = new Set([...headJars.keys(), ...baseJars.keys()]);
-            let table = '| Module | PR | Base | Delta |\n|--------|----|------|-------|\n';
-            for (const mod of [...modules].sort((a, b) => a.localeCompare(b))) {
+            const modules = [...new Set([...headJars.keys(), ...baseJars.keys()])].sort((a, b) => a.localeCompare(b));
+            const labels = [];
+            const headKb = [];
+            const baseKb = [];
+            const deltas = [];
+            const callouts = [];
+            let hasAnyBase = false;
+
+            for (const mod of modules) {
               const size = headJars.get(mod);
               const baseSize = baseJars.get(mod);
+              labels.push(chartLabel(mod));
               if (typeof size === 'number' && typeof baseSize === 'number' && baseSize > 0) {
-                const sizeKb = (size / 1024).toFixed(1);
-                const baseKb = (baseSize / 1024).toFixed(1);
-                const delta = ((size - baseSize) / baseSize * 100).toFixed(1);
-                const sign = Number(delta) > 0 ? '+' : '';
-                const warn = parseFloat(delta) > growthThreshold ? ' !' : '';
-                table += `| ${mod} | ${sizeKb} KB | ${baseKb} KB | ${sign}${delta}%${warn} |\n`;
-                if (parseFloat(delta) > growthThreshold) {
-                  warnings.push(`${mod}: ${sign}${delta}%`);
+                hasAnyBase = true;
+                const h = size / 1024;
+                const b = baseSize / 1024;
+                const delta = ((size - baseSize) / baseSize) * 100;
+                headKb.push(h);
+                baseKb.push(b);
+                deltas.push(delta);
+                const sign = delta > 0 ? '+' : '';
+                callouts.push(`\`${mod}\` **${h.toFixed(1)} KB** (${sign}${delta.toFixed(1)}%)`);
+                if (delta > growthThreshold) {
+                  warnings.push(`${mod}: ${sign}${delta.toFixed(1)}%`);
                 }
               } else if (typeof size === 'number') {
-                table += `| ${mod} | ${(size / 1024).toFixed(1)} KB | — | new |\n`;
+                headKb.push(size / 1024);
+                baseKb.push(0);
+                deltas.push(0);
+                callouts.push(`\`${mod}\` **${(size / 1024).toFixed(1)} KB** · new`);
               } else if (typeof baseSize === 'number') {
-                table += `| ${mod} | — | ${(baseSize / 1024).toFixed(1)} KB | removed |\n`;
+                hasAnyBase = true;
+                headKb.push(0);
+                baseKb.push(baseSize / 1024);
+                deltas.push(0);
+                callouts.push(`\`${mod}\` removed from head`);
               }
             }
+
+            const sizeMax = Math.max(...headKb, ...baseKb, 1);
+            const yMax = Math.ceil(sizeMax * 1.15);
+
             sections.push('### Artifact sizes');
             sections.push('');
-            sections.push(table);
-            if (baseJars.size === 0) {
+            sections.push(hasAnyBase ? 'Bars = **PR** · line = **base**' : 'Bars = **PR** (base JARs unavailable)');
+            sections.push('');
+            sections.push(xyChart({
+              title: 'Module JAR size (KB)',
+              labels,
+              yLabel: 'KB',
+              yMin: 0,
+              yMax,
+              barValues: headKb,
+              lineValues: hasAnyBase ? baseKb : null,
+              width: 700,
+              height: Math.max(280, 80 + labels.length * 42),
+              palette: '#34d399, #818cf8',
+            }));
+            sections.push('');
+
+            if (hasAnyBase && deltas.some((d) => d !== 0)) {
+              const dMin = Math.min(0, ...deltas);
+              const dMax = Math.max(0, ...deltas, growthThreshold);
+              const pad = Math.max(2, Math.ceil((dMax - dMin) * 0.15));
+              sections.push(xyChart({
+                title: `Size delta vs base (%) · warn > ${growthThreshold}%`,
+                labels,
+                yLabel: 'Δ %',
+                yMin: Math.floor(dMin - pad),
+                yMax: Math.ceil(dMax + pad),
+                barValues: deltas,
+                lineValues: null,
+                width: 700,
+                height: Math.max(260, 70 + labels.length * 40),
+                palette: '#f472b6',
+              }));
               sections.push('');
-              sections.push('_Base JARs unavailable — head sizes only._');
             }
+
+            sections.push(callouts.join(' · '));
+            sections.push('');
+
             if (warnings.length > 0) {
-              sections.push('');
               sections.push(`> [!WARNING]`);
               sections.push(`> Modules exceeding ${growthThreshold}% JAR growth:`);
               for (const w of warnings) {
                 sections.push(`> - ${w}`);
               }
+              sections.push('');
               core.warning(`Artifact size growth exceeds ${growthThreshold}%: ${warnings.join('; ')}`);
             }
-            sections.push('');
           }
 
           const marker = '<!-- pr-metrics -->';
