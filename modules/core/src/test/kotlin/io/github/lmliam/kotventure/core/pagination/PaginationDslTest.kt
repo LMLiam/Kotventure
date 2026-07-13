@@ -36,7 +36,7 @@ class PaginationDslTest :
         {
             "renders header, items, indicator, and next button on the first page" {
                 val pagination =
-                    paginate(listOf("Alpha", "Beta", "Gamma", "Delta")) {
+                    paginate("Alpha", "Beta", "Gamma", "Delta") {
                         header { text("Warps") }
                         renderer { text(it) }
                         itemsPerPage(2)
@@ -260,7 +260,7 @@ class PaginationDslTest :
             "sends the first page to the audience" {
                 val audience = RecordingAudience()
 
-                audience.paginate(listOf("Alpha", "Beta", "Gamma")) {
+                audience.paginate("Alpha", "Beta", "Gamma") {
                     header { text("Warps") }
                     renderer { text(it) }
                     itemsPerPage(2)
@@ -395,7 +395,7 @@ class PaginationDslTest :
                         renderer { text(it) }
                         itemsPerPage(1)
                         nav {
-                            uses(ClickCallback.UNLIMITED_USES)
+                            uses(unlimited)
                         }
                     }
                 pagination.page(1)

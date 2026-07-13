@@ -3,6 +3,7 @@ package io.github.lmliam.kotventure.core.pagination
 import io.github.lmliam.kotventure.core.component.ComponentScope
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import net.kyori.adventure.text.ComponentLike
+import net.kyori.adventure.text.event.ClickCallback
 import kotlin.time.Duration
 
 /**
@@ -16,6 +17,13 @@ import kotlin.time.Duration
  */
 @KotventureDslMarker
 public interface NavScope {
+    /**
+     * The [uses] count that lets a nav button be clicked any number of times —
+     * [ClickCallback.UNLIMITED_USES], and what applies when [uses] is never called.
+     */
+    public val unlimited: Int
+        get() = ClickCallback.UNLIMITED_USES
+
     /**
      * Builds the label of the button that navigates to the preceding page from a component DSL
      * block.
@@ -62,12 +70,10 @@ public interface NavScope {
     public fun indicator(render: (page: Int, pageCount: Int) -> ComponentLike)
 
     /**
-     * Sets how many times each nav button may be clicked. Defaults to
-     * [unlimited][net.kyori.adventure.text.event.ClickCallback.UNLIMITED_USES].
+     * Sets how many times each nav button may be clicked. Defaults to [unlimited].
      *
      * @throws IllegalStateException when the use count is already set in this block.
-     * @throws IllegalArgumentException when [count] is neither positive nor
-     *   [net.kyori.adventure.text.event.ClickCallback.UNLIMITED_USES].
+     * @throws IllegalArgumentException when [count] is neither positive nor [unlimited].
      */
     public fun uses(count: Int)
 

@@ -21,7 +21,7 @@ internal fun paginateSample() {
 internal fun audiencePaginateSample() {
     val audience = emptyAudience()
 
-    audience.paginate(listOf("hub", "arena", "shop")) {
+    audience.paginate("hub", "arena", "shop") {
         header { text("Warps") }
         renderer { warp -> text(warp) }
         nav {
