@@ -14,6 +14,17 @@ import net.kyori.adventure.text.Component
 public fun emptyComponent(): Component = Component.empty()
 
 /**
+ * Returns Adventure's newline [Component].
+ *
+ * Prefer this over [Component.newline] in Kotventure call sites, for the same reason as
+ * [emptyComponent] — most useful as a standalone value such as a `join { }` separator; inside a
+ * component block, use the scope's own [newline][ComponentScope.newline].
+ *
+ * @sample io.github.lmliam.kotventure.core.component.newlineComponentSample
+ */
+public fun newlineComponent(): Component = Component.newline()
+
+/**
  * Builds an Adventure [Component] from a Kotventure component DSL block.
  *
  * The block runs against a [ComponentScope] rooted at an empty text component, so its children and

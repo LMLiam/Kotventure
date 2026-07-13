@@ -50,7 +50,7 @@ One feature per package under `io.github.lmliam.kotventure.core`:
 
 | Package                                           | Entry points                                                                                   |
 |---------------------------------------------------|------------------------------------------------------------------------------------------------|
-| `component`, `text`                               | `component { }`, `text(...) { }`, `emptyComponent()`, `join`, traversal                        |
+| `component`, `text`                               | `component { }`, `text(...) { }`, `emptyComponent()`, `newlineComponent()`, `join`, traversal |
 | `style`, `color`                                  | `style { }`, `styled`, named colors, `hex`/`rgb`/`hsv`, gradients                              |
 | `event`                                           | `click { }`, `hover { }` — also available inside any style block                               |
 | `audience`                                        | `audienceOf`, `message`, `chat`, `title`, `sound`, `bossBar`, `book`, `tabList`, `paginate`, … |

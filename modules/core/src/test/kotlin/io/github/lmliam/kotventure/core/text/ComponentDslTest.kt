@@ -9,6 +9,7 @@ import io.github.lmliam.kotventure.core.color.red
 import io.github.lmliam.kotventure.core.color.yellow
 import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.component.emptyComponent
+import io.github.lmliam.kotventure.core.component.newlineComponent
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.keybind.keybind
@@ -64,6 +65,10 @@ class ComponentDslTest :
         {
             "emptyComponent returns Adventure's empty component" {
                 emptyComponent() shouldBeSameInstanceAs Component.empty()
+            }
+
+            "newlineComponent returns Adventure's newline component" {
+                newlineComponent() shouldBeSameInstanceAs Component.newline()
             }
 
             "builds a text component with content" {

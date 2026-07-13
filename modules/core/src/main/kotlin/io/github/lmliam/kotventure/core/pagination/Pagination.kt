@@ -1,5 +1,6 @@
 package io.github.lmliam.kotventure.core.pagination
 
+import io.github.lmliam.kotventure.core.component.newlineComponent
 import io.github.lmliam.kotventure.core.event.buildClickEvent
 import io.github.lmliam.kotventure.core.text.join
 import net.kyori.adventure.text.Component
@@ -36,14 +37,14 @@ public class Pagination internal constructor(
     public fun page(page: Int): Component {
         require(page in 1..pageCount) { "'page' must be in 1..$pageCount, was $page." }
         return listOfNotNull(header, body(page), navRow(page))
-            .join { separator(Component.newline()) }
+            .join { separator(newlineComponent()) }
     }
 
     private fun body(page: Int): Component? {
         if (items.isEmpty()) return null
         val from = (page - 1) * itemsPerPage
         val to = minOf(from + itemsPerPage, items.size)
-        return items.subList(from, to).join { separator(Component.newline()) }
+        return items.subList(from, to).join { separator(newlineComponent()) }
     }
 
     private fun navRow(page: Int): Component? {
