@@ -137,7 +137,6 @@ fun onJoin(joiner: Audience, everyone: Audience, name: String, onlineCount: Int,
             name { remaining -> text("Round starts in ${remaining.inWholeSeconds}s") }
             color(green)
             overlay(notched10)
-            progress(from = 1f, to = 0f)
             every(1.ticks)
         }
     }
@@ -310,14 +309,15 @@ dependencies {
 ```
 
 Replace `<tag>` with a [released tag](https://github.com/LMLiam/Kotventure/releases) (e.g. `0.16.0`). The `test`
-artifacts are test-scope only. The BOM aligns Kotventure's Adventure baseline at 5.2.0.
+artifacts are test-scope only. The BOM re-exports Adventure's BOM at the baseline pinned in
+[`gradle/libs.versions.toml`](gradle/libs.versions.toml) (currently 5.2.0).
 
 New here? The [Getting Started guide](docs/GETTING-STARTED.md) walks from install to a tested component in five short
 steps.
 
 ## Build & compatibility
 
-Kotventure builds and tests with the Java 25 Gradle toolchain. Its Adventure baseline (5.2.0) sets a Java 21+ minimum
+Kotventure builds and tests with the Java 25 Gradle toolchain. Its Adventure baseline sets a Java 21+ minimum
 for consumers. Release process and maintainer permissions live in [`docs/RELEASING.md`](docs/RELEASING.md).
 
 ## Contributing

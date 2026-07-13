@@ -1,6 +1,6 @@
 # Getting Started
 
-From zero to a tested, styled, sent component in five steps. Every snippet below mirrors code that compiles in this
+From zero to a tested, styled, sent component in six steps. Every snippet below mirrors code that compiles in this
 repository's `src/samples` source sets against the real API.
 
 ## 1. Install
@@ -25,8 +25,8 @@ dependencies {
 }
 ```
 
-Replace `<tag>` with a [released tag](https://github.com/LMLiam/Kotventure/releases). Kotventure targets Java 21+
-consumers (following its Adventure baseline).
+Replace `<tag>` with a [released tag](https://github.com/LMLiam/Kotventure/releases). Kotventure itself builds with
+the Java 25 Gradle toolchain; as a consumer you need Java 21+, Adventure's floor.
 
 ## 2. Build your first component
 
