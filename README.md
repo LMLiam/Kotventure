@@ -137,6 +137,7 @@ fun onJoin(joiner: Audience, everyone: Audience, name: String, onlineCount: Int,
             name { remaining -> text("Round starts in ${remaining.inWholeSeconds}s") }
             color(green)
             overlay(notched10)
+            progress(from = 0f, to = 1f)
             every(1.ticks)
         }
     }
