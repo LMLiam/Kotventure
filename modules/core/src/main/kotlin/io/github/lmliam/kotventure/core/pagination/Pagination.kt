@@ -36,7 +36,7 @@ public class Pagination internal constructor(
     public fun page(page: Int): Component {
         require(page in 1..pageCount) { "'page' must be in 1..$pageCount, was $page." }
         return listOfNotNull(header, body(page), navRow(page))
-                .join { separator(Component.newline()) }
+            .join { separator(Component.newline()) }
     }
 
     private fun body(page: Int): Component? {
@@ -49,9 +49,9 @@ public class Pagination internal constructor(
     private fun navRow(page: Int): Component? {
         val parts =
             listOfNotNull(
-                    previousButton(page),
-                    nav.indicator(page, pageCount)?.asComponent(),
-                    nextButton(page),
+                previousButton(page),
+                nav.indicator(page, pageCount)?.asComponent(),
+                nextButton(page),
             )
         return if (parts.isEmpty()) null else parts.join { separator(" ") }
     }

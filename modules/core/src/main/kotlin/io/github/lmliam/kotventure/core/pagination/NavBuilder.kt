@@ -55,11 +55,11 @@ internal class NavBuilder : NavScope {
 
     internal fun build(): NavSettings =
         NavSettings(
-                previous = previous ?: text("« Previous"),
-                next = next ?: text("Next »"),
-                indicator = indicator ?: ::defaultIndicator,
-                uses = uses ?: ClickCallback.UNLIMITED_USES,
-                lifetime = lifetime ?: ClickCallback.DEFAULT_LIFETIME.toKotlinDuration(),
+            previous = previous ?: text("« Previous"),
+            next = next ?: text("Next »"),
+            indicator = indicator ?: ::defaultIndicator,
+            uses = uses ?: ClickCallback.UNLIMITED_USES,
+            lifetime = lifetime ?: ClickCallback.DEFAULT_LIFETIME.toKotlinDuration(),
         )
 }
 

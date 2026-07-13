@@ -38,10 +38,10 @@ internal class PaginationBuilder<T> : PaginationScope<T> {
     internal fun build(items: Iterable<T>): Pagination {
         val render = checkNotNull(renderer) { "'renderer' must be set." }
         return Pagination(
-                items = items.map { item -> render(item).asComponent() },
-                header = header,
-                itemsPerPage = itemsPerPage ?: DEFAULT_ITEMS_PER_PAGE,
-                nav = nav ?: NavBuilder().build(),
+            items = items.map { item -> render(item).asComponent() },
+            header = header,
+            itemsPerPage = itemsPerPage ?: DEFAULT_ITEMS_PER_PAGE,
+            nav = nav ?: NavBuilder().build(),
         )
     }
 }
