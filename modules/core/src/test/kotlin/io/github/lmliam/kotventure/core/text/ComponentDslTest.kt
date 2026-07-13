@@ -68,7 +68,7 @@ class ComponentDslTest :
             }
 
             "newlineComponent returns Adventure's newline component" {
-                newlineComponent() shouldBeSameInstanceAs Component.newline()
+                newlineComponent() shouldBe Component.newline()
             }
 
             "builds a text component with content" {

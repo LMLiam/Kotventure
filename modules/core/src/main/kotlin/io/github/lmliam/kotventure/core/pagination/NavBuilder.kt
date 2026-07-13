@@ -42,8 +42,8 @@ internal class NavBuilder : NavScope {
     }
 
     override fun uses(count: Int) {
-        require(count > 0 || count == ClickCallback.UNLIMITED_USES) {
-            "'uses' must be positive or ClickCallback.UNLIMITED_USES, was $count."
+        require(count > 0 || count == unlimited) {
+            "'uses' must be positive or 'unlimited', was $count."
         }
         uses = count
     }
@@ -58,7 +58,7 @@ internal class NavBuilder : NavScope {
             previous = previous ?: text("« Previous"),
             next = next ?: text("Next »"),
             indicator = indicator ?: ::defaultIndicator,
-            uses = uses ?: ClickCallback.UNLIMITED_USES,
+            uses = uses ?: unlimited,
             lifetime = lifetime ?: ClickCallback.DEFAULT_LIFETIME.toKotlinDuration(),
         )
 }
