@@ -2,8 +2,8 @@
 
 The heart of Kotventure: an idiomatic Kotlin DSL over `adventure-api` for everything a player sees. Components,
 styles, colors and gradients, click/hover events, titles, boss bars (including self-advancing timed bars), books,
-sounds, tab lists, typed vanilla entity selectors, NBT paths and compounds, translatables, keybinds, scores, and
-registrable style themes.
+sounds, tab lists, self-navigating chat pagination, typed vanilla entity selectors, NBT paths and compounds,
+translatables, keybinds, scores, and registrable style themes.
 
 `core` depends only on `adventure-api` — no MiniMessage, no coroutines, no platform code — so every other module and
 platform adapter can build on it.
@@ -53,8 +53,9 @@ One feature per package under `io.github.lmliam.kotventure.core`:
 | `component`, `text` | `component { }`, `text(...) { }`, `emptyComponent()`, `join`, traversal |
 | `style`, `color` | `style { }`, `styled`, named colors, `hex`/`rgb`/`hsv`, gradients |
 | `event` | `click { }`, `hover { }` — also available inside any style block |
-| `audience` | `audienceOf`, `message`, `chat`, `title`, `sound`, `bossBar`, `book`, `tabList`, … |
+| `audience` | `audienceOf`, `message`, `chat`, `title`, `sound`, `bossBar`, `book`, `tabList`, `paginate`, … |
 | `bossbar`, `book`, `sound` | `bossBar { }` (+ `bossbar.timed`), `book { }`, `sound(key) { }` |
+| `pagination` | `paginate(items) { }` — pages with clickable, self-navigating prev/next |
 | `selector` | `allPlayers { }`, `entities { }`, …, strict `parseSelector(...)` bridge |
 | `nbt`, `objectcomponent` | `nbt { }`, `nbtPath(...)`, block/entity/storage NBT components, `display(...)` |
 | `translatable`, `keybind`, `score`, `key`, `uuid` | the remaining component types and value helpers |
