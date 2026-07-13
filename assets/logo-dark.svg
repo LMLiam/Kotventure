@@ -1,0 +1,10 @@
+<svg width="600" height="96" viewBox="0 0 600 96" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Kotventure">
+  <defs>
+    <linearGradient id="wordmark" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#55FFFF"/>
+      <stop offset="50%" stop-color="#55FF55"/>
+      <stop offset="100%" stop-color="#FFAA00"/>
+    </linearGradient>
+  </defs>
+  <text x="14" y="66" font-family="ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, 'Liberation Mono', monospace" font-size="60"><tspan fill="#6e7681" font-weight="600">&lt;</tspan><tspan fill="url(#wordmark)" font-weight="800">Kotventure</tspan><tspan fill="#6e7681" font-weight="600">/&gt;</tspan></text>
+</svg>

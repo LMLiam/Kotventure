@@ -320,7 +320,8 @@ conveniences:
 - **Build:** Gradle multi‑module, Kotlin 2.4, JVM toolchain 25, ktlint + Spotless, Kotest.
 - **Java compatibility:** Kotventure builds with the Java 25 toolchain. Adventure 5.x sets a Java 21+ consumer floor, so
   modules should keep public APIs wrapper/composition-based rather than extending Adventure component/style interfaces.
-- **Adventure baseline:** Kotventure aligns Adventure artifacts through the Adventure 5.1.1 BOM. The core module wraps
+- **Adventure baseline:** Kotventure aligns Adventure artifacts through the Adventure BOM pinned in
+  [`gradle/libs.versions.toml`](../gradle/libs.versions.toml) (currently 5.2.0). The core module wraps
   `adventure-api`; feature modules add serializer, MiniMessage, platform, or tooling artifacts only when their roadmap
   slice lands.
 - **Publishing:** **JitPack** during pre‑alpha/alpha (zero infra, builds from git tags) → **Maven Central** (
@@ -334,7 +335,8 @@ conveniences:
 
 ### 10.1 Adventure 5.x compatibility
 
-Adventure 5.1.1 is the compatibility baseline for all new roadmap slices. Treat PaperMC's official
+The Adventure version pinned in [`gradle/libs.versions.toml`](../gradle/libs.versions.toml) is the compatibility
+baseline for all new roadmap slices. Treat PaperMC's official
 [Adventure 4.x → 5.x migration guide](https://docs.papermc.io/adventure/migration/adventure-4.x/) as the checklist
 when adding dependencies or public DSL types.
 

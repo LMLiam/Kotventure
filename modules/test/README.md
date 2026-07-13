@@ -12,7 +12,7 @@ The module is consumed **test-scoped** by library modules. With the BOM imported
 
 ```kotlin
 dependencies {
-    testImplementation("io.github.lmliam:kotventure-test")
+    testImplementation("com.github.LMLiam.Kotventure:kotventure-test")
 }
 ```
 

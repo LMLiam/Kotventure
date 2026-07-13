@@ -8,6 +8,7 @@ dependencies {
     implementation kotventureDependencies."adventure-text-serializer-gson"
 
     samplesImplementation project(':core')
+    samplesImplementation project(':test')
 
     testImplementation project(':core')
 }
