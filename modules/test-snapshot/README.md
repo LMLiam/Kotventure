@@ -10,7 +10,7 @@ With the BOM imported (see the root README), add:
 
 ```kotlin
 dependencies {
-    testImplementation("io.github.lmliam:kotventure-test-snapshot")
+    testImplementation("com.github.LMLiam.Kotventure:kotventure-test-snapshot")
 }
 ```
 

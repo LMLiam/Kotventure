@@ -45,3 +45,4 @@ bin/
 
 ### Agent scratch ###
 .agents/plans/
+.superpowers/
