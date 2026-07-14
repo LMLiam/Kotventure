@@ -11,17 +11,19 @@ import kotlin.time.Duration.Companion.milliseconds
 /**
  * [Ticker] over the Bukkit scheduler: repeating work becomes a synchronous
  * [runTaskTimer][BukkitScheduler.runTaskTimer] task owned by [plugin], with
- * the first fire one full interval after scheduling (matching `ManualTicker` semantics).
+ * the first fire one full interval after scheduling.
  */
 internal class PaperTicker(
     private val plugin: Plugin,
 ) : Ticker {
+    private val scheduler: BukkitScheduler = plugin.server.scheduler
+
     override fun repeating(
         interval: Duration,
         action: () -> Unit,
     ): TickerTask {
         val ticks = wholeTicksOf(interval)
-        val bukkitTask = plugin.server.scheduler.runTaskTimer(plugin, Runnable(action), ticks, ticks)
+        val bukkitTask = scheduler.runTaskTimer(plugin, Runnable(action), ticks, ticks)
         return PaperTickerTask(bukkitTask)
     }
 
