@@ -34,7 +34,7 @@ internal class NavBuilder : NavScope {
     }
 
     override fun indicator(shown: Boolean) {
-        indicator = if (shown) ::defaultIndicator else hiddenIndicator
+        indicator = if (shown) defaultIndicator else hiddenIndicator
     }
 
     override fun indicator(render: (page: Int, pageCount: Int) -> ComponentLike) {
@@ -57,7 +57,7 @@ internal class NavBuilder : NavScope {
         NavSettings(
             previous = previous ?: text("« Previous"),
             next = next ?: text("Next »"),
-            indicator = indicator ?: ::defaultIndicator,
+            indicator = indicator ?: defaultIndicator,
             uses = uses ?: unlimited,
             lifetime = lifetime ?: ClickCallback.DEFAULT_LIFETIME.toKotlinDuration(),
         )
@@ -65,7 +65,5 @@ internal class NavBuilder : NavScope {
 
 private val hiddenIndicator: (page: Int, pageCount: Int) -> ComponentLike? = { _, _ -> null }
 
-private fun defaultIndicator(
-    page: Int,
-    pageCount: Int,
-): ComponentLike = text("$page/$pageCount")
+private val defaultIndicator: (page: Int, pageCount: Int) -> ComponentLike =
+    { page, pageCount -> text("$page/$pageCount") }

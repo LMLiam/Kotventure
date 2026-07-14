@@ -8,9 +8,11 @@ import net.kyori.adventure.text.Component
 /**
  * A paginated view over pre-rendered items, produced by [paginate].
  *
- * Pages are self-navigating: [page] returns a chat-ready [Component] whose prev/next buttons carry
+ * Pages are self-navigating: [page] returns a chat-ready [Component] whose prev/next
+buttons carry
  * server-side click callbacks that render the target page and send it to whichever
- * [audience][net.kyori.adventure.audience.Audience] clicked them — no platform wiring needed.
+ * [audience][net.kyori.adventure.audience.Audience] clicked them — no platform wiring
+needed.
  *
  * @sample io.github.lmliam.kotventure.core.pagination.paginateSample
  */
@@ -21,16 +23,19 @@ public class Pagination internal constructor(
     private val nav: NavSettings,
 ) {
     /**
-     * The number of pages this pagination renders — always at least 1; an empty item list renders
+     * The number of pages this pagination renders — always at least 1; an empty item
+    list renders
      * a single page with no items.
      */
     public val pageCount: Int =
         if (items.isEmpty()) 1 else (items.size + itemsPerPage - 1) / itemsPerPage
 
     /**
-     * Renders [page] as a single component: the header (when set), the page's items each on their
+     * Renders [page] as a single component: the header (when set), the page's items
+    each on their
      * own line, and the nav row — the previous button (absent on the first page), the
-     * page-position indicator (unless hidden), and the next button (absent on the last page).
+     * page-position indicator (unless hidden), and the next button (absent on the last
+    page).
      *
      * @throws IllegalArgumentException when [page] is outside `1..pageCount`.
      */
@@ -47,15 +52,13 @@ public class Pagination internal constructor(
         return items.subList(from, to).join { separator(newlineComponent()) }
     }
 
-    private fun navRow(page: Int): Component? {
-        val parts =
-            listOfNotNull(
-                previousButton(page),
-                nav.indicator(page, pageCount)?.asComponent(),
-                nextButton(page),
-            )
-        return if (parts.isEmpty()) null else parts.join { separator(" ") }
-    }
+    private fun navRow(page: Int): Component? =
+        listOfNotNull(
+            previousButton(page),
+            nav.indicator(page, pageCount)?.asComponent(),
+            nextButton(page),
+        ).takeIf { it.isNotEmpty() }
+            ?.join { separator(" ") }
 
     private fun previousButton(page: Int): Component? = if (page == 1) null else navButton(nav.previous, page - 1)
 
@@ -67,7 +70,9 @@ public class Pagination internal constructor(
     ): Component =
         label.clickEvent(
             buildClickEvent {
-                callback(nav.uses, nav.lifetime) { audience -> audience.sendMessage(page(target)) }
+                callback(nav.uses, nav.lifetime) { audience ->
+                    audience.sendMessage(page(target))
+                }
             },
         )
 }

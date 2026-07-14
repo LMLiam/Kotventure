@@ -329,7 +329,7 @@ class PaginationDslTest :
                 }
             }
 
-            "rejects duplicate nav slots" {
+            "rejects a second previous label" {
                 shouldThrow<IllegalStateException> {
                     paginate(listOf("Alpha")) {
                         renderer { text(it) }
@@ -339,15 +339,21 @@ class PaginationDslTest :
                         }
                     }
                 }
+            }
+
+            "rejects a second next label" {
                 shouldThrow<IllegalStateException> {
                     paginate(listOf("Alpha")) {
                         renderer { text(it) }
                         nav {
-                            next { text("Forward") }
-                            next(text("Forward again"))
+                            next { text("Next") }
+                            next(text("Next again"))
                         }
                     }
                 }
+            }
+
+            "rejects a second indicator" {
                 shouldThrow<IllegalStateException> {
                     paginate(listOf("Alpha")) {
                         renderer { text(it) }
@@ -357,6 +363,9 @@ class PaginationDslTest :
                         }
                     }
                 }
+            }
+
+            "rejects a second uses count" {
                 shouldThrow<IllegalStateException> {
                     paginate(listOf("Alpha")) {
                         renderer { text(it) }
@@ -366,6 +375,9 @@ class PaginationDslTest :
                         }
                     }
                 }
+            }
+
+            "rejects a second lifetime" {
                 shouldThrow<IllegalStateException> {
                     paginate(listOf("Alpha")) {
                         renderer { text(it) }
