@@ -44,5 +44,3 @@ The Bukkit scheduler only fires on whole game ticks (50 ms), so `repeating` reje
 honour with an `IllegalArgumentException` instead of silently rounding: `1.seconds`, `500.milliseconds`,
 and `3.ticks` are all fine; `75.milliseconds` is not. In unit tests, swap in the deterministic
 `ManualTicker` from [`kotventure-test`](../test/README.md) — no scheduler, no server.
-
-Folia's region schedulers are a separate, planned slice.

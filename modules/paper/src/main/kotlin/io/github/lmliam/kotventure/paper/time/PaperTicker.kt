@@ -4,12 +4,13 @@ import io.github.lmliam.kotventure.core.time.Ticker
 import io.github.lmliam.kotventure.core.time.TickerTask
 import net.kyori.adventure.util.Ticks
 import org.bukkit.plugin.Plugin
+import org.bukkit.scheduler.BukkitScheduler
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * [Ticker] over the Bukkit scheduler: repeating work becomes a synchronous
- * [runTaskTimer][org.bukkit.scheduler.BukkitScheduler.runTaskTimer] task owned by [plugin], with
+ * [runTaskTimer][BukkitScheduler.runTaskTimer] task owned by [plugin], with
  * the first fire one full interval after scheduling (matching `ManualTicker` semantics).
  */
 internal class PaperTicker(

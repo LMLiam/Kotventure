@@ -1,8 +1,5 @@
 description = 'Paper platform bundle: a Ticker adapter over the Bukkit scheduler.'
 
-// Shared root subproject conventions apply Kotlin/JVM, JDK 25, explicitApi(),
-// dependencies, lint, and test configuration for every module.
-
 repositories {
     maven {
         name = 'papermc'
