@@ -14,7 +14,7 @@ import kotlin.time.Duration.Companion.milliseconds
  * the first fire one full interval after scheduling (matching `ManualTicker` semantics).
  */
 internal class PaperTicker(
-        private val plugin: Plugin,
+    private val plugin: Plugin,
 ) : Ticker {
     override fun repeating(
         interval: Duration,

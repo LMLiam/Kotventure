@@ -60,7 +60,7 @@ class PaperTickerTest :
                 val runnable = slot<Runnable>()
                 val scheduler = mockk<BukkitScheduler>()
                 every { scheduler.runTaskTimer(any<Plugin>(), capture(runnable), any<Long>(), any<Long>()) } returns
-                    mockk()
+                        mockk()
                 val plugin = pluginWith(scheduler)
                 val sent = slot<Component>()
                 val player = mockk<Player>()

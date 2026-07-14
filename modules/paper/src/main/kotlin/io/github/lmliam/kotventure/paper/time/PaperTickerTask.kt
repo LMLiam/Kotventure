@@ -8,7 +8,7 @@ import org.bukkit.scheduler.BukkitTask
  * later calls are no-ops.
  */
 internal class PaperTickerTask(
-        private val bukkitTask: BukkitTask,
+    private val bukkitTask: BukkitTask,
 ) : TickerTask {
     private var cancelled = false
 
