@@ -1,0 +1,18 @@
+description = 'Paper platform bundle: a Ticker adapter over the Bukkit scheduler.'
+
+repositories {
+    maven {
+        name = 'papermc'
+        url = 'https://repo.papermc.io/repository/maven-public/'
+    }
+}
+
+dependencies {
+    api project(':core')
+
+    compileOnly kotventureDependencies."paper-api"
+    samplesImplementation kotventureDependencies."paper-api"
+
+    testImplementation project(':test')
+    testImplementation kotventureDependencies."paper-api"
+}

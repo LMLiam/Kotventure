@@ -279,10 +279,11 @@ full design and the [Roadmap](docs/ROADMAP.md) for sequencing.
 | [`test`](modules/test)                                 | Kotest component matchers                                                 | ✅      |
 | [`test-snapshot`](modules/test-snapshot)               | Snapshot testing over canonical component JSON                           | ✅      |
 | [`bom`](modules/bom)                                   | Bill of materials for aligning Kotventure and Adventure module versions  | ✅      |
+| [`paper`](modules/paper)                               | Paper platform bundle: `Ticker` adapter over the Bukkit scheduler        | ✅      |
 | `i18n`                                                 | Translation registry + per-player locale DSL                             | 🔜     |
 | `ansi`                                                 | Render a `Component` to colored terminal output                          | 🔜     |
 | `coroutines`                                           | suspend click-callbacks, async sending, animation scheduling             | 🔜     |
-| `paper` / `velocity` / `fabric`                        | Platform adapters & extras                                               | 🔜     |
+| `velocity` / `fabric`                                  | Platform adapters & extras                                               | 🔜     |
 | `ksp`                                                  | Typed message-catalog codegen + compile-time validation                  | 🔜     |
 | `gradle-plugin`                                        | Validate / pre-compile MiniMessage resource bundles at build time        | 🔜     |
 
@@ -303,6 +304,7 @@ dependencies {
     implementation("com.github.LMLiam.Kotventure:kotventure-core")
     implementation("com.github.LMLiam.Kotventure:kotventure-minimessage")
     implementation("com.github.LMLiam.Kotventure:kotventure-serializer")
+    implementation("com.github.LMLiam.Kotventure:kotventure-paper")   // on Paper servers
 
     testImplementation("com.github.LMLiam.Kotventure:kotventure-test")
     testImplementation("com.github.LMLiam.Kotventure:kotventure-test-snapshot")

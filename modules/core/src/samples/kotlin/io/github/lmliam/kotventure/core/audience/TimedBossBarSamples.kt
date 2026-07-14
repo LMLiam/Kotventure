@@ -6,7 +6,7 @@ import io.github.lmliam.kotventure.core.time.ticks
 import kotlin.time.Duration.Companion.seconds
 
 internal fun timedBossBarSample(ticker: Ticker) {
-    // Platform code supplies the ticker (e.g. paperTicker(plugin)); tests use ManualTicker.
+    // Platform code supplies the ticker (e.g. plugin.ticker() on Paper); tests use ManualTicker.
     val player = emptyAudience()
 
     context(ticker) {

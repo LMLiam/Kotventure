@@ -17,7 +17,8 @@ ext.kotventureDependencies = [
         "kctfork-core"                            : catalog.findLibrary('kctfork-core').get(),
         "kotest-assertions-core"                  : catalog.findLibrary('kotest-assertions-core').get(),
         "kotest-runner-junit5"                    : catalog.findLibrary('kotest-runner-junit5').get(),
-        "mockk"                                   : catalog.findLibrary('mockk').get()
+        "mockk"                                   : catalog.findLibrary('mockk').get(),
+        "paper-api"                               : catalog.findLibrary('paper-api').get()
 ]
 
 dependencies {
