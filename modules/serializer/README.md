@@ -25,13 +25,13 @@ val plain = message.toPlainText()
 val imported = "&6Welcome".asLegacyAmpersandComponent()
 ```
 
-| Format | Component → String | String → Component |
-|--------|--------------------|--------------------|
-| JSON | `toJson()` | `asJsonComponent()` |
-| Legacy (`&`) | `toLegacyAmpersand()` | `asLegacyAmpersandComponent()` |
-| Legacy (`§`) | `toLegacySection()` | `asLegacySectionComponent()` |
-| Plain text | `toPlainText()` | — |
-| MiniMessage | `toMiniMessage()` | `mini(...)` in [`kotventure-minimessage`](../minimessage/README.md) |
+| Format       | Component → String    | String → Component                                                  |
+|--------------|-----------------------|---------------------------------------------------------------------|
+| JSON         | `toJson()`            | `asJsonComponent()`                                                 |
+| Legacy (`&`) | `toLegacyAmpersand()` | `asLegacyAmpersandComponent()`                                      |
+| Legacy (`§`) | `toLegacySection()`   | `asLegacySectionComponent()`                                        |
+| Plain text   | `toPlainText()`       | —                                                                   |
+| MiniMessage  | `toMiniMessage()`     | `mini(...)` in [`kotventure-minimessage`](../minimessage/README.md) |
 
 Plain text is deliberately one-way (formatting is lost), and MiniMessage parsing lives in the `minimessage` module so
 this one stays a thin serializer shim.

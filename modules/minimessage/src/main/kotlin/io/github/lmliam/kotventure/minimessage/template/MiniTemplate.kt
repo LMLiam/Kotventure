@@ -48,7 +48,7 @@ public abstract class MiniTemplate(
      *   already declared, or [T] is unsupported.
      */
     protected inline fun <reified T : Any> placeholder():
-        PropertyDelegateProvider<MiniTemplate, ReadOnlyProperty<MiniTemplate, MiniMessagePlaceholder<T>>> =
+            PropertyDelegateProvider<MiniTemplate, ReadOnlyProperty<MiniTemplate, MiniMessagePlaceholder<T>>> =
         PropertyDelegateProvider { template, property ->
             val registered = template.register(createPlaceholder<T>(property.name))
             ReadOnlyProperty { _, _ -> registered }
