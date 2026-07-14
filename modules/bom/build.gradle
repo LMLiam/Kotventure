@@ -12,6 +12,7 @@ dependencies {
     constraints {
         api project(':core')
         api project(':minimessage')
+        api project(':paper')
         api project(':serializer')
         api project(':test')
         api project(':test-snapshot')

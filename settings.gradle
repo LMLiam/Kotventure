@@ -17,12 +17,14 @@ rootProject.name = 'Kotventure'
 // Each module lives under modules/<name>; enable only modules that have landed.
 include 'core'
 include 'minimessage'
+include 'paper'
 include 'serializer'
 include 'test'
 include 'test-snapshot'
 include 'bom'
 project(':core').projectDir = file('modules/core')
 project(':minimessage').projectDir = file('modules/minimessage')
+project(':paper').projectDir = file('modules/paper')
 project(':serializer').projectDir = file('modules/serializer')
 project(':test').projectDir = file('modules/test')
 project(':test-snapshot').projectDir = file('modules/test-snapshot')

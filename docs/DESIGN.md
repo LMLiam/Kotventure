@@ -212,7 +212,7 @@ player.tabList {
 }
 
 // Managed (timed) boss bars — context(ticker) once; `over` opts into lifecycle management
-// val ticker = paperTicker(plugin)   // platform-provided; ManualTicker in tests
+// val ticker = plugin.ticker()   // platform-provided (kotventure-paper); ManualTicker in tests
 context(ticker) {
     val meteor = player.bossBar(over = 30.seconds) {
         name { remaining -> text("Meteor in ${remaining.inWholeSeconds}s") }
