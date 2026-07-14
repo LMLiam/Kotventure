@@ -11,7 +11,7 @@ import kotlin.time.Duration.Companion.milliseconds
 /**
  * [Ticker] over the Bukkit scheduler: repeating work becomes a synchronous
  * [runTaskTimer][BukkitScheduler.runTaskTimer] task owned by [plugin], with
- * the first fire one full interval after scheduling.
+ * the first fire one full interval after scheduling
  */
 internal class PaperTicker(
     private val plugin: Plugin,
@@ -22,24 +22,21 @@ internal class PaperTicker(
         interval: Duration,
         action: () -> Unit,
     ): TickerTask {
-        val ticks = wholeTicksOf(interval)
-        val bukkitTask = scheduler.runTaskTimer(plugin, Runnable(action), ticks, ticks)
+        val ticks = interval.wholeTicks()
+        val bukkitTask = scheduler.runTaskTimer(plugin, action, ticks, ticks)
         return PaperTickerTask(bukkitTask)
     }
 
     /**
      * The Bukkit scheduler cannot express sub-tick periods, so anything that is not a positive
-     * whole number of ticks is rejected rather than rounded.
+     * whole number of ticks is rejected
      */
-    private fun wholeTicksOf(interval: Duration): Long {
-        val millis = interval.inWholeMilliseconds
-        require(
-            interval.isPositive() &&
-                    interval == millis.milliseconds &&
-                    millis % Ticks.SINGLE_TICK_DURATION_MS == 0L,
-        ) {
-            "repeating interval must be a positive whole number of ticks " +
-                    "(${Ticks.SINGLE_TICK_DURATION_MS} ms each), got $interval."
+    private fun Duration.wholeTicks(): Long {
+        require(isPositive()) { "repeating interval must be positive, got $this." }
+        val millis = inWholeMilliseconds
+        require(this == millis.milliseconds && millis % Ticks.SINGLE_TICK_DURATION_MS == 0L) {
+            "repeating interval must be a whole number of ticks " +
+                    "(${Ticks.SINGLE_TICK_DURATION_MS} ms each), got $this."
         }
         return millis / Ticks.SINGLE_TICK_DURATION_MS
     }

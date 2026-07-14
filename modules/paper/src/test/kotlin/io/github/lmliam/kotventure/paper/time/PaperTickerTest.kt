@@ -4,6 +4,7 @@ import io.github.lmliam.kotventure.core.audience.message
 import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.core.time.ticks
 import io.github.lmliam.kotventure.test.text.haveContent
+import io.github.lmliam.kotventure.test.text.shouldHaveContent
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.should
@@ -33,6 +34,14 @@ private fun schedulerReturning(task: BukkitTask): BukkitScheduler {
     val scheduler = mockk<BukkitScheduler>()
     every { scheduler.runTaskTimer(any<Plugin>(), any<Runnable>(), any<Long>(), any<Long>()) } returns task
     return scheduler
+}
+
+private fun rejects(interval: Duration) {
+    val plugin = pluginWith(schedulerReturning(mockk()))
+
+    shouldThrow<IllegalArgumentException> {
+        plugin.ticker().repeating(interval) { }
+    }
 }
 
 class PaperTickerTest :
@@ -71,7 +80,7 @@ class PaperTickerTest :
                 }
                 runnable.captured.run()
 
-                sent.captured should haveContent("Meteor incoming")
+                sent.captured shouldHaveContent "Meteor incoming"
             }
 
             "cancel delegates to the bukkit task on every call" {
@@ -86,35 +95,13 @@ class PaperTickerTest :
             }
 
             "rejects an interval that is not a whole number of ticks" {
-                val plugin = pluginWith(schedulerReturning(mockk()))
-
-                shouldThrow<IllegalArgumentException> {
-                    plugin.ticker().repeating(75.milliseconds) { }
-                }
+                rejects(75.milliseconds)
             }
 
-            "rejects a sub-millisecond remainder" {
-                val plugin = pluginWith(schedulerReturning(mockk()))
+            "rejects a sub-millisecond remainder" { rejects(50.milliseconds + 1.nanoseconds) }
 
-                shouldThrow<IllegalArgumentException> {
-                    plugin.ticker().repeating(50.milliseconds + 1.nanoseconds) { }
-                }
-            }
+            "rejects a zero interval" { rejects(Duration.ZERO) }
 
-            "rejects a zero interval" {
-                val plugin = pluginWith(schedulerReturning(mockk()))
-
-                shouldThrow<IllegalArgumentException> {
-                    plugin.ticker().repeating(Duration.ZERO) { }
-                }
-            }
-
-            "rejects a negative interval" {
-                val plugin = pluginWith(schedulerReturning(mockk()))
-
-                shouldThrow<IllegalArgumentException> {
-                    plugin.ticker().repeating((-1).seconds) { }
-                }
-            }
+            "rejects a negative interval" { rejects((-1).seconds) }
         },
     )
