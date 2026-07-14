@@ -74,7 +74,7 @@ class PaperTickerTest :
                 sent.captured should haveContent("Meteor incoming")
             }
 
-            "cancel delegates to the bukkit task" {
+            "cancel delegates to the bukkit task on every call" {
                 val bukkitTask = mockk<BukkitTask>(relaxed = true)
                 val plugin = pluginWith(schedulerReturning(bukkitTask))
 
@@ -82,7 +82,7 @@ class PaperTickerTest :
                 task.cancel()
                 task.cancel()
 
-                verify(exactly = 1) { bukkitTask.cancel() }
+                verify(exactly = 2) { bukkitTask.cancel() }
             }
 
             "rejects an interval that is not a whole number of ticks" {
