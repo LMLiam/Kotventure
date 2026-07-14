@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any release.
 
+## [0.18.0](https://github.com/LMLiam/Kotventure/compare/0.17.0...0.18.0) (2026-07-14)
+
+
+### ✨ Features
+
+* **paper:** add the paper scheduler adapter ([#285](https://github.com/LMLiam/Kotventure/issues/285)) ([bba3532](https://github.com/LMLiam/Kotventure/commit/bba3532a9b6652da42c7278e326efae69d3c0089))
+
 ## [0.17.0](https://github.com/LMLiam/Kotventure/compare/0.16.1...0.17.0) (2026-07-14)
 
 
