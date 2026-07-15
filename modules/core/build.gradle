@@ -1,5 +1,11 @@
 description = 'Core DSL primitives and explicit extension registry.'
 
+kotlin {
+    compilerOptions {
+        optIn.add('io.github.lmliam.kotventure.core.dsl.InternalKotventureApi')
+    }
+}
+
 apply from: rootProject.file('gradle/vanilla-conformance.gradle')
 
 dependencies {

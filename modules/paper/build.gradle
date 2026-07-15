@@ -1,5 +1,11 @@
 description = 'Paper platform bundle: a Ticker adapter over the Bukkit scheduler.'
 
+kotlin {
+    compilerOptions {
+        optIn.add('io.github.lmliam.kotventure.core.dsl.InternalKotventureApi')
+    }
+}
+
 repositories {
     maven {
         name = 'papermc'

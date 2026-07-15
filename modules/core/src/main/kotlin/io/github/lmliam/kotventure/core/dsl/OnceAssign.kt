@@ -1,30 +1,43 @@
 package io.github.lmliam.kotventure.core.dsl
 
-import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 /**
- * A builder slot that may be assigned at most once.
+ * A write-once property delegate for nullable builder slots.
  *
- * By default the failure message reuses the delegated property's name, so a slot's DSL name and its
- * diagnostic cannot drift apart. Pass [alreadySetMessage] when the backing property name is not the
- * public slot name (e.g. a scope-bound val occupies that name).
+ * Reads return `null` until the first assignment. The first assignment is accepted even when its
+ * value is `null`; every later assignment fails.
+ *
+ * The default failure message includes the delegated property's name. Supply a custom message
+ * when the delegate's property name differs from the public DSL slot name.
+ *
+ * This type is intentionally non-generic: its `getValue`/`setValue` operators are generic
+ * instead, so `by once()` infers its type from the delegated property (the same mechanism as
+ * `kotlin.properties.Delegates.notNull()`), and chains such as `by
+ * once().inRange(1..1024)` (see [inRange]) infer without an explicit type argument.
  */
-internal class OnceAssign<T>(
-    private val alreadySetMessage: (() -> String)? = null,
-) : ReadWriteProperty<Any?, T?> {
+@InternalKotventureApi
+public class OnceAssign internal constructor(
+    internal val alreadySetMessage: (() -> String)? = null,
+) {
     private var assigned = false
-    private var value: T? = null
-
-    override fun getValue(
-        thisRef: Any?,
-        property: KProperty<*>,
-    ): T? = value
+    private var value: Any? = null
 
     /**
-     * @throws IllegalStateException when the property was already assigned.
+     * Returns the assigned value, or `null` before the slot has been assigned.
      */
-    override fun setValue(
+    @Suppress("UNCHECKED_CAST")
+    public operator fun <T> getValue(
+        thisRef: Any?,
+        property: KProperty<*>,
+    ): T? = value as T?
+
+    /**
+     * Assigns the slot once.
+     *
+     * @throws IllegalStateException when the slot has already been assigned.
+     */
+    public operator fun <T> setValue(
         thisRef: Any?,
         property: KProperty<*>,
         value: T?,
@@ -32,15 +45,19 @@ internal class OnceAssign<T>(
         check(!assigned) {
             alreadySetMessage?.invoke() ?: "'${property.name}' is already set."
         }
+
         assigned = true
-        this.value = value
+        this@OnceAssign.value = value
     }
 }
 
 /**
- * Creates a [OnceAssign] slot for a `by`-delegated builder property.
+ * Creates a write-once delegate for a nullable builder property.
  *
- * @param alreadySetMessage optional failure message when the slot is assigned a second time;
- *   defaults to `"'{property.name}' is already set."`.
+ * The optional [alreadySetMessage] is evaluated only when a second assignment is attempted.
+ *
+ * @param alreadySetMessage custom duplicate-assignment message; otherwise the delegated property's
+ *   name is used.
  */
-internal fun <T> once(alreadySetMessage: (() -> String)? = null): OnceAssign<T> = OnceAssign(alreadySetMessage)
+@InternalKotventureApi
+public fun once(alreadySetMessage: (() -> String)? = null): OnceAssign = OnceAssign(alreadySetMessage)
