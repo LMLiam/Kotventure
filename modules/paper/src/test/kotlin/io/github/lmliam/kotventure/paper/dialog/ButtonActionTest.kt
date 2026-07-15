@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 package io.github.lmliam.kotventure.paper.dialog
 
 import io.github.lmliam.kotventure.core.audience.emptyAudience
@@ -10,6 +12,7 @@ import io.github.lmliam.kotventure.test.text.shouldHaveContent
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.mockk
@@ -19,7 +22,6 @@ import io.papermc.paper.registry.data.dialog.type.NoticeType
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.nbt.api.BinaryTagHolder
-import net.kyori.adventure.text.Component
 import kotlin.time.Duration.Companion.seconds
 
 private fun noticeButton(init: ButtonScope.() -> Unit) =
@@ -40,8 +42,7 @@ class ButtonActionTest :
                     }
 
                 button.label() shouldHaveContent "Claim"
-                button.tooltip().shouldBeInstanceOf<Component>() shouldHaveContent
-                        "Adds it to your inventory"
+                button.tooltip().shouldNotBeNull() shouldHaveContent "Adds it to your inventory"
                 button.width() shouldBe 200
             }
 
@@ -50,7 +51,7 @@ class ButtonActionTest :
             }
 
             "invokes an onClick callback with the clicking audience" {
-                var received: Audience? = null
+                lateinit var received: Audience
                 val button =
                     noticeButton {
                         label { text("Go") }

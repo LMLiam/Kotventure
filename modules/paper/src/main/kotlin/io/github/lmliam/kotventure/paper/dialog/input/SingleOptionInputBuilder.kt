@@ -45,16 +45,14 @@ internal class SingleOptionInputBuilder(
         val inputLabel = checkNotNull(label) { "a single-option input requires a 'label' slot." }
         check(entries.isNotEmpty()) { "a single-option input requires at least one option." }
 
-        val duplicate =
-            entries
-                .groupingBy(SingleOptionDialogInput.OptionEntry::id)
-                .eachCount()
-                .entries
-                .firstOrNull { it.value > 1 }
-                ?.key
-        check(duplicate == null) { "option '$duplicate' is declared more than once." }
+        entries
+            .groupingBy(SingleOptionDialogInput.OptionEntry::id)
+            .eachCount()
+            .forEach { (id, count) ->
+                check(count <= 1) { "option '$id' is declared more than once" }
+            }
         check(entries.count(SingleOptionDialogInput.OptionEntry::initial) <= 1) {
-            "at most one option may be marked default."
+            "at most one option may be marked default"
         }
 
         return DialogInput

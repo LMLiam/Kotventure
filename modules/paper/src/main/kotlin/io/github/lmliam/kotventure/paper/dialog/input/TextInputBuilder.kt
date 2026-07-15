@@ -22,14 +22,9 @@ internal class TextInputBuilder(
     private var multilineOptions: TextDialogInput.MultilineOptions? by once()
 
     override fun label(init: LabelScope.() -> Unit) {
-        var visible: Boolean? = null
-        label =
-            component {
-                val labelBuilder = LabelBuilder(this)
-                labelBuilder.init()
-                visible = labelBuilder.visible
-            }
-        labelVisible = visible
+        lateinit var labelBuilder: LabelBuilder
+        label = component { labelBuilder = LabelBuilder(this).apply(init) }
+        labelVisible = labelBuilder.visible
     }
 
     override fun <T : ComponentLike> label(component: T) {
