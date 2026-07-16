@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any release.
 
+## [0.20.0](https://github.com/LMLiam/Kotventure/compare/0.19.0...0.20.0) (2026-07-16)
+
+
+### ✨ Features
+
+* **paper:** add folia region-aware scheduling ([#289](https://github.com/LMLiam/Kotventure/issues/289)) ([e5b7f08](https://github.com/LMLiam/Kotventure/commit/e5b7f08d472e2e701d2beeb6735385eb2d3a21df))
+
 ## [0.19.0](https://github.com/LMLiam/Kotventure/compare/0.18.0...0.19.0) (2026-07-15)
 
 
