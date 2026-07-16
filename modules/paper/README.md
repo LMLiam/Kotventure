@@ -2,9 +2,9 @@
 
 The Paper platform bundle. Paper implements Adventure natively — every `Player`, the console, and the
 `Server` already *are* `Audience`s, so the whole audience-send DSL from [`core`](../core/README.md) works
-out of the box. What Paper does not provide is Kotventure's clock abstraction: this module adapts the
-Bukkit scheduler to [`Ticker`](../core/src/main/kotlin/io/github/lmliam/kotventure/core/time/Ticker.kt), so
-managed UI such as timed boss bars runs on a real server clock.
+out of the box. This module also adapts Paper's Folia-aware schedulers to
+[`Ticker`](../core/src/main/kotlin/io/github/lmliam/kotventure/core/time/Ticker.kt), so managed UI such as
+timed boss bars can run on the global tick, an entity's owning region, or a fixed region.
 
 ## Getting it
 
@@ -24,9 +24,11 @@ beyond its own classes.
 ```kotlin
 class MyPlugin : JavaPlugin() {
     override fun onEnable() {
-        val ticker = ticker()   // Plugin.ticker(): Ticker, backed by the Bukkit scheduler
+        val ui = ticker()                 // global tick   -> Server.getGlobalRegionScheduler()
+        val follow = ticker(entity)       // entity-bound  -> Entity.getScheduler()
+        val region = ticker(location)     // region-bound  -> Server.getRegionScheduler()
 
-        context(ticker) {
+        context(ui) {
             player.bossBar(over = 30.seconds) {
                 name { remaining -> text("Meteor in ${remaining.inWholeSeconds}s") }
                 progress(from = 1f, to = 0f)
@@ -37,13 +39,20 @@ class MyPlugin : JavaPlugin() {
 }
 ```
 
-Work scheduled through the ticker runs on the server main thread, one task per `repeating` call, cancelled
-by the server when the plugin disables.
+The same code runs on plain Paper and Folia; choose the ticker by dispatch target, with no mode selection in
+Kotventure. The global ticker runs in the global tick context, the entity ticker follows the entity's region,
+and the location ticker runs in the region containing that location. The server cancels scheduled tasks when
+the plugin disables.
 
-The Bukkit scheduler only fires on whole game ticks (50 ms), so `repeating` rejects intervals it cannot
-honour with an `IllegalArgumentException` instead of silently rounding: `1.seconds`, `500.milliseconds`,
-and `3.ticks` are all fine; `75.milliseconds` is not. In unit tests, swap in the deterministic
-`ManualTicker` from [`kotventure-test`](../test/README.md) — no scheduler, no server.
+Paper's schedulers only fire on whole game ticks (50 ms), so `repeating` rejects intervals it cannot honour
+with an `IllegalArgumentException` instead of silently rounding: `1.seconds`, `500.milliseconds`, and
+`3.ticks` are all fine; `75.milliseconds` is not. If an entity has already been removed when
+`repeating` is called, the entity ticker fails fast with `IllegalStateException`; if the entity is removed
+mid-flight, Paper stops the task. In unit tests, swap in the deterministic `ManualTicker` from
+[`kotventure-test`](../test/README.md) — no scheduler, no server.
+
+A plugin that consumes this module must declare `folia-supported: true` in its own `plugin.yml` to load on
+Folia. Kotventure needs no extra runtime setup.
 
 ## Dialogs
 

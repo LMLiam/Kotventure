@@ -1,4 +1,4 @@
-description = 'Paper platform bundle: a Ticker adapter over the Bukkit scheduler.'
+description = 'Paper platform bundle: Ticker adapters over Paper schedulers.'
 
 kotlin {
     compilerOptions {
