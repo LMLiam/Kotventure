@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 package io.github.lmliam.kotventure.paper.dialog.fixture
 
 import io.papermc.paper.dialog.Dialog
@@ -55,8 +57,5 @@ class FakeRegistryAccess : RegistryAccess {
             override fun inputs(): List<DialogInput> = emptyList()
         }
 
-    private fun placeholderType(): NoticeType =
-        object : NoticeType {
-            override fun action(): ActionButton = error("not used")
-        }
+    private fun placeholderType(): NoticeType = NoticeType { error("not used") }
 }

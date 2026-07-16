@@ -22,7 +22,7 @@ internal class GlobalRegionTicker(
         val scheduledTask =
             plugin.server.globalRegionScheduler.runAtFixedRate(
                 plugin,
-                Consumer { action() },
+                { action() },
                 ticks,
                 ticks,
             )

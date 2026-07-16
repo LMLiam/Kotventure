@@ -25,7 +25,7 @@ internal class EntityTicker(
         val scheduledTask =
             entity.scheduler.runAtFixedRate(
                 plugin,
-                Consumer { action() },
+                { action() },
                 null,
                 ticks,
                 ticks,

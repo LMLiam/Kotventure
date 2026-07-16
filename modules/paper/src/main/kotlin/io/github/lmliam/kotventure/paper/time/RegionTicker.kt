@@ -25,7 +25,7 @@ internal class RegionTicker(
             plugin.server.regionScheduler.runAtFixedRate(
                 plugin,
                 location,
-                Consumer { action() },
+                { action() },
                 ticks,
                 ticks,
             )
