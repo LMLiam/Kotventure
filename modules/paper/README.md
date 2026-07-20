@@ -54,6 +54,26 @@ mid-flight, Paper stops the task. In unit tests, swap in the deterministic `Manu
 A plugin that consumes this module must declare `folia-supported: true` in its own `plugin.yml` to load on
 Folia. Kotventure needs no extra runtime setup.
 
+## Item name & lore
+
+The `io.github.lmliam.kotventure.paper.item` package creates item stacks and replaces custom names or lore through
+either Paper's data components or the stable `ItemMeta` view. Every non-empty line is explicitly non-italic unless
+the line opts into italics, avoiding Minecraft's inherited italic item-text default.
+
+```kotlin
+val sword = item(Material.DIAMOND_SWORD) {
+    name("Excalibur") { color(gold) }
+    lore {
+        +"A legendary blade"
+        "+5 Strength" { color(gray) }
+        blank()
+    }
+}
+
+sword.lore { +"Bound to soul" }             // Paper data-component path
+sword.editMeta { meta -> meta.lore { +"Soulbound" } } // stable ItemMeta path
+```
+
 ## Dialogs
 
 Paper's [dialog](https://docs.papermc.io/paper/dev/dialogs) forms get a typed builder in the

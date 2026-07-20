@@ -2,10 +2,10 @@
 
 package io.github.lmliam.kotventure.paper.dialog.fixture
 
+import io.github.lmliam.kotventure.paper.item.fixture.FakeDataComponentRegistry
 import io.papermc.paper.dialog.Dialog
 import io.papermc.paper.registry.RegistryAccess
 import io.papermc.paper.registry.RegistryKey
-import io.papermc.paper.registry.data.dialog.ActionButton
 import io.papermc.paper.registry.data.dialog.DialogBase
 import io.papermc.paper.registry.data.dialog.body.DialogBody
 import io.papermc.paper.registry.data.dialog.input.DialogInput
@@ -15,9 +15,9 @@ import org.bukkit.Keyed
 import org.bukkit.Registry
 
 /**
- * ServiceLoader-registered [RegistryAccess] so that initializing the Paper [Dialog] interface — and
- * its registry-backed constants — succeeds in a plain unit test without a running server. Every
- * lookup returns a placeholder [FakeDialog]; the constants themselves are never asserted.
+ * ServiceLoader-registered [RegistryAccess] so that initializing registry-backed Paper constants
+ * succeeds in a plain unit test without a running server. Dialog lookups return a placeholder
+ * [FakeDialog], while the data-component registry returns keyed placeholder component types.
  *
  * This runs from inside [org.bukkit.Registry]'s own class initialization (its `<clinit>` eagerly
  * builds legacy registries for every registry type, [Dialog] included), so every placeholder here
@@ -34,7 +34,13 @@ class FakeRegistryAccess : RegistryAccess {
     @Suppress("OVERRIDE_DEPRECATION")
     override fun <T : Keyed> getRegistry(type: Class<T>): Registry<T> = registry()
 
-    override fun <T : Keyed> getRegistry(key: RegistryKey<T>): Registry<T> = registry()
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : Keyed> getRegistry(key: RegistryKey<T>): Registry<T> =
+        if (key.key().value() == "data_component_type") {
+            FakeDataComponentRegistry() as Registry<T>
+        } else {
+            registry()
+        }
 
     @Suppress("UNCHECKED_CAST")
     private fun <T : Keyed> registry(): Registry<T> =
