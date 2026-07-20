@@ -71,15 +71,15 @@ class LoreBuilderTest :
                     }
 
                 lines shouldContainExactly
-                    listOf(
-                        Component.text("first").decoration(TextDecoration.ITALIC, State.FALSE),
-                        Component
-                            .text("second")
-                            .color(NamedTextColor.GRAY)
-                            .decoration(TextDecoration.ITALIC, State.FALSE),
-                        Component.text("third").decoration(TextDecoration.ITALIC, State.FALSE),
-                        Component.empty(),
-                    )
+                        listOf(
+                            Component.text("first").decoration(TextDecoration.ITALIC, State.FALSE),
+                            Component
+                                .text("second")
+                                .color(NamedTextColor.GRAY)
+                                .decoration(TextDecoration.ITALIC, State.FALSE),
+                            Component.text("third").decoration(TextDecoration.ITALIC, State.FALSE),
+                            Component.empty(),
+                        )
             }
         },
     )
