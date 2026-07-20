@@ -66,7 +66,7 @@ behaviour, and **KSP** for compile‑time codegen. The previous `ServiceLoader`/
 | `ansi`                | `core`                                 | Render a `Component` to coloured terminal output                                                               |
 | `coroutines`          | `core`, `kotlinx-coroutines`           | suspend click‑callbacks, async sending, animation scheduling                                                   |
 | `annotations` + `ksp` | —                                      | Typed message‑catalog codegen + compile‑time style validation                                                  |
-| `paper`               | `core` (+ Paper)                       | Scheduler/audience adapter, item **lore**/display‑name builders                                                |
+| `paper`               | `core` (+ Paper)                       | Scheduler/audience adapter, item creation and **lore**/display‑name builders                                  |
 | `velocity`            | `core` (+ Velocity)                    | Proxy scheduler/audience adapter                                                                               |
 | `fabric`              | `core` (+ `adventure-platform-fabric`) | Fabric adapter                                                                                                 |
 | `gradle-plugin`       | (own build)                            | Validate / pre‑compile MiniMessage resource bundles at build time                                              |
