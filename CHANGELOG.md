@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any release.
 
+## [0.21.0](https://github.com/LMLiam/Kotventure/compare/0.20.0...0.21.0) (2026-07-20)
+
+
+### ✨ Features
+
+* **paper:** add item, display-name and lore builders ([#291](https://github.com/LMLiam/Kotventure/issues/291)) ([f6a5ab6](https://github.com/LMLiam/Kotventure/commit/f6a5ab6dbbfd8fe3ced2491689172ce05949844d))
+
 ## [0.20.0](https://github.com/LMLiam/Kotventure/compare/0.19.0...0.20.0) (2026-07-16)
 
 
