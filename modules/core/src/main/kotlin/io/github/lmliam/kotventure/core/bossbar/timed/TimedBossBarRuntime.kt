@@ -176,7 +176,7 @@ internal class TimedBossBarRuntime(
         )
     }
 
-    /** Result of one locked tick advance; [shutdown] is non-null only on natural completion. */
+    /** The result of one locked tick. [shutdown] is non-null only after natural completion. */
     private data class TickOutcome(
         val remaining: Duration,
         val shutdown: TimedBossBarShutdown?,

@@ -10,8 +10,8 @@ import kotlin.concurrent.withLock
  * This registry exists for dynamic lookup and interop cases where the theme name is only known
  * at runtime.
  *
- * Lifecycle: [register] fails on duplicate names; [replace] and [unregister] support hot-reload
- * workflows where a theme is swapped or removed after startup. Prefer unregistering with the
+ * Lifecycle: [register] fails on duplicate names. [replace] and [unregister] support reload operations that replace or
+ * remove a theme after startup. Prefer unregistering with the
  * theme object (`themes.unregister(Brand)`) when it is available.
  */
 public class ThemeRegistry {
@@ -50,8 +50,8 @@ public class ThemeRegistry {
      *
      * Use this for hot-reload: a second registration of the same name is intentional. When
      * [default] is `true`, [provider] becomes the sole default (any previous default is cleared).
-     * When [default] is `false` and this replaces the previous default under the same name, the
-     * default is cleared; a different theme that was already default is left unchanged.
+     * When [default] is `false`, replacement of the current default with the same name clears the default. A different
+     * theme that is already the default does not change.
      *
      * @return [provider]
      * @throws IllegalArgumentException when the provider name is blank.
@@ -94,8 +94,8 @@ public class ThemeRegistry {
     /**
      * Removes the theme registered as [name].
      *
-     * Prefer [unregister] with the theme object when available; this overload is for dynamic
-     * lookup and interop where only the name is known.
+     * Prefer [unregister] with the theme object when available. Use this overload for dynamic lookup and
+     * interoperability when only the name is known.
      *
      * When the removed provider was the default theme, the default is cleared.
      *

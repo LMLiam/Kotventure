@@ -1,6 +1,6 @@
 ## Summary
 
-<!-- Describe the maintenance, dependency update, or CI/CD change. -->
+<!-- Describe the maintenance, dependency update, or CI/CD change. Use short sentences. -->
 
 ## Related Issues
 
@@ -13,11 +13,11 @@ Closes #<issue-number> <!-- (if applicable) -->
 - [ ] Dependency bump
 - [ ] Repo config (labels, CODEOWNERS, etc.)
 
-## Notes for Reviewers
+## Review Notes
 
-<!-- Anything unusual or requiring careful attention? -->
+<!-- Identify unusual changes and parts that need careful review. -->
 
 ## Checklist
 
-- [ ] Linked related issue (if applicable)
-- [ ] Verified build/test pass after change
+- [ ] Linked the related issue, if applicable
+- [ ] Verified that the build and tests pass

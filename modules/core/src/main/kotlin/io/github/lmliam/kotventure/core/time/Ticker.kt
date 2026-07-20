@@ -7,8 +7,7 @@ import kotlin.time.Duration
  *
  * Core ships no default implementation — platforms provide real tickers (for example a Paper
  * scheduler adapter) and the `test` module ships a deterministic `ManualTicker` for unit tests.
- * This is the seed of the animation ticker; later animation work grows this interface rather than
- * replacing it.
+ * This interface is the basis of the animation ticker. Later animation work extends it instead of replacing it.
  *
  * @see TickerTask
  */

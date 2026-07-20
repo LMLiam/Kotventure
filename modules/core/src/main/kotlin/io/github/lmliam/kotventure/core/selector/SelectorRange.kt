@@ -3,12 +3,10 @@ package io.github.lmliam.kotventure.core.selector
 /**
  * A floating-point range for selector arguments such as `distance`, `pitch`, and `yaw`.
  *
- * Construct open-ended or exact bounds via the helpers [atMost], [atLeast], and [exactly]; for a
- * closed range, pass a native Kotlin range to the consuming argument directly, e.g.
- * `distance(0.5..10.0)`. Validation that differs by argument, such as `distance` rejecting
- * negative or descending bounds while rotations accept both, is applied by the consuming
- * argument. Integer-valued arguments such as `level` and `scores` use the distinct
- * [SelectorIntRange] instead.
+ * Use [atMost], [atLeast], or [exactly] to construct open-ended or exact bounds. For a closed range, give a Kotlin range
+ * directly to the applicable argument, for example `distance(0.5..10.0)`. The consuming argument applies its
+ * validation. For example, `distance` rejects negative or descending bounds, but rotations accept both. Integer
+ * arguments such as `level` and `scores` use [SelectorIntRange].
  */
 @ConsistentCopyVisibility
 public data class SelectorRange internal constructor(

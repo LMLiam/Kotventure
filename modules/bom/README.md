@@ -1,8 +1,7 @@
 # `kotventure-bom`
 
-Bill of materials aligning every Kotventure module — and the Adventure baseline they build against — to a single
-version. Import it once as a `platform(...)`, then declare Kotventure (and Adventure) dependencies without version
-numbers:
+`kotventure-bom` is a bill of materials. It aligns all Kotventure modules and the Adventure baseline to one version.
+Import it one time as a `platform(...)`. Then, declare Kotventure and Adventure dependencies without version numbers:
 
 ```kotlin
 dependencies {
@@ -15,6 +14,5 @@ dependencies {
 }
 ```
 
-Replace `<tag>` with a [released tag](https://github.com/LMLiam/Kotventure/releases). The BOM constrains all
-`kotventure-*` artifacts to its own version and re-exports Adventure's BOM, so mixed Kotventure/Adventure version
-skew cannot happen by accident.
+Replace `<tag>` with a [released tag](https://github.com/LMLiam/Kotventure/releases). The BOM sets its version for all
+`kotventure-*` artefacts. It also exports the Adventure BOM. This prevents unplanned version differences.

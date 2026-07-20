@@ -38,8 +38,8 @@ public sealed interface SelectorStringCondition : SelectorNegatable {
     /** Construction from selector-source semantics. */
     public companion object {
         /**
-         * Maps vanilla's empty-value rule: an empty [value] is a presence test (`tag=` requires
-         * none present, `tag=!` requires any present); a non-empty [value] is a named condition.
+         * Maps the vanilla empty-value rule. An empty [value] is a presence test. `tag=` requires no value, and `tag=!`
+         * requires a value. A non-empty [value] is a named condition.
          */
         internal operator fun invoke(
             value: String,

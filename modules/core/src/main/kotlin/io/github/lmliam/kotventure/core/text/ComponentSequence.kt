@@ -13,8 +13,8 @@ import net.kyori.adventure.text.ComponentIteratorType
  *
  * @sample io.github.lmliam.kotventure.core.text.componentSequenceSample
  *
- * Traversal follows Adventure's own [Component.iterable], visiting every node in the tree (including object
- * components). Translatable arguments and hover contents are not children and are not visited; pass the relevant
- * [ComponentIteratorFlag]s to [Component.iterable] directly if you need them.
+ * Traversal follows Adventure's [Component.iterable] and visits each node, including object components. Translatable
+ * arguments and hover contents are not children, so traversal does not visit them. To include them, give the applicable
+ * [ComponentIteratorFlag] values directly to [Component.iterable].
  */
 public fun Component.asSequence(): Sequence<Component> = iterable(ComponentIteratorType.DEPTH_FIRST).asSequence()

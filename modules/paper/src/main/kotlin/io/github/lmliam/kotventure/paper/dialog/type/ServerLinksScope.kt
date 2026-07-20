@@ -5,7 +5,7 @@ import io.github.lmliam.kotventure.paper.dialog.action.ButtonScope
 
 /**
  * Configures a server-links dialog. Beyond the base [DialogScope] slots, the [columns] and
- * [buttonWidth] slots are required; only the exit button is optional.
+ * [buttonWidth] slots are required. Only the exit button is optional.
  */
 public interface ServerLinksScope : DialogScope {
     /**

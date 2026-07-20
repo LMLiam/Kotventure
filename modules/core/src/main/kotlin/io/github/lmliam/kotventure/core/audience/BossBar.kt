@@ -27,8 +27,7 @@ public fun Audience.hide(bar: BossBar): Unit = hideBossBar(bar)
  * Builds a [BossBar] from [init], shows it on this [Audience], and returns it for later
  * [hide] or live updates.
  *
- * Works for any audience — a player, the console, or a forwarding audience over many members;
- * audiences without a boss-bar surface ignore it.
+ * Works for a player, the console, or a forwarding audience. An audience without a boss-bar surface ignores it.
  *
  * @throws IllegalStateException when `name` is missing or any slot/flag is set twice.
  * @throws IllegalArgumentException when `progress` is outside `0f..1f`.

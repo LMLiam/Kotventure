@@ -44,8 +44,8 @@ public interface TitleScope {
     /**
      * Configures fade-in, stay, and fade-out durations via [TitleTimesScope].
      *
-     * Each timing may be set independently; any left unset uses Adventure's default for that slot
-     * (`Title.DEFAULT_TIMES`). When this block is omitted entirely, those same defaults apply.
+     * You can set each time independently. An unset value uses Adventure's default for that slot
+     * (`Title.DEFAULT_TIMES`). The same defaults apply when you omit the complete block.
      *
      * @throws IllegalStateException when times are already configured in this title block, or when
      *   a timing slot is set twice inside [init].

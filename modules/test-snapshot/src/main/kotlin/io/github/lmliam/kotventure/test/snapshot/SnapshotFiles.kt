@@ -45,8 +45,8 @@ internal fun resolveSnapshotResource(name: String): URL? =
 /**
  * Resolves where the snapshot named [name] should be written in record mode.
  *
- * An explicit override directory wins; otherwise an existing classpath resource is mapped back to
- * `src/test/resources/snapshots`, and brand-new snapshots default there from the module workdir.
+ * An explicit override directory has priority. Otherwise, the function maps an existing class-path resource to
+ * `src/test/resources/snapshots`. New snapshots use that location relative to the module work directory.
  */
 internal fun resolveSnapshotWritePath(name: String): Path {
     requireValidSnapshotName(name)

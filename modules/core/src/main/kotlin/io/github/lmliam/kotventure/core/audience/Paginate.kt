@@ -27,8 +27,8 @@ public fun <T> Audience.paginate(
 ): Unit = sendMessage(buildPagination(items, init).page(1))
 
 /**
- * Builds a [Pagination] over two or more items given directly as arguments and sends its first
- * page to this [Audience]; see the [Iterable] overload of [paginate] for the full contract.
+ * Builds a [Pagination] over two or more direct arguments. It sends the first page to this [Audience]. Refer to the
+ * [Iterable] overload of [paginate] for the complete contract.
  *
  * Two leading parameters keep a single-argument call unambiguous: `paginate(collection) { }`
  * always paginates the collection's elements via the [Iterable] overload, never a single

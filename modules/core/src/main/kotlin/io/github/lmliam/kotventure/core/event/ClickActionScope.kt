@@ -6,8 +6,8 @@ import net.kyori.adventure.text.event.ClickCallback
 import kotlin.time.Duration as KotlinDuration
 
 /**
- * Selects the single action a click event performs. Exactly one action must be chosen per `click { }` block;
- * choosing none or more than one fails when the event is built.
+ * Selects the one action that a click event performs. Select exactly one action in each `click { }` block. The event
+ * build fails if the block selects no action or more than one action.
  *
  * @sample io.github.lmliam.kotventure.core.event.clickActionScopeSample
  */

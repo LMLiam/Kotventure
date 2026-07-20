@@ -5,8 +5,8 @@ import io.github.lmliam.kotventure.core.selector.EntitySelectorParseException
 /**
  * A character cursor over entity-selector source text.
  *
- * Every value parses in place, so each diagnostic offset is the exact cursor position at the
- * failure - parsers built on this reader never reconstruct offsets arithmetically.
+ * Each value parses at its source position. Thus, each diagnostic offset is the exact cursor position of the failure.
+ * Parsers that use this reader do not calculate offsets after the failure.
  */
 internal class SelectorReader(
     private val source: String,

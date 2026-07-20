@@ -16,7 +16,7 @@ import net.kyori.adventure.text.format.TextDecoration.State
  * Shared by [StyleBuilder] and component builders so slot uniqueness and decoration mapping live
  * in one place. Subclasses implement the Adventure apply hooks only.
  *
- * Public DSL receivers stay on [StyleScope]; this type is not a public scope.
+ * Public DSL receivers stay on [StyleScope]. This type is not a public scope.
  */
 internal abstract class OnceStyleBuilder : StyleScope {
     private var color: TextColor? by once()

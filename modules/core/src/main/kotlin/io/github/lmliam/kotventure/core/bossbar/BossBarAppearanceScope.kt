@@ -7,13 +7,11 @@ import net.kyori.adventure.bossbar.BossBar
  * The look of the bar strip shared by every boss-bar scope: optional [color]/[overlay] and the
  * screen-effect flag toggles.
  *
- * Progress and the name are intentionally absent — they are the slots on which the static and
- * time-managed scopes differ, so each concrete scope declares its own and the wrong form is a
- * compile-time error, not a runtime one.
+ * This scope does not contain progress or name slots. The static and time-managed scopes use different forms of these
+ * slots. Each concrete scope declares its applicable form so that the compiler rejects an incorrect form.
  *
  * Scope-bound [BossBar.Color] and [BossBar.Overlay] vals (`red`, `notched10`, …) shadow top-level
- * text colours only inside this block; nested component scopes cannot see them thanks to
- * [KotventureDslMarker].
+ * text colours only inside this block. [KotventureDslMarker] prevents nested component scopes from seeing them.
  */
 @KotventureDslMarker
 public interface BossBarAppearanceScope {
@@ -87,8 +85,8 @@ public interface BossBarAppearanceScope {
     /**
      * Continuous [BossBar.Overlay.PROGRESS] overlay (no notches).
      *
-     * Coexists with the float `progress` slots on the concrete scopes: `progress(0.25f)` resolves
-     * to the function; `overlay(progress)` resolves to this property.
+     * Coexists with the float `progress` slots on the concrete scopes. `progress(0.25f)` resolves to the function.
+     * `overlay(progress)` resolves to this property.
      */
     public val progress: BossBar.Overlay
         get() = BossBar.Overlay.PROGRESS

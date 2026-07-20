@@ -35,7 +35,7 @@ internal fun String.shouldBeRejectedByVanilla() =
         Unit
     }
 
-/** Minecraft version used in assertion messages; must be provided by the test runner. */
+    /** The Minecraft version in assertion messages. The test runner must supply it. */
 private val minecraftVersion: String =
     requireNotNull(
         System.getProperty("kotventure.conformance.minecraftVersion"),

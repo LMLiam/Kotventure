@@ -5,7 +5,7 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import net.kyori.adventure.text.ComponentLike
 
 /**
- * Configures a number-range dialog input. The label is required; every other slot is optional.
+ * Configures a number-range dialog input. The label is required. Each other slot is optional.
  * The range itself is supplied when the input is declared.
  */
 @KotventureDslMarker

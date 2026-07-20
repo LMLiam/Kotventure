@@ -5,7 +5,7 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import net.kyori.adventure.text.ComponentLike
 
 /**
- * Configures a boolean dialog input. The label is required; every other slot is optional.
+ * Configures a Boolean dialog input. The label is required. Each other slot is optional.
  */
 @KotventureDslMarker
 public interface BooleanInputScope {

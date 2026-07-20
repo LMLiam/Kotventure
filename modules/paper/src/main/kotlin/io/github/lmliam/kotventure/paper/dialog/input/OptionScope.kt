@@ -5,8 +5,7 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import net.kyori.adventure.text.ComponentLike
 
 /**
- * Configures a single option entry. Both slots are optional; at most one option per input may be
- * marked [default].
+ * Configures one option entry. Both slots are optional. You can mark at most one option for each input as [default].
  */
 @KotventureDslMarker
 public interface OptionScope {

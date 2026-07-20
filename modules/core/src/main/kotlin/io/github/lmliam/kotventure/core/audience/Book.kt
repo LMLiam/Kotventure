@@ -15,8 +15,8 @@ public fun Audience.open(book: Book): Unit = openBook(book)
 /**
  * Builds a [Book] from [init] and opens it on this [Audience].
  *
- * Works for any audience — a player, the console, or a forwarding audience over many members;
- * audiences without a book surface ignore it. For a reusable book shared across opens, prefer
+ * Works for a player, the console, or a forwarding audience. An audience without a book surface ignores it. For a
+ * reusable book that you open more than one time, use
  * [book][io.github.lmliam.kotventure.core.book.book] then [open].
  *
  * @throws IllegalStateException when `title` or `author` is set twice inside [init].

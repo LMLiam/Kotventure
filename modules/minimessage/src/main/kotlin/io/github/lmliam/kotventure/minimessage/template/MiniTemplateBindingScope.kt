@@ -12,7 +12,7 @@ import io.github.lmliam.kotventure.minimessage.placeholder.MiniMessagePlaceholde
  */
 @KotventureDslMarker
 public interface MiniTemplateBindingScope {
-    /** Records [value] as the binding for [placeholder]; prefer the [bind] infix form at call sites. */
+    /** Records [value] as the binding for [placeholder]. Use the [bind] infix form at call sites. */
     public fun <T : Any> bind(
         placeholder: MiniMessagePlaceholder<T>,
         value: T,

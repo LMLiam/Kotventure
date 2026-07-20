@@ -5,11 +5,11 @@ import io.github.lmliam.kotventure.paper.dialog.action.ButtonScope
 
 /**
  * Configures a multi-action dialog. Beyond the base [DialogScope] slots, at least one [button] is
- * required; the column count and exit button are optional.
+ * required. The column count and exit button are optional.
  */
 public interface MultiActionScope : DialogScope {
     /**
-     * Adds an action button configured by [init]. Repeatable; accumulates in call order.
+     * Adds an action button with [init]. Calls accumulate in order.
      */
     public fun button(init: ButtonScope.() -> Unit): Unit
 

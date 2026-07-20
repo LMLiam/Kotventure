@@ -16,8 +16,7 @@ public interface SingleOptionInputScope {
     public fun label(init: LabelScope.() -> Unit): Unit
 
     /**
-     * Sets the required input label. Visibility follows Paper's default; use the block overload to
-     * set it.
+     * Sets the required input label. Visibility uses Paper's default. Use the block overload to set visibility.
      *
      * @throws IllegalStateException when the label is already set in this block.
      */
@@ -32,7 +31,7 @@ public interface SingleOptionInputScope {
     public fun width(value: Int): Unit
 
     /**
-     * Declares the input's options, configured by [init]. Repeatable; options accumulate in order.
+     * Declares the input's options with [init]. Options accumulate in order.
      *
      * @throws IllegalStateException when no option is declared, an id repeats, or more than one
      *   option is marked default.

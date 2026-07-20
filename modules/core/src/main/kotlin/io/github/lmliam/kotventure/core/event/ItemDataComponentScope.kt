@@ -9,7 +9,7 @@ import net.kyori.adventure.text.event.DataComponentValue
  * Scope for declaring the data components carried by an item hover payload.
  *
  * Opened by the trailing lambda of [HoverContentScope.item]. Each call adds the component identified by
- * its [Key]; declaring the same key twice — whether added or [removed] — throws [IllegalStateException].
+ * its [Key]. Declaring the same key two times throws [IllegalStateException], for both added and [removed] components.
  */
 @KotventureDslMarker
 public interface ItemDataComponentScope {

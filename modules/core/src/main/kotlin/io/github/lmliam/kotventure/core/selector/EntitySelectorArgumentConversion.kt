@@ -77,7 +77,7 @@ private fun <T> SelectorFilterGroup<T>.arguments(
 /**
  * Convert a type or type-tag string into a [Type] argument.
  *
- * Strings starting with `#` denote entity-type tags; others denote direct entity types.
+ * A string that starts with `#` identifies an entity-type tag. Other strings identify direct entity types.
  */
 private fun typeArgument(
     value: String,

@@ -8,8 +8,8 @@ import kotlin.time.Duration
 /**
  * Deterministic [Ticker] for unit tests: virtual time moves only via [advance].
  *
- * Due repeating work fires in schedule order (earliest due first; same-time ties keep registration
- * order). Phase is preserved: each fire re-queues at `previousDue + interval`, not
+ * Due repeating work runs in schedule order. The earliest due work runs first, and equal times keep registration order.
+ * The ticker preserves phase. Each run enters the queue again at `previousDue + interval`, not
  * `currentTime + interval`, so jumping multiple intervals does not drift.
  *
  * Modeled after the virtual-clock loop in kotlinx-coroutines-test's
@@ -22,7 +22,7 @@ public class ManualTicker : Ticker {
     /**
      * Current virtual time.
      *
-     * Only advances through [advance]; never wall-clock.
+     * Advances only through [advance]. It does not use wall-clock time.
      */
     public var currentTime: Duration = Duration.ZERO
         private set
@@ -31,7 +31,7 @@ public class ManualTicker : Ticker {
     private var nextSequence: Long = 0L
 
     /**
-     * Min-heap of pending firings. Entries are immutable; a repeating task re-offers a new
+     * A min-heap of pending runs. Entries are immutable. A repeating task adds a new
      * [ManualTickerScheduleEntry] after each successful fire instead of mutating an in-heap key.
      */
     private val schedule: PriorityQueue<ManualTickerScheduleEntry> =
@@ -69,7 +69,7 @@ public class ManualTicker : Ticker {
     }
 
     /**
-     * Schedules [action] every [interval] of manual time; first run falls due at
+     * Schedules [action] for each [interval] of manual time. The first run is due at
      * current time + [interval] and fires only when [advance] crosses it.
      *
      * @throws IllegalArgumentException when [interval] is not positive.

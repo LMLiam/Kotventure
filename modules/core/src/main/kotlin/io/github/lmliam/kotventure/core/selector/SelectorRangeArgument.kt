@@ -9,12 +9,12 @@ public enum class SelectorRangeArgument(
     public val argumentName: String,
     internal val hasNonNegativeOrderedBounds: Boolean,
 ) {
-    /** Distance from the selector origin; bounds must be non-negative and ordered. */
+    /** Distance from the selector origin. Bounds must be non-negative and in ascending order. */
     DISTANCE("distance", hasNonNegativeOrderedBounds = true),
 
-    /** Vertical rotation; descending wrap-around bounds are valid. */
+    /** Vertical rotation. Descending wrap-around bounds are valid. */
     X_ROTATION("x_rotation", hasNonNegativeOrderedBounds = false),
 
-    /** Horizontal rotation; descending wrap-around bounds are valid. */
+    /** Horizontal rotation. Descending wrap-around bounds are valid. */
     Y_ROTATION("y_rotation", hasNonNegativeOrderedBounds = false),
 }

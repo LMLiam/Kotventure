@@ -16,12 +16,11 @@ import net.kyori.adventure.text.TextComponent
  * contribute **no** characters — only nested [TextComponent] nodes do. This is
  * intentional structure-aware matching, not a client plain-text render.
  *
- * Contrast Adventure's plain-text serializer
+ * Compare these matchers with Adventure's plain-text serialiser
  * (`net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer`) and
- * Kotventure's `toPlainText()` wrapper around it: those walk serializers and may
- * emit keys, scores, or other resolved forms. Prefer these matchers when asserting
- * DSL/builder payload shape; use plain-text serialization when asserting what a
- * player would read after full serialization.
+ * and Kotventure's `toPlainText()` wrapper. Those operations use serialisers and can emit keys, scores, or other
+ * resolved forms. Use these matchers to examine the DSL or builder payload. Use plain-text serialisation to examine
+ * what a player reads after complete serialisation.
  *
  * Combine with `and`/`or` or negate with `shouldNot`.
  */
@@ -38,9 +37,8 @@ public fun containText(substring: String): Matcher<Component> =
 /**
  * Matches a component whose flattened text content equals [text] exactly.
  *
- * Same flattening rules as [containText]: every [TextComponent] node contributes
- * its content (not only leaves); this is exact equality over that concatenation, not
- * Adventure plain-text serializer output.
+ * Uses the same flattening rules as [containText]. Each [TextComponent] node supplies its content, not only leaf nodes.
+ * This matcher compares the exact concatenated value and not Adventure plain-text serialiser output.
  */
 public fun haveContent(text: String): Matcher<Component> =
     Matcher { value ->
@@ -90,7 +88,7 @@ public infix fun Component.shouldNotHaveContent(expected: String): Component =
 
 /**
  * Concatenates [TextComponent.content] for every [TextComponent] in this tree
- * (depth-first). Non-[TextComponent] nodes are skipped (not plain-text serialized).
+ * in depth-first order. The function skips non-[TextComponent] nodes and does not serialise them as plain text.
  */
 private fun Component.flattenedText(): String =
     buildString {

@@ -5,7 +5,7 @@ import io.github.lmliam.kotventure.paper.dialog.action.ButtonScope
 
 /**
  * Configures a notice dialog. Beyond the base [DialogScope] slots, its single acknowledgement
- * [button] is optional; left unset, Paper supplies the default button.
+ * [button] is optional. Paper supplies the default button when the slot is unset.
  */
 public interface NoticeScope : DialogScope {
     /**

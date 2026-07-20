@@ -10,7 +10,7 @@ to the PR URL, or pick one from .github/PULL_REQUEST_TEMPLATE/.
 
 ## Summary
 
-<!-- What does this change and why? Keep it concise but clear. -->
+<!-- Describe the change and its purpose. Use short, clear sentences. -->
 
 ## Related issues
 
@@ -20,21 +20,22 @@ Closes #<issue-number>
 
 <!-- Tick all that apply. -->
 
-- [ ] feat — new capability
-- [ ] fix — bug fix
-- [ ] refactor — internal, no behaviour change
+- [ ] feat: new capability
+- [ ] fix: bug fix
+- [ ] refactor: internal change with no behaviour change
 - [ ] docs
 - [ ] test
 - [ ] chore / build / ci
 
 ## Testing
 
-<!-- What did you add/run? Note the Kotest specs and whether `./gradlew build` passes. -->
+<!-- List the checks that you ran. Identify the Kotest specifications and the result of `./gradlew build`. -->
 
 ## Checklist
 
 - [ ] Title and commit subjects follow `verb(area): something`
 - [ ] Linked the related issue
-- [ ] Tests added/updated (dogfood the `test` matchers where applicable)
-- [ ] `./gradlew ktlintCheck spotlessCheck` clean; `explicitApi()` satisfied with KDoc on public API
-- [ ] Updated `docs/` and `CHANGELOG.md` if user-facing
+- [ ] Added or updated tests. Used the `test` matchers where applicable.
+- [ ] `./gradlew ktlintCheck spotlessCheck` passes.
+- [ ] Public API has KDoc and satisfies `explicitApi()`.
+- [ ] Updated `docs/` for user-facing changes.

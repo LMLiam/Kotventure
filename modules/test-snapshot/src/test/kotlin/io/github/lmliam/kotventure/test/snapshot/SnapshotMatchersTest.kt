@@ -31,7 +31,7 @@ import kotlin.io.path.exists
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
 
-/** The component recorded in `styled-component.snapshot.json`; keep in sync with that committed fixture. */
+/** The component in `styled-component.snapshot.json`. Keep it consistent with that committed fixture. */
 private fun styledComponent(): Component =
     text("Hello ") {
         color(red)
@@ -42,11 +42,11 @@ private fun styledComponent(): Component =
     }
 
 /**
- * The component recorded in `rich-message.snapshot.json`; keep in sync with that committed fixture.
+ * The component in `rich-message.snapshot.json`. Keep it consistent with that committed fixture.
  *
- * Deliberately broad: it exercises a styled root carrying both a click and a hover event, a translatable child with a
- * fallback and an argument, and keybind, score, and selector children — so a regression in *any* of those serialised
- * forms surfaces as a single snapshot diff, which is exactly what structural matchers are clumsy at covering.
+ * This broad fixture has a styled root with click and hover events. It also has a translatable child with a fallback
+ * and an argument, and keybind, score, and selector children. A regression in one of these serialised forms produces
+ * one snapshot diff. Structural matchers are not suitable for this broad comparison.
  */
 private fun richMessage(): Component =
     text("Welcome, ") {

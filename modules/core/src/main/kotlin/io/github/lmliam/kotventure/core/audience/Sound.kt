@@ -14,8 +14,8 @@ import net.kyori.adventure.sound.Sound
  * …) and at most one playback context: [emitter][PlaySoundScope.emitter] (e.g. `emitter(self)`)
  * or [at][PlaySoundScope.at]. When neither is set, the sound plays at the recipient's location.
  *
- * Works for any audience — a player, the console, or a forwarding audience over many members;
- * audiences without a sound surface ignore it. For a reusable sound shared across plays, prefer
+ * Works for a player, the console, or a forwarding audience. An audience without a sound surface ignores it. For a
+ * reusable sound that you play more than one time, use
  * [sound][io.github.lmliam.kotventure.core.sound.sound] then [play].
  *
  * @throws IllegalStateException when any sound or playback slot is set twice, or both playback

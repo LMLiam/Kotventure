@@ -13,7 +13,7 @@ public sealed interface MiniMessageDiagnostic {
      * A tag in the input is malformed or was not explicitly closed when strict parsing requires it.
      *
      * @property message Human-readable description from Adventure's parser. Prefers
-     *   [ParsingException.detailMessage] (no location noise); falls back to
+     *   [ParsingException.detailMessage] without location information. Falls back to
      *   [ParsingException.message] if `detailMessage` is null.
      * @property startIndex Start index into the original input string, or [LOCATION_UNKNOWN] when
      *   Adventure did not report a source position.
@@ -31,7 +31,7 @@ public sealed interface MiniMessageDiagnostic {
              * Sentinel used when Adventure did not report a source position for the malformed tag.
              *
              * Mirrors [ParsingException.LOCATION_UNKNOWN] directly so the value is always
-             * Adventure-derived. Do not hardcode `-1`; read this constant instead.
+             * Adventure-derived. Do not use a literal `-1`. Read this constant instead.
              */
             public val LOCATION_UNKNOWN: Int = ParsingException.LOCATION_UNKNOWN
         }

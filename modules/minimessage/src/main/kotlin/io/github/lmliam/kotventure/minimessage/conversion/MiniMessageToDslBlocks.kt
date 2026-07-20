@@ -5,9 +5,8 @@ import net.kyori.adventure.text.Component
 /**
  * Helpers for emitting structured DSL blocks for components.
  *
- * These functions intentionally work as small, composable building blocks:
- * - prefer small helpers for the body emission to avoid duplicated logic
- * - expose a vararg overload for arguments for ergonomic callers
+ * These functions are small, composable blocks. Small helpers emit the body without duplicate logic. A vararg overload
+ * supplies arguments to callers.
  */
 internal fun KotlinSourceBuilder.appendStructured(
     header: String,
@@ -29,9 +28,8 @@ internal fun KotlinSourceBuilder.appendStructured(
 /**
  * Emits a structured-component call with multi-line arguments.
  *
- * The `opener` appears on its own line, each argument is emitted indented and comma-separated
- * , and then either a single closing `)` or a `) { ... }` body that carries
- * [body], the component's style, and its children.
+ * The `opener` is on its own line. Each argument has an indent and a separating comma. The output then has a closing
+ * `)` or a `) { ... }` body. The body contains [body], the component's style, and its children.
  *
  * This overload accepts a List of argument-emitting lambdas to remain compatible with existing callers.
  */

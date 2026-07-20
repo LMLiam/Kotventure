@@ -3,12 +3,11 @@ package io.github.lmliam.kotventure.core.selector
 /**
  * An integer range for selector arguments such as `level` and `scores` objectives.
  *
- * Construct open-ended or exact bounds via [atMost], [atLeast], [exactly]; for a closed range,
- * pass a native Kotlin [IntRange] to the consuming argument directly, e.g. `level(5..30)`.
- * Validation that differs by argument, such as `level` rejecting negative bounds while score
- * objectives accept them, is applied by the consuming argument. Floating-point arguments such as
- * `distance` use the distinct [SelectorRange], so fractional values here are compile errors rather
- * than invalid selectors.
+ * Use [atMost], [atLeast], or [exactly] to construct open-ended or exact bounds. For a closed range, give a Kotlin
+ * [IntRange] directly to the applicable argument, for example `level(5..30)`.
+ * The consuming argument applies its validation. For example, `level` rejects negative bounds, but score objectives
+ * accept them. Floating-point arguments such as `distance` use
+ * [SelectorRange]. Thus, the compiler rejects fractional values here.
  */
 @ConsistentCopyVisibility
 public data class SelectorIntRange internal constructor(

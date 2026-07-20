@@ -18,14 +18,14 @@ public class TimedBossBar internal constructor(
     config: TimedBossBarConfig,
     initialViewer: Audience,
 ) {
-    /** The underlying Adventure boss bar; progress and name are updated each tick. */
+    /** The underlying Adventure boss bar. Each tick updates its progress and name. */
     public val bar: BossBar = config.buildInitialBar()
 
     private val runtime = TimedBossBarRuntime(ticker, config, bar, this)
 
     /**
-     * Time remaining until natural completion; frozen while [isPaused] and at the value it had
-     * when [cancel] ended the bar early. [Duration.ZERO] after natural completion.
+     * Time remaining until natural completion. It does not change while [isPaused]. If [cancel] ends the bar early, it
+     * keeps the value at cancellation. It is [Duration.ZERO] after natural completion.
      */
     public val remaining: Duration by runtime::remaining
 

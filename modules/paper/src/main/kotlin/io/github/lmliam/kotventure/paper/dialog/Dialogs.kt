@@ -56,7 +56,7 @@ public val serverLinks: DialogKind<ServerLinksScope> =
 /**
  * Builds a [Dialog] of [kind] configured by [init].
  *
- * Construction only — no side effects; the dialog is not shown to anyone. Use this when a
+ * This function only constructs the dialog and has no side effects. It does not show the dialog. Use it when a
  * dialog value is stored, reused, or passed to a later display call.
  *
  * @throws IllegalStateException when the required title is missing, a singleton slot is set

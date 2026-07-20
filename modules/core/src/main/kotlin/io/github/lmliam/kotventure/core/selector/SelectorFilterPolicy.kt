@@ -8,8 +8,8 @@ package io.github.lmliam.kotventure.core.selector
  */
 internal enum class SelectorFilterPolicy {
     /**
-     * At most one positive value; positives cannot be mixed with exclusions.
-     * Multiple exclusions alone are allowed.
+     * Permits at most one positive value. Does not permit a mixture of positive values and exclusions. Permits multiple
+     * exclusions.
      */
     EXCLUSIVE,
 

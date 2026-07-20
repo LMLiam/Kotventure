@@ -5,7 +5,7 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import net.kyori.adventure.text.ComponentLike
 
 /**
- * Configures an item dialog body. Every slot is optional; any left unset uses Paper's default.
+ * Configures an item dialog body. Each slot is optional. An unset slot uses Paper's default.
  */
 @KotventureDslMarker
 public interface ItemBodyScope {

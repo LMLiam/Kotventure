@@ -1,19 +1,13 @@
 package io.github.lmliam.kotventure.core.selector
 
 /**
- * Records selector-argument occurrences and reports the first multiplicity violation:
-singleton
- * arguments ([singletonSelectorArgumentNames]) may appear only once, and an exclusive
-filter group
- * allows one positive value that cannot be mixed with exclusions.
+ * Records selector-argument occurrences and reports the first multiplicity error. A singleton argument in
+ * [singletonSelectorArgumentNames] can occur one time. An exclusive filter group permits one positive value and does
+ * not permit a mixture of positive and negative values.
  *
- * This is the single validation behind [EntitySelector]'s constructor and the parser,
-which
- * surfaces the returned message at the offending argument's source offset.
-[SelectorFilterGroup]
- * cannot share it: DSL polarity is only final when the block ends (`!` negates an entry
-after it
- * is added), so the builder validates in two phases instead.
+ * [EntitySelector] and the parser use this validation. The parser reports the returned message at the source offset of
+ * the incorrect argument. [SelectorFilterGroup] cannot use it because DSL polarity is final only when the block ends.
+ * The `!` operator negates an entry after its addition. Therefore, the builder validates in two phases.
  */
 internal class SelectorArgumentOccurrences {
     private val singletons = mutableSetOf<String>()

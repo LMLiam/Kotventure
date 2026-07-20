@@ -45,7 +45,7 @@ internal fun SelectorReader.readSortArgument(): EntitySelectorArgument.Sort {
  * Captures the offset before parsing and fails with [message] if [isValid] returns false.
  *
  * @param message the error message if validation fails
- * @param isValid predicate on the parsed value; returns true if valid
+ * @param isValid the predicate on the parsed value. It returns true for a valid value.
  * @return the parsed and validated integer
  */
 private fun SelectorReader.readValidatedInt(

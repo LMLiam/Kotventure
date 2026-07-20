@@ -23,7 +23,7 @@ public fun interface TimedBossBarName {
     public fun ComponentScope.render(remaining: Duration)
 }
 
-/** Fixed name: ignore remaining time; change-detection on the bar skips redundant pushes. */
+/** Returns a fixed name that ignores the remaining time. The bar skips an update when the name does not change. */
 internal fun Component.asFixedTimedName(): (Duration) -> Component = { _ -> this }
 
 /** Dynamic name: re-enter a component scope each tick with [TimedBossBarName] as the renderer. */

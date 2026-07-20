@@ -24,8 +24,8 @@ public interface SoundScope : SoundSourceScope {
     /**
      * Sets the playback volume.
      *
-     * Defaults to `1` when unset. Passed through to Adventure without Minecraft-range clamping —
-     * values are interpreted by the platform at playback (typically non-negative; `1` is full).
+     * Defaults to `1` when unset. Adventure receives the value without Minecraft-range limits. The platform interprets
+     * it during playback. Values are usually non-negative, and `1` is full volume.
      *
      * @throws IllegalStateException when the volume is already set in this block.
      */
@@ -34,9 +34,8 @@ public interface SoundScope : SoundSourceScope {
     /**
      * Sets the playback pitch.
      *
-     * Defaults to `1` when unset. Passed through to Adventure without Minecraft-range clamping —
-     * values are interpreted by the platform at playback (commonly around `0.5`–`2.0`; `1` is
-     * natural pitch).
+     * Defaults to `1` when unset. Adventure receives the value without Minecraft-range limits. The platform interprets
+     * it during playback. Values are usually from `0.5` to `2.0`, and `1` is natural pitch.
      *
      * @throws IllegalStateException when the pitch is already set in this block.
      */

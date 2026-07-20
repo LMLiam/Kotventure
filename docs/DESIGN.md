@@ -1,71 +1,72 @@
 # Kotventure — Design
 
-> This document captures the agreed architecture and scope that the GitHub Epic and its sub‑issues are derived from.
-> Syntax shown is **illustrative** and will be refined during implementation.
+> This document specifies the agreed architecture and scope. The GitHub epic and its subissues use this document.
+> The syntax examples are **illustrative**. The implementation can refine them.
 
 ---
 
 ## 1. Vision & positioning
 
-Kotventure is a **batteries‑included, multi‑platform Kotlin DSL for [Adventure](https://github.com/PaperMC/adventure)**.
-The goal is not merely "a nicer way to build a `Component`" — that ground is already covered — but to be the most
-complete and *correct* way for Kotlin plugin developers to produce and deliver player‑facing text and UX across Paper,
+Kotventure is a **complete, multiplatform Kotlin DSL for [Adventure](https://github.com/PaperMC/adventure)**. It gives
+Kotlin plugin developers a correct method to make and send player-facing text and user interfaces. It supports Paper,
 Velocity, and Fabric.
 
-Three pillars set it apart from existing efforts:
+Three primary features distinguish it from other libraries:
 
-1. **Typed, validated MiniMessage** — reusable typed templates with required, type‑checked placeholders and
-   load/build‑time validation of markup.
-2. **A real component‑testing toolkit** — Kotest/JUnit matchers and snapshot testing for Adventure components. Nobody in
-   this space offers this.
-3. **Developer tooling** — render components to the terminal (ANSI), generate a typed message catalog from resource
-   files (KSP), and validate MiniMessage bundles at build time (Gradle plugin).
+1. **Typed, validated MiniMessage** supplies reusable typed templates. The templates have required, type-checked
+   placeholders and markup validation.
+2. **A component test toolkit** supplies Kotest and JUnit matchers. It also supplies snapshot tests for Adventure
+   components.
+3. **Developer tools** render components in a terminal with ANSI. They generate a typed message catalogue from
+   resource files with KSP. They also validate MiniMessage bundles during a Gradle build.
 
-On top of those, it aims to match the breadth of the best rival: full component coverage, styles/themes, the entire
-audience surface (titles, boss bars, books, sounds, tab list), pagination, animations, i18n, and idiomatic serializer
-access.
+Kotventure also supports all component types, styles, themes, and audience operations. Audience operations include
+titles, boss bars, books, sounds, and tab lists. The target scope also includes pagination, animation,
+internationalisation, and idiomatic serialiser access.
 
 ## 2. Prior art & differentiation
 
-| Project                           | What it is                                                                  | Gap we exploit                                                              |
+| Project                           | Description                                                                 | Difference                                                                  |
 |-----------------------------------|-----------------------------------------------------------------------------|-----------------------------------------------------------------------------|
-| Adventure's retired Kotlin extras | Former official Kotlin builders/operators                                   | Removed in Adventure 5.0; no MiniMessage tooling, testing, or platform UX   |
-| Pluto‑Studio/`adventure-kt`       | The serious rival — component DSL, `mini()`, styles, titles, multi‑platform | No typed/validated MiniMessage, no testing toolkit, no codegen/ANSI tooling |
+| Adventure's retired Kotlin extras | Former official Kotlin builders/operators                                   | Adventure 5.0 removed it; it has no MiniMessage tools, tests, or platform UI |
+| Pluto‑Studio/`adventure-kt`       | Component DSL, `mini()`, styles, titles, and multiplatform support          | No typed MiniMessage, test toolkit, code generator, or ANSI tools           |
 | HoshiKurama component DSL         | `buildComponent {}`                                                         | Stale (2021), narrow                                                        |
-| KSpigot / KPaper                  | Broad Kotlin server libs that *include* a chat DSL                          | Not Adventure‑focused; tied to broader frameworks                           |
+| KSpigot / KPaper                  | General Kotlin server libraries that include a chat DSL                    | Not specific to Adventure; part of larger frameworks                        |
 
-**Conclusion:** compete on *breadth + correctness tooling*, not on the basic component builder alone.
+**Conclusion:** provide a broad scope and tools that help users make correct software. Do not compete only on a basic
+component builder.
 
 ## 3. Design principles
 
-- **Idiomatic first.** Plain extension functions, builders, and `@DslMarker` scopes. No runtime magic for the common
-  path.
-- **Small, well‑bounded units.** Each module has one clear purpose, a defined public surface, and is testable in
-  isolation.
-- **Correctness is a feature.** Type‑safety, validation, and first‑class tests are differentiators, not afterthoughts.
-- **Reject malformed input; never normalize it away.** A builder slot that can only be meaningfully set once throws
-  `IllegalStateException` (naming the argument) on a second assignment instead of last‑write‑wins; genuinely repeatable
-  inputs accumulate in call order. Value validation (ranges, finiteness, blank names) uses `IllegalArgumentException`.
-- **Pay for what you use.** A consumer pulling only `core` shouldn't drag in MiniMessage, coroutines, or platform code.
-- **Dogfood.** Every module is tested using our own `test` matchers.
+- **Use idiomatic Kotlin.** Use extension functions, builders, and `@DslMarker` scopes. Do not use runtime mechanisms
+  for a usual operation.
+- **Use small units with clear limits.** Give each module one purpose and a defined public API. Test each module
+  independently.
+- **Make correct use easy.** Use type safety, validation, and direct tests.
+- **Reject malformed input.** Do not normalise malformed input. If a builder slot accepts one value, a second
+  assignment throws `IllegalStateException` and identifies the argument. Inputs that permit repetition accumulate in
+  call order. Use `IllegalArgumentException` for invalid values such as ranges, finite numbers, and blank names.
+- **Include only required dependencies.** A consumer that uses only `core` does not receive MiniMessage, coroutines,
+  or platform code.
+- **Use Kotventure in its tests.** Test each module with the matchers from the `test` module.
 
 ## 4. Architecture & module map
 
-A **hybrid** structure: idiomatic DSL for ~95% of the surface, a small **explicit registry** for genuinely pluggable
-behaviour, and **KSP** for compile‑time codegen. The previous `ServiceLoader`/`@ServiceContract` factory indirection is
-**removed** — it is unnecessary ceremony for a DSL library.
+The architecture uses three mechanisms. An idiomatic DSL supplies most of the API. Small, **explicit registries**
+supply runtime extension points. **KSP** generates code at compile time. The project does not use the previous
+`ServiceLoader` and `@ServiceContract` factory indirection.
 
 | Module                | Depends on                             | Purpose                                                                                                        |
 |-----------------------|----------------------------------------|----------------------------------------------------------------------------------------------------------------|
 | `core`                | `adventure-api`                        | Component/style/colour/gradient DSL, theme engine, the registry, audience‑send DSL, animation **abstractions** |
-| `serializer`          | `adventure-api`, concrete serializers  | Optional `Component` serializer extensions such as MiniMessage and plain text                                  |
+| `serializer`          | `adventure-api`, concrete serialisers  | Optional `Component` serialiser extensions such as MiniMessage and plain text                                  |
 | `minimessage`         | `core`, `adventure-text-minimessage`   | Typed tag/placeholder DSL, typed templates, validation, MiniMessage ⇄ DSL converter                            |
 | `i18n`                | `core`, `minimessage`                  | Translation registry + per‑player locale DSL                                                                   |
 | `test`                | `core` (test‑scoped for consumers)     | Kotest/JUnit structural component matchers                                                                     |
 | `test-snapshot`       | `adventure-api`, `serializer`          | Snapshot testing over canonical component JSON                                                                 |
 | `ansi`                | `core`                                 | Render a `Component` to coloured terminal output                                                               |
 | `coroutines`          | `core`, `kotlinx-coroutines`           | suspend click‑callbacks, async sending, animation scheduling                                                   |
-| `annotations` + `ksp` | —                                      | Typed message‑catalog codegen + compile‑time style validation                                                  |
+| `annotations` + `ksp` | —                                      | Typed message‑catalogue codegen + compile‑time style validation                                                |
 | `paper`               | `core` (+ Paper)                       | Scheduler/audience adapter, item creation and **lore**/display‑name builders                                  |
 | `velocity`            | `core` (+ Velocity)                    | Proxy scheduler/audience adapter                                                                               |
 | `fabric`              | `core` (+ `adventure-platform-fabric`) | Fabric adapter                                                                                                 |
@@ -73,30 +74,28 @@ behaviour, and **KSP** for compile‑time codegen. The previous `ServiceLoader`/
 | `bom`                 | —                                      | Bill‑of‑materials so consumers pin one version                                                                 |
 | `e2e`                 | (all)                                  | Cross‑module integration tests                                                                                 |
 
-Modules are introduced **lazily, per phase** — not all scaffolded up front — to keep each change small.
+Add a module only when its roadmap phase requires it. This rule keeps each change small.
 
 ### 4.1 Registries & extension points
 
-When runtime lookup is genuinely needed, the owning feature exposes an explicit registry value as part of its public
-API — never a hidden process-global registry or classpath scanning.
+When a feature requires runtime lookup, that feature supplies an explicit registry in its public API. Do not use a
+hidden process-wide registry or scan the class path.
 
-- **Theme providers** use a `ThemeRegistry` instance for dynamic lookup and interop, while direct Kotlin callers prefer
-  compile-checked properties such as `Brand.header`.
-- **Custom MiniMessage tags**, **animation drivers**, and **platform adapters** should follow the same pattern when
-  their slices land: feature-owned explicit registration, not ambient global state.
+- **Theme providers** use a `ThemeRegistry` instance for dynamic lookup and interoperability. Direct Kotlin callers
+  use compiler-checked properties such as `Brand.header`.
+- **Custom MiniMessage tags**, **animation drivers**, and **platform adapters** must use the same pattern. The feature
+  owns an explicit registry. It does not use ambient global state.
 
-This keeps the common path magic-free while making the genuinely variable parts swappable.
+This design keeps usual operations direct and permits the replacement of variable parts.
 
-**Animation layering** (arrives in Phase 3) spans three of these layers, so the split is deliberate: `core` defines the
-animation *abstractions* (frame model, ticker, and the driver interface); concrete **animation drivers** plug in via the
-registry entry above; and the `coroutines` module — together with the platform schedulers from the bundles — provides
-the runtime *scheduling and orchestration*. The composition flow is **abstractions → a driver registered here → the
-driver schedules/executes frames**.
+**Animation layers** arrive in Phase 3. The `core` module defines the frame model, ticker, and driver interface.
+Concrete **animation drivers** use the applicable registry. The `coroutines` module and platform schedulers control
+the runtime schedule. The composition flow is **abstractions → registered driver → scheduled frame execution**.
 
 ## 5. Canonical DSL surface (illustrative)
 
-Negatable selector filters use prefix negation (`!tag("hidden")`). The former value-wrapped form
-(`tag(!"hidden")`) has been removed so every filter, including structured filters, follows one syntax.
+Selector filters that permit negation use a prefix (`!tag("hidden")`). The project removed the former
+`tag(!"hidden")` form. Thus, all filters use one syntax.
 
 ```kotlin
 // ── Construction ───────────────────────────────────────────────
@@ -256,112 +255,111 @@ println(component.toMiniMessage())
 println(component.toPlainText())
 ```
 
-`parseSelector(...)` is the single dynamic-string bridge into the selector DSL: it validates
-selector source and returns the same typed, immutable `EntitySelector` model produced by the
-target-specific DSL factories. Invalid or unknown syntax throws an `EntitySelectorParseException`
-carrying the zero-based, selector-relative offset of the first failure, matching the fail-fast
-contract of the rest of the DSL. There is no unchecked selector representation.
+`parseSelector(...)` is the only dynamic string bridge into the selector DSL. It validates the selector source. It
+returns the typed, immutable `EntitySelector` model that the target-specific DSL factories produce. Invalid or unknown
+syntax throws `EntitySelectorParseException`. The exception gives the zero-based offset of the first failure in the
+selector. The DSL does not have an unchecked selector representation.
 
-Both construction paths produce a typed `EntitySelectorArgument` list, and a single renderer turns
-that model back into canonical selector source. The DSL scopes are the compile-time front end over
-the model; `parseSelector(...)` is the strict runtime front end for dynamic strings. The model is
-semantic, not lexical: argument order and repetition are retained, while quote choice, escapes,
-omitted `minecraft:` namespaces, number spelling, redundant exact ranges (`5..5` renders as `5`),
-and empty argument brackets re-render canonically. Duplicate-argument and cross-argument vanilla
-semantics are pinned separately by the vanilla-conformance suite (#205).
+Both construction methods produce a typed list of `EntitySelectorArgument` values. One renderer changes that model
+back to canonical selector source. The DSL scopes are the compile-time interface to the model. `parseSelector(...)` is
+the strict runtime interface for dynamic strings. The model stores meaning and not lexical form. It retains argument
+order and repetitions. It renders quote choices, escapes, omitted `minecraft:` namespaces, number forms, redundant
+exact ranges, and empty argument brackets in a canonical form. For example, `5..5` becomes `5`. The vanilla
+conformance suite tests duplicate arguments and interactions between arguments (#205).
 
-Selector rendering is also checked independently against the checksum-pinned Java Edition parser;
-see [Vanilla conformance](vanilla-conformance.md) for the isolated test setup and baseline
-update process.
+The tests also compare selector output with a checksum-pinned Java Edition parser. For the isolated test configuration
+and baseline update procedure, refer to [Vanilla conformance](vanilla-conformance.md).
 
 ## 6. MiniMessage strategy
 
-Three layers, shipped incrementally:
+The project supplies three MiniMessage layers in sequence:
 
-1. **Passthrough** — `mini("<red>hi")` wrapping the parser, plus a tag‑resolver DSL.
-2. **Typed placeholders & templates** — `object : MiniTemplate("…") { val x by placeholder<T>() }` producing reusable,
-   type‑checked message factories (property name is the tag; optional `placeholder<T>("tag")` when they differ).
-3. **Validation** — detect malformed tags and missing/extra placeholders at load time (runtime API) and at **build time
-   ** (Gradle plugin over resource bundles).
+1. **Passthrough** supplies `mini("<red>hi")` as a wrapper for the parser. It also supplies a tag resolver DSL.
+2. **Typed placeholders and templates** use `object : MiniTemplate("…") { val x by placeholder<T>() }`. This syntax
+   produces reusable, type-checked message factories. The property name is the tag. Use
+   `placeholder<T>("tag")` when the names are different.
+3. **Validation** detects malformed tags and incorrect placeholder sets. The runtime API validates at load time. The
+   Gradle plugin validates resource bundles at build time.
 
-A **MiniMessage ⇄ DSL converter** round‑trips between markup strings and DSL/Kotlin, aiding migration and learning.
-Selector patterns convert through the strict `core` parser and emit the typed selector factories and arguments,
-canonicalized; invalid patterns fail with the parser's offset-bearing exception.
+A **MiniMessage ⇄ DSL converter** changes markup strings to Kotlin DSL and back. This tool helps migration and
+learning. The strict `core` parser converts selector patterns and emits typed selector factories and canonical
+arguments. Invalid patterns cause an exception that gives the applicable offset.
 
 ## 7. Testing strategy
 
-- **Kotest** throughout (already the project's framework).
-- The `test` module exposes **matchers** (`shouldHaveColor`, `shouldContainText`, structural/child matchers, style
-  assertions); `test-snapshot` adds whole-message golden-file assertions (serialize → diff against committed
-  snapshots).
-- Every other module **exercises** these matchers on its own output.
-- `e2e` covers cross‑module integration.
+- Use **Kotest** in all modules.
+- The `test` module supplies matchers such as `shouldHaveColor` and `shouldContainText`. It also supplies structural,
+  child, and style matchers.
+- The `test-snapshot` module serialises a complete message and compares it with an approved snapshot file.
+- Each other module uses these matchers to test its output.
+- The `e2e` module tests integration between modules.
 
 ## 8. Tooling
 
-- **`ansi`** — render a `Component` (colours, decorations, gradients approximated) to ANSI for tests and logs, so
-  developers can *see* output without a server.
-- **`ksp`** — generate a typed message catalog from `messages.yml`/properties: typed accessors with **required,
-  validated** placeholders; optional compile‑time style validation.
-- **`gradle-plugin`** — fail the build on malformed MiniMessage or missing placeholders in resource bundles; optionally
-  pre‑compile bundles.
+- **`ansi`** renders a `Component` as ANSI for tests and logs. It supports colours, decorations, and approximate
+  gradients. Developers can examine output without a server.
+- **`ksp`** generates a typed message catalogue from `messages.yml` or property files. The generated accessors have
+  required, validated placeholders. It can also validate styles at compile time.
+- **`gradle-plugin`** stops a build when resource bundles contain malformed MiniMessage or absent placeholders. It can
+  also precompile bundles.
 
 ## 9. Platforms
 
-`core` depends only on `adventure-api`, so it works anywhere Adventure does. Thin bundles add platform adapters and
-conveniences:
+`core` depends only on `adventure-api`. Thus, it works on all Adventure platforms. Small bundles add platform adapters
+and convenience functions:
 
-- **`paper`** (first) — scheduler for animations, audience conveniences, item lore/name builders.
-- **`velocity`** — proxy scheduler/audience.
-- **`fabric`** — via `adventure-platform-fabric`.
+- **`paper`** supplies an animation scheduler, audience functions, and item lore and name builders.
+- **`velocity`** supplies a proxy scheduler and audience adapter.
+- **`fabric`** uses `adventure-platform-fabric`.
 
 ## 10. Build, publishing & versioning
 
 - **Build:** Gradle multi‑module, Kotlin 2.4, JVM toolchain 25, ktlint + Spotless, Kotest.
-- **Java compatibility:** Kotventure builds with the Java 25 toolchain. Adventure 5.x sets a Java 21+ consumer floor, so
-  modules should keep public APIs wrapper/composition-based rather than extending Adventure component/style interfaces.
-- **Adventure baseline:** Kotventure aligns Adventure artifacts through the Adventure BOM pinned in
-  [`gradle/libs.versions.toml`](../gradle/libs.versions.toml) (currently 5.2.0). The core module wraps
-  `adventure-api`; feature modules add serializer, MiniMessage, platform, or tooling artifacts only when their roadmap
-  slice lands.
-- **Publishing:** **JitPack** during pre‑alpha/alpha (zero infra, builds from git tags) → **Maven Central** (
-  `io.github.lmliam` namespace, GPG‑signed) at beta/`1.0`.
-- **BOM** module so consumers align versions across the many artifacts.
-- **Versioning:** unstable `0.0.x` → `0.x` alpha → `0.9.x` beta (API freeze) → `1.0.0` (semver commitment). CI runs
-  build/test/lint on PRs; tags publish.
+- **Java compatibility:** Kotventure builds with the Java 25 toolchain. Adventure 5.x requires Java 21 or a later
+  version for consumers. Public APIs must wrap or compose Adventure types. They must not extend Adventure component or
+  style interfaces.
+- **Adventure baseline:** Kotventure aligns Adventure artefacts with the Adventure BOM in
+  [`gradle/libs.versions.toml`](../gradle/libs.versions.toml). The current version is 5.2.0. The `core` module wraps
+  `adventure-api`. Feature modules add serialiser, MiniMessage, platform, or tool artefacts only when the roadmap
+  requires them.
+- **Publication:** During the pre-alpha and alpha stages, JitPack builds from Git tags. At beta or version `1.0`, Maven
+  Central uses the `io.github.lmliam` namespace and GPG signatures.
+- The **BOM** module aligns versions across all artefacts.
+- **Versions:** `0.0.x` is unstable, `0.x` is alpha, and `0.9.x` is beta with a frozen API. Version `1.0.0` starts the
+  semantic-versioning commitment. CI builds, tests, and lints pull requests. Tags start publication.
 
-> **Note:** adding/updating GitHub Actions workflows requires a token with the `workflow` scope (
-`gh auth refresh -s workflow`). CI‑on‑master is tracked as its own issue.
+> **Note:** To add or update a GitHub Actions workflow, use a token with the `workflow` scope. Use
+> `gh auth refresh -s workflow` to add the scope. A separate issue tracks CI on `master`.
 
 ### 10.1 Adventure 5.x compatibility
 
-The Adventure version pinned in [`gradle/libs.versions.toml`](../gradle/libs.versions.toml) is the compatibility
-baseline for all new roadmap slices. Treat PaperMC's official
-[Adventure 4.x → 5.x migration guide](https://docs.papermc.io/adventure/migration/adventure-4.x/) as the checklist
-when adding dependencies or public DSL types.
+The Adventure version in [`gradle/libs.versions.toml`](../gradle/libs.versions.toml) is the compatibility baseline for
+all new roadmap work. Use PaperMC's official
+[Adventure 4.x → 5.x migration guide](https://docs.papermc.io/adventure/migration/adventure-4.x/) when you add a
+dependency or public DSL type.
 
-- Keep the project build on Java 25 while documenting Adventure's Java 21+ consumer minimum in release and setup docs.
-- Use composition/delegation around Adventure builders and value types; do not extend sealed Adventure component,
+- Keep the project build on Java 25. State the Adventure minimum of Java 21 in release and setup documents.
+- Use composition or delegation with Adventure builders and value types. Do not extend sealed Adventure component,
   style, renderer, or event implementation types.
-- Prefer current Adventure 5.x serializer, translation-store, renderer, component-builder, and click-event APIs in each
-  feature slice. Removed Adventure 4.x modules or classes must not appear as dependencies or planned public API.
-- Account for JSpecify nullness, SLF4J 2.0 expectations, and Adventure module metadata whenever they affect Kotlin
-  source compatibility or consumer setup.
+- Use the current Adventure 5.x serialiser, translation store, renderer, component builder, and click event APIs. Do
+  not add removed Adventure 4.x modules or classes to dependencies or planned public APIs.
+- Consider JSpecify nullness, SLF4J 2.0 requirements, and Adventure module metadata when they affect Kotlin source
+  compatibility or consumer configuration.
 
-Roadmap issues checked for 5.x notes: serializers (#30), click events (#21), renderer/object-component handling
+Roadmap issues with 5.x notes are serialisers (#30), click events (#21), renderer and object-component operations
 (#71/#81), translation (#16/#48), NBT components (#18), and component builders (#8/#15).
 
 ## 11. Phased roadmap
 
-Each phase is a GitHub **milestone**. Sub‑issues are **fine‑grained vertical slices** — each independently shippable
-with its own tests — to keep changes small and incremental.
+Each phase is a GitHub **milestone**. Each subissue is a small vertical slice with its own tests. The project can
+release each slice independently.
 
 | Phase | Milestone         | Focus                                                                                                                                                                 |
 |-------|-------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **0** | Pre‑Alpha `0.0.x` | Foundations: drop SPI, restructure, CI, JitPack, BOM stub. **First slice:** `component { text { color/decorate } }` + first matcher + `toMiniMessage()`. Tag `0.0.1`. |
 | **1** | Alpha `0.1–0.3`   | Core DSL: full components, styles/events/gradients, themes; MiniMessage typed templates + validation + converter; serializer extensions; test matchers + snapshots.   |
 | **2** | Alpha `0.4–0.6`   | Audience & UX: send DSL (message/actionbar/title/book/sound/tablist), managed boss bars/titles, pagination, GUI/lore builders (Paper), coroutines.                    |
-| **3** | Alpha `0.7–0.8`   | Animation engine + built‑ins, i18n registry + locale DSL, typed message catalog (KSP), ANSI preview, Gradle build plugin.                                             |
+| **3** | Alpha `0.7–0.8`   | Animation engine + built‑ins, i18n registry + locale DSL, typed message catalogue (KSP), ANSI preview, Gradle build plugin.                                           |
 | **4** | Beta `0.9.x`      | Velocity + Fabric bundles, compile‑time style validation (KSP), API freeze, perf pass, docs/cookbook, integration tests.                                              |
 | **5** | `1.0.0`           | Maven Central signed publishing, semver commitment, sample plugin, migration guide, final docs.                                                                       |
 
@@ -377,7 +375,7 @@ with its own tests — to keep changes small and incremental.
 | Chat pagination                   | 2                                 |
 | GUI / lore & item‑text builders   | 2                                 |
 | Managed boss bars / titles        | 2                                 |
-| Typed message catalog (codegen)   | 3                                 |
+| Typed message catalogue (codegen) | 3                                 |
 | Translation registry + locale DSL | 3                                 |
 | Design‑system themes              | 1                                 |
 | Colour & gradient helpers         | 1                                 |

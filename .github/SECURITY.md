@@ -2,8 +2,7 @@
 
 ## Supported versions
 
-Kotventure is in **pre-alpha**. Only the latest published snapshot/tag receives security attention until a stable `1.0`
-is released.
+Kotventure is in **pre-alpha**. Maintainers give security support only to the latest published snapshot or tag before version `1.0`.
 
 | Version        | Supported |
 |----------------|-----------|
@@ -12,14 +11,12 @@ is released.
 
 ## Reporting a vulnerability
 
-**Please do not open a public issue for security problems.**
+**Do not open a public issue for a security problem.**
 
-Use GitHub's [private vulnerability reporting](https://github.com/LMLiam/Kotventure/security/advisories/new) for this
-repository. Please include:
+Use GitHub's [private vulnerability reporting](https://github.com/LMLiam/Kotventure/security/advisories/new). Include this information:
 
-- a description of the issue and its impact,
-- steps to reproduce (a minimal example helps),
-- any suggested remediation.
+- A description of the problem and its effect.
+- The steps that reproduce the problem. Include a small example if possible.
+- A proposed correction, if you have one.
 
-You can expect an acknowledgement within a few days. Please allow a reasonable window to address the issue before any
-public disclosure.
+Maintainers will acknowledge the report within five days. Give maintainers sufficient time to correct the problem before public disclosure.

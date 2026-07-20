@@ -1,13 +1,12 @@
 # `kotventure-minimessage`
 
-Typed, validated [MiniMessage](https://docs.advntr.dev/minimessage/index.html) on top of
-[`kotventure-core`](../core/README.md): parse markup with `mini(...)`, declare reusable templates whose placeholders
-are compile-checked Kotlin properties, validate markup at load time, and convert existing MiniMessage strings into
-equivalent Kotventure DSL code.
+This module adds typed and validated [MiniMessage](https://docs.advntr.dev/minimessage/index.html) to
+[`kotventure-core`](../core/README.md). Use `mini(...)` to parse markup. Declare reusable templates with compile-checked Kotlin properties.
+Validate markup during configuration load. Convert MiniMessage strings to equivalent Kotventure DSL code.
 
 ## Getting it
 
-With the BOM imported (see the [root README](../../README.md#getting-it)), add:
+After you import the BOM, add this dependency. Refer to the [root README](../../README.md#getting-it).
 
 ```kotlin
 dependencies {
@@ -28,8 +27,8 @@ val streak = mini("<gold><wins></gold> win streak, <player>!") {
 
 ## Typed templates
 
-Subclass `MiniTemplate` and declare each placeholder as a delegated property — the property name *is* the tag name, so
-the Kotlin symbol and the markup cannot drift. Rendering binds by property, checked at compile time:
+Extend `MiniTemplate` and declare each placeholder as a delegated property. The property name is also the tag name.
+This keeps the Kotlin symbol and markup together. Bind each value through its property with a compile-time check:
 
 ```kotlin
 object JoinBroadcast :
@@ -44,17 +43,15 @@ val line = JoinBroadcast {
 }
 ```
 
-A placeholder that is unbound, bound twice, or foreign to the template fails immediately with the placeholder named.
+An unbound, duplicate, or foreign placeholder causes an immediate failure. The error identifies the placeholder.
 
 ## Validation & conversion
 
-- `validate(markup, placeholders)` / `template.validate()` return a `ValidationResult` whose diagnostics report
-  malformed tags, declared placeholders missing from the markup, and undeclared custom tags — run it at config load,
-  not at send time.
-- `miniToDsl("<gold>Welcome <bold>back</bold>!")` emits the equivalent Kotventure DSL source, for migrating string
-  assets into typed code.
+- `validate(markup, placeholders)` and `template.validate()` return a `ValidationResult`.
+  Its diagnostics identify malformed tags, missing declared placeholders, and undeclared custom tags. Run validation during configuration load.
+- `miniToDsl("<gold>Welcome <bold>back</bold>!")` emits equivalent Kotventure DSL source. Use it to move string assets to typed code.
 
 ## Docs
 
 - [Getting Started guide](../../docs/GETTING-STARTED.md)
-- KDoc on every public declaration, with compiled `@sample` snippets from [`src/samples`](src/samples)
+- KDoc for each public declaration, with compiled `@sample` snippets from [`src/samples`](src/samples)

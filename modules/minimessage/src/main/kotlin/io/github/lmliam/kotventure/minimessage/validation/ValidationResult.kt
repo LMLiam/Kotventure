@@ -7,10 +7,10 @@ package io.github.lmliam.kotventure.minimessage.validation
  * [Failure] (one or more [MiniMessageDiagnostic] were found).
  */
 public sealed interface ValidationResult {
-    /** `true` when this result is [Success]; `false` otherwise. */
+    /** `true` when this result is [Success]. Otherwise, `false`. */
     public val isSuccess: Boolean get() = this is Success
 
-    /** `true` when this result is [Failure]; `false` otherwise. */
+    /** `true` when this result is [Failure]. Otherwise, `false`. */
     public val isFailure: Boolean get() = this is Failure
 
     /**

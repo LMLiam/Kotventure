@@ -3,8 +3,8 @@ package io.github.lmliam.kotventure.core.nbt
 /**
  * Creates an [NbtPath] starting from a root key.
  *
- * The key is used verbatim as the first segment, so a pre-formed path string works as a string
- * escape hatch — chaining the indexing operators simply appends to it:
+ * The function uses the key without a change as the first segment. Thus, a preformed path string is a string bridge.
+ * Index operators append segments to it.
  *
  * @sample io.github.lmliam.kotventure.core.nbt.nbtPathFactorySample
  */

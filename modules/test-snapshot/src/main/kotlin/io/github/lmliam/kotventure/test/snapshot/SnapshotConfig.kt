@@ -3,21 +3,21 @@ package io.github.lmliam.kotventure.test.snapshot
 /**
  * Runtime configuration for [snapshot matching][matchSnapshot].
  *
- * Every switch is read fresh on each access (never cached) so a CI job, a Gradle invocation, or an individual test can
- * toggle behaviour. Each switch resolves a JVM **system property first** (handy for a single `./gradlew` run or for
- * scoping to one test) and falls back to an **environment variable** (handy for CI), so the two never need to agree.
+ * The object reads each switch on each access and does not cache it. Thus, a CI job, Gradle invocation, or individual
+ * test can change the behaviour. Each switch reads a JVM **system property first** and then an **environment variable**.
+ * Use a system property for one Gradle run or test. Use an environment variable for CI.
  *
  * Intentionally `internal`: the public contract is the matcher plus the documented property/variable names, not this
  * object.
  */
 internal object SnapshotConfig {
-    /** System property that enables [updateMode]; takes precedence over [UPDATE_ENV]. */
+    /** System property that enables [updateMode]. It takes precedence over [UPDATE_ENV]. */
     const val UPDATE_PROPERTY: String = "kotventure.snapshot.update"
 
     /** Environment variable that enables [updateMode] when no system property is set. */
     const val UPDATE_ENV: String = "SNAPSHOT_UPDATE"
 
-    /** System property that overrides [outputDir]; takes precedence over [DIR_ENV]. */
+    /** System property that overrides [outputDir]. It takes precedence over [DIR_ENV]. */
     const val DIR_PROPERTY: String = "kotventure.snapshot.dir"
 
     /** Environment variable that overrides [outputDir] when no system property is set. */
@@ -36,8 +36,8 @@ internal object SnapshotConfig {
     /**
      * Directory holding snapshot files, overriding the default test-resources location for non-standard layouts.
      *
-     * Read from the `kotventure.snapshot.dir` system property or the `SNAPSHOT_DIR` environment variable; `null` when
-     * neither is set. When present it is both the read and write location: files live directly at
+     * Read from the `kotventure.snapshot.dir` system property or the `SNAPSHOT_DIR` environment variable. The value is
+     * `null` when neither is set. When present, it is the read and write location. Files are directly at
      * `<dir>/<name>.snapshot.json`.
      */
     val outputDir: String?

@@ -1,14 +1,14 @@
 ---
 name: minimessage-reference
-description: Use when parsing, validating, templating, or converting MiniMessage markup — the mini() DSL, typed MiniTemplate placeholders, tag resolvers, validation diagnostics, miniToDsl conversion, or the raw Adventure MiniMessage API (deserialize, TagResolver, ParsingException, custom tags).
+description: >-
+  Use this skill for MiniMessage parsing, validation, templates, tag resolvers, diagnostics, or conversion. It covers
+  the Kotventure DSL and the raw Adventure API.
 ---
 
 # MiniMessage reference
 
-Covers both layers: **Kotventure's typed surface** (`minimessage` module,
-`io.github.lmliam.kotventure.minimessage`) and the **raw Adventure API** it wraps. Use the
-typed surface in project code; drop to raw Adventure only when implementing the wrapper
-itself.
+This skill covers the typed Kotventure API in `io.github.lmliam.kotventure.minimessage` and the raw Adventure API. Use
+the typed API in project code. Use the raw Adventure API only to implement the wrapper.
 
 ## Parsing — `mini`
 
@@ -26,9 +26,9 @@ component { mini("<gray>inline chunk") }             // splice into the componen
 
 ## Typed templates — `MiniTemplate`
 
-The compile-checked way to reuse markup (resolution-ladder rung 2 — see
-`idiomatic-kotlin-dsl`). Declare placeholders as delegated properties so the property name
-**is** the tag name; render with `invoke` + `bind`:
+Use compiler-checked templates to reuse markup. This is level 2 of the resolution ladder in `idiomatic-kotlin-dsl`.
+Declare placeholders as delegated properties so that the property name is the tag name. Render with `invoke` and
+`bind`:
 
 ```kotlin
 object Welcome : MiniTemplate("<gold>Welcome <player>, <count> new messages") {
@@ -44,8 +44,8 @@ val message = Welcome {
 
 - Supported placeholder value families: `ComponentLike`, `String`, `Number`, `Boolean`.
   String/number/boolean bind as literal text.
-- `placeholder<T>("explicit-name")` exists for interop/legacy markup only — prefer the
-  no-arg property form so property and tag can't drift.
+- Use `placeholder<T>("explicit-name")` only for interoperability or legacy markup. Prefer the no-argument property
+  form so that the property and tag stay consistent.
 - Rendering fails fast (`IllegalArgumentException`): invalid template, unbound placeholder,
   foreign placeholder, or double bind.
 - Duplicate placeholder declarations and invalid tag names (`[!?#]?[a-z0-9_-]+`) fail at
@@ -58,38 +58,38 @@ template.validate()            // ValidationResult (cached per template)
 validate(markup, placeholders) // free-form check
 ```
 
-`ValidationResult.Success` / `.Failure` (with `isSuccess`/`isFailure`); `Failure` carries
-`MiniMessageDiagnostic`s: `MalformedTag` (message + start/end index, offsets may be
-`LOCATION_UNKNOWN`), `MissingPlaceholder`, `ExtraPlaceholder`, `ValidationEngineFailure`.
-Validation runs Adventure's **strict** parser under the hood.
+`ValidationResult` has `Success` and `Failure`, with `isSuccess` and `isFailure`. A `Failure` contains
+`MiniMessageDiagnostic` values. These values are `MalformedTag`, `MissingPlaceholder`, `ExtraPlaceholder`, and
+`ValidationEngineFailure`. A `MalformedTag` has a message and start and end indexes. An offset can be
+`LOCATION_UNKNOWN`. Validation uses Adventure's **strict** parser.
 
 ## Conversion — `miniToDsl`
 
 `miniToDsl("<gold><bold>Hi")` → Kotlin source for the equivalent Kotventure DSL. Notes:
 
-- `<gradient>` expands to per-character coloured children (rendering-exact; markup not
-  reconstructed).
-- Selector patterns go through the strict `core` parser and emit typed selector factories
-  (canonicalized); invalid patterns throw with offsets.
+- `<gradient>` expands to one coloured child for each character. The output renders accurately but does not reproduce
+  the source markup.
+- The strict `core` parser processes selector patterns and emits typed selector factories in canonical form. Invalid
+  patterns cause an exception that gives the error offset.
 - Throws `IllegalArgumentException` for shapes with no DSL surface (e.g. a player head
   without a single skin source, unsupported click/data-component payloads).
 
-## Serializing back
+## Serialising back
 
 `Component.toMiniMessage()` — from the `serializer` module.
 
 ## Raw Adventure API — `net.kyori.adventure.text.minimessage`
 
-- `MiniMessage.miniMessage()` — shared default instance; `.deserialize(str, TagResolver...)`,
+- `MiniMessage.miniMessage()` gives the shared default instance. It supplies `.deserialize(str, TagResolver...)` and
   `.serialize(component)`.
-- `MiniMessage.builder()` — `.strict(true)` (error on unknown/unclosed tags), `.tags(...)`,
-  `.editTags { }`; parse failures throw `ParsingException` (has position info).
+- `MiniMessage.builder()` supplies `.strict(true)`, `.tags(...)`, and `.editTags { }`. Strict mode rejects unknown or
+  unclosed tags. Parse failures throw `ParsingException`, which contains position information.
 - Resolvers: `Placeholder.parsed(name, str)` / `.unparsed(name, str)` /
-  `.component(name, c)`; combine with `TagResolver.resolver(...)`; custom tags implement
-  `TagResolver` — `resolve(name, ArgumentQueue, Context): Tag?` plus `has(name)` (live
-  example: `RecordingTagResolver` in the module's validation package).
-- Artifact `adventure-text-minimessage`; also available here: `adventure-nbt`
+  `.component(name, c)`. Combine them with `TagResolver.resolver(...)`. Custom tags implement `TagResolver` with
+  `resolve(name, ArgumentQueue, Context): Tag?` and `has(name)`. `RecordingTagResolver` in the validation package is an
+  example.
+- The artefact is `adventure-text-minimessage`. The module can also use `adventure-nbt`
   (`CompoundBinaryTag`, `TagStringIO`) for hover-item data components.
 
-Verify anything not listed against the Javadoc (https://jd.advntr.dev) or dependency sources
-— never guess (see `adventure-reference`).
+Use the Javadoc or dependency sources to verify an item that is not listed. Do not guess. Also refer to
+`adventure-reference`.

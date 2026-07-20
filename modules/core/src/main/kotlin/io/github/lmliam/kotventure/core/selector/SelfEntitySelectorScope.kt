@@ -20,8 +20,8 @@ public sealed interface SelfEntitySelectorScope : CommonEntitySelectorScope {
     /**
      * Filters by entity type using a string.
      *
-     * An already-namespaced id is preserved; a bare id uses the `minecraft` namespace.
-     * Prefix the call with `!` to exclude the type.
+     * Preserves an identifier that has a namespace. Adds the `minecraft` namespace to a bare identifier. Prefix the
+     * call with `!` to exclude the type.
      *
      * @sample io.github.lmliam.kotventure.core.selector.negatedTypeArgumentsSample
      */

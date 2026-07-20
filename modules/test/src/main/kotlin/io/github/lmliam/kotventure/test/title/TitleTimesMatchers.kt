@@ -11,24 +11,24 @@ import kotlin.time.toKotlinDuration
 /**
  * Matches [Title.Times] whose fade-in equals [expected].
  *
- * Takes [kotlin.time.Duration] so call sites can use `1.ticks` / `3.seconds`; convert Adventure
- * values (e.g. `Title.DEFAULT_TIMES.fadeIn()`) with [toKotlinDuration].
+ * Takes [kotlin.time.Duration] so that call sites can use `1.ticks` or `3.seconds`. Convert Adventure values such as
+ * `Title.DEFAULT_TIMES.fadeIn()` with [toKotlinDuration].
  */
 public fun haveFadeIn(expected: Duration): Matcher<Title.Times> = timingMatcher("fade-in", expected) { it.fadeIn() }
 
 /**
  * Matches [Title.Times] whose stay equals [expected].
  *
- * Takes [kotlin.time.Duration] so call sites can use `1.ticks` / `3.seconds`; convert Adventure
- * values (e.g. `Title.DEFAULT_TIMES.stay()`) with [toKotlinDuration].
+ * Takes [kotlin.time.Duration] so that call sites can use `1.ticks` or `3.seconds`. Convert Adventure values such as
+ * `Title.DEFAULT_TIMES.stay()` with [toKotlinDuration].
  */
 public fun haveStay(expected: Duration): Matcher<Title.Times> = timingMatcher("stay", expected) { it.stay() }
 
 /**
  * Matches [Title.Times] whose fade-out equals [expected].
  *
- * Takes [kotlin.time.Duration] so call sites can use `1.ticks` / `3.seconds`; convert Adventure
- * values (e.g. `Title.DEFAULT_TIMES.fadeOut()`) with [toKotlinDuration].
+ * Takes [kotlin.time.Duration] so that call sites can use `1.ticks` or `3.seconds`. Convert Adventure values such as
+ * `Title.DEFAULT_TIMES.fadeOut()` with [toKotlinDuration].
  */
 public fun haveFadeOut(expected: Duration): Matcher<Title.Times> = timingMatcher("fade-out", expected) { it.fadeOut() }
 

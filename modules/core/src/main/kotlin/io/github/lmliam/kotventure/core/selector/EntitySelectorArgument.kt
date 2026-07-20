@@ -6,9 +6,9 @@ import io.github.lmliam.kotventure.core.selector.GameMode as SelectorGameMode
 /**
  * One immutable, typed Java Edition entity-selector argument.
  *
- * Arguments form a closed hierarchy: simple values (Coordinate, Range, Level, Limit, Sort),
- * negatable filters (GameMode, Name, Type, Tag, Team, Nbt, Predicate), and compound collections
- * (Scores, Advancements).
+ * Arguments form a closed hierarchy. It contains simple values, negatable filters, and compound collections. Simple
+ * values include Coordinate, Range, Level, Limit, and Sort. Negatable filters include GameMode, Name, Type, Tag, Team,
+ * Nbt, and Predicate. Compound collections are Scores and Advancements.
  */
 public sealed interface EntitySelectorArgument {
     /**
@@ -115,8 +115,7 @@ public sealed interface EntitySelectorArgument {
     /**
      * A scoreboard-tag filter.
      *
-     * Negation lives inside [condition]; presence conditions carry their polarity and are never
-     * additionally negated.
+     * Negation is in [condition]. Presence conditions contain their polarity and do not receive additional negation.
      *
      * @property condition named tag or explicit presence condition
      */
@@ -129,8 +128,7 @@ public sealed interface EntitySelectorArgument {
     /**
      * A scoreboard-team filter.
      *
-     * Negation lives inside [condition]; presence conditions carry their polarity and are never
-     * additionally negated.
+     * Negation is in [condition]. Presence conditions contain their polarity and do not receive additional negation.
      *
      * @property condition named team or explicit presence condition
      */

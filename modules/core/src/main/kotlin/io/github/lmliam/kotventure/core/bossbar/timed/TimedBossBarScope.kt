@@ -12,8 +12,7 @@ import kotlin.time.Duration
  * cadence, lifecycle hooks, and the shared [appearance][BossBarAppearanceScope] slots.
  *
  * Static [progress][BossBarScope.progress] is intentionally absent — a managed bar owns its fill
- * amount over time. Unset [progress] defaults to a full → empty countdown; unset [every] defaults
- * to one game tick.
+ * amount over time. Unset [progress] gives a full-to-empty countdown. Unset [every] gives one game tick.
  *
  * @sample io.github.lmliam.kotventure.core.audience.timedBossBarSample
  */
@@ -38,8 +37,8 @@ public interface TimedBossBarScope : BossBarAppearanceScope {
      * Call site: `name { remaining -> text("… ${remaining.inWholeSeconds}s") }`. The block is a
      * component scope exactly like the fixed `name { }` form — the extra `remaining` parameter
      * is the only difference. The SAM [TimedBossBarName] keeps this overload distinct from the
-     * fixed forms during overload resolution. The rendered component is pushed to the bar only
-     * when it differs from the current name, so unchanged frames cause no viewer updates.
+     * fixed forms during overload resolution. The function updates the bar only when the rendered component differs
+     * from the current name. Thus, unchanged frames do not cause viewer updates.
      *
      * @throws IllegalStateException when the name is already set in this block.
      */
@@ -69,7 +68,7 @@ public interface TimedBossBarScope : BossBarAppearanceScope {
      * Defaults to one game tick when unset. Must not exceed the bar's `over` lifetime — each
      * tick subtracts this interval from remaining time.
      *
-     * @param interval positive delay between updates; must be `<= over` when the bar is built.
+     * @param interval the positive delay between updates. It must be `<= over` when the bar is built.
      * @throws IllegalStateException when the cadence is already set in this block.
      * @throws IllegalArgumentException when [interval] is not positive, or when it exceeds `over`
      *   at build time.
@@ -79,8 +78,8 @@ public interface TimedBossBarScope : BossBarAppearanceScope {
     /**
      * Invoked after each progress update and name re-render while the bar is running.
      *
-     * The [TimedBossBar] handle is the receiver; the lambda's `remaining` argument is the time
-     * left after this tick's update. Runs on the ticker's thread.
+     * The [TimedBossBar] handle is the receiver. The lambda's `remaining` argument is the time after this tick's update.
+     * The lambda runs on the ticker's thread.
      *
      * @throws IllegalStateException when this hook is already set in this block.
      */

@@ -1,6 +1,6 @@
 ## Summary
 
-<!-- What new capability does this add? Keep it concise but clear. -->
+<!-- Describe the new capability. Use short, clear sentences. -->
 
 ## Related Issues
 
@@ -8,15 +8,15 @@ Closes #<issue-number>
 
 ## DSL Impact
 
-<!-- What does this change for DSL? -->
+<!-- Describe the change to the DSL. -->
 
 ## Rationale
 
-<!-- Why is this feature important for downstream plugin authors or end‑users? -->
+<!-- Explain why plugin authors or end users need this feature. -->
 
 ## Testing
 
-<!-- List test coverage you’ve added or updated (unit, integration, or fixture comparisons). -->
+<!-- List the unit tests, integration tests, and fixture comparisons that you added or changed. -->
 
 ## Checklist
 

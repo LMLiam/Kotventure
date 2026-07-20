@@ -8,7 +8,7 @@ import net.kyori.adventure.text.format.ShadowColor
 import net.kyori.adventure.text.format.TextColor
 
 /**
- * Matches a component whose root color is [expected]. Combine with `and`/`or` or negate with `shouldNot`.
+ * Matches a component whose root colour is [expected]. Combine it with `and` or `or`, or negate it with `shouldNot`.
  */
 public fun haveColor(expected: TextColor): Matcher<Component> =
     Matcher { value ->
@@ -21,7 +21,7 @@ public fun haveColor(expected: TextColor): Matcher<Component> =
     }
 
 /**
- * Matches a component that has no root color.
+ * Matches a component that has no root colour.
  */
 public fun haveNoColor(): Matcher<Component> =
     Matcher { value ->
@@ -34,7 +34,7 @@ public fun haveNoColor(): Matcher<Component> =
     }
 
 /**
- * Matches a component whose root shadow color is [expected].
+ * Matches a component whose root shadow colour is [expected].
  */
 public fun haveShadowColor(expected: ShadowColor): Matcher<Component> =
     Matcher { value ->
@@ -47,7 +47,7 @@ public fun haveShadowColor(expected: ShadowColor): Matcher<Component> =
     }
 
 /**
- * Matches a component that has no root shadow color.
+ * Matches a component that has no root shadow colour.
  */
 public fun haveNoShadowColor(): Matcher<Component> =
     Matcher { value ->
@@ -60,7 +60,7 @@ public fun haveNoShadowColor(): Matcher<Component> =
     }
 
 /**
- * Asserts that this component has [expected] as its root color.
+ * Asserts that this component has [expected] as its root colour.
  */
 public infix fun Component.shouldHaveColor(expected: TextColor): Component =
     apply {
@@ -68,7 +68,7 @@ public infix fun Component.shouldHaveColor(expected: TextColor): Component =
     }
 
 /**
- * Asserts that this component has no root color.
+ * Asserts that this component has no root colour.
  */
 public fun Component.shouldNotHaveColor(): Component =
     apply {
@@ -76,7 +76,7 @@ public fun Component.shouldNotHaveColor(): Component =
     }
 
 /**
- * Asserts that this component has [expected] as its root shadow color.
+ * Asserts that this component has [expected] as its root shadow colour.
  */
 public infix fun Component.shouldHaveShadowColor(expected: ShadowColor): Component =
     apply {
@@ -84,7 +84,7 @@ public infix fun Component.shouldHaveShadowColor(expected: ShadowColor): Compone
     }
 
 /**
- * Asserts that this component has no root shadow color.
+ * Asserts that this component has no root shadow colour.
  */
 public fun Component.shouldNotHaveShadowColor(): Component =
     apply {

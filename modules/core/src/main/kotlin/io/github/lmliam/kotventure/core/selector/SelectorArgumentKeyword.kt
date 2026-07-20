@@ -4,8 +4,8 @@ package io.github.lmliam.kotventure.core.selector
  * Every keyword selector-argument name — the arguments that are not coordinates
  * ([SelectorCoordinate]) or floating-point ranges ([SelectorRangeArgument]).
  *
- * This enum is the single owner of keyword spellings: the parser dispatches on it, the head
- * policy restricts by it, and the renderer prints through it.
+ * This enum is the one source for keyword spellings. The parser dispatches on it, the head policy restricts by it, and
+ * the renderer prints through it.
  *
  * @property sourceName vanilla selector-source spelling, such as `limit` in `limit=1`
  */

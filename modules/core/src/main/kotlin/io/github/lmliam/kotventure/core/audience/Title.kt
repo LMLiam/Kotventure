@@ -10,8 +10,7 @@ import net.kyori.adventure.audience.Audience
  * When `times` is omitted, Adventure's default timings are used. To clear or reset a shown title,
  * call Adventure's [Audience.clearTitle] or [Audience.resetTitle] directly.
  *
- * Works for any audience — a player, the console, or a forwarding audience over many members;
- * audiences without a title surface ignore it.
+ * Works for a player, the console, or a forwarding audience. An audience without a title surface ignores it.
  *
  * @throws IllegalStateException when the block sets neither `title` nor `subtitle`, or sets any
  *   slot twice.

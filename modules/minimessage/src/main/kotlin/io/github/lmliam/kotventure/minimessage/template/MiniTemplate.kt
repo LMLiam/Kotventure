@@ -19,7 +19,7 @@ import io.github.lmliam.kotventure.minimessage.placeholder.placeholder as create
  *
  * @sample io.github.lmliam.kotventure.minimessage.template.miniTemplateRenderSample
  *
- * @param markup the MiniMessage markup string this template renders; must not be blank.
+ * @param markup the MiniMessage markup string that this template renders. It must not be blank.
  * @throws IllegalArgumentException when [markup] is blank.
  */
 public abstract class MiniTemplate(

@@ -8,8 +8,8 @@ import net.kyori.adventure.chat.SignedMessage
  * Creates a server-authored system [SignedMessage] from the plain [message] string, with unsigned
  * component content built from [init] when given.
  *
- * System messages carry no player signature, so they cannot be deleted through [delete]; genuine
- * player-signed messages can only be obtained from a platform source such as Paper's chat event.
+ * System messages do not have a player signature. Thus, [delete] cannot delete them. Get genuine player-signed messages
+ * from a platform source, such as Paper's chat event.
  *
  * @sample io.github.lmliam.kotventure.core.audience.systemMessageSample
  */

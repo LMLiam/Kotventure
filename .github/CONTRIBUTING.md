@@ -1,27 +1,27 @@
 # Contributing to Kotventure
 
-Thanks for your interest in contributing! This project is in **pre-alpha**, so the surface area changes often — small,
-focused contributions are the most useful.
+Thank you for your interest in Kotventure. This project is in **pre-alpha**, and its public API can change in each release.
+Small, focused contributions are the most useful.
 
 ## Be respectful
 
-Please keep all interactions constructive and considerate. Harassment or hostile behaviour is not welcome and may result
-in removal from the project's spaces.
+Use constructive and considerate language. Do not harass other persons or use hostile behaviour.
+Maintainers can remove a person who does not obey these rules from the project spaces.
 
 ## Ways to contribute
 
 - **Pick up an issue.** Start with
   [`good first issue`](https://github.com/LMLiam/Kotventure/labels/good%20first%20issue) or
   [`help wanted`](https://github.com/LMLiam/Kotventure/labels/help%20wanted).
-- **Discuss a design** before large work — open a [Discussion](https://github.com/LMLiam/Kotventure/discussions) or
-  comment on the relevant issue. The overall plan lives in [`docs/DESIGN.md`](../docs/DESIGN.md) and
+- **Discuss a design** before you start a large change. Open a [Discussion](https://github.com/LMLiam/Kotventure/discussions) or
+  comment on the applicable issue. The project plan is in [`docs/DESIGN.md`](../docs/DESIGN.md) and
   [`docs/ROADMAP.md`](../docs/ROADMAP.md).
-- **Report a bug** using the bug issue template.
+- **Report a bug** with the bug issue template.
 
 ## Development setup
 
-- **JDK 25** (the build uses a Kotlin JVM toolchain of 25; Gradle will provision it via the Foojay resolver).
-- Use the **Gradle wrapper** — no local Gradle install needed.
+- Install **JDK 25**. The build uses a Kotlin JVM toolchain of 25. Gradle gets it through the Foojay resolver.
+- Use the **Gradle wrapper**. You do not need a local Gradle installation.
 
 ```bash
 ./gradlew build           # compile + test + lint + verify coverage
@@ -31,53 +31,48 @@ in removal from the project's spaces.
 ./gradlew koverHtmlReport # generate the aggregated HTML coverage report
 ```
 
-After `koverHtmlReport`, open the aggregated report at `build/reports/kover/html/index.html` in a browser (e.g.
-`open build/reports/kover/html/index.html` on macOS) to inspect line coverage per module, package, and class.
+After `koverHtmlReport`, open `build/reports/kover/html/index.html` in a browser.
+For macOS, use `open build/reports/kover/html/index.html`. Review line coverage for each module, package, and class.
 
-Dependency and plugin coordinates live in [`gradle/libs.versions.toml`](../gradle/libs.versions.toml). Add shared
-versions there first, then consume them through catalog aliases or the existing Gradle helper scripts that delegate to
-the catalog.
+[`gradle/libs.versions.toml`](../gradle/libs.versions.toml) contains dependency and plugin coordinates. Add shared
+versions there first. Then, use catalog aliases or Gradle helper scripts that refer to the catalog.
 
-CI architecture (workflows, release-please heavy-CI gate, local composites): see [`docs/CI.md`](../docs/CI.md).
+For CI architecture, workflows, the release-please heavy-CI gate, and local composites, refer to [`docs/CI.md`](../docs/CI.md).
 
 ### Coverage threshold policy
 
-We use [Kover](https://github.com/Kotlin/kotlinx-kover) for code coverage. `koverVerify` is wired into `check`, so
-`./gradlew build` fails when aggregated line coverage drops below the baseline.
+[Kover](https://github.com/Kotlin/kotlinx-kover) measures code coverage. `check` includes `koverVerify`.
+`./gradlew build` fails if the total line coverage is less than the baseline.
 
-- **Current baseline:** 85% line coverage, defined in [`gradle/coverage.gradle`](../gradle/coverage.gradle).
-- **Rationale:** the project is pre-alpha, but every behavioural change ships with tests, so the gate sits a little below
-  current coverage — high enough to catch large untested slices, low enough that normal vertical slices don't trip CI.
-- **Tightening:** raise the threshold in 5–10% increments as coverage matures, and call the change out in the PR
-  description so reviewers aren't surprised by a CI failure.
+- **Current baseline:** [`gradle/coverage.gradle`](../gradle/coverage.gradle) sets line coverage to 85%.
+- **Reason:** each behavioural change includes tests. The gate detects a large change that does not have sufficient tests.
+- **Increase:** increase the threshold by 5% or 10% when coverage increases. Explain the change in the PR description.
 
 ## Project conventions
 
-- **One issue → one small, vertically-sliced PR.** Each change should be independently shippable with its own tests. If
-  a PR is growing large, split it.
-- **Branch naming:** `type/issue-<n>/short-desc` — e.g. `feat/issue-12/translatable-component`.
-- **Tests are required** for behavioural changes. We use [Kotest](https://kotest.io/); the `test` module provides
-  component matchers — dogfood them.
-- **Formatting** is enforced by ktlint + Spotless. Run `./gradlew spotlessApply` before pushing.
-- **PR templates:** pick the template that matches your change (feature / bugfix / docs / chore). Link the issue with
+- **One issue → one small vertical PR.** Each change must include its tests and must be ready for release. Split a large PR.
+- **Branch names:** use `type/issue-<n>/short-desc`, for example `feat/issue-12/translatable-component`.
+- **Tests:** add tests for behavioural changes. Use [Kotest](https://kotest.io/) and the component matchers in the `test` module.
+- **Format:** ktlint and Spotless enforce the format. Run `./gradlew spotlessApply` before you push.
+- **PR templates:** select the template for your change (feature / bugfix / docs / chore). Link the issue with
   `Closes #<n>`.
 
 ## Commit & PR title format (enforced)
 
-Both **pull request titles** and **every commit subject** must follow:
+All **pull request titles** and **commit subjects** must use this format:
 
 ```text
 verb(area): something
 ```
 
-- All lowercase `verb` and `area`; a `(area)` scope is **required**, followed by `:`, a space, and a non-empty summary.
+- Use lower-case letters for `verb` and `area`. Include the **required** `(area)`, `:`, a space, and a summary.
 - Pattern: `^[a-z]+\([a-z0-9][a-z0-9-]*\): [^[:space:]].*$`
-- This is enforced in CI by the **PR** workflow (`.github/workflows/pr.yml`, Title + Commits jobs) and by the
-  **CI** workflow’s Commits job on push to `master`, both running `.github/scripts/validate-conventional-title.sh`.
+- The **PR** workflow validates PR titles and commit subjects. The **CI** workflow validates commits pushed to `master`.
+  Both workflows run `.github/scripts/validate-conventional-title.sh`.
 
 **Recommended `verb`s:** `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`, `build`, `perf`.
 
-**Recommended `area`s** (match the module / label areas): `core`, `minimessage`, `i18n`, `test`, `ansi`, `coroutines`,
+**Recommended `area`s** (use the module or label area): `core`, `minimessage`, `i18n`, `test`, `ansi`, `coroutines`,
 `ksp`, `paper`, `velocity`, `fabric`, `gradle-plugin`, `bom`, `e2e`, `docs`, `ci`, `build`, `deps`, `repo`, `meta`.
 
 Examples: `feat(minimessage): add typed placeholder DSL` · `fix(core): correct decoration reset` ·
@@ -85,12 +80,12 @@ Examples: `feat(minimessage): add typed placeholder DSL` · `fix(core): correct 
 
 ## Labels & milestones
 
-Issues are triaged with `type:*`, `priority:*`, and `status:*` labels and grouped into phase **milestones** (Pre-Alpha →
-1.0). See the [Roadmap](../docs/ROADMAP.md) for what each phase contains.
+Maintainers apply `type:*`, `priority:*`, and `status:*` labels to issues. They also add issues to phase **milestones**
+(Pre-Alpha → 1.0). Refer to the [Roadmap](../docs/ROADMAP.md) for the content of each phase.
 
 ## Review
 
-A maintainer will review your PR. CI must pass (build, tests, lint) and the change should follow the design in
-`docs/DESIGN.md`. Be ready for iteration — it's normal and welcome.
+A maintainer will review your PR. The build, tests, and lint checks must pass. The change must agree with `docs/DESIGN.md`.
+A maintainer can request more changes during the review.
 
 Thank you! 💜

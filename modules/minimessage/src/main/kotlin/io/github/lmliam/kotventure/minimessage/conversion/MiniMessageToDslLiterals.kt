@@ -67,8 +67,8 @@ internal fun shadowColorLiteral(color: ShadowColor): String {
 internal fun keyLiteral(key: Key): String = "key(${quoted(key.namespace())}, ${quoted(key.value())})"
 
 /**
- * Renders [contents] as the object-contents expression that reconstructs it, using the single-argument `sprite` form
- * when the sprite uses Adventure's default atlas, and the matching `head` form for player-head contents.
+ * Renders [contents] as an object-contents expression that reconstructs it. It uses the one-argument `sprite` form for
+ * Adventure's default atlas. It uses the applicable `head` form for player-head contents.
  */
 internal fun objectContentsLiteral(contents: ObjectContents): String =
     when (contents) {

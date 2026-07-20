@@ -84,7 +84,7 @@ public interface ButtonScope {
     ): Unit
 
     /**
-     * Selects a command-template action; `$(input_key)` placeholders resolve to input values.
+     * Selects a command-template action. `$(input_key)` placeholders resolve to input values.
      *
      * @throws IllegalStateException when an action is already selected in this block.
      */

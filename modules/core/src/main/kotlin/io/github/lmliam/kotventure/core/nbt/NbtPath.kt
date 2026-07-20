@@ -6,8 +6,8 @@ package io.github.lmliam.kotventure.core.nbt
  * Construct via [nbtPath] and chain the indexing operators:
  * @sample io.github.lmliam.kotventure.core.nbt.nbtPathSample
  *
- * For syntax not covered by the typed API, pass a pre-formed path string to [nbtPath]; it is used
- * verbatim as the first segment:
+ * For syntax that the typed API does not cover, give [nbtPath] a preformed path string. The function uses it without a
+ * change as the first segment:
  * @sample io.github.lmliam.kotventure.core.nbt.nbtPathVerbatimSample
  */
 public class NbtPath internal constructor(

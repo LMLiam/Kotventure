@@ -16,8 +16,7 @@ import net.kyori.adventure.audience.Audience
  *
  * An empty block is rejected so stopping everything is never a silent default.
  *
- * Works for any audience — a player, the console, or a forwarding audience over many members;
- * audiences without a sound surface ignore it.
+ * Works for a player, the console, or a forwarding audience. An audience without a sound surface ignores it.
  *
  * @throws IllegalStateException when the block is empty, sets any slot twice, or combines `all`
  *   with `named`/`source`.

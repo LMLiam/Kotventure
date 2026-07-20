@@ -14,9 +14,9 @@ private val prettyPrinter =
 /**
  * Serialises this component to the canonical form stored in snapshots.
  *
- * The tree is serialised with the Adventure JSON serializer (lossless for every component type, including NBT, score,
- * and selector), then re-laid-out with stable two-space indentation so committed snapshots produce reviewable
- * line-by-line diffs. Member order is preserved end-to-end, keeping the output deterministic across runs.
+ * The Adventure JSON serialiser serialises the tree without loss for all component types. These types include NBT,
+ * score, and selector components. The function then applies stable two-space indentation. It preserves member order so
+ * that the output is the same for each run and produces clear line-by-line diffs.
  */
 internal fun Component.toSnapshotJson(compact: Boolean = false): String {
     val component = if (compact) compact() else this
@@ -24,7 +24,7 @@ internal fun Component.toSnapshotJson(compact: Boolean = false): String {
 }
 
 /**
- * Normalises a snapshot string for comparison: collapses Windows line endings and drops trailing blank lines, so a
- * checkout that rewrites newlines or an editor that adds a final newline does not register as a mismatch.
+ * Normalises a snapshot string for comparison. It changes Windows line endings and removes trailing blank lines. Thus,
+ * newline changes from a checkout or editor do not cause a mismatch.
  */
 internal fun String.normalizeSnapshot(): String = replace("\r\n", "\n").trimEnd('\n')

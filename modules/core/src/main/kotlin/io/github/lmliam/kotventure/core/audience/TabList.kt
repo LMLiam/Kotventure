@@ -12,8 +12,7 @@ import net.kyori.adventure.audience.Audience
  * `header` or `footer` (either alone is fine — the other is sent empty). To clear both sides
  * explicitly, set both to [emptyComponent].
  *
- * Works for any audience — a player, the console, or a forwarding audience over many members;
- * audiences without a player-list surface ignore it.
+ * Works for a player, the console, or a forwarding audience. An audience without a player-list surface ignores it.
  *
  * @throws IllegalStateException when the block sets neither slot, or sets any slot twice.
  * @sample io.github.lmliam.kotventure.core.audience.tabListSample

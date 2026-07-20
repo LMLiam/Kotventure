@@ -14,7 +14,7 @@ import org.bukkit.inventory.ItemStack
  * its title, framing, body, and inputs. The dialog type is chosen at the call site with a
  * [DialogKind] token, so each kind's scope extends this base with only its own capabilities.
  *
- * The [title] slot is required; every other base slot is optional. Body and [inputs] calls are
+ * The [title] slot is required. Each other base slot is optional. Body and [inputs] calls are
  * repeatable and accumulate in call order.
  *
  * @sample io.github.lmliam.kotventure.paper.dialog.dialogSample
@@ -89,17 +89,17 @@ public interface DialogScope {
     public fun afterAction(action: DialogAfterAction): Unit
 
     /**
-     * Appends a plain-message body built from a component block. Repeatable; accumulates in order.
+     * Appends a plain-message body from a component block. Calls accumulate in order.
      */
     public fun message(init: ComponentScope.() -> Unit): Unit
 
     /**
-     * Appends a plain-message body. Repeatable; accumulates in order.
+     * Appends a plain-message body. Calls accumulate in order.
      */
     public fun <T : ComponentLike> message(component: T): Unit
 
     /**
-     * Appends an item body for [stack], configured by [init]. Repeatable; accumulates in order.
+     * Appends an item body for [stack] with [init]. Calls accumulate in order.
      */
     public fun item(
         stack: ItemStack,
@@ -107,13 +107,12 @@ public interface DialogScope {
     ): Unit
 
     /**
-     * Appends an item body for [stack] with default framing. Repeatable; accumulates in order.
+     * Appends an item body for [stack] with default framing. Calls accumulate in order.
      */
     public fun item(stack: ItemStack): Unit
 
     /**
-     * Declares dialog inputs configured by [init]. Repeatable; declarations accumulate in call
-     * order across every block.
+     * Declares dialog inputs with [init]. Declarations accumulate in call order across all blocks.
      */
     public fun inputs(init: InputsScope.() -> Unit): Unit
 }

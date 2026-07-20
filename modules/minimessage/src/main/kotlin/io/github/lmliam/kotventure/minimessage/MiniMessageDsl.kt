@@ -15,16 +15,16 @@ import net.kyori.adventure.text.Component
 public fun mini(input: String): Component = parseMiniMessage(input)
 
 /**
- * Converts MiniMessage [input] into Kotventure component DSL source code: the text, structured (translatable, keybind,
- * score, selector), NBT, sprite- and player-head-object components MiniMessage produces, with their colours, shadow
- * colours, decorations, fonts, insertions, and click/hover events.
+ * Converts MiniMessage [input] into Kotventure component DSL source code. It converts text, structured components, NBT,
+ * sprites, and player-head objects. Structured components include translatable, keybind, score, and selector
+ * components. The output keeps colours, shadow colours, decorations, fonts, insertions, and click and hover events.
  *
- * `<gradient>` is expanded by the parser into one coloured child per character before conversion, so the output
- * reproduces those children rather than a `gradient` call — a lossy-but-faithful expansion: the rendering is exact, but
- * the `<gradient>` markup itself is not reconstructed.
+ * Before conversion, the parser expands `<gradient>` into one coloured child for each character. Therefore, the output
+ * contains those children and not a `gradient` call. The rendered result is accurate, but the output does not reproduce
+ * the `<gradient>` markup.
  *
- * Selector patterns parse through the strict `core` parser and emit the typed selector factories and arguments
- * (canonicalized, like every selector conversion); invalid patterns fail with the parser's offset-bearing exception.
+ * The strict `core` parser processes selector patterns. The output uses typed selector factories and canonicalised
+ * arguments. An invalid pattern causes an exception that gives the error offset.
  *
  * @throws IllegalArgumentException when [input] resolves to a shape with no DSL surface, such as a player head with no
  * single skin source, profile properties, or unsupported click or data-component payloads.

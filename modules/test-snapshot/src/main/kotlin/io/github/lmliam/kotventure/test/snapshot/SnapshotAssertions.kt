@@ -6,10 +6,10 @@ import net.kyori.adventure.text.Component
 /**
  * Asserts that this component matches the committed snapshot named [name], returning the receiver for chaining.
  *
- * In normal mode this compares the component against the committed snapshot and fails on a mismatch. In
- * **record mode** — enabled by the `kotventure.snapshot.update` system property or the `SNAPSHOT_UPDATE`
- * environment variable — it instead writes the current component as the snapshot and passes, so a new or
- * intentionally-changed snapshot can be regenerated. Only this assertion writes; [matchSnapshot] never does.
+ * In normal mode, this function compares the component with the committed snapshot and fails on a difference. The
+ * `kotventure.snapshot.update` system property or `SNAPSHOT_UPDATE` environment variable enables **record mode**. In
+ * record mode, the function writes the current component as the snapshot and passes. Use it to generate a new or
+ * intentionally changed snapshot. Only this assertion writes a snapshot. [matchSnapshot] does not write one.
  *
  * @sample io.github.lmliam.kotventure.test.snapshot.shouldMatchSnapshotSample
  */

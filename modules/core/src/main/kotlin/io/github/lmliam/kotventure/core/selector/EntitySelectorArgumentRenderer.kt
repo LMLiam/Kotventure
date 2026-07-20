@@ -5,8 +5,8 @@ import io.github.lmliam.kotventure.core.nbt.renderValue
 /**
  * Render this argument as `name=value` selector source text.
  *
- * Coordinates and ranges own their own argument names; keyword arguments resolve names via
- * [argumentName]. Negation is included in the rendered value when applicable.
+ * Coordinate and range types supply their argument names. Keyword arguments get their names from [argumentName]. The
+ * rendered value includes negation when applicable.
  */
 internal fun EntitySelectorArgument.render(): String = "$argumentName=${renderValue()}"
 
@@ -47,7 +47,7 @@ private val EntitySelectorArgument.Negatable.negationPrefix: String
 /**
  * Render an entity type or entity-type tag.
  *
- * Direct types are rendered as-is; tags are prefixed with `#`.
+ * Renders direct types without a change. Adds a `#` prefix to tags.
  */
 private fun SelectorEntityType.render(): String =
     when (this) {
@@ -64,7 +64,7 @@ private fun EntitySelectorArgument.Name.renderQuotable(): String =
 /**
  * Render a string as a quoted selector string with proper escape sequences.
  *
- * Quotes and backslashes are escaped; the string is wrapped in double quotes.
+ * Escapes quotes and backslashes. Encloses the string in double quotes.
  */
 private fun String.quoteSelectorString(): String =
     buildString(length + 2) {

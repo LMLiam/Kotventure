@@ -8,11 +8,9 @@ import net.kyori.adventure.text.Component
 /**
  * A paginated view over pre-rendered items, produced by [paginate].
  *
- * Pages are self-navigating: [page] returns a chat-ready [Component] whose prev/next
-buttons carry
- * server-side click callbacks that render the target page and send it to whichever
- * [audience][net.kyori.adventure.audience.Audience] clicked them — no platform wiring
-needed.
+ * Pages contain their own navigation. [page] returns a chat-ready [Component] with previous and next buttons. Their
+ * server-side click callbacks render the target page and send it to the
+ * [audience][net.kyori.adventure.audience.Audience] that selected the button. No platform configuration is necessary.
  *
  * @sample io.github.lmliam.kotventure.core.pagination.paginateSample
  */
@@ -23,19 +21,16 @@ public class Pagination internal constructor(
     private val nav: NavSettings,
 ) {
     /**
-     * The number of pages this pagination renders — always at least 1; an empty item
-    list renders
-     * a single page with no items.
+     * The number of pages that this pagination renders. The value is at least 1. An empty item list renders one page
+     * with no items.
      */
     public val pageCount: Int =
         if (items.isEmpty()) 1 else (items.size + itemsPerPage - 1) / itemsPerPage
 
     /**
-     * Renders [page] as a single component: the header (when set), the page's items
-    each on their
-     * own line, and the nav row — the previous button (absent on the first page), the
-     * page-position indicator (unless hidden), and the next button (absent on the last
-    page).
+     * Renders [page] as one component. It contains the optional header, one line for each item, and the navigation row.
+     * The first page has no previous button, and the last page has no next button. The row omits the page-position
+     * indicator when it is hidden.
      *
      * @throws IllegalArgumentException when [page] is outside `1..pageCount`.
      */

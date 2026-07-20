@@ -21,7 +21,7 @@ public interface TextScope : ComponentScope {
      * Applies [gradient] across this text component's content, one code point at a time.
      *
      * @throws IllegalStateException when a gradient is already set in this block, or — at build time — when the
-     *         component's content is empty and there is no text to color.
+     *         component's content is empty and there is no text to colour.
      */
     public fun gradient(gradient: ColorGradient)
 
@@ -29,7 +29,7 @@ public interface TextScope : ComponentScope {
      * Applies a gradient built from [stops] across this text component's content, one code point at a time.
      *
      * @throws IllegalStateException when a gradient is already set in this block, or — at build time — when the
-     *         component's content is empty and there is no text to color.
+     *         component's content is empty and there is no text to colour.
      */
     public fun gradient(vararg stops: TextColor)
 }

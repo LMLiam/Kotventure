@@ -28,8 +28,7 @@ internal val EntitySelectorArgument.keyword: SelectorArgumentKeyword?
 /**
  * The vanilla selector-source name of this argument, such as `limit` in `limit=1`.
  *
- * Coordinates and ranges are named by their own argument types; keyword arguments resolve their
- * names from the [keyword] property.
+ * Coordinate and range types supply their argument names. Keyword arguments get their names from [keyword].
  */
 internal val EntitySelectorArgument.argumentName: String
     get() =

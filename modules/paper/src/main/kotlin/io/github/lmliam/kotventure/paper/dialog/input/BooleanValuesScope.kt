@@ -4,7 +4,7 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 
 /**
  * Configures the strings substituted into command templates for each state of a boolean input.
- * `true("yes")` sets the substitution used when the input is on; `false("no")` when it is off.
+ * `true("yes")` sets the substitution for the on state. `false("no")` sets it for the off state.
  */
 @KotventureDslMarker
 public interface BooleanValuesScope {

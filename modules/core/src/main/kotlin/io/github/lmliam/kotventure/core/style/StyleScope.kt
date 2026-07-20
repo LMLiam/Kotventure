@@ -10,8 +10,8 @@ import net.kyori.adventure.text.format.TextDecoration
 import net.kyori.adventure.text.format.TextDecoration.State
 
 /**
- * Configures a component's or reusable style's visual attributes: color, shadow, font, insertion,
- * decorations, and (via [ClickScope]/[HoverScope]) click and hover behaviour.
+ * Configures the visual attributes of a component or reusable style. The attributes are colour, shadow, font,
+ * insertion, decorations, and the click and hover behaviour from [ClickScope] and [HoverScope].
  *
  * **Decorations.** Each named decoration (`bold`, `italic`, `underlined`, `strikethrough`,
  * `obfuscated`) and the generic [decoration]/[decorate] APIs share the same three forms and the
@@ -32,7 +32,7 @@ public interface StyleScope :
     /**
      * Applies [color], or clears it when [color] is null.
      *
-     * @throws IllegalStateException when already set in this block.
+ * @throws IllegalStateException when the colour is already set in this block.
      */
     public fun color(color: TextColor?)
 
@@ -44,7 +44,7 @@ public interface StyleScope :
     public fun shadow(color: ShadowColor?)
 
     /**
-     * Applies a shadow color with [alpha] in `0..255` (default fully opaque).
+     * Applies a shadow colour with [alpha] in `0..255`. The default value is fully opaque.
      *
      * @throws IllegalStateException when shadow is already set in this block.
      */

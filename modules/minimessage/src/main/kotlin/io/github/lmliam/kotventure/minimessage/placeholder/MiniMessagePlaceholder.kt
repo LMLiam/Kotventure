@@ -43,7 +43,8 @@ internal constructor(
  * Creates a typed MiniMessage placeholder descriptor named [name].
  *
  * Supported value families are [ComponentLike], [String], [Number], and [Boolean]. String, number, and boolean
- * placeholders bind as literal text; use [MiniMessageResolverScope.parsed] for markup-bearing string substitutions.
+ * placeholders bind as literal text. Use [MiniMessageResolverScope.parsed] for string substitutions that contain
+ * markup.
  *
  * @throws IllegalArgumentException when [T] is outside the supported value families or [name] is not a valid
  *   MiniMessage tag name.

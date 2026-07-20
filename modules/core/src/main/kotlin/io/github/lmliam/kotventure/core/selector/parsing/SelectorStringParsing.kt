@@ -27,12 +27,10 @@ internal fun SelectorReader.validateUnquotedToken(
 }
 
 /**
- * Reads and decodes a `'`- or `"`-delimited string; only the delimiter and `\` may be
-escaped.
+ * Reads and decodes a string delimited by `'` or `"`. Only the delimiter and `\` can be escaped.
  *
- * Callers must establish the opening quote by peeking before calling; the quote
-character will
- * be consumed and the string returned without delimiters.
+ * Callers must find the opening quote before they call this function. The function consumes the quote and returns the
+ * string without delimiters.
  *
  * @return the decoded string (without delimiters)
  * @throws io.github.lmliam.kotventure.core.selector.EntitySelectorParseException if the

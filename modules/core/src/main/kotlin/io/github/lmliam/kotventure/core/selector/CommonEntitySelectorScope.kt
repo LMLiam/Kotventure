@@ -32,7 +32,7 @@ public sealed interface CommonEntitySelectorScope {
     /**
      * Sets selector origin coordinates (vanilla `x`, `y`, `z`): `origin(12.5.x, 64.y)`.
      *
-     * Each coordinate binds at most once across the whole selector (fail fast; not last-write-wins).
+     * Each coordinate binds at most one time in the complete selector. A duplicate fails immediately.
      *
      * @throws IllegalStateException if a supplied coordinate is already set
      * @sample io.github.lmliam.kotventure.core.selector.selectorPositionVolumeSample
@@ -45,7 +45,7 @@ public sealed interface CommonEntitySelectorScope {
     /**
      * Sets selector bounding-volume deltas (vanilla `dx`, `dy`, `dz`): `volume(16.dx, 8.dy)`.
      *
-     * Each delta binds at most once across the whole selector (fail fast; not last-write-wins).
+     * Each delta binds at most one time in the complete selector. A duplicate fails immediately.
      *
      * @throws IllegalStateException if a supplied delta is already set
      * @sample io.github.lmliam.kotventure.core.selector.selectorPositionVolumeSample
@@ -107,7 +107,7 @@ public sealed interface CommonEntitySelectorScope {
      * Filters by vertical look angle in degrees — vanilla `x_rotation` — using a [SelectorRange]:
      * `pitch(atMost(-45.0))`.
      *
-     * Angle mapping: `-90°` = looking straight up; `0°` = level; `90°` = looking straight down.
+     * Angle mapping: `-90°` means straight up, `0°` means level, and `90°` means straight down.
      *
      * @sample io.github.lmliam.kotventure.core.selector.selectorRotationSample
      */
@@ -117,7 +117,7 @@ public sealed interface CommonEntitySelectorScope {
      * Filters by vertical look angle in degrees — vanilla `x_rotation` — using a Kotlin range:
      * `pitch(-90.0..-45.0)`.
      *
-     * Angle mapping: `-90°` = looking straight up; `0°` = level; `90°` = looking straight down.
+     * Angle mapping: `-90°` means straight up, `0°` means level, and `90°` means straight down.
      *
      * @sample io.github.lmliam.kotventure.core.selector.selectorRotationSample
      */
@@ -127,7 +127,7 @@ public sealed interface CommonEntitySelectorScope {
      * Filters by horizontal look angle in degrees — vanilla `y_rotation` — using a [SelectorRange]:
      * `yaw(atLeast(90.0))`.
      *
-     * Angle mapping: `-180°` = north; `-90°` = east; `0°` = south; `90°` = west.
+     * Angle mapping: `-180°` means north, `-90°` means east, `0°` means south, and `90°` means west.
      *
      * @sample io.github.lmliam.kotventure.core.selector.selectorRotationSample
      */
@@ -137,7 +137,7 @@ public sealed interface CommonEntitySelectorScope {
      * Filters by horizontal look angle in degrees — vanilla `y_rotation` — using a Kotlin range:
      * `yaw(0.0..90.0)`.
      *
-     * Angle mapping: `-180°` = north; `-90°` = east; `0°` = south; `90°` = west.
+     * Angle mapping: `-180°` means north, `-90°` means east, `0°` means south, and `90°` means west.
      *
      * Descending ranges like `yaw(170.0..-170.0)` wrap around ±180°, matching vanilla semantics.
      *
@@ -203,8 +203,8 @@ public sealed interface CommonEntitySelectorScope {
      * Filters by scoreboard objective values (vanilla `scores={...}`):
      * `scores { "kills" eq atLeast(10) }`.
      *
-     * Objectives render in declaration order. Each objective binds once inside the block; the
-     * whole argument binds once across the selector. Vanilla does not support negating `scores`,
+     * Objectives render in declaration order. Each objective binds one time in the block. The complete argument binds
+     * one time in the selector. Vanilla does not support negating `scores`,
      * so the block is not prefix-negatable.
      *
      * @throws IllegalStateException if `scores` is already set or an objective is repeated
@@ -216,8 +216,8 @@ public sealed interface CommonEntitySelectorScope {
      * Filters by advancement progress (vanilla `advancements={...}`):
      * `advancements { key("minecraft", "story/smelt_iron") eq true }`.
      *
-     * Advancements render in declaration order. Each advancement binds once inside the block; the
-     * whole argument binds once across the selector. Vanilla does not support negating
+     * Advancements render in declaration order. Each advancement binds one time in the block. The complete argument
+     * binds one time in the selector. Vanilla does not support negating
      * `advancements`, so the block is not prefix-negatable — require an incomplete advancement
      * with `eq false`.
      *
@@ -246,8 +246,8 @@ public sealed interface CommonEntitySelectorScope {
     public fun team(team: String): SelectorFilterExpression
 
     /**
-     * Filters by team presence: `team(any)` matches entities on any team (vanilla `team=!`);
-     * `team(none)` matches teamless entities (vanilla `team=`).
+     * Filters by team presence. `team(any)` matches entities on a team with vanilla `team=!`. `team(none)` matches
+     * entities without a team with vanilla `team=`.
      *
      * @sample io.github.lmliam.kotventure.core.selector.selectorTeamSample
      */

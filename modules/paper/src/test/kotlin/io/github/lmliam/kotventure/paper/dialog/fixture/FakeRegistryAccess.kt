@@ -15,20 +15,20 @@ import org.bukkit.Keyed
 import org.bukkit.Registry
 
 /**
- * ServiceLoader-registered [RegistryAccess] so that initializing registry-backed Paper constants
- * succeeds in a plain unit test without a running server. Dialog lookups return a placeholder
- * [FakeDialog], while the data-component registry returns keyed placeholder component types.
+ * A ServiceLoader-registered [RegistryAccess] for unit tests that do not run a server.
  *
- * This runs from inside [org.bukkit.Registry]'s own class initialization (its `<clinit>` eagerly
- * builds legacy registries for every registry type, [Dialog] included), so every placeholder here
- * is constructed fresh per call rather than read from a Kotlin `object` singleton or built as a
- * mockk stub. Both alternatives read a static field during their own initialization: a
- * singleton's backing field is only assigned once its class finishes initializing, and a mockk
- * proxy forces its target interface to finish initializing before objenesis can instantiate it.
- * [Registry] itself is the class already mid-initialization on this thread, so either alternative
- * re-enters that same not-yet-finished `<clinit>`, reads the not-yet-assigned field, and throws
- * (`NullPointerException` for the singleton, `ExceptionInInitializerError` for mockk). A plain
- * constructor call has no such field to race.
+ * Dialog lookups return a placeholder [FakeDialog]. The data-component registry returns keyed placeholder component
+ * types. This provider operates during the class initialisation of [org.bukkit.Registry]. Its `<clinit>` creates
+ * legacy registries for all registry types, including [Dialog].
+ *
+ * Construct a new placeholder for each call. Do not read it from a Kotlin `object` or construct a MockK stub. Both
+ * alternatives read a static field during their class initialisation. A singleton assigns its backing field only after
+ * its class completes initialisation. A MockK proxy makes its target interface complete initialisation before Objenesis
+ * constructs it.
+ *
+ * Either alternative enters the incomplete [Registry] `<clinit>` again and reads an unassigned field.
+ * The singleton then throws `NullPointerException`, and MockK throws `ExceptionInInitializerError`. A direct constructor
+ * call does not have this race.
  */
 class FakeRegistryAccess : RegistryAccess {
     @Suppress("OVERRIDE_DEPRECATION")

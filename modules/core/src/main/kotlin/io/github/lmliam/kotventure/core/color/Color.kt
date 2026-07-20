@@ -62,12 +62,12 @@ public fun hsv(
 }
 
 /**
- * Linearly interpolates between two colors using Adventure's [TextColor.lerp] semantics.
+ * Uses Adventure's [TextColor.lerp] rules to interpolate linearly between two colours.
  *
- * @param progress the position between the colors: `0f` returns [start], `1f` returns [end]. Values outside
- *   `0f..1f` extrapolate, matching Adventure.
- * @param start the color at `progress` `0f`.
- * @param end the color at `progress` `1f`.
+ * @param progress the position between the colours. `0f` returns [start], and `1f` returns [end]. Values outside
+ *   `0f..1f` use Adventure's extrapolation rules.
+ * @param start the colour at `progress` `0f`.
+ * @param end the colour at `progress` `1f`.
  * @throws IllegalArgumentException if [progress] is not finite.
  */
 public fun interpolate(

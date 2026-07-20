@@ -1,6 +1,6 @@
 # Continuous integration
 
-How GitHub Actions is organized for Kotventure.
+This document explains the GitHub Actions configuration for Kotventure.
 
 For local development commands, see [CONTRIBUTING.md](../.github/CONTRIBUTING.md). For release automation, see
 [RELEASING.md](./RELEASING.md). For Minecraft vanilla conformance, see
@@ -10,9 +10,9 @@ For local development commands, see [CONTRIBUTING.md](../.github/CONTRIBUTING.md
 
 | Workflow | File | Triggers | Purpose |
 |----------|------|----------|---------|
-| **CI** | `ci.yml` | PR, push, `merge_group`, weekly schedule, `workflow_dispatch` | Gate → path filter → parallel lint + build + analysis; required status check always reports |
+| **CI** | `ci.yml` | PR, push, `merge_group`, weekly schedule, `workflow_dispatch` | Gate, path filter, parallel lint, build, and analysis; always reports the required status check |
 | **PR** | `pr.yml` | `pull_request_target` | Title + commit validation, area labels |
-| **Release** | `release.yml` | push `master` | Opens/updates release PRs; tags/releases after merge |
+| **Release** | `release.yml` | push `master` | Opens or updates release PRs; creates tags and releases after merge |
 | **OpenSSF Scorecard** | `scorecard.yml` | weekly schedule, `branch_protection_rule`, `workflow_dispatch` | Supply-chain scorecard + SARIF |
 
 ## CI pipeline tiers
@@ -42,17 +42,17 @@ CI
     └─ Aggregates Tier 1 + Vanilla + Dependencies
 ```
 
-Tier 2 runs only after Tier 1 passes — no point running expensive analysis on code that doesn't compile
-or pass lint. The Status job always runs and reports a single required check that gates merges.
+Tier 2 starts only after Tier 1 passes. This sequence prevents unnecessary analysis of code that does not compile or
+pass lint. The Status job always starts. It reports one required check that controls merges.
 
-The workflow listens for `merge_group` events; like schedule and dispatch runs, they skip the path
-filter and always run the full pipeline (Build, Vanilla, Qodana, CodeQL).
+The workflow listens for `merge_group` events. Merge groups, schedules, and manual dispatches do not use the path
+filter. They always start the full pipeline: Build, Vanilla, Qodana, and CodeQL.
 
 ## When workflows run
 
 ### Code paths
 
-Defined inline in `ci.yml` (the `changes` job path filter):
+The `changes` job in `ci.yml` defines these code paths:
 
 - `modules/**`, `gradle/**`, `buildSrc/**`
 - `build.gradle`, `settings.gradle`, `gradle.properties`, `gradlew`, `gradlew.bat`
@@ -74,7 +74,7 @@ Defined inline in `ci.yml` (the `changes` job path filter):
 
 ### Manual CI (`workflow_dispatch`)
 
-Actions → **CI** → **Run workflow**. Always runs (path filter skipped).
+Select Actions → **CI** → **Run workflow**. A manual workflow always starts and does not use the path filter.
 
 | Input | Default | Behaviour |
 |-------|---------|-----------|
@@ -85,87 +85,84 @@ Module names must match `[A-Za-z0-9_-]+`.
 
 ### Heavy CI gate (release-please)
 
-Integrated into the CI workflow's `gate` job. Handles both PRs and push-to-master merge commits.
+The CI workflow contains this gate in its `gate` job. The gate handles pull requests and merge commits on `master`.
 
-Skips heavy jobs when:
+The gate skips resource-intensive jobs in these conditions:
 
-- **PR:** head branch starts with `release-please--` and changed files are release-only
-- **Push:** commit message matches `chore(master): release` and changed files are release-only
+- **PR:** The head branch starts with `release-please--`, and only release files changed.
+- **Push:** The commit message matches `chore(master): release`, and only release files changed.
 
-Release-only files: `CHANGELOG.md`, `.release-please-manifest.json`.
+The release files are `CHANGELOG.md` and `.release-please-manifest.json`.
 
-`gradle/libs.versions.toml` is **not** skip-eligible (version catalog changes always run heavy CI).
+The gate does **not** skip `gradle/libs.versions.toml`. A version catalogue change always starts the full CI pipeline.
 
-When adding release-please `extra-files`, update the gate allow-list in `ci.yml`.
+When you add release-please `extra-files`, update the gate allowlist in `ci.yml`.
 
 ### Full builds
 
-PR, push, `merge_group`, schedule, and dispatch all run a **full multi-project** default task set
-(`build dokkaGenerate koverXmlReport koverHtmlReport`). Path filters only decide *whether* heavy CI
-runs (code vs docs), not which modules compile. That keeps the coverage gate, BOM checks, and
-dependent-module compiles on every code PR.
+Pull requests, pushes, merge groups, schedules, and manual dispatches use the complete default task set:
+`build dokkaGenerate koverXmlReport koverHtmlReport`. Path filters control whether the full CI pipeline starts. They do
+not control which modules compile. Thus, each code pull request includes the coverage gate, BOM checks, and dependent
+module compilation.
 
 ### Merge queue
 
-CI is merge-queue ready: `ci.yml` and `pr.yml` both listen for `merge_group`. Queue batches skip the
-path filter and run the full pipeline including Vanilla conformance (the queue is the last gate before
-`master`); Title / Commits report success placeholders so required checks still exist.
-Dependency-review remains PR-only; Status tolerates a non-failure skip for that job on non-PR events.
+The CI configuration supports a merge queue. Both `ci.yml` and `pr.yml` listen for `merge_group`. Queue batches do not
+use the path filter. They start the full pipeline, which includes Vanilla conformance. The Title and Commits jobs report
+successful placeholders to keep their required checks present. Dependency review operates only on pull requests. The
+Status job accepts a skipped dependency review on other events.
 
-Enable the queue in the repo **Master** ruleset (**merge_queue**, squash) or under branch protection
-when the feature is available for the account. Until then, normal PR squash-merge still works.
+When the account supports the feature, enable the queue in the **Master** ruleset or in branch protection. Configure
+`merge_queue` and squash merges. Until then, use the usual pull-request squash merge.
 
 ### PR metrics (coverage, patch coverage, sizes, API, tests)
 
-After Build, the **PR feedback** job posts **one** bot comment (`<!-- pr-metrics -->`):
+After Build, the **PR feedback** job posts **one** bot comment (`<!-- pr-metrics -->`). The comment contains:
 
-- A never-collapsed **verdict line** (✅/⚠️): total coverage + delta + gate headroom, patch
-  coverage, aggregate JAR delta, test count delta, public-API delta
-- **Patch coverage** — % of changed executable lines covered, from the PR's GitHub diff joined
-  with Kover's per-line XML data; uncovered added lines listed as `file.kt:12–15` ranges
-- Mermaid **delta-only** bar charts (PR − base) for coverage (pp) and JAR size (%), bars sorted
-  by |Δ|; collapsed data tables carry absolute values (JAR table includes `.class` entry counts)
-- **Public API delta** — added/removed `public` declarations counted from the diff (grep
-  heuristic until the apiDump baseline lands); rendered as a collapsed diff block
-- Collapsed **build stats**: test/skipped counts and indicative build wall time
-- Warnings: JAR growth >10%, total coverage drop ≥0.5pp, coverage within 0.5pp of the Kover gate
-  (threshold parsed from `gradle/coverage.gradle` at runtime)
-- Footer links: workflow run, `dokka-preview` artifact, `gradle-test-results` artifact
-- When nothing changed, the body collapses to the verdict line plus "No metric changes"
+- A visible **verdict line** with total coverage, gate margin, patch coverage, aggregate JAR change, test count change,
+  and public API change.
+- **Patch coverage** from the pull-request diff and the Kover line data. It identifies uncovered added lines with
+  ranges such as `file.kt:12–15`.
+- Mermaid bar charts that show the changes in coverage and JAR size. The bars use the absolute change for their order.
+  Collapsed tables contain the absolute values and `.class` entry counts.
+- A **public API change** count for added and removed `public` declarations. A grep heuristic supplies this value until
+  an apiDump baseline exists. A collapsed diff block shows the declarations.
+- Collapsed **build statistics** with test counts, skipped-test counts, and approximate build time.
+- Warnings for JAR growth greater than 10 percent, a coverage decrease of at least 0.5 percentage points, and coverage
+  within 0.5 percentage points of the Kover gate. The job reads the threshold from `gradle/coverage.gradle`.
+- Links to the workflow run, `dokka-preview` artefact, and `gradle-test-results` artefact.
+- Only the verdict line and "No metric changes" when no metric changed.
 
-Baseline resolution order (prefer cache, avoid rebuilds):
+The job searches for a baseline in this order:
 
-1. **Actions cache** key `ci-baseline-<base-sha>` (written on successful `master` pushes; holds
-   the Kover report, module jars, and `ci-metrics.json`)
-2. **Artifacts** from a successful CI run for the base commit (`coverage-report`, `module-jars`,
-   `ci-metrics`)
-3. **Fallback:** jar-only Gradle build of the base SHA (coverage stays absolute if no base report)
+1. The **Actions cache** key `ci-baseline-<base-sha>`. A successful push to `master` writes this key. It contains the
+   Kover report, module JARs, and `ci-metrics.json`.
+2. The `coverage-report`, `module-jars`, and `ci-metrics` **artefacts** from a successful CI run for the base commit.
+3. A JAR-only Gradle build of the base SHA. If no base report is available, the coverage value stays absolute.
 
-The comment is built by `.github/actions/pr-metrics-comment` — a thin `action.yml` entry over plain
-Node modules in `lib/` (patch/coverage/jar/zip parsing, `lib/sections/` renderers, comment upsert),
-unit tested with `node:test` in `test/`. The Lint job runs those tests.
+The `.github/actions/pr-metrics-comment` action builds the comment. Its `action.yml` file calls plain Node modules in
+`lib/`. These modules parse patches, coverage, JARs, and ZIP files. Renderers are in `lib/sections/`. Tests in `test/`
+use `node:test`. The Lint job starts these tests.
 
 ### Build Scans
 
-**Off by default.** Enabling `build-scan: true` on `gradle-job` (or `build-scan-publish: true` on
-`setup-jdk-gradle`) injects Develocity and publishes a public scan — but it also **wrecks local
-build-cache hit rates** (observed: ~55 cache hits / 26s → ~1 cache hit / ~4 minutes on the same task
-set). Prefer leaving scans off for PR/push CI.
+Build scans are **off by default**. The `build-scan: true` input on `gradle-job` adds Develocity and publishes a public
+scan. The `build-scan-publish: true` input on `setup-jdk-gradle` has the same effect. A scan greatly decreases local
+build-cache hits. In one measurement, the same task set changed from approximately 55 hits in 26 seconds to one hit in
+four minutes. Keep scans off for pull-request and push CI.
 
-To capture a scan occasionally (for example a manual diagnostic run), pass
-`build-scan: true` into `gradle-job`; that agrees to Gradle’s terms via `setup-gradle` and appends
-`--scan`. For a private Develocity server, configure Develocity URL / access key on `setup-gradle`
-instead of public scans.
+For an occasional diagnostic scan, give `build-scan: true` to `gradle-job`. The action accepts the Gradle terms through
+`setup-gradle` and adds `--scan`. For a private Develocity server, configure its URL and access key on `setup-gradle`.
 
 ### Trust and permissions
 
 | Surface | Behaviour |
 |---------|-----------|
 | Default workflow permissions | `contents: read` |
-| Build job | `checks: write` + `contents: read` — no PR write; Gradle runs with `GITHUB_TOKEN` cleared |
-| PR feedback job | `actions: read` + `pull-requests: write` + `contents: read` — posts metrics comment; prefers cache/artifacts for base jars/coverage, falls back to a base jar-only Gradle build with `GITHUB_TOKEN` cleared |
-| Build scans | Off by default (cache-friendly); opt-in via `build-scan: true` |
-| Dokka preview artifact | Untrusted HTML from the PR build; open locally with care; 14-day retention; not published as Pages |
+| Build job | `checks: write` + `contents: read`; cannot write to pull requests; clears `GITHUB_TOKEN` for Gradle |
+| PR feedback job | `actions: read` + `pull-requests: write` + `contents: read`; posts one metrics comment; uses the cache or artefacts before a base JAR-only build; clears `GITHUB_TOKEN` for Gradle |
+| Build scans | Off by default; enable with `build-scan: true` |
+| Dokka preview artefact | Contains untrusted HTML from the pull request; retain for 14 days; do not publish as Pages |
 
 ## PR workflow jobs
 
@@ -176,7 +173,7 @@ PR
 └─ Labels    (path → area:* labels)
 ```
 
-Title and Commits are required status checks.
+The Title and Commits jobs are required status checks.
 
 ## Local composite actions
 
@@ -187,10 +184,10 @@ Title and Commits are required status checks.
 | **publish-junit-report** | `.github/actions/publish-junit-report` | CI (Build, Vanilla) — JUnit XML → Checks annotations |
 | **pr-metrics-comment** | `.github/actions/pr-metrics-comment` | CI (PR feedback) — single coverage + JAR size comment |
 
-Lint also runs `.github/scripts/check-one-declaration-per-file.sh` (one top-level type per main-source
-file) and the `pr-metrics-comment` unit tests (`node --test`) before Spotless/ktlint.
+Before Spotless and ktlint, Lint starts two additional checks. The declaration script permits one top-level type in
+each main-source file. The `pr-metrics-comment` tests use `node --test`.
 
-PR feedback is non-gating (`continue-on-error`); failures there do not fail Build or Status.
+PR feedback does not control a merge because it uses `continue-on-error`. A failure does not fail Build or Status.
 
 ## Scripts
 
@@ -207,9 +204,9 @@ PR feedback is non-gating (`continue-on-error`); failures there do not fail Buil
 
 ## Action pins and Dependabot
 
-Third-party actions are SHA-pinned with a version comment. Dependabot updates them via a single
-`github-actions` entry in `.github/dependabot.yml` with `directories: ["/", "/.github/actions/*"]` —
-new composites are covered automatically, no config change needed.
+Each third-party action uses a fixed SHA and has a version comment. One `github-actions` entry in
+`.github/dependabot.yml` updates these actions. Its directories are `["/", "/.github/actions/*"]`. This pattern includes
+new composite actions without a configuration change.
 
 | Ecosystem | Grouping | Open PR limit |
 |-----------|----------|---------------|
@@ -218,20 +215,22 @@ new composites are covered automatically, no config change needed.
 
 ## Branch protection (`master`)
 
-Repository ruleset **Master** (default branch), verified via the rulesets API:
+The **Master** repository ruleset protects the default branch. The rulesets API confirms these settings:
 
-- Block force-push, branch deletion, and direct pushes (updates only via PR).
-- Pull requests: one approving review, code-owner review, dismiss stale reviews, resolve conversations, squash only.
-- Required status checks (strict, must be up to date with base): **Status**, **Title**, **Commits**, **Dependencies**.
-- Code scanning gate for Qodana (`QDJVM`) alerts at medium-or-higher security / errors severity.
-- Maintainer bypass remains configured for emergency overrides.
+- Block force pushes, branch deletion, and direct pushes. Update the branch only through a pull request.
+- Require one approval and a code-owner review. Dismiss stale reviews and resolve conversations. Permit only squash
+  merges.
+- Require **Status**, **Title**, **Commits**, and **Dependencies**. Require them to be current with the base branch.
+- Block Qodana (`QDJVM`) alerts that have medium or higher security severity, or error severity.
+- Permit maintainers to bypass the rules in an emergency.
 
-[CODEOWNERS](../.github/CODEOWNERS) assigns `@LMLiam` as default owner and explicitly for `.github/workflows/`,
-`.github/actions/`, `.github/scripts/`, and related CI config so code-owner review covers automation changes.
+[CODEOWNERS](../.github/CODEOWNERS) assigns `@LMLiam` as the default owner. It also assigns this owner to
+`.github/workflows/`, `.github/actions/`, `.github/scripts/`, and related CI configuration. Thus, code-owner review
+applies to automation changes.
 
 ## Required vs optional checks
 
-PRs show many checks; only a subset is merge-blocking via the **Master** ruleset.
+Pull requests show many checks. Only the checks in the **Master** ruleset block a merge.
 
 | Check | Merge gate | Notes |
 |-------|:----------:|-------|
@@ -247,7 +246,7 @@ PRs show many checks; only a subset is merge-blocking via the **Master** ruleset
 | Scorecard | No | Schedule / dispatch |
 | Labels | No | Labelling only |
 
-\*Qodana is not a required status check. Serious findings surface through the QDJVM code-scanning ruleset rule.
+\*Qodana is not a required status check. The QDJVM code-scanning rule reports serious findings.
 
 ## Performance
 
@@ -258,7 +257,7 @@ PRs show many checks; only a subset is merge-blocking via the **Master** ruleset
 | Minecraft conformance fixtures | `actions/cache`; key derived from `targetMinecraftVersion` and `serverBundleSha1` |
 | PR metrics baselines | `actions/cache` key `ci-baseline-<sha>` on master push; artifact download fallback; jar rebuild last |
 
-### Artifacts (Build job)
+### Artefacts (Build job)
 
 | Artifact | When |
 |----------|------|
@@ -271,8 +270,8 @@ PRs show many checks; only a subset is merge-blocking via the **Master** ruleset
 
 ## Re-running CI
 
-- **Re-run failed jobs** / **Re-run all jobs** on an Actions run.
-- CI and Scorecard support `workflow_dispatch` (CI accepts optional `tasks` / `module` inputs).
+- Select **Re-run failed jobs** or **Re-run all jobs** on an Actions run.
+- CI and Scorecard support `workflow_dispatch`. CI accepts the optional `tasks` and `module` inputs.
 
 ## Related docs
 

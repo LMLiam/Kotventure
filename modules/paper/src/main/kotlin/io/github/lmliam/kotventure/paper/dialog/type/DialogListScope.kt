@@ -7,7 +7,7 @@ import io.papermc.paper.registry.set.RegistrySet
 
 /**
  * Configures a dialog-list dialog. Beyond the base [DialogScope] slots, the presented [dialogs]
- * are required; every other slot here is optional.
+ * are required. Each other slot is optional.
  */
 public interface DialogListScope : DialogScope {
     /**

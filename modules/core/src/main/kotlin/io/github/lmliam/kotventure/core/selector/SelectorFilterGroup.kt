@@ -3,17 +3,13 @@ package io.github.lmliam.kotventure.core.selector
 /**
  * The entries of one selector argument, in call order.
  *
- * A statement's polarity is final once it completes (`!` applies before the next
-statement runs),
- * so an exclusive group can reject any addition after a positive entry at the offending
-call site.
- * The one violation only visible later — exclusions followed by a positive that never
-gets
- * negated — is caught by [validate] when the selector block ends.
+ * A statement's polarity is final when the statement completes. The `!` operator applies before the next statement.
+ * Thus, an exclusive group can reject an addition after a positive entry at that call site. One error is visible only
+ * later: exclusions followed by a positive entry that stays positive. [validate] finds this error when the selector
+ * block ends.
  *
- * Policy is resolved from [keyword] via [SelectorArgumentKeyword.filterPolicy] so the
-builder
- * cannot drift from model/parse validation.
+ * [SelectorArgumentKeyword.filterPolicy] supplies the policy for [keyword]. Thus, the builder stays consistent with
+ * model and parser validation.
  */
 internal class SelectorFilterGroup<T>(
     keyword: SelectorArgumentKeyword,
@@ -33,11 +29,8 @@ internal class SelectorFilterGroup<T>(
     ): SelectorFilterExpression = addEntry(owner, value, SelectorFilterPolarity.POSITIVE)
 
     /**
-     * Adds [value] with a caller-fixed [polarity], returning nothing negatable:
-    presence filters
-     * (`tag(any)`, `team(none)`) already encode their polarity in the value, so `!`
-    must not be
-     * able to flip them again.
+     * Adds [value] with a fixed [polarity] and does not return a negatable value. Presence filters such as `tag(any)`
+     * and `team(none)` contain their polarity in the value. Thus, `!` cannot change it again.
      */
     fun addFixed(
         owner: EntitySelectorBuilder,

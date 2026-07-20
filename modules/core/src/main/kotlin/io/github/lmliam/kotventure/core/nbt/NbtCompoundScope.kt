@@ -5,7 +5,7 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 /**
  * Scope for building NBT compounds.
  *
- * A compound is a set of `key eq value` assertions; the value's Kotlin type selects the SNBT
+ * A compound is a set of `key eq value` assertions. The value's Kotlin type selects the SNBT
  * literal form (e.g. a [Byte] renders as `1b`, a [Long] as `1L`). Nest a compound with the lambda
  * overload of [eq].
  *

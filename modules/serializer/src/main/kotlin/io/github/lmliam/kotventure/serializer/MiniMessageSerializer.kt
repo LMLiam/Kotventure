@@ -4,11 +4,11 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
 
 /**
- * Serializes this component to MiniMessage markup using Adventure's default serializer.
+ * Serialises this component to MiniMessage markup with Adventure's default serialiser.
  *
  * @sample io.github.lmliam.kotventure.serializer.toMiniMessageSample
  *
- * The inverse of `mini(...)`. Note the round trip is not always identical, as distinct components can
- * serialize to equivalent markup.
+ * This function is the inverse of `mini(...)`. A round trip is not always identical because different components can
+ * serialise to equivalent markup.
  */
 public fun Component.toMiniMessage(): String = MiniMessage.miniMessage().serialize(this)

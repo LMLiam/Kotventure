@@ -28,8 +28,7 @@ public interface PaginationScope<T> {
     public fun <C : ComponentLike> header(component: C)
 
     /**
-     * Sets how each item is rendered onto its page line. Required; every item is rendered once,
-     * eagerly, when the pagination is built.
+     * Sets how to render each item on its page line. This slot is required. The build renders each item one time.
      *
      * @throws IllegalStateException when the renderer is already set in this block.
      */

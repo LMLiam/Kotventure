@@ -4,7 +4,7 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 
 /**
  * Declares a dialog's inputs. Each input is identified by a unique key and accumulates in call
- * order; grouping inputs here is independent of the dialog type.
+ * order. Input groups are independent of the dialog type.
  */
 @KotventureDslMarker
 public interface InputsScope {

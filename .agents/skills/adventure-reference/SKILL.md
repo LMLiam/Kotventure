@@ -1,36 +1,38 @@
 ---
 name: adventure-reference
-description: Use when wrapping or calling any net.kyori Adventure API and its exact shape must not be guessed — components, style, click/hover events, audiences, titles, sounds, boss bars, books, NBT, serializers, keys, platforms. Use before writing code against an Adventure type you have not verified this session.
+description: >-
+  Use this skill before you write code against an Adventure type that you have not verified in this session. It covers
+  components, styles, events, audiences, titles, sounds, boss bars, books, NBT, serialisers, keys, and platforms.
 ---
 
 # Adventure API reference
 
-A map of the API this project wraps. **Never ship a call you haven't confirmed exists.**
-Ground truth, in order of authority:
+This document maps the Adventure API that the project wraps. **Confirm that each call exists before you release it.**
+Use sources in this order:
 
 1. **Dependency sources** — open the class from the Gradle dependency in the IDE.
 2. **Javadoc** — https://jd.advntr.dev
-3. These reference files — a curated map of what Kotventure touches, not a full API listing.
+3. These reference files. They describe the Adventure API that Kotventure uses, but not the complete API.
 
-The target version is whatever `adventureApi` says in `gradle/libs.versions.toml` — check it;
-don't assume. Artifact coordinates are `net.kyori:adventure-*` (see the `[libraries]` section
-there for exactly which artifacts each module may use — `core` gets `adventure-api` only).
+Read `adventureApi` in `gradle/libs.versions.toml` to get the target version. Do not assume a version. Artefact
+coordinates use `net.kyori:adventure-*`. The `[libraries]` section identifies the permitted artefacts for each module.
+The `core` module can use only `adventure-api`.
 
 ## Domain map
 
 | You need… | Read |
 |---|---|
 | `Component` factories: text, translatable, keybind, score, selector, NBT, object contents, join/newline, iteration | [references/components.md](references/components.md) |
-| `Style`, colors, `ShadowColor`, decorations + tri-state, fonts, insertion; `ClickEvent` (incl. callbacks), `HoverEvent` (text/item/entity) | [references/style-and-events.md](references/style-and-events.md) |
+| `Style`, colours, `ShadowColor`, decorations, tri-state values, fonts, insertion, `ClickEvent`, and `HoverEvent` | [references/style-and-events.md](references/style-and-events.md) |
 | `Audience` operations: messages, chat + `SignedMessage`, titles, action bar, sounds, boss bars, books, tab list | [references/audiences.md](references/audiences.md) |
-| Serializers (Gson/JSON, legacy, plain), `Key`/`Keyed`, platform integration (Paper/Velocity/Fabric) | [references/serializers-and-platforms.md](references/serializers-and-platforms.md) |
+| Serialisers (Gson/JSON, legacy, plain), `Key`/`Keyed`, and platform integration | [references/serializers-and-platforms.md](references/serializers-and-platforms.md) |
 | MiniMessage (parsing, tag resolvers, placeholders, strict mode) | the `minimessage-reference` skill — it covers both the Adventure API and Kotventure's typed layer |
 
 ## Rules when wrapping
 
-- Builders must return the **real** `net.kyori` type; tests assert on it directly.
-- Adventure *value* types (components, styles, events, titles, sounds, books) are immutable —
-  "setters" return new instances; there is nothing to defensively copy. `BossBar` is the
-  exception: a live, mutable, shared object.
-- Watch nullability at the Kotlin/Java boundary: Adventure is annotated
-  (`@Nullable`/`@NotNull`), so Kotlin sees real types — trust the compiler, not memory.
+- Builders must return the applicable `net.kyori` type. Tests must examine that type directly.
+- Adventure value types are immutable. Components, styles, events, titles, sounds, and books are value types. Their
+  setter-like functions return new instances, so a defensive copy is not necessary. `BossBar` is a mutable, shared
+  object.
+- Check nullability at the Kotlin and Java boundary. Adventure uses `@Nullable` and `@NotNull`, which give Kotlin the
+  applicable types. Use the compiler result and not memory.

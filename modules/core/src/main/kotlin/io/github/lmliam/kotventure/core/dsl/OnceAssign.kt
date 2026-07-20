@@ -6,15 +6,14 @@ import kotlin.reflect.KProperty
  * A write-once property delegate for nullable builder slots.
  *
  * Reads return `null` until the first assignment. The first assignment is accepted even when its
- * value is `null`; every later assignment fails.
+ * value is `null`. Each later assignment fails.
  *
  * The default failure message includes the delegated property's name. Supply a custom message
  * when the delegate's property name differs from the public DSL slot name.
  *
- * This type is intentionally non-generic: its `getValue`/`setValue` operators are generic
- * instead, so `by once()` infers its type from the delegated property (the same mechanism as
- * `kotlin.properties.Delegates.notNull()`), and chains such as `by
- * once().inRange(1..1024)` (see [inRange]) infer without an explicit type argument.
+ * This type is not generic, but its `getValue` and `setValue` operators are generic. Thus, `by once()` gets its type
+ * from the delegated property. `kotlin.properties.Delegates.notNull()` uses the same mechanism. Chains such as
+ * `by once().inRange(1..1024)` also work without an explicit type argument. Refer to [inRange].
  */
 @InternalKotventureApi
 public class OnceAssign internal constructor(
@@ -56,8 +55,8 @@ public class OnceAssign internal constructor(
  *
  * The optional [alreadySetMessage] is evaluated only when a second assignment is attempted.
  *
- * @param alreadySetMessage custom duplicate-assignment message; otherwise the delegated property's
- *   name is used.
+ * @param alreadySetMessage the custom duplicate-assignment message. If it is absent, the function uses the delegated
+ *   property's name.
  */
 @InternalKotventureApi
 public fun once(alreadySetMessage: (() -> String)? = null): OnceAssign = OnceAssign(alreadySetMessage)

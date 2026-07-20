@@ -1,16 +1,18 @@
 # `kotventure-core`
 
-The heart of Kotventure: an idiomatic Kotlin DSL over `adventure-api` for everything a player sees. Components,
-styles, colors and gradients, click/hover events, titles, boss bars (including self-advancing timed bars), books,
-sounds, tab lists, self-navigating chat pagination, typed vanilla entity selectors, NBT paths and compounds,
-translatables, keybinds, scores, and registrable style themes.
+`kotventure-core` provides the primary Kotlin DSL for `adventure-api`. It includes these features:
 
-`core` depends only on `adventure-api` — no MiniMessage, no coroutines, no platform code — so every other module and
-platform adapter can build on it.
+- Components, styles, colours, and gradients.
+- Click events, hover events, titles, boss bars, books, sounds, and tab lists.
+- Chat pagination, typed vanilla entity selectors, NBT paths, and NBT compounds.
+- Translatable components, keybinds, scores, and registrable style themes.
+
+`core` depends only on `adventure-api`. It does not contain MiniMessage, coroutine, or platform code.
+Thus, each module and platform adapter can use it.
 
 ## Getting it
 
-With the BOM imported (see the [root README](../../README.md#getting-it)), add:
+After you import the BOM, add this dependency. Refer to the [root README](../../README.md#getting-it).
 
 ```kotlin
 dependencies {
@@ -39,19 +41,18 @@ val champions = allPlayers {
 }
 ```
 
-Every builder produces a plain Adventure object (`Component`, `Style`, `BossBar`, `Book`, `Sound`, …), so the result
-plugs into any Adventure-speaking API. Malformed input fails fast: setting a singleton slot twice or expressing a
-combination vanilla cannot parse throws `IllegalStateException` naming the argument, rather than silently
-last-write-winning.
+Each builder makes an Adventure object such as `Component`, `Style`, `BossBar`, `Book`, or `Sound`.
+You can use the result with an Adventure API. Malformed input causes an immediate failure.
+`IllegalStateException` identifies a duplicate singleton slot or a combination that vanilla cannot parse.
 
 ## Package map
 
-One feature per package under `io.github.lmliam.kotventure.core`:
+Each package under `io.github.lmliam.kotventure.core` contains one feature:
 
 | Package                                           | Entry points                                                                                   |
 |---------------------------------------------------|------------------------------------------------------------------------------------------------|
 | `component`, `text`                               | `component { }`, `text(...) { }`, `emptyComponent()`, `newlineComponent()`, `join`, traversal  |
-| `style`, `color`                                  | `style { }`, `styled`, named colors, `hex`/`rgb`/`hsv`, gradients                              |
+| `style`, `color`                                  | `style { }`, `styled`, named colours, `hex`/`rgb`/`hsv`, gradients                             |
 | `event`                                           | `click { }`, `hover { }` — also available inside any style block                               |
 | `audience`                                        | `audienceOf`, `message`, `chat`, `title`, `sound`, `bossBar`, `book`, `tabList`, `paginate`, … |
 | `bossbar`, `book`, `sound`                        | `bossBar { }` (+ `bossbar.timed`), `book { }`, `sound(key) { }`                                |
@@ -66,4 +67,4 @@ One feature per package under `io.github.lmliam.kotventure.core`:
 
 - [Getting Started guide](../../docs/GETTING-STARTED.md)
 - [Design & architecture](../../docs/DESIGN.md)
-- KDoc on every public declaration, with compiled `@sample` snippets from [`src/samples`](src/samples)
+- KDoc for each public declaration, with compiled `@sample` snippets from [`src/samples`](src/samples)
