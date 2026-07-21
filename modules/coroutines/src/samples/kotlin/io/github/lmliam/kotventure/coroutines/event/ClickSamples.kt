@@ -36,10 +36,13 @@ internal fun clickOptionsSample() {
 
     audience.message {
         text("Claim reward") {
-            click(pluginScope, options = {
-                uses(1)
-                lifetime(10.minutes)
-            }) { clicker -> rewards.claim(clicker) }
+            click(
+                pluginScope,
+                options = {
+                    uses(1)
+                    lifetime(10.minutes)
+                },
+            ) { clicker -> rewards.claim(clicker) }
         }
     }
 }

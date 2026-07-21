@@ -23,8 +23,8 @@ internal class ClickOptionsBuilder : ClickOptionsScope {
 
     fun build(): ClickCallback.Options =
         ClickCallback.Options
-                .builder()
-                .apply { uses?.let(::uses) }
-                .apply { lifetime?.let { lifetime(it.toJavaDuration()) } }
-                .build()
+            .builder()
+            .apply { uses?.let(::uses) }
+            .apply { lifetime?.let { lifetime(it.toJavaDuration()) } }
+            .build()
 }

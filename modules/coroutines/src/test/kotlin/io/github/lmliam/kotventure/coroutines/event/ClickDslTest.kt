@@ -34,10 +34,12 @@ private fun CoroutineScope.contextClickComponent(): Component =
 private fun CoroutineScope.contextOptionsComponent(): Component =
     component {
         text("Claim") {
-            click(options = {
-                uses(3)
-                lifetime(10.minutes)
-            }) { clicker -> clicker.sendMessage(rewardMessage) }
+            click(
+                options = {
+                    uses(3)
+                    lifetime(10.minutes)
+                },
+            ) { clicker -> clicker.sendMessage(rewardMessage) }
         }
     }
 
@@ -91,10 +93,13 @@ class ClickDslTest :
 
                     component {
                         text("Claim") {
-                            click(scope, options = {
-                                uses(3)
-                                lifetime(10.minutes)
-                            }) { }
+                            click(
+                                scope,
+                                options = {
+                                    uses(3)
+                                    lifetime(10.minutes)
+                                },
+                            ) { }
                         }
                     }
 
@@ -139,10 +144,13 @@ class ClickDslTest :
                     RecordingClickCallbackProvider.reset()
                     val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
 
-                    click(scope, options = {
-                        uses(3)
-                        lifetime(10.minutes)
-                    }) { }
+                    click(
+                        scope,
+                        options = {
+                            uses(3)
+                            lifetime(10.minutes)
+                        },
+                    ) { }
 
                     RecordingClickCallbackProvider.lastOptions?.uses() shouldBe 3
                     RecordingClickCallbackProvider.lastOptions?.lifetime() shouldBe JavaDuration.ofMinutes(10)
@@ -155,10 +163,13 @@ class ClickDslTest :
                     val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
 
                     shouldThrow<IllegalStateException> {
-                        click(scope, options = {
-                            uses(1)
-                            uses(2)
-                        }) { }
+                        click(
+                            scope,
+                            options = {
+                                uses(1)
+                                uses(2)
+                            },
+                        ) { }
                     }
                 }
             }

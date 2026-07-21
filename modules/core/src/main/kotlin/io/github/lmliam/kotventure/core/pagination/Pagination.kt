@@ -66,10 +66,12 @@ public class Pagination internal constructor(
     ): Component =
         label.clickEvent(
             buildClickEvent {
-                callback(options = {
-                    uses(nav.uses)
-                    lifetime(nav.lifetime)
-                }) { audience ->
+                callback(
+                    options = {
+                        uses(nav.uses)
+                        lifetime(nav.lifetime)
+                    },
+                ) { audience ->
                     audience.sendMessage(page(target))
                 }
             },

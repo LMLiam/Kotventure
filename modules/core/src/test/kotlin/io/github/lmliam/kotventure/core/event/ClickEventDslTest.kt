@@ -211,10 +211,12 @@ class ClickEventDslTest :
 
                 val event =
                     click {
-                        callback(options = {
-                            uses(3)
-                            lifetime(10.minutes)
-                        }) { audience ->
+                        callback(
+                            options = {
+                                uses(3)
+                                lifetime(10.minutes)
+                            },
+                        ) { audience ->
                             calledWith = audience
                         }
                     }
@@ -255,10 +257,12 @@ class ClickEventDslTest :
 
                 shouldThrow<IllegalStateException> {
                     click {
-                        callback(options = {
-                            uses(4)
-                            uses(5)
-                        }) {
+                        callback(
+                            options = {
+                                uses(4)
+                                uses(5)
+                            },
+                        ) {
                             // The provider capture is the assertion target for this test.
                         }
                     }
@@ -271,10 +275,12 @@ class ClickEventDslTest :
                 val component =
                     component {
                         click {
-                            callback(options = {
-                                uses(1)
-                                lifetime(5.minutes)
-                            }) {
+                            callback(
+                                options = {
+                                    uses(1)
+                                    lifetime(5.minutes)
+                                },
+                            ) {
                                 // The provider capture is the assertion target for this test.
                             }
                         }

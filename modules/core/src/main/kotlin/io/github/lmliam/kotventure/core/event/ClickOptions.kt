@@ -13,5 +13,5 @@ import net.kyori.adventure.text.event.ClickCallback
  */
 public fun clickOptions(init: ClickOptionsScope.() -> Unit): ClickCallback.Options =
     ClickOptionsBuilder()
-            .apply(init)
-            .build()
+        .apply(init)
+        .build()
