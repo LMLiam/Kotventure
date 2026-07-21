@@ -11,6 +11,7 @@ dependencies {
 
     constraints {
         api project(':core')
+        api project(':coroutines')
         api project(':minimessage')
         api project(':paper')
         api project(':serializer')

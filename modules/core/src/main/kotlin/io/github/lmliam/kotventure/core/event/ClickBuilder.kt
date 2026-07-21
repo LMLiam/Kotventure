@@ -3,8 +3,6 @@ package io.github.lmliam.kotventure.core.event
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.event.ClickCallback
 import net.kyori.adventure.text.event.ClickEvent
-import kotlin.time.toJavaDuration
-import kotlin.time.Duration as KotlinDuration
 
 internal class ClickBuilder : ClickActionScope {
     private var event: ClickEvent<*>? = null
@@ -33,28 +31,11 @@ internal class ClickBuilder : ClickActionScope {
         set(ClickEvent.copyToClipboard(text))
     }
 
-    override fun callback(function: ClickCallback<Audience>) {
-        set(ClickEvent.callback(function))
-    }
-
     override fun callback(
-        uses: Int,
-        lifetime: KotlinDuration,
+        options: ClickOptionsScope.() -> Unit,
         function: ClickCallback<Audience>,
     ) {
-        set(
-            ClickEvent.callback(function) { options ->
-                options.uses(uses)
-                options.lifetime(lifetime.toJavaDuration())
-            },
-        )
-    }
-
-    override fun callback(
-        options: ClickCallback.Options,
-        function: ClickCallback<Audience>,
-    ) {
-        set(ClickEvent.callback(function, options))
+        set(ClickEvent.callback(function, clickOptions(options)))
     }
 
     internal fun build(): ClickEvent<*> =

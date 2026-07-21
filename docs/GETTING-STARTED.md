@@ -144,7 +144,8 @@ They contain the matcher catalogue and snapshot record procedure.
 ## Where next
 
 - The [README feature tour](../README.md#feature-tour) describes selectors, NBT, books, boss bars, and serialisers.
-- Module READMEs: [core](../modules/core/README.md) · [minimessage](../modules/minimessage/README.md) ·
-  [serializer](../modules/serializer/README.md) · [bom](../modules/bom/README.md)
+- Module READMEs: [core](../modules/core/README.md) · [coroutines](../modules/coroutines/README.md) ·
+  [minimessage](../modules/minimessage/README.md) · [serializer](../modules/serializer/README.md) ·
+  [bom](../modules/bom/README.md)
 - [`DESIGN.md`](DESIGN.md) describes the architecture and target DSL surface for each phase.
 - [`ROADMAP.md`](ROADMAP.md) gives the phase sequence.

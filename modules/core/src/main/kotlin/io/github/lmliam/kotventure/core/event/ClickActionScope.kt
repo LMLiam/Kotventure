@@ -3,7 +3,6 @@ package io.github.lmliam.kotventure.core.event
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.event.ClickCallback
-import kotlin.time.Duration as KotlinDuration
 
 /**
  * Selects the action for a click event.
@@ -49,25 +48,15 @@ public interface ClickActionScope {
 
     /**
      * Selects a server-side callback click action from [function].
-     */
-    public fun callback(function: ClickCallback<Audience>)
-
-    /**
-     * Selects a server-side callback click action from [function] with [uses] and [lifetime].
      *
-     * @throws IllegalArgumentException when Adventure rejects [uses] or [lifetime].
+     * Set callback limits in [options]. Unset slots keep the Adventure defaults: one use, and a lifetime of
+     * twelve hours.
+     *
+     * @throws IllegalStateException when [options] sets a slot more than once.
+     * @throws IllegalArgumentException when [options] supplies an invalid use count or lifetime.
      */
     public fun callback(
-        uses: Int,
-        lifetime: KotlinDuration,
-        function: ClickCallback<Audience>,
-    )
-
-    /**
-     * Selects a server-side callback click action from [function] with prebuilt [options].
-     */
-    public fun callback(
-        options: ClickCallback.Options,
+        options: ClickOptionsScope.() -> Unit = {},
         function: ClickCallback<Audience>,
     )
 }

@@ -1,0 +1,9 @@
+description = 'Coroutine bridges for suspendable interaction with Adventure audiences.'
+
+dependencies {
+    api project(':core')
+    api kotventureDependencies."kotlinx-coroutines-core"
+
+    testImplementation project(':test')
+    testImplementation kotventureDependencies."kotlinx-coroutines-test"
+}

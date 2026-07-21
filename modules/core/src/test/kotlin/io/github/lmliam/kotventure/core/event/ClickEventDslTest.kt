@@ -211,7 +211,12 @@ class ClickEventDslTest :
 
                 val event =
                     click {
-                        callback(uses = 3, lifetime = 10.minutes) { audience ->
+                        callback(
+                            options = {
+                                uses(3)
+                                lifetime(10.minutes)
+                            },
+                        ) { audience ->
                             calledWith = audience
                         }
                     }
@@ -247,28 +252,21 @@ class ClickEventDslTest :
                 calledWith shouldBe audience
             }
 
-            "callback click events accept prebuilt options" {
+            "callback click events reject a duplicate options slot" {
                 RecordingClickCallbackProvider.reset()
-                val lifetime = JavaDuration.ofSeconds(45)
-                val options =
-                    ClickCallback.Options
-                        .builder()
-                        .uses(4)
-                        .lifetime(lifetime)
-                        .build()
 
-                val event =
+                shouldThrow<IllegalStateException> {
                     click {
-                        callback(options) {
+                        callback(
+                            options = {
+                                uses(4)
+                                uses(5)
+                            },
+                        ) {
                             // The provider capture is the assertion target for this test.
                         }
                     }
-
-                text("Callback").clickEvent(event) shouldHaveClickEvent
-                        RecordingClickCallbackProvider.lastEvent
-                RecordingClickCallbackProvider.lastOptions shouldBe options
-                RecordingClickCallbackProvider.lastOptions?.uses() shouldBe 4
-                RecordingClickCallbackProvider.lastOptions?.lifetime() shouldBe lifetime
+                }
             }
 
             "component scope callbacks accept kotlin durations inside click blocks" {
@@ -277,7 +275,12 @@ class ClickEventDslTest :
                 val component =
                     component {
                         click {
-                            callback(uses = 1, lifetime = 5.minutes) {
+                            callback(
+                                options = {
+                                    uses(1)
+                                    lifetime(5.minutes)
+                                },
+                            ) {
                                 // The provider capture is the assertion target for this test.
                             }
                         }
@@ -380,16 +383,7 @@ class ClickEventDslTest :
                                 CompileFailureCase(
                                     """
                                     val callback = ClickCallback<Audience> { }
-                                    val options = ClickCallback.Options.builder().uses(1).build()
-                                    scope.callback(options, callback)
-                                    """.trimIndent(),
-                                    "Unresolved reference 'callback'",
-                                ),
-                        "CallbackWithUsesAndLifetime" to
-                                CompileFailureCase(
-                                    """
-                                    val callback = ClickCallback<Audience> { }
-                                    scope.callback(1, 1.minutes, callback)
+                                    scope.callback(options = { uses(1) }, callback)
                                     """.trimIndent(),
                                     "Unresolved reference 'callback'",
                                 ),
