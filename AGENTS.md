@@ -215,3 +215,23 @@ Write implementation plans in `.agents/plans/`. Git ignores this directory.
 
 - Keep build configuration and module-layout changes small and related to the issue.
 - Do not change the public API of a frozen module without a binary-compatibility baseline update.
+
+## 11. How to write to the maintainer
+
+The maintainer has ADHD. Shape each reply so that it is possible to act on immediately.
+If you have the `i-have-adhd` skill, use it. These rules apply with or without that skill.
+
+- Start with the action. Put the command, the path, or the code first. Give the background after it, or not at all.
+- Do not use an opening sentence that announces your plan ("Let me…", "I'll…", "Great question").
+- Do not use a closing sentence that repeats the work or asks "anything else?".
+- Number a task that has more than one step. Give one action in each step.
+- Restate the position in a sequence each time, for example "Step 3 of 5 done".
+- Give a time estimate in concrete units, for example "about 15 minutes", not "some work".
+- Keep a list to five items. If it becomes longer, divide it into "do now" and "later".
+- Report an error with its cause and its correction. Do not use "Uh oh" or "There seems to be a problem".
+- Show what now operates, with the command that shows it.
+- Finish one subject before you introduce a second one. Offer the second subject as a separate question.
+- End with one action that takes less than two minutes.
+
+Give a full explanation when the maintainer asks you to explain or to review a design. Add headings so that
+the text is easy to scan. The rules about the first sentence and the last sentence continue to apply.
