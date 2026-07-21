@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any release.
 
+## [0.22.0](https://github.com/LMLiam/Kotventure/compare/0.21.1...0.22.0) (2026-07-21)
+
+
+### ✨ Features
+
+* **coroutines:** add the coroutines module and suspend click callbacks ([#300](https://github.com/LMLiam/Kotventure/issues/300)) ([7249aeb](https://github.com/LMLiam/Kotventure/commit/7249aeb5a798ee60d8cf245288de8254ce7d3bb6))
+
+
+### 📝 Documentation
+
+* **agents:** add a section on how to write to the maintainer ([#314](https://github.com/LMLiam/Kotventure/issues/314)) ([cc0474a](https://github.com/LMLiam/Kotventure/commit/cc0474adb765f7d91eea3aa2e0141f55bb8f1e9c))
+
 ## [0.21.1](https://github.com/LMLiam/Kotventure/compare/0.21.0...0.21.1) (2026-07-21)
 
 
