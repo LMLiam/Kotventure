@@ -1,8 +1,8 @@
 # `kotventure-coroutines`
 
-This module bridges Kotlin coroutines and [`kotventure-core`](../core/README.md). Use `callback(scope) { ... }` inside a
-`click { }` block to run a suspending body when a player clicks. The body launches into your `CoroutineScope` and runs on
-that scope's dispatcher, not the click thread.
+This module bridges Kotlin coroutines and [`kotventure-core`](../core/README.md). Use `click(scope) { ... }` to run a
+suspending body when a player clicks. The body launches into your `CoroutineScope` and runs on that scope's
+dispatcher, not the click thread.
 
 ## Getting it
 
@@ -14,23 +14,50 @@ dependencies {
 }
 ```
 
-## Suspend click callbacks
+## Suspend clicks
 
 ```kotlin
 audience.message {
     text("Claim reward") {
-        click { callback(pluginScope) { clicker -> rewards.claim(clicker) } }
+        click(pluginScope) { clicker -> rewards.claim(clicker) }
     }
 }
 ```
 
-A click after `pluginScope` is cancelled does nothing. A failure in the body goes to the scope's exception handling.
-Add `uses` and `lifetime`, or pass a prebuilt `ClickCallback.Options`, to limit the callback:
+A click does nothing after the cancellation of `pluginScope`. A failure in the body goes to the scope's exception
+handling. To limit the callback, add `uses` and `lifetime`, or pass a prebuilt `ClickCallback.Options`:
 
 ```kotlin
-click {
-    callback(pluginScope, uses = 1, lifetime = 10.minutes) { clicker -> rewards.claim(clicker) }
+click(pluginScope, uses = 1, lifetime = 10.minutes) { clicker -> rewards.claim(clicker) }
+```
+
+## Context parameters
+
+When a `CoroutineScope` is implicit, omit the argument. For example, a plugin class can implement `CoroutineScope`.
+The lambda must name its clicker parameter. A lambda without a parameter selects the core click-action builder
+instead.
+
+```kotlin
+class RewardsPlugin : JavaPlugin(), CoroutineScope {
+    fun offer(audience: Audience) {
+        audience.message {
+            text("Claim reward") {
+                click { clicker -> rewards.claim(clicker) }
+            }
+        }
+    }
 }
+```
+
+## Reusable events
+
+The top-level form creates one suspend click event for many components:
+
+```kotlin
+val claim = click(pluginScope) { clicker -> rewards.claim(clicker) }
+
+audience.message { text("[Claim]") { click(claim) } }
+broadcast.message { text("[Claim]") { click(claim) } }
 ```
 
 ## Docs

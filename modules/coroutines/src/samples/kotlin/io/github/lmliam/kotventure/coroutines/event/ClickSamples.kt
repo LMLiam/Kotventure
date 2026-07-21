@@ -15,35 +15,33 @@ private class Rewards {
     }
 }
 
-internal fun callbackSample() {
+internal fun clickSample() {
     val audience = emptyAudience()
     val pluginScope = CoroutineScope(Dispatchers.Default)
     val rewards = Rewards()
 
     audience.message {
         text("Claim reward") {
-            click { callback(pluginScope) { clicker -> rewards.claim(clicker) } }
+            click(pluginScope) { clicker -> rewards.claim(clicker) }
         }
     }
 }
 
-internal fun callbackUsesLifetimeSample() {
+internal fun clickUsesLifetimeSample() {
     val audience = emptyAudience()
     val pluginScope = CoroutineScope(Dispatchers.Default)
     val rewards = Rewards()
 
     audience.message {
         text("Claim reward") {
-            click {
-                callback(pluginScope, uses = 1, lifetime = 10.minutes) { clicker ->
-                    rewards.claim(clicker)
-                }
+            click(pluginScope, uses = 1, lifetime = 10.minutes) { clicker ->
+                rewards.claim(clicker)
             }
         }
     }
 }
 
-internal fun callbackOptionsSample() {
+internal fun clickOptionsSample() {
     val audience = emptyAudience()
     val pluginScope = CoroutineScope(Dispatchers.Default)
     val rewards = Rewards()
@@ -55,7 +53,30 @@ internal fun callbackOptionsSample() {
 
     audience.message {
         text("Claim reward") {
-            click { callback(pluginScope, options) { clicker -> rewards.claim(clicker) } }
+            click(pluginScope, options) { clicker -> rewards.claim(clicker) }
         }
     }
+}
+
+internal fun CoroutineScope.contextClickSample() {
+    val audience = emptyAudience()
+    val rewards = Rewards()
+
+    audience.message {
+        text("Claim reward") {
+            click { clicker -> rewards.claim(clicker) }
+        }
+    }
+}
+
+internal fun reusableClickSample() {
+    val audience = emptyAudience()
+    val broadcast = emptyAudience()
+    val pluginScope = CoroutineScope(Dispatchers.Default)
+    val rewards = Rewards()
+
+    val claim = click(pluginScope) { clicker -> rewards.claim(clicker) }
+
+    audience.message { text("[Claim]") { click(claim) } }
+    broadcast.message { text("[Claim]") { click(claim) } }
 }
