@@ -5,6 +5,7 @@ import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.test.text.shouldHaveClickEvent
 import io.github.lmliam.kotventure.test.text.shouldHaveContent
 import io.kotest.assertions.throwables.shouldNotThrowAny
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
@@ -18,7 +19,6 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.event.ClickCallback
 import kotlin.time.Duration.Companion.minutes
 import java.time.Duration as JavaDuration
 
@@ -31,17 +31,13 @@ private fun CoroutineScope.contextClickComponent(): Component =
         }
     }
 
-private fun CoroutineScope.contextUsesLifetimeComponent(): Component =
+private fun CoroutineScope.contextOptionsComponent(): Component =
     component {
         text("Claim") {
-            click(uses = 3, lifetime = 10.minutes) { clicker -> clicker.sendMessage(rewardMessage) }
-        }
-    }
-
-private fun CoroutineScope.contextOptionsComponent(options: ClickCallback.Options): Component =
-    component {
-        text("Claim") {
-            click(options) { clicker -> clicker.sendMessage(rewardMessage) }
+            click(options = {
+                uses(3)
+                lifetime(10.minutes)
+            }) { clicker -> clicker.sendMessage(rewardMessage) }
         }
     }
 
@@ -88,14 +84,17 @@ class ClickDslTest :
                 }
             }
 
-            "attached click forwards uses and lifetime into the recorded options" {
+            "attached click forwards the options block into the recorded options" {
                 runTest {
                     RecordingClickCallbackProvider.reset()
                     val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
 
                     component {
                         text("Claim") {
-                            click(scope, uses = 3, lifetime = 10.minutes) { }
+                            click(scope, options = {
+                                uses(3)
+                                lifetime(10.minutes)
+                            }) { }
                         }
                     }
 
@@ -104,35 +103,15 @@ class ClickDslTest :
                 }
             }
 
-            "attached click forwards prebuilt options into the recorded options" {
-                runTest {
-                    RecordingClickCallbackProvider.reset()
-                    val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
-                    val options = optionsWithUses(4)
-
-                    component {
-                        text("Claim") {
-                            click(scope, options) { }
-                        }
-                    }
-
-                    RecordingClickCallbackProvider.lastOptions shouldBe options
-                }
-            }
-
-            "context click forwards uses, lifetime and prebuilt options" {
+            "context click forwards the options block into the recorded options" {
                 runTest {
                     RecordingClickCallbackProvider.reset()
                     val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
 
-                    scope.contextUsesLifetimeComponent()
+                    scope.contextOptionsComponent()
+
                     RecordingClickCallbackProvider.lastOptions?.uses() shouldBe 3
                     RecordingClickCallbackProvider.lastOptions?.lifetime() shouldBe JavaDuration.ofMinutes(10)
-
-                    RecordingClickCallbackProvider.reset()
-                    val options = optionsWithUses(4)
-                    scope.contextOptionsComponent(options)
-                    RecordingClickCallbackProvider.lastOptions shouldBe options
                 }
             }
 
@@ -155,19 +134,32 @@ class ClickDslTest :
                 }
             }
 
-            "reusable click forwards uses, lifetime and prebuilt options" {
+            "reusable click forwards the options block into the recorded options" {
                 runTest {
                     RecordingClickCallbackProvider.reset()
                     val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
 
-                    click(scope, uses = 3, lifetime = 10.minutes) { }
+                    click(scope, options = {
+                        uses(3)
+                        lifetime(10.minutes)
+                    }) { }
+
                     RecordingClickCallbackProvider.lastOptions?.uses() shouldBe 3
                     RecordingClickCallbackProvider.lastOptions?.lifetime() shouldBe JavaDuration.ofMinutes(10)
+                }
+            }
 
+            "rejects a second use count in one options block" {
+                runTest {
                     RecordingClickCallbackProvider.reset()
-                    val options = optionsWithUses(4)
-                    click(scope, options) { }
-                    RecordingClickCallbackProvider.lastOptions shouldBe options
+                    val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
+
+                    shouldThrow<IllegalStateException> {
+                        click(scope, options = {
+                            uses(1)
+                            uses(2)
+                        }) { }
+                    }
                 }
             }
 
@@ -214,10 +206,3 @@ class ClickDslTest :
             }
         },
     )
-
-private fun optionsWithUses(uses: Int): ClickCallback.Options =
-    ClickCallback.Options
-        .builder()
-        .uses(uses)
-        .lifetime(JavaDuration.ofSeconds(45))
-        .build()

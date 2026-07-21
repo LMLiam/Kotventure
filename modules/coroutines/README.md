@@ -25,15 +25,14 @@ audience.message {
 ```
 
 A click does nothing after the cancellation of `pluginScope`. A failure in the body goes to the scope's exception
-handling. To limit the callback, add `uses` and `lifetime`, or pass a prebuilt `ClickCallback.Options`:
+handling. To limit the callback, set `uses` and `lifetime` in the `options` block. Unset slots keep the Adventure
+defaults: one use, and a lifetime of twelve hours.
 
 ```kotlin
-click(pluginScope, uses = 1, lifetime = 10.minutes) { clicker -> rewards.claim(clicker) }
-```
-
-```kotlin
-val options = ClickCallback.Options.builder().uses(1).build()
-click(pluginScope, options) { clicker -> rewards.claim(clicker) }
+click(pluginScope, options = {
+    uses(1)
+    lifetime(10.minutes)
+}) { clicker -> rewards.claim(clicker) }
 ```
 
 ## Context parameters

@@ -7,7 +7,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import net.kyori.adventure.audience.Audience
-import net.kyori.adventure.text.event.ClickCallback
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 
@@ -30,33 +29,17 @@ internal fun clickSample() {
     }
 }
 
-internal fun clickUsesLifetimeSample() {
-    val audience = emptyAudience()
-    val pluginScope = CoroutineScope(Dispatchers.Default)
-    val rewards = Rewards()
-
-    audience.message {
-        text("Claim reward") {
-            click(pluginScope, uses = 1, lifetime = 10.minutes) { clicker ->
-                rewards.claim(clicker)
-            }
-        }
-    }
-}
-
 internal fun clickOptionsSample() {
     val audience = emptyAudience()
     val pluginScope = CoroutineScope(Dispatchers.Default)
     val rewards = Rewards()
-    val options =
-        ClickCallback.Options
-            .builder()
-            .uses(1)
-            .build()
 
     audience.message {
         text("Claim reward") {
-            click(pluginScope, options) { clicker -> rewards.claim(clicker) }
+            click(pluginScope, options = {
+                uses(1)
+                lifetime(10.minutes)
+            }) { clicker -> rewards.claim(clicker) }
         }
     }
 }
@@ -84,32 +67,15 @@ internal fun contextClickSample() {
 }
 
 context(_: CoroutineScope)
-internal fun contextClickUsesLifetimeSample() {
-    val audience = emptyAudience()
-    val rewards = Rewards()
-
-    audience.message {
-        text("Claim reward") {
-            click(uses = 1, lifetime = 10.minutes) { clicker ->
-                rewards.claim(clicker)
-            }
-        }
-    }
-}
-
-context(_: CoroutineScope)
 internal fun contextClickOptionsSample() {
     val audience = emptyAudience()
     val rewards = Rewards()
-    val options =
-        ClickCallback.Options
-            .builder()
-            .uses(1)
-            .build()
 
     audience.message {
         text("Claim reward") {
-            click(options) { clicker -> rewards.claim(clicker) }
+            click(options = { uses(1) }) { clicker ->
+                rewards.claim(clicker)
+            }
         }
     }
 }
