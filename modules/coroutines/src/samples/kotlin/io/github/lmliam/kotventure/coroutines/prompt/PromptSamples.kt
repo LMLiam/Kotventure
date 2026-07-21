@@ -35,7 +35,7 @@ internal suspend fun askSample() {
 }
 
 private val unlockedKitPrompt =
-    Prompt<Kit> {
+    Prompt {
         text("Choose a kit: ")
         unlockedKits(viewer).forEach { kit ->
             option(kit) { text("[$kit]") { color(gold) } }
