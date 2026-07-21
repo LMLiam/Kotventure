@@ -39,13 +39,13 @@ public class ManualTicker : Ticker {
 
     /**
      * Advances virtual time by [duration] and runs all tasks due in that period.
-     *
+ *
      * The method runs tasks in chronological order. If tasks have the same due time, it runs them
      * in registration order. A task can cancel itself or another task during its action.
      *
      * If an action throws an exception, this method propagates it. Virtual time remains at that
      * action's due time, and the failed repeating task is not scheduled again.
-     *
+ *
      * @throws IllegalArgumentException when [duration] is negative.
      * @throws Throwable when a scheduled action throws it.
      */

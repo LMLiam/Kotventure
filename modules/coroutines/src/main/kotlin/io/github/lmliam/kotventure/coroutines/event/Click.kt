@@ -9,6 +9,9 @@ import net.kyori.adventure.text.event.ClickCallback
 import net.kyori.adventure.text.event.ClickEvent
 import kotlin.time.Duration
 
+private fun CoroutineScope.launching(function: suspend (Audience) -> Unit): ClickCallback<Audience> =
+    ClickCallback { audience -> launch { function(audience) } }
+
 /**
  * Applies a click event that runs a suspending [function] when a player clicks.
  *
@@ -21,7 +24,7 @@ import kotlin.time.Duration
 public fun ClickScope.click(
     scope: CoroutineScope,
     function: suspend (Audience) -> Unit,
-): Unit = click { callback { audience -> scope.launch { function(audience) } } }
+): Unit = click { callback(scope.launching(function)) }
 
 /**
  * Applies a click event that runs a suspending [function] with [uses] and [lifetime].
@@ -38,7 +41,7 @@ public fun ClickScope.click(
     uses: Int,
     lifetime: Duration,
     function: suspend (Audience) -> Unit,
-): Unit = click { callback(uses, lifetime) { audience -> scope.launch { function(audience) } } }
+): Unit = click { callback(uses, lifetime, scope.launching(function)) }
 
 /**
  * Applies a click event that runs a suspending [function] with prebuilt [options].
@@ -53,7 +56,7 @@ public fun ClickScope.click(
     scope: CoroutineScope,
     options: ClickCallback.Options,
     function: suspend (Audience) -> Unit,
-): Unit = click { callback(options) { audience -> scope.launch { function(audience) } } }
+): Unit = click { callback(options, scope.launching(function)) }
 
 /**
  * Applies a click event that runs a suspending [function] in the [CoroutineScope] from the context.
@@ -67,8 +70,7 @@ public fun ClickScope.click(
  * @sample io.github.lmliam.kotventure.coroutines.event.contextClickSample
  */
 context(scope: CoroutineScope)
-public fun ClickScope.click(function: suspend (Audience) -> Unit): Unit =
-    click { callback { audience -> scope.launch { function(audience) } } }
+public fun ClickScope.click(function: suspend (Audience) -> Unit): Unit = click { callback(scope.launching(function)) }
 
 /**
  * Applies a click event that runs a suspending [function] with [uses] and [lifetime] in the [CoroutineScope] from
@@ -86,7 +88,7 @@ public fun ClickScope.click(
     uses: Int,
     lifetime: Duration,
     function: suspend (Audience) -> Unit,
-): Unit = click { callback(uses, lifetime) { audience -> scope.launch { function(audience) } } }
+): Unit = click { callback(uses, lifetime, scope.launching(function)) }
 
 /**
  * Applies a click event that runs a suspending [function] with prebuilt [options] in the [CoroutineScope] from the
@@ -102,7 +104,7 @@ context(scope: CoroutineScope)
 public fun ClickScope.click(
     options: ClickCallback.Options,
     function: suspend (Audience) -> Unit,
-): Unit = click { callback(options) { audience -> scope.launch { function(audience) } } }
+): Unit = click { callback(options, scope.launching(function)) }
 
 /**
  * Creates a reusable click event that runs a suspending [function] when a player clicks.
@@ -116,7 +118,7 @@ public fun ClickScope.click(
 public fun click(
     scope: CoroutineScope,
     function: suspend (Audience) -> Unit,
-): ClickEvent<*> = click { callback { audience -> scope.launch { function(audience) } } }
+): ClickEvent<*> = click { callback(scope.launching(function)) }
 
 /**
  * Creates a reusable click event that runs a suspending [function] with [uses] and [lifetime].
@@ -132,7 +134,7 @@ public fun click(
     uses: Int,
     lifetime: Duration,
     function: suspend (Audience) -> Unit,
-): ClickEvent<*> = click { callback(uses, lifetime) { audience -> scope.launch { function(audience) } } }
+): ClickEvent<*> = click { callback(uses, lifetime, scope.launching(function)) }
 
 /**
  * Creates a reusable click event that runs a suspending [function] with prebuilt [options].
@@ -146,4 +148,4 @@ public fun click(
     scope: CoroutineScope,
     options: ClickCallback.Options,
     function: suspend (Audience) -> Unit,
-): ClickEvent<*> = click { callback(options) { audience -> scope.launch { function(audience) } } }
+): ClickEvent<*> = click { callback(options, scope.launching(function)) }

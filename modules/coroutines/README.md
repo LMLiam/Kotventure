@@ -31,6 +31,11 @@ handling. To limit the callback, add `uses` and `lifetime`, or pass a prebuilt `
 click(pluginScope, uses = 1, lifetime = 10.minutes) { clicker -> rewards.claim(clicker) }
 ```
 
+```kotlin
+val options = ClickCallback.Options.builder().uses(1).build()
+click(pluginScope, options) { clicker -> rewards.claim(clicker) }
+```
+
 ## Context parameters
 
 When a `CoroutineScope` is implicit, omit the argument. For example, a plugin class can implement `CoroutineScope`.

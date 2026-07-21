@@ -29,7 +29,7 @@ public interface TextScope : ComponentScope {
 
     /**
      * Applies a gradient from [stops] to the literal content, one Unicode code point at a time.
-     *
+ *
      * @throws IllegalArgumentException when [stops] contains fewer than two colours.
      * @throws IllegalStateException when a gradient is already set in this block. The build also throws this exception when the
      *         component's content is empty and there is no text to colour.
