@@ -78,6 +78,84 @@ audience.message { text("[Claim]") { click(claim) } }
 broadcast.message { text("[Claim]") { click(claim) } }
 ```
 
+## Ask prompts
+
+`ask` sends a question and waits. It resumes with the value of the option that the player clicks.
+
+```kotlin
+val kit = audience.ask {
+    text("Choose a kit: ")
+    option(Kit.ARCHER) { text("[Archer]") { color(green) } }
+    text(" ")
+    option(Kit.MAGE) { text("[Mage]") { color(aqua) } }
+}
+
+audience.message { text("Enjoy your $kit!") }
+```
+
+The block is a full component build. Each `option` appends a clickable child. Each other operation appends text around
+the options. The awaiting coroutine is the scope of the call. Thus, `ask` has no `CoroutineScope` parameter.
+
+The first click resumes the prompt. A later click does nothing. A prompt with no options fails immediately, and the
+function sends nothing.
+
+### Deadlines
+
+`ask` has no timeout parameter. Set a deadline with `withTimeout` or `withTimeoutOrNull`:
+
+```kotlin
+val kit = withTimeoutOrNull(30.seconds) {
+    audience.ask { ... }
+}
+```
+
+Cancellation makes the prompt dead. Each click after cancellation does nothing.
+
+The `lifetime` parameter sets how long the buttons stay clickable. The default is Adventure's twelve hours.
+
+```kotlin
+val kit = audience.ask(lifetime = 5.minutes) { ... }
+```
+
+### Reusable prompts
+
+A `Prompt` is a template, not a component. `ask` runs the template one time for each audience. Therefore, a prompt that
+reads `viewer` shows different options to different audiences.
+
+```kotlin
+val kitPrompt = Prompt<Kit> {
+    text("Choose a kit: ")
+    kits.unlocked(viewer).forEach { kit ->
+        option(kit) { text("[${kit.label}]") { color(kit.color) } }
+    }
+}
+
+val kit = audience.ask(kitPrompt)
+```
+
+A prompt class can carry its dependencies, and an object can hold a static prompt:
+
+```kotlin
+class ShopPrompt(shop: Shop) : Prompt<Item>({
+    shop.stockFor(viewer).forEach { item -> option(item) { text("[${item.name}]") } }
+})
+
+object KitPrompt : Prompt<Kit>({
+    text("Choose a kit: ")
+    option(Kit.ARCHER) { text("[Archer]") { color(green) } }
+})
+
+val kit = audience.ask(KitPrompt, lifetime = 5.minutes)
+```
+
+Kotventure scopes use one DSL marker. Therefore, an `option` block masks `viewer`. Inside an option block, use a label
+such as `this@ask.viewer`, or read the property into a local value before the block.
+
+### Broadcasts
+
+Each member of an audience receives the message. The first member to click claims the answer. This behaviour is correct
+for a "first to click" broadcast. `ask` gives one answer, because a suspending function resumes one time.
+
 ## Docs
 
 - [Getting Started guide](../../docs/GETTING-STARTED.md)
