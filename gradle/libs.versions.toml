@@ -8,6 +8,7 @@ kotestPlugin = "6.2.2"
 mockk = "1.14.11"
 jetbrainsAnnotations = "26.1.0"
 kotlin = "2.4.0"
+kotlinxCoroutines = "1.11.0"
 kover = "0.9.8"
 paperApi = "26.2.build.60-beta"
 spotless = "8.8.0"
@@ -27,6 +28,8 @@ junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher
 kctfork-core = { module = "dev.zacsweers.kctfork:core", version.ref = "kctfork" }
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paperApi" }
 
