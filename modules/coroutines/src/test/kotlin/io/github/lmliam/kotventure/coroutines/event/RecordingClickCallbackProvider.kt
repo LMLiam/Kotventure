@@ -29,8 +29,8 @@ internal class RecordingClickCallbackProvider : ClickCallback.Provider {
         internal val lastEvent: ClickEvent<*>
             get() = last().event
 
-        internal val lastOptions: ClickCallback.Options?
-            get() = recordings.lastOrNull()?.options
+        internal val lastOptions: ClickCallback.Options
+            get() = last().options
 
         internal fun eventAt(index: Int): ClickEvent<*> = recordings[index].event
 

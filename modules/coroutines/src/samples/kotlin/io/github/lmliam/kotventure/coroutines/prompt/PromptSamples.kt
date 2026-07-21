@@ -9,27 +9,19 @@ import io.github.lmliam.kotventure.core.text.text
 import net.kyori.adventure.audience.Audience
 import kotlin.time.Duration.Companion.minutes
 
-internal enum class Kit {
-    ARCHER,
-    MAGE,
-}
+private fun unlockedKits(
+    @Suppress("UNUSED_PARAMETER") player: Audience,
+): List<Kit> = listOf(Kit.ARCHER, Kit.MAGE)
 
-private class Kits {
-    fun unlocked(
-        @Suppress("UNUSED_PARAMETER") player: Audience,
-    ): List<Kit> = listOf(Kit.ARCHER, Kit.MAGE)
-
-    fun give(
-        player: Audience,
-        kit: Kit,
-    ) {
-        player.message { text("You have the $kit kit.") }
-    }
+private fun give(
+    player: Audience,
+    kit: Kit,
+) {
+    player.message { text("You have the $kit kit.") }
 }
 
 internal suspend fun askSample() {
     val player = emptyAudience()
-    val kits = Kits()
 
     val kit =
         player.ask {
@@ -39,13 +31,13 @@ internal suspend fun askSample() {
             option(Kit.MAGE) { text("[Mage]") { color(aqua) } }
         }
 
-    kits.give(player, kit)
+    give(player, kit)
 }
 
-private val kitPrompt =
+private val unlockedKitPrompt =
     Prompt<Kit> {
         text("Choose a kit: ")
-        Kits().unlocked(viewer).forEach { kit ->
+        unlockedKits(viewer).forEach { kit ->
             option(kit) { text("[$kit]") { color(gold) } }
         }
     }
@@ -53,23 +45,17 @@ private val kitPrompt =
 internal suspend fun promptValueSample() {
     val player = emptyAudience()
 
-    val kit = player.ask(kitPrompt)
+    val kit = player.ask(unlockedKitPrompt)
 
-    Kits().give(player, kit)
+    give(player, kit)
 }
-
-internal object KitPrompt : Prompt<Kit>({
-    text("Choose a kit: ")
-    option(Kit.ARCHER) { text("[Archer]") { color(green) } }
-    option(Kit.MAGE) { text("[Mage]") { color(aqua) } }
-})
 
 internal suspend fun promptObjectSample() {
     val player = emptyAudience()
 
     val kit = player.ask(KitPrompt)
 
-    Kits().give(player, kit)
+    give(player, kit)
 }
 
 internal suspend fun askPromptSample() {
@@ -77,5 +63,5 @@ internal suspend fun askPromptSample() {
 
     val kit = player.ask(KitPrompt, lifetime = 5.minutes)
 
-    Kits().give(player, kit)
+    give(player, kit)
 }
