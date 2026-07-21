@@ -8,7 +8,6 @@ dependencies {
     api project(':core')
     api kotventureDependencies."kotlinx-coroutines-core"
 
-    testImplementation project(':core')
     testImplementation project(':test')
     testImplementation kotventureDependencies."kotlinx-coroutines-test"
 }

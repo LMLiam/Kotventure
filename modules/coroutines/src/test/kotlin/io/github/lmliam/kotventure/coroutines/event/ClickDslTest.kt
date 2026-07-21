@@ -217,7 +217,7 @@ class ClickDslTest :
 
 private fun optionsWithUses(uses: Int): ClickCallback.Options =
     ClickCallback.Options
-            .builder()
-            .uses(uses)
-            .lifetime(JavaDuration.ofSeconds(45))
-            .build()
+        .builder()
+        .uses(uses)
+        .lifetime(JavaDuration.ofSeconds(45))
+        .build()

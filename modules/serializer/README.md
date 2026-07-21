@@ -34,5 +34,6 @@ val imported = "&6Welcome".asLegacyAmpersandComponent()
 | Plain text   | `toPlainText()`       | —                                                                   |
 | MiniMessage  | `toMiniMessage()`     | `mini(...)` in [`kotventure-minimessage`](../minimessage/README.md) |
 
-Plain-text conversion works in one direction because it removes formatting. The `minimessage` module contains MiniMessage parsing.
+Plain-text conversion works in one direction because it removes formatting. The `minimessage` module contains
+MiniMessage parsing.
 Thus, this module remains a small serialiser adapter.

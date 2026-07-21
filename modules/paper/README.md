@@ -1,8 +1,10 @@
 # `kotventure-paper`
 
 This module provides the Paper platform bundle. Paper implements Adventure as a native API.
-Each `Player`, the console, and the `Server` implement `Audience`. Thus, they can use the audience DSL from [`core`](../core/README.md).
-The module also adapts Paper Folia schedulers to [`Ticker`](../core/src/main/kotlin/io/github/lmliam/kotventure/core/time/Ticker.kt).
+Each `Player`, the console, and the `Server` implement `Audience`. Thus, they can use the audience DSL from [
+`core`](../core/README.md).
+The module also adapts Paper Folia schedulers to [
+`Ticker`](../core/src/main/kotlin/io/github/lmliam/kotventure/core/time/Ticker.kt).
 Managed UI can use the global tick, the region that owns an entity, or a fixed region.
 
 ## Getting it
@@ -38,17 +40,21 @@ class MyPlugin : JavaPlugin() {
 }
 ```
 
-The same code runs on Paper and Folia. Select the ticker for the dispatch target. Kotventure does not use a mode selection.
+The same code runs on Paper and Folia. Select the ticker for the dispatch target. Kotventure does not use a mode
+selection.
 The global ticker uses the global tick context. The entity ticker follows the entity region.
 
 The location ticker selects the region when you schedule a task. It does not follow later location changes. The server
 cancels scheduled tasks when the plugin stops.
 
 Paper schedulers operate only on complete game ticks (50 ms). `repeating` rejects an interval that it cannot honour.
-It throws `IllegalArgumentException` and does not round the interval. It accepts `1.seconds`, `500.milliseconds`, and `3.ticks`.
+It throws `IllegalArgumentException` and does not round the interval. It accepts `1.seconds`, `500.milliseconds`, and
+`3.ticks`.
 
-It rejects `75.milliseconds`. The entity ticker throws `IllegalStateException` if Paper removed the entity before the call.
-If Paper removes the entity after the call, Paper stops the task. In unit tests, use the deterministic `ManualTicker` from
+It rejects `75.milliseconds`. The entity ticker throws `IllegalStateException` if Paper removed the entity before the
+call.
+If Paper removes the entity after the call, Paper stops the task. In unit tests, use the deterministic `ManualTicker`
+from
 [`kotventure-test`](../test/README.md). This test ticker does not need a scheduler or server.
 
 A plugin must declare `folia-supported: true` in its `plugin.yml` to load on Folia.
@@ -56,8 +62,10 @@ Kotventure does not need more runtime configuration.
 
 ## Item name & lore
 
-The `io.github.lmliam.kotventure.paper.item` package creates item stacks. It replaces custom names or lore through Paper data components or `ItemMeta`.
-Each line other than a `blank()` line has a non-italic style unless the line selects italics. This prevents the inherited
+The `io.github.lmliam.kotventure.paper.item` package creates item stacks. It replaces custom names or lore through Paper
+data components or `ItemMeta`.
+Each line other than a `blank()` line has a non-italic style unless the line selects italics. This prevents the
+inherited
 Minecraft italic style.
 
 ```kotlin
@@ -112,7 +120,8 @@ player.dialog(notice) {
 ```
 
 Each singleton slot rejects a second assignment. A missing `title` causes `IllegalStateException`.
-Repeatable bodies and `inputs { … }` blocks keep call order. Each dialog scope contains only the values that Paper accepts:
+Repeatable bodies and `inputs { … }` blocks keep call order. Each dialog scope contains only the values that Paper
+accepts:
 
 - `notice { button { … } }` has an optional button.
 - A `confirmation` dialog requires both `yes` and `no` buttons.
@@ -128,5 +137,7 @@ Use an `options` block to add option identifiers. An option block can set `displ
 form adds an identifier with Paper's default display.
 A button can have one action. Select `onClick`, `runCommand`, `custom`, or the core `click` DSL.
 
-Dialogs require a Minecraft **1.21.6+** server and client. Adventure `showDialog` and `closeDialog` provide the transport.
-Adventure specifies no operation for a platform or audience that does not support dialogs. Thus, `Audience.dialog { … }` does not fail there.
+Dialogs require a Minecraft **1.21.6+** server and client. Adventure `showDialog` and `closeDialog` provide the
+transport.
+Adventure specifies no operation for a platform or audience that does not support dialogs. Thus, `Audience.dialog { … }`
+does not fail there.

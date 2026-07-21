@@ -65,7 +65,7 @@ public interface ButtonScope {
 
     /**
      * Selects a server-side callback action with a use limit and a lifetime.
- *
+     *
      * @throws IllegalStateException when an action is already selected in this block.
      * @throws IllegalArgumentException when [uses] or [lifetime] is not valid for Paper.
      */

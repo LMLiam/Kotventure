@@ -5,12 +5,15 @@ import io.github.lmliam.kotventure.core.audience.message
 import io.github.lmliam.kotventure.core.text.text
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.event.ClickCallback
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 
 private class Rewards {
     suspend fun claim(clicker: Audience) {
+        delay(50.milliseconds)
         clicker.sendMessage(text("Reward claimed"))
     }
 }
@@ -47,9 +50,9 @@ internal fun clickOptionsSample() {
     val rewards = Rewards()
     val options =
         ClickCallback.Options
-                .builder()
-                .uses(1)
-                .build()
+            .builder()
+            .uses(1)
+            .build()
 
     audience.message {
         text("Claim reward") {

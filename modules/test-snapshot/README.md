@@ -28,8 +28,10 @@ import io.github.lmliam.kotventure.test.snapshot.shouldMatchSnapshot
 component shouldMatchSnapshot "welcome-message"
 ```
 
-The [`serializer`](../serializer) module converts the component to canonical JSON. The snapshot formatter adds indentation.
-Thus, committed snapshots give clear line-by-line differences. A mismatch or a missing snapshot fails with the applicable JSON.
+The [`serializer`](../serializer) module converts the component to canonical JSON. The snapshot formatter adds
+indentation.
+Thus, committed snapshots give clear line-by-line differences. A mismatch or a missing snapshot fails with the
+applicable JSON.
 
 Snapshots live under your test resources at `snapshots/<name>.snapshot.json`:
 
@@ -39,7 +41,8 @@ src/test/resources/snapshots/welcome-message.snapshot.json
 
 ## Recording and updating
 
-The matcher does not write snapshots without record mode. Enable record mode with a system property or environment variable.
+The matcher does not write snapshots without record mode. Enable record mode with a system property or environment
+variable.
 Record mode writes a missing or different snapshot:
 
 | Setting            | System property              | Environment variable | Effect                                                                                                                                         |

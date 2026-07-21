@@ -1,7 +1,8 @@
 # `kotventure-minimessage`
 
 This module adds typed and validated [MiniMessage](https://docs.advntr.dev/minimessage/index.html) to
-[`kotventure-core`](../core/README.md). Use `mini(...)` to parse markup. Declare reusable templates with compile-checked Kotlin properties.
+[`kotventure-core`](../core/README.md). Use `mini(...)` to parse markup. Declare reusable templates with compile-checked
+Kotlin properties.
 Validate markup during configuration load. Convert MiniMessage strings to equivalent Kotventure DSL code.
 
 ## Getting it
@@ -48,8 +49,10 @@ An unbound, duplicate, or foreign placeholder causes an immediate failure. The e
 ## Validation & conversion
 
 - `validate(markup, placeholders)` and `template.validate()` return a `ValidationResult`.
-  Its diagnostics identify malformed tags, missing declared placeholders, and undeclared custom tags. Run validation during configuration load.
-- `miniToDsl("<gold>Welcome <bold>back</bold>!")` emits equivalent Kotventure DSL source. Use it to move string assets to typed code.
+  Its diagnostics identify malformed tags, missing declared placeholders, and undeclared custom tags. Run validation
+  during configuration load.
+- `miniToDsl("<gold>Welcome <bold>back</bold>!")` emits equivalent Kotventure DSL source. Use it to move string assets
+  to typed code.
 
 ## Docs
 
