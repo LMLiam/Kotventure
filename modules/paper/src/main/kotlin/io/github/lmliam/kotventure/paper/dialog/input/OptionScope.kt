@@ -5,8 +5,9 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import net.kyori.adventure.text.ComponentLike
 
 /**
- * Configures a single option entry. Both slots are optional; at most one option per input may be
- * marked [default].
+ * Configures one entry in a single-choice input.
+ *
+ * Both settings are optional. The input can have only one default entry.
  */
 @KotventureDslMarker
 public interface OptionScope {
@@ -25,7 +26,7 @@ public interface OptionScope {
     public fun <T : ComponentLike> display(component: T): Unit
 
     /**
-     * Marks this option as the default (initially selected) one.
+     * Marks this option as the initially selected entry.
      *
      * @throws IllegalStateException when this slot is already set in this block.
      */

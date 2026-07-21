@@ -1,6 +1,6 @@
 ## Summary
 
-<!-- Which documentation is being updated or added? -->
+<!-- Identify the documentation that this pull request adds or changes. -->
 
 ## Related Issues
 
@@ -11,10 +11,10 @@ Closes #<issue-number> <!-- (if applicable) -->
 - [ ] README
 - [ ] `/docs/design/*`
 - [ ] DSL usage examples
-- [ ] Onboarding/setup guides
+- [ ] Onboarding and setup guides
 
 ## Checklist
 
-- [ ] Verified examples compile
-- [ ] Linked related issue (if applicable)
-- [ ] Content matches current API behaviour
+- [ ] Verify that examples compile
+- [ ] Link the related issue, if applicable
+- [ ] Confirm that the content matches current API behaviour

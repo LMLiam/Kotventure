@@ -1,50 +1,53 @@
 package io.github.lmliam.kotventure.core.nbt
 
 /**
- * A typed NBT path supporting indexed traversal, all-elements selection, and compound filters.
+ * An immutable NBT path with key, index, all-elements, and compound-filter segments.
  *
- * Construct via [nbtPath] and chain the indexing operators:
+ * Create a path with [nbtPath]. Then, use the indexing operators to append segments. Each operator returns a new path
+ * and does not change the source path.
+ *
  * @sample io.github.lmliam.kotventure.core.nbt.nbtPathSample
  *
- * For syntax not covered by the typed API, pass a pre-formed path string to [nbtPath]; it is used
- * verbatim as the first segment:
+ * For syntax that this API does not cover, give [nbtPath] a preformed path string. The function uses that string
+ * without validation or escaping as the first segment.
+ *
  * @sample io.github.lmliam.kotventure.core.nbt.nbtPathVerbatimSample
  */
 public class NbtPath internal constructor(
     internal val nodes: List<NbtPathNode>,
 ) {
     /**
-     * Navigates into a compound key.
+     * Returns a path with [key] appended as a compound-key segment.
      *
      * @sample io.github.lmliam.kotventure.core.nbt.nbtPathKeySample
      */
     public operator fun get(key: String): NbtPath = NbtPath(nodes + NbtPathNode.Key(key))
 
     /**
-     * Navigates into a list element by index.
+     * Returns a path with [index] appended as a list-index segment.
      *
      * @sample io.github.lmliam.kotventure.core.nbt.nbtPathIndexSample
      */
     public operator fun get(index: Int): NbtPath = NbtPath(nodes + NbtPathNode.Index(index))
 
     /**
-     * Applies an [all]-elements or [matching] compound-filter selection.
+     * Returns a path with the [selection] segment appended.
      *
      * @sample io.github.lmliam.kotventure.core.nbt.nbtPathSelectionSample
      */
     public operator fun get(selection: NbtSelection): NbtPath = NbtPath(nodes + selection.node)
 
     /**
-     * Renders this path to Minecraft NBT path syntax for handoff to Adventure.
+     * Returns this path in Minecraft NBT path syntax.
      */
     public fun asString(): String = renderNodes(nodes)
 
-    /** Same rendering as [asString]. */
+    /** Returns the same Minecraft NBT path syntax as [asString]. */
     override fun toString(): String = asString()
 
-    /** Value equality over the node list. */
+    /** Returns `true` when [other] contains the same path segments in the same order. */
     override fun equals(other: Any?): Boolean = other is NbtPath && nodes == other.nodes
 
-    /** Consistent with [equals]: derived from the node list. */
+    /** Returns a hash code for the ordered path segments. */
     override fun hashCode(): Int = nodes.hashCode()
 }

@@ -8,8 +8,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentLike
 
 /**
- * Matches a component with exactly [expected] direct child components. Combine with `and`/`or` or negate with
- * `shouldNot`.
+ * Returns a matcher that accepts a component with [expected] direct children.
  */
 public fun haveChildCount(expected: Int): Matcher<Component> =
     Matcher { value ->
@@ -22,7 +21,9 @@ public fun haveChildCount(expected: Int): Matcher<Component> =
     }
 
 /**
- * Matches a component whose direct children equal [expected] in the same order (structural equality).
+ * Returns a matcher that compares direct children with [expected] in order.
+ *
+ * The matcher uses structural component equality.
  */
 public fun <T : ComponentLike> haveChildren(vararg expected: T): Matcher<Component> =
     Matcher { value ->
@@ -36,7 +37,9 @@ public fun <T : ComponentLike> haveChildren(vararg expected: T): Matcher<Compone
     }
 
 /**
- * Matches a component whose tree contains [expected] anywhere (by structural equality).
+ * Returns a matcher that searches the complete component tree for [expected].
+ *
+ * The matcher includes the root and uses structural component equality.
  */
 public fun <T : ComponentLike> containComponent(expected: T): Matcher<Component> =
     Matcher { value ->
@@ -49,7 +52,10 @@ public fun <T : ComponentLike> containComponent(expected: T): Matcher<Component>
     }
 
 /**
- * Asserts that this component has exactly [expected] direct child components.
+ * Verifies that this component has [expected] direct children.
+ *
+ * @return this component, for chained assertions.
+ * @throws AssertionError when the child count differs from [expected].
  */
 public infix fun Component.shouldHaveChildCount(expected: Int): Component =
     apply {
@@ -57,7 +63,10 @@ public infix fun Component.shouldHaveChildCount(expected: Int): Component =
     }
 
 /**
- * Asserts that this component has no direct child components.
+ * Verifies that this component has no direct children.
+ *
+ * @return this component, for chained assertions.
+ * @throws AssertionError when the component has a direct child.
  */
 public fun Component.shouldHaveNoChildren(): Component =
     apply {
@@ -65,7 +74,10 @@ public fun Component.shouldHaveNoChildren(): Component =
     }
 
 /**
- * Asserts that this component's direct children are exactly [expected] in order.
+ * Verifies that this component has the direct children [expected] in order.
+ *
+ * @return this component, for chained assertions.
+ * @throws AssertionError when the direct children differ from [expected].
  */
 public fun <T : ComponentLike> Component.shouldHaveChildren(vararg expected: T): Component =
     apply {
@@ -73,7 +85,10 @@ public fun <T : ComponentLike> Component.shouldHaveChildren(vararg expected: T):
     }
 
 /**
- * Asserts that this component's tree contains [expected] (by structural equality).
+ * Verifies that this component tree contains [expected] by structural equality.
+ *
+ * @return this component, for chained assertions.
+ * @throws AssertionError when the tree does not contain [expected].
  */
 public infix fun <T : ComponentLike> Component.shouldContainComponent(expected: T): Component =
     apply {
@@ -81,7 +96,10 @@ public infix fun <T : ComponentLike> Component.shouldContainComponent(expected: 
     }
 
 /**
- * Asserts that this component's tree does NOT contain [expected] (by structural equality).
+ * Verifies that this component tree does not contain [expected] by structural equality.
+ *
+ * @return this component, for chained assertions.
+ * @throws AssertionError when the tree contains [expected].
  */
 public infix fun <T : ComponentLike> Component.shouldNotContainComponent(expected: T): Component =
     apply {
@@ -89,7 +107,9 @@ public infix fun <T : ComponentLike> Component.shouldNotContainComponent(expecte
     }
 
 /**
- * Returns this component's child at [index], or fails with a readable test error.
+ * Returns the direct child at [index].
+ *
+ * @throws IllegalStateException when [index] is outside the direct-child list.
  */
 public fun Component.childAt(index: Int): Component {
     val children = children()

@@ -14,10 +14,11 @@ import org.bukkit.inventory.meta.trim.TrimPattern
 import java.util.function.Consumer
 
 /**
- * ServiceLoader-registered [InlinedRegistryBuilderProvider] that runs the DSL's registry consumer
- * against a recording entry builder and returns a [FakeDialog] carrying the captured base and type.
+ * Supplies an [InlinedRegistryBuilderProvider] to tests through `ServiceLoader`.
  *
- * Same registry-class-initialization constraint as [FakeRegistryAccess]: no mockk on this path.
+ * The provider runs the registry consumer with a recording entry builder. It returns a [FakeDialog]
+ * with the recorded base and type. Do not replace this class with a MockK proxy. [FakeRegistryAccess]
+ * describes the related class-initialisation constraint.
  */
 class FakeInlinedRegistryBuilderProvider : InlinedRegistryBuilderProvider {
     override fun createDialog(

@@ -6,7 +6,7 @@ import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.sound.SoundStop
 
 /**
- * Configures a [SoundStop] describing which in-flight client sounds to halt.
+ * Configures a [SoundStop] that selects in-flight client sounds to stop.
  *
  * Exactly one of the four Adventure factory shapes must result: [all], [named] alone, [source]
  * alone, or [named] plus [source]. An empty block is rejected so stopping everything is never a

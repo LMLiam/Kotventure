@@ -3,7 +3,7 @@ package io.github.lmliam.kotventure.core.selector
 import kotlin.ConsistentCopyVisibility
 
 /**
- * Whole-advancement or criterion-level progress.
+ * A required advancement state, for the complete advancement or for individual criteria.
  */
 public sealed interface SelectorAdvancementProgress {
     /**
@@ -25,7 +25,9 @@ public sealed interface SelectorAdvancementProgress {
         public val criteria: List<SelectorAdvancementCriterion>,
     ) : SelectorAdvancementProgress {
         /**
-         * Builds criterion progress from a defensive snapshot of [criteria].
+         * Creates criterion progress from a snapshot of [criteria].
+         *
+         * The constructor copies the collection and keeps its iteration order.
          */
         public constructor(criteria: Collection<SelectorAdvancementCriterion>) : this(criteria.toList())
     }

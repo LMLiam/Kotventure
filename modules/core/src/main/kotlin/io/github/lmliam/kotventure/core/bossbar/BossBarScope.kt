@@ -16,7 +16,7 @@ import net.kyori.adventure.text.ComponentLike
  */
 public interface BossBarScope : BossBarAppearanceScope {
     /**
-     * Builds the boss bar name from a component DSL block.
+     * Creates and sets the boss-bar name from a component DSL block.
      *
      * @throws IllegalStateException when the name is already set in this block.
      */

@@ -7,15 +7,15 @@ import net.kyori.adventure.key.Key
 import net.kyori.adventure.sound.Sound
 
 /**
- * Builds a [Sound] from [name] and optional [init], plays it on this [Audience] immediately, and
+ * Creates a [Sound] from [name] and [init], plays it on this [Audience] immediately, and
  * returns it for later [Audience.stopSound] (Adventure's native `stopSound(Sound)`).
  *
- * Inside [init], set sound slots ([volume][PlaySoundScope.volume], [pitch][PlaySoundScope.pitch],
- * …) and at most one playback context: [emitter][PlaySoundScope.emitter] (e.g. `emitter(self)`)
+ * Inside [init], set sound slots such as [volume][PlaySoundScope.volume] and [pitch][PlaySoundScope.pitch].
+ * Set at most one playback context: [emitter][PlaySoundScope.emitter], for example `emitter(self)`,
  * or [at][PlaySoundScope.at]. When neither is set, the sound plays at the recipient's location.
  *
- * Works for any audience — a player, the console, or a forwarding audience over many members;
- * audiences without a sound surface ignore it. For a reusable sound shared across plays, prefer
+ * Works for a player, the console, or a forwarding audience. An audience without a sound surface ignores it. For a
+ * reusable sound that you play more than one time, use
  * [sound][io.github.lmliam.kotventure.core.sound.sound] then [play].
  *
  * @throws IllegalStateException when any sound or playback slot is set twice, or both playback
@@ -28,10 +28,9 @@ public fun Audience.sound(
 ): Sound = PlaySoundBuilder(name).apply(init).playOn(this)
 
 /**
- * Plays [sound] on this [Audience] at the recipient's location.
+ * Plays [sound] on this [Audience] at each recipient's location.
  *
- * Type-overloaded [play] so sound, and future playable types, can share the verb — same idea as
- * [show] and [open]. For build-and-play in one expression, prefer [Audience.sound].
+ * The operation does not retain a playback handle. Use [Audience.stopSound] or a sound-stop operation to stop it.
  *
  * @sample io.github.lmliam.kotventure.core.audience.audiencePlaySoundSample
  */
@@ -40,8 +39,7 @@ public fun Audience.play(sound: Sound): Unit = playSound(sound)
 /**
  * Plays [sound] on this [Audience] from [emitter].
  *
- * Type-overloaded [play] so sound, and future playable types, can share the verb — same idea as
- * [show] and [open]. For build-and-play in one expression, prefer [Audience.sound].
+ * A forwarding audience applies the same emitter to each recipient.
  *
  * @sample io.github.lmliam.kotventure.core.audience.audiencePlaySoundSample
  */
@@ -53,8 +51,7 @@ public fun Audience.play(
 /**
  * Plays [sound] on this [Audience] at world position ([x], [y], [z]).
  *
- * Type-overloaded [play] so sound, and future playable types, can share the verb — same idea as
- * [show] and [open]. For build-and-play in one expression, prefer [Audience.sound].
+ * A forwarding audience uses the same absolute position for each recipient.
  *
  * @sample io.github.lmliam.kotventure.core.audience.audiencePlaySoundSample
  */

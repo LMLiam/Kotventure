@@ -8,8 +8,9 @@ import net.kyori.adventure.text.event.DataComponentValue
 /**
  * Scope for declaring the data components carried by an item hover payload.
  *
- * Opened by the trailing lambda of [HoverContentScope.item]. Each call adds the component identified by
- * its [Key]; declaring the same key twice — whether added or [removed] — throws [IllegalStateException].
+ * [HoverContentScope.item] opens this scope. Each call adds the component that its [Key] identifies. The scope keeps
+ * declaration order. It throws [IllegalStateException] if a key occurs more than one time. This rule applies to
+ * values and to [removed] markers.
  */
 @KotventureDslMarker
 public interface ItemDataComponentScope {
@@ -24,7 +25,7 @@ public interface ItemDataComponentScope {
     )
 
     /**
-     * Adds the data component at [key] from a pre-built [value], such as a raw `nbt("...")` holder.
+     * Adds the data component at [key] from a prebuilt [value], such as a raw `nbt("...")` holder.
      *
      * @throws IllegalStateException when [key] is already declared in this block.
      */
@@ -34,7 +35,7 @@ public interface ItemDataComponentScope {
     )
 
     /**
-     * Marks the data component at [key] for removal, mirroring the top-level `removed()` marker.
+     * Marks the data component at [key] for removal.
      *
      * @throws IllegalStateException when [key] is already declared in this block.
      */

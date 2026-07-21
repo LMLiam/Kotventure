@@ -1,9 +1,10 @@
 package io.github.lmliam.kotventure.core.pagination
 
 /**
- * Builds a [Pagination] over [items] configured by [init]: each item is rendered onto a page line
- * by the block's required `renderer`, and every rendered page carries clickable prev/next
- * navigation.
+ * Creates a [Pagination] snapshot of [items] with the rules in [init].
+ *
+ * The required renderer creates one component for each item. The function invokes it eagerly and in iteration order.
+ * Each rendered page contains the applicable navigation controls.
  *
  * Items are rendered eagerly, so the pagination is a snapshot of [items] at build time.
  *
@@ -20,8 +21,8 @@ public fun <T> paginate(
 ): Pagination = buildPagination(items, init)
 
 /**
- * Builds a [Pagination] over two or more items given directly as arguments; see the [Iterable]
- * overload of [paginate] for the full contract.
+ * Creates a [Pagination] over two or more direct arguments. Refer to the [Iterable] overload of [paginate] for the
+ * complete contract.
  *
  * Two leading parameters keep a single-argument call unambiguous: `paginate(collection) { }`
  * always paginates the collection's elements via the [Iterable] overload, never a single

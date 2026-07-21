@@ -1,19 +1,18 @@
 package io.github.lmliam.kotventure.minimessage.conversion
 
 /**
- * Accumulates indented lines of Kotlin source, owning indentation so callers describe the structure to emit rather than
- * the whitespace in front of it.
+ * Collects Kotlin source lines and controls their indentation.
  */
 internal class KotlinSourceBuilder {
     private val lines = mutableListOf<String>()
     private var depth = 0
 
-    /** Appends [text] as one line at the current indentation. */
+    /** Appends [text] at the current indentation. */
     fun line(text: String) {
         lines += INDENT.repeat(depth) + text
     }
 
-    /** Emits `$header {`, runs [body] one level deeper, then the closing brace. */
+    /** Emits a block with [header] and an indented [body]. */
     fun block(
         header: String,
         body: KotlinSourceBuilder.() -> Unit,
@@ -23,7 +22,7 @@ internal class KotlinSourceBuilder {
         line("}")
     }
 
-    /** Runs [body] one indentation level deeper. */
+    /** Emits [body] one indentation level deeper. */
     fun indented(body: KotlinSourceBuilder.() -> Unit) {
         depth++
         body()
@@ -31,8 +30,9 @@ internal class KotlinSourceBuilder {
     }
 
     /**
-     * Emits [opener], then each lambda in [arguments] on its own indented line, comma-separated with no trailing comma.
-     * The caller emits the closer so the choice between `)` and `) {` stays theirs.
+     * Emits [opener] and the indented [arguments] without a trailing comma.
+     *
+     * The caller must emit the closing parenthesis.
      */
     fun openArguments(
         opener: String,

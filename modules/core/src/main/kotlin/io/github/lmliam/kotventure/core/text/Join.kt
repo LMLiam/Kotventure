@@ -4,7 +4,10 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentLike
 
 /**
- * Joins these components into one, with the separators and prefix/suffix configured by [init].
+ * Combines these components in iteration order with the join rules from [init].
+ *
+ * An empty input produces an empty component unless a prefix or suffix is set. A one-element input does not use a
+ * separator. The function does not modify the input components.
  *
  * @sample io.github.lmliam.kotventure.core.text.joinArraySample
  *
@@ -13,7 +16,10 @@ import net.kyori.adventure.text.ComponentLike
 public fun <T : ComponentLike> Array<T>.join(init: JoinScope.() -> Unit = {}): Component = this.asIterable().join(init)
 
 /**
- * Joins these components into one, with the separators and prefix/suffix configured by [init].
+ * Combines these components in iteration order with the join rules from [init].
+ *
+ * An empty input produces an empty component unless a prefix or suffix is set. A one-element input does not use a
+ * separator. The function does not modify the input components.
  *
  * @sample io.github.lmliam.kotventure.core.text.joinIterableSample
  *

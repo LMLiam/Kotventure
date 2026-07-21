@@ -1,12 +1,11 @@
 # `kotventure-test-snapshot`
 
-Snapshot assertions for Adventure `Component`s. This module is published separately from
-[`kotventure-test`](../test/README.md) so whole-message golden tests do not force matcher-only consumers to pull
-serializer and Gson runtime dependencies.
+This module provides snapshot assertions for Adventure `Component` values. It is separate from
+[`kotventure-test`](../test/README.md). Thus, matcher-only users do not need serializer and Gson runtime dependencies.
 
 ## Getting it
 
-With the BOM imported (see the root README), add:
+After you import the BOM, add this dependency. Refer to the root README.
 
 ```kotlin
 dependencies {
@@ -14,14 +13,14 @@ dependencies {
 }
 ```
 
-Add `kotventure-test` alongside it when the test also needs structural matchers.
+Add `kotventure-test` if the test also needs structural matchers.
 
 ## APIs
 
-This module exposes both exact and explicitly compacted snapshot operations:
+This module provides exact and compacted snapshot operations:
 
-- `matchSnapshot(name)` / `shouldMatchSnapshot(name)` compare the component as-is.
-- `matchCompactedSnapshot(name)` / `shouldMatchCompactedSnapshot(name)` compact first, then compare.
+- `matchSnapshot(name)` and `shouldMatchSnapshot(name)` compare the component without changes.
+- `matchCompactedSnapshot(name)` and `shouldMatchCompactedSnapshot(name)` compact the component before comparison.
 
 ```kotlin
 import io.github.lmliam.kotventure.test.snapshot.shouldMatchSnapshot
@@ -29,9 +28,8 @@ import io.github.lmliam.kotventure.test.snapshot.shouldMatchSnapshot
 component shouldMatchSnapshot "welcome-message"
 ```
 
-The component is serialized to canonical JSON via the [`serializer`](../serializer) module and then pretty-printed so
-committed snapshots produce reviewable line-by-line diffs. A mismatch, or a snapshot that has never been recorded,
-fails the test with the offending JSON.
+The [`serializer`](../serializer) module converts the component to canonical JSON. The snapshot formatter adds indentation.
+Thus, committed snapshots give clear line-by-line differences. A mismatch or a missing snapshot fails with the applicable JSON.
 
 Snapshots live under your test resources at `snapshots/<name>.snapshot.json`:
 
@@ -41,8 +39,8 @@ src/test/resources/snapshots/welcome-message.snapshot.json
 
 ## Recording and updating
 
-Snapshots are never written silently. A missing or differing snapshot is only recorded when record mode is on, which is
-opt-in via a system property or environment variable:
+The matcher does not write snapshots without record mode. Enable record mode with a system property or environment variable.
+Record mode writes a missing or different snapshot:
 
 | Setting            | System property              | Environment variable | Effect                                                                                                                                         |
 |--------------------|------------------------------|----------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -50,9 +48,9 @@ opt-in via a system property or environment variable:
 | Snapshot directory | `kotventure.snapshot.dir`    | `SNAPSHOT_DIR`       | Reads and writes snapshots directly at `<dir>/<name>.snapshot.json` (no `snapshots/` subfolder), replacing the default test-resources location |
 
 ```bash
-# Review the diff first; then record intentional changes:
+# Review the diff first. Then, record intentional changes.
 SNAPSHOT_UPDATE=true ./gradlew :your-module:test
 ```
 
-The matcher factory surface is intentionally pure: only the positive `shouldMatch…` assertions write in record mode,
-so negated and composed matcher evaluations remain side-effect free.
+Matcher factories have no side effects. In record mode, only positive `shouldMatch…` assertions write snapshots.
+Negated and composed matcher evaluations do not write snapshots.

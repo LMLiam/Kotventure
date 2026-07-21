@@ -1,11 +1,7 @@
 package io.github.lmliam.kotventure.core.selector
 
 /**
- * The keyword of this argument, or `null` for coordinates and floating-point ranges (whose names
- * are owned by [SelectorCoordinate] and [SelectorRangeArgument]).
- *
- * Exhaustive: a new argument subtype cannot be added without updating this mapping. This ensures
- * that rendering and parsing stay in sync.
+ * Returns the keyword of this argument, or null when its argument type owns the name.
  */
 internal val EntitySelectorArgument.keyword: SelectorArgumentKeyword?
     get() =
@@ -26,10 +22,9 @@ internal val EntitySelectorArgument.keyword: SelectorArgumentKeyword?
         }
 
 /**
- * The vanilla selector-source name of this argument, such as `limit` in `limit=1`.
+ * Returns the vanilla source name of this argument, such as `limit` in `limit=1`.
  *
- * Coordinates and ranges are named by their own argument types; keyword arguments resolve their
- * names from the [keyword] property.
+ * Coordinate and range types supply their argument names. Keyword arguments get their names from [keyword].
  */
 internal val EntitySelectorArgument.argumentName: String
     get() =
@@ -40,11 +35,7 @@ internal val EntitySelectorArgument.argumentName: String
         }
 
 /**
- * Vanilla argument names that may appear at most once in a selector (coordinates, ranges, and
- * non-filter-group keywords).
- *
- * Single source of truth for singleton policy: [SelectorArgumentOccurrences] consults this set for
- * both model validation and parse-time rejection, so the two cannot diverge.
+ * The argument names that can occur one time in a selector.
  */
 internal val singletonSelectorArgumentNames: Set<String> =
     buildSet {

@@ -1,9 +1,9 @@
 package io.github.lmliam.kotventure.core.selector
 
 /**
- * Coordinate names supported by Java Edition selectors.
+ * Coordinate arguments that Java Edition selectors support.
  *
- * @property argumentName canonical selector argument name
+ * @property argumentName The canonical selector argument name.
  */
 public enum class SelectorCoordinate(
     public val argumentName: String,

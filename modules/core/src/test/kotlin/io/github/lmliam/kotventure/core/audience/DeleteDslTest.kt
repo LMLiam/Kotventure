@@ -25,7 +25,7 @@ private class RecordingDeleteAudience : Audience {
     }
 }
 
-/** A player-signed message stand-in; genuine ones only exist on a platform. */
+    /** A substitute for a player-signed message. Genuine player-signed messages exist only on a platform. */
 private class PlayerSignedMessage(
     private val signature: SignedMessage.Signature,
 ) : SignedMessage {

@@ -5,12 +5,19 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import net.kyori.adventure.text.ComponentLike
 
 /**
- * Configures placeholder resolvers applied while parsing MiniMessage markup.
+ * Declares placeholder resolvers for one MiniMessage deserialisation.
+ *
+ * Names must match `[!?#]?[a-z0-9_-]+`. Each name can occur one time in the scope. Resolvers are local to the current
+ * deserialisation and do not change the shared Adventure parser.
  */
 @KotventureDslMarker
 public interface MiniMessageResolverScope {
     /**
-     * Inserts [value] as parsed MiniMessage markup for the placeholder named [name].
+     * Resolves [name] to [value], which Adventure parses as MiniMessage markup.
+     *
+     * Use [unparsed] when the value is untrusted or must remain literal text.
+     *
+     * @throws IllegalArgumentException when [name] is invalid or already declared in this scope.
      */
     public fun parsed(
         name: String,
@@ -18,7 +25,11 @@ public interface MiniMessageResolverScope {
     )
 
     /**
-     * Inserts [value] as literal text for the placeholder named [name].
+     * Resolves [name] to literal [value].
+     *
+     * MiniMessage does not interpret tags or escapes in the value.
+     *
+     * @throws IllegalArgumentException when [name] is invalid or already declared in this scope.
      */
     public fun unparsed(
         name: String,
@@ -26,7 +37,9 @@ public interface MiniMessageResolverScope {
     )
 
     /**
-     * Inserts [value] as a self-closing component placeholder for the placeholder named [name].
+     * Resolves [name] to the component from [value].
+     *
+     * @throws IllegalArgumentException when [name] is invalid or already declared in this scope.
      */
     public fun component(
         name: String,
@@ -34,7 +47,9 @@ public interface MiniMessageResolverScope {
     )
 
     /**
-     * Builds a component placeholder named [name] from a Kotventure component DSL block.
+     * Builds a component with [init] and resolves [name] to that component.
+     *
+     * @throws IllegalArgumentException when [name] is invalid or already declared in this scope.
      */
     public fun component(
         name: String,
@@ -42,10 +57,12 @@ public interface MiniMessageResolverScope {
     )
 
     /**
-     * Resolves [placeholder] to [value] using the placeholder's typed binding strategy.
+     * Resolves [placeholder] to [value] with the descriptor's typed strategy.
      *
-     * [String], [Number], and [Boolean] values are inserted as literal text. [ComponentLike] values are inserted as
-     * component placeholders.
+     * [String], [Number], and [Boolean] values become literal text. [ComponentLike] values retain their component
+     * structure.
+     *
+     * @throws IllegalArgumentException when the placeholder name is already declared in this scope.
      */
     public fun <T : Any> resolve(
         placeholder: MiniMessagePlaceholder<T>,

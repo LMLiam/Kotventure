@@ -7,9 +7,9 @@ import java.util.function.Consumer
 import kotlin.time.Duration
 
 /**
- * [Ticker] over the global region scheduler: repeating work becomes a
- * [runAtFixedRate][io.papermc.paper.threadedregions.scheduler.GlobalRegionScheduler.runAtFixedRate]
- * task owned by [plugin], with the first fire one full interval after scheduling.
+ * Implements [Ticker] with the global region scheduler for [plugin].
+ *
+ * The first run occurs after one interval.
  */
 internal class GlobalRegionTicker(
     private val plugin: Plugin,

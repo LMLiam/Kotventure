@@ -6,8 +6,8 @@ import net.kyori.adventure.chat.SignedMessage
 /**
  * Requests deletion of the previously sent [signed] message from this [Audience]'s chat.
  *
- * Adventure silently ignores messages without a signature; this helper fails fast instead, so a
- * deletion that can never happen is surfaced at the call site.
+ * Adventure ignores messages without a signature. This function fails immediately so that the call site identifies an
+ * impossible deletion.
  *
  * @throws IllegalStateException when [signed] carries no signature ([SignedMessage.canDelete] is
  *   `false`), as is the case for system messages.
@@ -19,7 +19,9 @@ public fun Audience.delete(signed: SignedMessage) {
 }
 
 /**
- * Requests deletion of the previously sent message with [signature] from this [Audience]'s chat.
+ * Requests deletion of the message identified by [signature] from this [Audience]'s chat.
+ *
+ * This overload does not verify that the audience previously received a message with this signature.
  *
  * @sample io.github.lmliam.kotventure.core.audience.deleteBySignatureSample
  */

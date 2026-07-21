@@ -7,7 +7,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.KeybindComponent
 
 /**
- * Matches a keybind component whose keybind is [expected]. Combine with `and`/`or` or negate with `shouldNot`.
+ * Returns a matcher that compares the keybind identifier with [expected].
  */
 public fun haveKeybind(expected: String): Matcher<KeybindComponent> =
     Matcher { value ->
@@ -20,12 +20,15 @@ public fun haveKeybind(expected: String): Matcher<KeybindComponent> =
     }
 
 /**
- * Asserts that this component is a [KeybindComponent] and returns it typed.
+ * Verifies that this component is a [KeybindComponent].
+ *
+ * @return this component as a [KeybindComponent].
+ * @throws AssertionError when this component has a different type.
  */
 public fun Component.shouldBeKeybindComponent(): KeybindComponent = asComponentType("keybind")
 
 /**
- * Asserts that this keybind component has [expected] as its keybind.
+ * Verifies that this keybind component has the identifier [expected].
  */
 public infix fun KeybindComponent.shouldHaveKeybind(expected: String): KeybindComponent =
     apply {

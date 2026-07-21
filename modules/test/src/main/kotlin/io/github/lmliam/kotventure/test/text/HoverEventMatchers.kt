@@ -8,7 +8,7 @@ import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.event.HoverEvent
 
 /**
- * Matches a component whose root hover event equals [expected]. Combine with `and`/`or` or negate with `shouldNot`.
+ * Returns a matcher that compares the root hover event with [expected].
  */
 public fun haveHoverEvent(expected: HoverEvent<*>): Matcher<Component> =
     Matcher { value ->
@@ -21,7 +21,7 @@ public fun haveHoverEvent(expected: HoverEvent<*>): Matcher<Component> =
     }
 
 /**
- * Matches a component whose root hover event action is [expected].
+ * Returns a matcher that compares the root hover-event action with [expected].
  */
 public fun haveHoverAction(expected: HoverEvent.Action<*>): Matcher<Component> =
     Matcher { value ->
@@ -34,7 +34,7 @@ public fun haveHoverAction(expected: HoverEvent.Action<*>): Matcher<Component> =
     }
 
 /**
- * Matches a component whose root hover event shows the text payload [expected].
+ * Returns a matcher that compares the root hover-event text payload with [expected].
  */
 public fun <T : ComponentLike> haveHoverText(expected: T): Matcher<Component> =
     Matcher { value ->
@@ -50,7 +50,7 @@ public fun <T : ComponentLike> haveHoverText(expected: T): Matcher<Component> =
     }
 
 /**
- * Matches a component whose root hover event shows the item payload [expected].
+ * Returns a matcher that compares the root hover-event item payload with [expected].
  */
 public fun haveHoverItem(expected: HoverEvent.ShowItem): Matcher<Component> =
     Matcher { value ->
@@ -64,7 +64,7 @@ public fun haveHoverItem(expected: HoverEvent.ShowItem): Matcher<Component> =
     }
 
 /**
- * Matches a component whose root hover event shows the entity payload [expected].
+ * Returns a matcher that compares the root hover-event entity payload with [expected].
  */
 public fun haveHoverEntity(expected: HoverEvent.ShowEntity): Matcher<Component> =
     Matcher { value ->
@@ -78,7 +78,7 @@ public fun haveHoverEntity(expected: HoverEvent.ShowEntity): Matcher<Component> 
     }
 
 /**
- * Matches a component that has no root hover event.
+ * Returns a matcher that accepts a component without a root hover event.
  */
 public fun haveNoHoverEvent(): Matcher<Component> =
     Matcher { value ->
@@ -91,7 +91,7 @@ public fun haveNoHoverEvent(): Matcher<Component> =
     }
 
 /**
- * Asserts that this component has exactly [expected] as its root hover event.
+ * Verifies that this component has [expected] as its root hover event.
  */
 public infix fun Component.shouldHaveHoverEvent(expected: HoverEvent<*>): Component =
     apply {
@@ -99,7 +99,7 @@ public infix fun Component.shouldHaveHoverEvent(expected: HoverEvent<*>): Compon
     }
 
 /**
- * Asserts that this component has [expected] as its root hover event action.
+ * Verifies that this component has [expected] as its root hover-event action.
  */
 public infix fun Component.shouldHaveHoverAction(expected: HoverEvent.Action<*>): Component =
     apply {
@@ -107,7 +107,7 @@ public infix fun Component.shouldHaveHoverAction(expected: HoverEvent.Action<*>)
     }
 
 /**
- * Asserts that this component has [expected] as its root text hover payload.
+ * Verifies that this component has [expected] as its root text-hover payload.
  */
 public infix fun <T : ComponentLike> Component.shouldHaveHoverText(expected: T): Component =
     apply {
@@ -115,7 +115,7 @@ public infix fun <T : ComponentLike> Component.shouldHaveHoverText(expected: T):
     }
 
 /**
- * Asserts that this component has [expected] as its root item hover payload.
+ * Verifies that this component has [expected] as its root item-hover payload.
  */
 public infix fun Component.shouldHaveHoverItem(expected: HoverEvent.ShowItem): Component =
     apply {
@@ -123,7 +123,7 @@ public infix fun Component.shouldHaveHoverItem(expected: HoverEvent.ShowItem): C
     }
 
 /**
- * Asserts that this component has [expected] as its root entity hover payload.
+ * Verifies that this component has [expected] as its root entity-hover payload.
  */
 public infix fun Component.shouldHaveHoverEntity(expected: HoverEvent.ShowEntity): Component =
     apply {
@@ -131,7 +131,7 @@ public infix fun Component.shouldHaveHoverEntity(expected: HoverEvent.ShowEntity
     }
 
 /**
- * Asserts that this component has no root hover event.
+ * Verifies that this component has no root hover event.
  */
 public fun Component.shouldNotHaveHoverEvent(): Component =
     apply {

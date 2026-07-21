@@ -1,34 +1,38 @@
 ---
 name: writing-component-tests
-description: Use when writing or reviewing tests in Kotventure — component/audience/bossbar/book/sound/title assertions, selector parse tests, snapshot tests, or compile-fail tests. Also use when tempted to assert on serialized strings, hand-roll an assertion, or check an error message.
+description: >-
+  Use this skill to write or review Kotventure tests. It covers component assertions, selector tests, snapshots, and
+  compile-fail tests. Also use it before you compare serialised strings or error messages.
 ---
 
 # Writing component tests
 
-Every behavioural change ships with tests, written **first** when practical. We use
-**Kotest** (`StringSpec` is the house style) and we **dogfood the project's own matchers** so
-the `test` module stays good.
+Include tests with each behavioural change. Write them first when practical. Use Kotest `StringSpec` and the project's
+own matchers.
 
 ## The three dogfooding rules
 
-1. **Assert with project matchers**, never hand-rolled checks. The full catalogue — content,
-   colour, style, decorations, children, click/hover, translatable, keybind, score, selector,
-   NBT, object, book, boss bar, sound, title times — is documented in
-   [`modules/test/README.md`](../../../modules/test/README.md). If a matcher you need doesn't
-   exist, **add it to the `test` module** (factory + infix sugar + its own test asserting both
-   the match and the failure message) — a matcher is a deliverable in its own right.
-2. **Arrange/act through Kotventure's own entry points** wherever an equivalent exists:
+1. **Use project matchers.** Do not write a manual check. The matcher catalogue includes content,
+   colour, style, decorations, children, events, translatable content, keybinds, scores, selectors,
+   NBT, objects, books, boss bars, sounds, and title times. Refer to
+   [`modules/test/README.md`](../../../modules/test/README.md). If a required matcher does not exist, add it to the
+   `test` module. Supply a factory, an infix function, and tests for success and failure messages.
+2. **Use Kotventure entry points for arrange and act steps** when an equivalent exists.
    `audienceOf(a, b)` not `Audience.audience(a, b)`, `emptyAudience()` not `Audience.empty()`,
    `component { }` / `bossBar { }` not raw builders. Check the owning feature package before
    reaching for a `net.kyori` factory.
-3. **Assertion *expected values* stay raw `net.kyori`** (`shouldBe Component.empty()`,
-   `Component.text("hi")`) so the DSL is verified against Adventure ground truth. Asserting
-   `component {}` equals `component {}` proves nothing.
+3. **Use raw `net.kyori` expected values** such as `Component.empty()` and `Component.text("hi")`. This practice tests
+   the DSL against Adventure. Do not compare one DSL-built value with another DSL-built value.
 
 ```kotlin
 class StyleDslTest : StringSpec({
     "applies colour and bold" {
-        val component = component { text("Hello") { color(NamedTextColor.AQUA); bold() } }
+        val component = component {
+            text("Hello") {
+                color(NamedTextColor.AQUA)
+                bold()
+            }
+        }
 
         val greeting = component.childAt(0)
         greeting shouldHaveColor NamedTextColor.AQUA
@@ -38,27 +42,27 @@ class StyleDslTest : StringSpec({
 })
 ```
 
-## Matcher semantics that trip people up
+## Matcher semantics
 
-- **Two surfaces per attribute:** infix `shouldHave…` sugar for single attributes (returns
-  the receiver, so it chains), and `have…`/`contain…` `Matcher<Component>` factories that
-  compose with Kotest's `and`/`or`/`shouldNot`/`invert()`. Sugar by default; factories for
-  composition and negation.
+- **Two forms for each attribute.** Infix `shouldHave…` functions test one attribute and return
+  the receiver for chained assertions. The `have…` and `contain…` factories return a
+  `Matcher<Component>`. Compose factories with Kotest's `and`, `or`, `shouldNot`, and `invert()`.
+  Use infix functions by default. Use factories for composition and negation.
 - **Decorations are tri-state.** `shouldNotHaveDecoration(BOLD)` asserts the state is
   `NOT_SET` (inherits), *not* merely "not TRUE". To assert an explicit off, use
   `shouldHaveDecoration(BOLD, State.FALSE)` / `haveDecorationState(...)`.
 - **`shouldBe…Component` narrows.** `component.shouldBeKeybindComponent()` returns the typed
   component (failing readably otherwise), so type-specific matchers after it are
   statically checked.
-- Failure messages must state actual vs expected — that contract is part of matcher review.
+- Failure messages must state the actual and expected values. This contract is part of matcher review.
 
 ## Selector tests
 
-- **Never assert on error message text.** Failure *positions* are pinned structurally with
+- **Do not compare error message text.** Test failure positions structurally with
   the split-string matcher: `"@e[limit=" shouldFailToParseAt "0]"` asserts parsing fails
   exactly at the string boundary (`EntitySelectorParseException.offset`).
-- Round-trips: `"@a[tag=alpha]".shouldBeCanonicalSelector()`; rendering:
-  `selector shouldRenderAs "@e[…]"`.
+- Use `"@a[tag=alpha]".shouldBeCanonicalSelector()` for round trips.
+- Use `selector shouldRenderAs "@e[…]"` for rendering.
 
 ## Snapshot tests (`test-snapshot` module)
 
@@ -69,35 +73,33 @@ component shouldMatchSnapshot "welcome-banner"        // canonical pretty JSON
 component shouldMatchCompactedSnapshot "join-toast"   // whitespace-flattened text nodes
 ```
 
-- Snapshots live under test resources as `<name>.snapshot.json`; commit them.
-- A mismatch never overwrites: record/update mode is explicit —
+- Snapshots are in test resources as `<name>.snapshot.json`. Commit them.
+- A mismatch does not overwrite a snapshot. Enable record or update mode explicitly:
   `./gradlew test -Dkotventure.snapshot.update=true` (or env `SNAPSHOT_UPDATE=true`).
-  Review the diff of regenerated snapshots like any other code change.
-- Depend on `kotventure-test-snapshot` only where needed; it pulls serializer + Gson.
+  Review the diff of regenerated snapshots like other code changes.
+- Depend on `kotventure-test-snapshot` only where necessary. It adds serialiser and Gson dependencies.
 
 ## Compile-fail tests
 
-For `@DslMarker` scope-safety and other must-not-compile guarantees, use the
-`assertDoesNotCompile(fileName, source, *expectedMessages)` helper
-(`test/compilation/Assertions.kt` in the module's test sources, backed by kctfork) rather
-than a comment saying "kotlinc should reject".
+Use `assertDoesNotCompile(fileName, source, *expectedMessages)` for `@DslMarker` scope safety and
+other compile-failure contracts. The module test sources contain this kctfork-based helper in
+`test/compilation/Assertions.kt`. Do not use a comment that only says that the compiler must reject code.
 
 ## What to cover
 
 - Happy path + nesting/children order.
 - Every edge case named in the issue's acceptance criteria.
-- Fail-fast contracts: duplicate-singleton calls throw `IllegalStateException` — assert the
+- Fail-fast contracts: duplicate-singleton calls throw `IllegalStateException`. Assert the
   *type* (`shouldThrow<IllegalStateException>`), not the message text.
 - New matchers: both the match and the failure message.
 
-## Don't
+## Prohibited test forms
 
-- ❌ Assert on serialized strings when a structural matcher exists — test the component, not
-  its rendering (serializer tests excepted).
-- ❌ Mock Adventure types — construct real ones; they're cheap and immutable. (MockK is
-  available for genuinely behavioural seams like `Audience` receipt, `Ticker` scheduling.)
-- ❌ Assert error-message wording anywhere — messages may be reworded freely; structure and
-  types are the contract.
+- ❌ Do not compare serialised strings when a structural matcher exists. Test the component and not its rendered form.
+  Serialiser tests are the exception.
+- ❌ Do not mock Adventure types. Construct them directly because they are inexpensive and immutable. MockK is
+  available for behavioural interfaces such as `Audience` receipt and `Ticker` schedules.
+- ❌ Do not compare error-message wording. Structure and types are the contract.
 
 Verify with `./gradlew test` (or `build`, which adds lint + the 85% Kover line-coverage
 gate) before committing.

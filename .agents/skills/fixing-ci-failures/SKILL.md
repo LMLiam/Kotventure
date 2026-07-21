@@ -1,66 +1,64 @@
 ---
 name: fixing-ci-failures
-description: Use when a GitHub Actions check is red or unexpected on a Kotventure PR — Build/Test/Lint failures, koverVerify coverage gate, ktlint/spotless formatting, conventional title/commit validation, Qodana or CodeQL alerts, dependency review, release-please or vanilla-conformance behaviour — or when deciding whether a check is real signal or known noise.
+description: >-
+  Use this skill to investigate a failed or unusual GitHub Actions check on a Kotventure pull request. It covers build,
+  test, lint, coverage, format, title, dependency, analysis, release, and conformance checks.
 ---
 
 # Fixing CI failures
 
-Architecture and trigger rules live in [`docs/CI.md`](../../../docs/CI.md) — read it for
-*why* a workflow ran. This skill is the *what to do* when something is red.
+[`docs/CI.md`](../../../docs/CI.md) describes the architecture and trigger rules. Read it to learn why a workflow
+started. This skill specifies how to investigate a failed check.
 
-**First move:** open the failing job's **summary** (Lint / Build always write one:
-toolchain versions + failed task names), then reproduce locally — never push blind
-"retry" commits.
+First, open the failed job's **summary**. Lint and Build write toolchain versions and failed task names there. Then,
+reproduce the failure locally. Do not push a commit only to start the check again.
 
-## Merge-blocking checks (fix these; ignore-list further down)
+## Checks that block a merge
 
 | Red check | Cause | Fix |
 |---|---|---|
 | **Status** (aggregator) | Lint, Build, or Dependencies failed | Open the failed nested job below |
-| Lint — declaration check | More than one top-level class/interface/object in a main-source file | Split the file (AGENTS.md §5 hard rule); reproduce with `.github/scripts/check-one-declaration-per-file.sh` |
-| Lint | `spotlessCheck` / `ktlintCheck` | `./gradlew ktlintFormat` (or `spotlessApply`), commit. **Continuation indent is 8 spaces (IntelliJ style) and the ktlint indent rule is disabled** — formatters won't fix indentation; write it by hand or IDE-reformat |
-| Build — test failure | Kotest suite red | `./gradlew test` locally; failed-run artifacts include HTML test reports |
-| Build — `koverVerify` | Aggregated line coverage < 85% (`gradle/coverage.gradle`) | **Add tests — never lower the threshold to pass.** `./gradlew koverHtmlReport` → `build/reports/kover/html/index.html` shows uncovered lines per class. (Raising the threshold intentionally: see policy in `.github/CONTRIBUTING.md`) |
-| Build — compile | Often `explicitApi()`: missing visibility / return type on public API | Add explicit modifiers + KDoc; see `documenting-public-api` |
-| **Title** / **Commits** | Not `verb(area): something` (lowercase, scope required — `^[a-z]+\([a-z0-9][a-z0-9-]*\): \S.*$`) | Edit the PR title in the UI; for commits, rewrite with `git rebase` and force-push — history rewriting on feature branches is fine here |
-| **Dependencies** | New/updated dependency has a moderate+ advisory | Bump to a patched version or justify/replace; not gated behind the release-please gate, runs on every PR |
+| Lint: declaration check | More than one top-level class/interface/object in a main-source file | Split the file. Refer to section 5 of AGENTS.md. Reproduce with `.github/scripts/check-one-declaration-per-file.sh`. |
+| Lint | `spotlessCheck` / `ktlintCheck` | Run `./gradlew ktlintFormat` or `spotlessApply`, and commit the result. Continuation indents have eight spaces. The ktlint indent rule is disabled, so use the IDE or edit indentation manually. |
+| Build: test failure | Kotest suite failed | Run `./gradlew test` locally. Failed-run artefacts include HTML test reports. |
+| Build: `koverVerify` | Aggregated line coverage below 85 percent | Add tests. Do not decrease the threshold. Run `./gradlew koverHtmlReport` and open `build/reports/kover/html/index.html` to find uncovered lines. Refer to the policy in `.github/CONTRIBUTING.md` before you increase the threshold. |
+| Build: compile | Public API frequently has no visibility or return type | Add explicit modifiers and KDoc. Refer to `documenting-public-api`. |
+| **Title** / **Commits** | Does not match `verb(area): something` | Edit the pull-request title. For commits, use `git rebase` and force-push the feature branch. The pattern is `^[a-z]+\([a-z0-9][a-z0-9-]*\): \S.*$`. |
+| **Dependencies** | New or updated dependency has a moderate or higher advisory | Update to a corrected version, replace the dependency, or give a justification. This check starts on each pull request. |
 
-## Known noise — do not "fix" these
+## Known non-errors
 
-- **Qodana "incorrect formatting" on Kotest `StringSpec` bodies** — false positive; leave it.
-- **The neutral "Qodana for JVM" check** — informational; only **QDJVM code-scanning alerts**
-  at medium+ security/errors severity gate the merge (repo ruleset).
-- **CodeRabbit failing/absent** — its credits can run out; not a required check.
-- Labeler, Scorecard, CodeQL `Analyze (…)` statuses — not merge gates (CodeQL findings surface
-  via code scanning, still worth reading).
+- Do not change Kotest `StringSpec` bodies for a Qodana "incorrect formatting" message. It is a false positive.
+- The neutral "Qodana for JVM" check is informational. Only QDJVM alerts with medium or higher security severity, or
+  error severity, block the merge.
+- CodeRabbit can fail or be absent when its credits are exhausted. It is not a required check.
+- Labeler, Scorecard, and CodeQL `Analyze (…)` statuses do not block a merge. Read CodeQL findings in code scanning.
 
 ## release-please
 
-- **Never hand-edit `CHANGELOG.md`** — release-please generates it from conventional commit
-  subjects. Fix a wrong changelog entry by fixing the squash-merge subject, not the file.
+- **Do not edit `CHANGELOG.md` manually.** Release-please generates it from conventional commit subjects. Correct the
+  squash-merge subject to correct a changelog entry.
 - Pure release PRs (branch `release-please--*`, touching only `CHANGELOG.md` and
-  `.release-please-manifest.json`) skip heavy CI jobs via the Gate job in `ci.yml`; the
+  `.release-please-manifest.json`) skip resource-intensive CI jobs through the Gate job in `ci.yml`. The
   required Status check still reports green. Version-catalog changes
   (`gradle/libs.versions.toml`) always run heavy CI. If a release PR unexpectedly runs
   heavy CI, it has an extra changed path.
-- Adding release-please `extra-files`? Update the gate allow-list in the `gate` job of
-  `.github/workflows/ci.yml` in the same PR.
+- When you add release-please `extra-files`, update the gate allowlist in the `gate` job of
+  `.github/workflows/ci.yml` in the same pull request.
 - Release flow details: [`docs/RELEASING.md`](../../../docs/RELEASING.md).
 
 ## Vanilla conformance
 
 Path-filtered, MC-server-backed selector tests ([`docs/vanilla-conformance.md`](../../../docs/vanilla-conformance.md)).
-A failure means the typed selector DSL disagrees with the real parser — treat it as a
-correctness bug in the DSL or the conformance fixtures, not as flake. Server bundle is cached
-by SHA-1; a cache-download failure is retryable.
+A failure means that the typed selector DSL and the vanilla parser disagree. Investigate the DSL and the conformance
+fixtures. The cache uses the server bundle SHA-1. You can start the check again after a cache download failure.
 
 ## Retrying & manual runs
 
-- Actions → failed run → **Re-run failed jobs** for genuine infra flake only.
+- Select Actions → failed run → **Re-run failed jobs** only for an infrastructure failure.
 - CI supports `workflow_dispatch` with optional `tasks` (default
   `build dokkaGenerate koverXmlReport koverHtmlReport`) and `module` (runs
-  `:<module>:build` plus root verification: kover/BOM/release/Dokka reports) inputs; path
-  filters are skipped on manual, scheduled, and merge-queue runs. Default PR/push Build is
-  always a full multi-project set.
-- Docs-only PRs legitimately skip heavy jobs — a green Status check with skipped jobs is
-  correct, not a bug (markdown under `modules/**` counts as code, though).
+  `:<module>:build` plus root verification: kover/BOM/release/Dokka reports) inputs. Manual, scheduled, and merge-queue
+  runs do not use path filters. The default pull-request and push Build uses the full multiproject task set.
+- A documentation-only pull request correctly skips resource-intensive jobs. A green Status check with skipped jobs is
+  correct. Markdown under `modules/**` counts as code.

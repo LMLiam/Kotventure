@@ -1,12 +1,11 @@
 # Getting Started
 
-From zero to a tested, styled, sent component in six steps. Every snippet below mirrors code that compiles in this
-repository's `src/samples` source sets against the real API.
+Use these six steps to create, style, test, and send a component. Each example agrees with compiled code in `src/samples`.
 
 ## 1. Install
 
-Tagged releases are published through [JitPack](https://jitpack.io/#LMLiam/Kotventure). Import the BOM once, then add
-the modules you need without repeating versions:
+[JitPack](https://jitpack.io/#LMLiam/Kotventure) publishes tagged releases. Import the BOM once.
+Then, add the necessary modules. The BOM keeps their versions consistent:
 
 ```kotlin
 repositories {
@@ -25,13 +24,13 @@ dependencies {
 }
 ```
 
-Replace `<tag>` with a [released tag](https://github.com/LMLiam/Kotventure/releases). Kotventure itself builds with
-the Java 25 Gradle toolchain; as a consumer you need Java 21+, Adventure's floor.
+Replace `<tag>` with a [released tag](https://github.com/LMLiam/Kotventure/releases). Kotventure uses the Java 25 Gradle toolchain.
+Your project needs Java 21 or newer because Adventure requires Java 21.
 
 ## 2. Build your first component
 
-Everything starts with `text(...)` for a single node or `component { }` for a tree. The trailing block styles the
-node and nests children — no builder chains, no `.build()`:
+Use `text(...)` for one node or `component { }` for a tree. The receiver block adds styles and child components.
+You do not need a builder chain or `.build()`:
 
 ```kotlin
 import io.github.lmliam.kotventure.core.color.aqua
@@ -48,12 +47,12 @@ val hint = component {
 }
 ```
 
-The result is a plain Adventure `Component` — hand it to any API that speaks Adventure.
+The result is an Adventure `Component`. Give it to an applicable Adventure API.
 
 ## 3. Style it
 
-Style slots live directly in every text block: `color(...)`, `bold()`, `click { }`, `hover { }`. Reusable styles are
-built once with `style { }` and applied with `style(...)` inside a block or the infix `styled` outside one:
+Each text block has style slots such as `color(...)`, `bold()`, `click { }`, and `hover { }`.
+Make a reusable style with `style { }`. Apply it with `style(...)` in a block or with the `styled` infix function:
 
 ```kotlin
 val heading = style {
@@ -65,19 +64,18 @@ val title = text("Welcome") { style(heading) }
 val highlighted = component { text("important") } styled heading
 ```
 
-Colors come as named values (`aqua`, `gold`, …), `hex("#55FFAA")`, `rgb`/`hsv`, and gradients:
+Colours are available as named values, hexadecimal values, RGB values, HSV values, and gradients:
 
 ```kotlin
 val banner = gradientText("Sky Games", hex("#55FFFF"), hex("#FFAA00"))
 ```
 
-Setting the same slot twice in one block throws `IllegalStateException` — Kotventure rejects malformed input instead
-of silently keeping the last write.
+Kotventure rejects malformed input. A duplicate slot in one block causes `IllegalStateException`.
 
 ## 4. Send it
 
-Send-DSLs are extensions on Adventure's `Audience`, so they work for a player, the console, or a whole server. Each
-surface has the same shape:
+Send DSLs are extensions on Adventure `Audience`. Use them for a player, console, or server.
+Each surface has the same shape:
 
 ```kotlin
 audience.message {
@@ -95,13 +93,13 @@ audience.title {
 }
 ```
 
-The same pattern covers `actionBar`, `sound`, `bossBar`, `book`, and `tabList` — see the
-[core module README](../modules/core/README.md) for the map.
+The same pattern applies to `actionBar`, `sound`, `bossBar`, `book`, and `tabList`.
+Refer to the [core module README](../modules/core/README.md) for the map.
 
-## 5. Add MiniMessage — typed
+## 5. Add Typed MiniMessage
 
-`mini(...)` parses MiniMessage markup. For reusable messages, declare a `MiniTemplate`: each placeholder is a delegated
-property, so the tag name and the Kotlin symbol cannot drift, and bindings are compile-checked:
+`mini(...)` parses MiniMessage markup. For a reusable message, declare a `MiniTemplate`.
+Each placeholder is a delegated property. Thus, the compiler keeps the tag name and Kotlin symbol together:
 
 ```kotlin
 val motd = mini("<gradient:#55FFFF:#FFAA00>Sky Games</gradient> <gray>— Season 5</gray>")
@@ -118,13 +116,13 @@ val line = JoinBroadcast {
 }
 ```
 
-Validate markup from configs at load time with `validate(...)` / `template.validate()` — diagnostics name malformed
-tags and missing or extra placeholders before a player ever sees the message.
+Validate configuration markup during load with `validate(...)` or `template.validate()`.
+Diagnostics identify malformed tags and missing or extra placeholders before the player sees the message.
 
 ## 6. Test it
 
-Messages are code now, so they get tests. The `test` module ships Kotest matchers that assert on the component itself,
-and `test-snapshot` pins whole messages to reviewable JSON snapshots:
+Add tests for messages. The `test` module provides Kotest matchers that check the component.
+The `test-snapshot` module stores complete messages as JSON snapshots:
 
 ```kotlin
 val nameplate = text("Alex") {
@@ -139,14 +137,14 @@ nameplate shouldHaveClickAction ClickEvent.Action.SUGGEST_COMMAND
 nameplate shouldMatchSnapshot "join-nameplate"
 ```
 
-Expected values stay raw Adventure (`NamedTextColor.AQUA`) so your assertions verify against Adventure ground truth.
-See the [test](../modules/test/README.md) and [test-snapshot](../modules/test-snapshot/README.md) READMEs for the full
-matcher catalogue and snapshot recording workflow.
+Use raw Adventure values, such as `NamedTextColor.AQUA`, for expected values. Thus, assertions compare the DSL with Adventure.
+Refer to the [test](../modules/test/README.md) and [test-snapshot](../modules/test-snapshot/README.md) README files.
+They contain the matcher catalogue and snapshot record procedure.
 
 ## Where next
 
-- The [README feature tour](../README.md#feature-tour) — selectors, NBT, books, boss bars, serializers.
+- The [README feature tour](../README.md#feature-tour) describes selectors, NBT, books, boss bars, and serialisers.
 - Module READMEs: [core](../modules/core/README.md) · [minimessage](../modules/minimessage/README.md) ·
   [serializer](../modules/serializer/README.md) · [bom](../modules/bom/README.md)
-- [`DESIGN.md`](DESIGN.md) — the architecture and the target DSL surface, phase by phase.
-- [`ROADMAP.md`](ROADMAP.md) — what lands when.
+- [`DESIGN.md`](DESIGN.md) describes the architecture and target DSL surface for each phase.
+- [`ROADMAP.md`](ROADMAP.md) gives the phase sequence.

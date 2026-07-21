@@ -4,61 +4,56 @@ import io.github.lmliam.kotventure.minimessage.validate
 import net.kyori.adventure.text.minimessage.ParsingException
 
 /**
- * A single diagnostic produced by [validate].
+ * One diagnostic from [validate].
  *
- * Sealed so callers can exhaustively handle every diagnostic kind.
+ * The hierarchy is sealed, so a `when` expression can handle every diagnostic type.
  */
 public sealed interface MiniMessageDiagnostic {
     /**
-     * A tag in the input is malformed or was not explicitly closed when strict parsing requires it.
+     * Reports the first tag error from Adventure's strict parser.
      *
-     * @property message Human-readable description from Adventure's parser. Prefers
-     *   [ParsingException.detailMessage] (no location noise); falls back to
-     *   [ParsingException.message] if `detailMessage` is null.
-     * @property startIndex Start index into the original input string, or [LOCATION_UNKNOWN] when
-     *   Adventure did not report a source position.
-     * @property endIndex End index into the original input string, or [LOCATION_UNKNOWN] when
-     *   Adventure did not report a source position.
+     * @property message Adventure's description. This value uses [ParsingException.detailMessage] when it is
+     * available, and otherwise uses [ParsingException.message].
+     * @property startIndex The start index in the original input, or [LOCATION_UNKNOWN] when Adventure did not report
+     * it.
+     * @property endIndex The end index in the original input, or [LOCATION_UNKNOWN] when Adventure did not report it.
      */
     public data class MalformedTag(
         public val message: String,
         public val startIndex: Int,
         public val endIndex: Int,
     ) : MiniMessageDiagnostic {
-        /** Position sentinels for [MalformedTag]. */
+        /** Provides the sentinel for an unknown source position. */
         public companion object {
             /**
-             * Sentinel used when Adventure did not report a source position for the malformed tag.
-             *
-             * Mirrors [ParsingException.LOCATION_UNKNOWN] directly so the value is always
-             * Adventure-derived. Do not hardcode `-1`; read this constant instead.
+             * The value that [MalformedTag] uses when Adventure does not report a source position.
              */
             public val LOCATION_UNKNOWN: Int = ParsingException.LOCATION_UNKNOWN
         }
     }
 
     /**
-     * A placeholder declared in the placeholders list has no corresponding tag in the input.
+     * Reports a declared placeholder that has no corresponding tag in the input.
      *
-     * @property name The placeholder's tag name as declared in the placeholders list.
+     * @property name The declared placeholder tag name.
      */
     public data class MissingPlaceholder(
         public val name: String,
     ) : MiniMessageDiagnostic
 
     /**
-     * A placeholder tag appears in the input but has no entry in the placeholders list.
+     * Reports a custom tag in the input that is not a declared placeholder.
      *
-     * @property name The tag name found in the input.
+     * @property name The tag name from the input.
      */
     public data class ExtraPlaceholder(
         public val name: String,
     ) : MiniMessageDiagnostic
 
     /**
-     * The validation engine failed outside Adventure's documented parsing exception path.
+     * Reports an unexpected failure in a validation pass.
      *
-     * @property message Human-readable description of the unexpected engine failure.
+     * @property message A description of the unexpected engine failure.
      */
     public data class ValidationEngineFailure(
         public val message: String,

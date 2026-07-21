@@ -6,9 +6,8 @@ import io.github.lmliam.kotventure.core.selector.GameMode as SelectorGameMode
 /**
  * One immutable, typed Java Edition entity-selector argument.
  *
- * Arguments form a closed hierarchy: simple values (Coordinate, Range, Level, Limit, Sort),
- * negatable filters (GameMode, Name, Type, Tag, Team, Nbt, Predicate), and compound collections
- * (Scores, Advancements).
+ * The hierarchy is closed. It contains scalar values, negatable filters, and compound collections. This lets callers
+ * inspect every supported argument with an exhaustive `when` expression.
  */
 public sealed interface EntitySelectorArgument {
     /**
@@ -115,8 +114,7 @@ public sealed interface EntitySelectorArgument {
     /**
      * A scoreboard-tag filter.
      *
-     * Negation lives inside [condition]; presence conditions carry their polarity and are never
-     * additionally negated.
+     * Negation is in [condition]. Presence conditions contain their polarity and do not receive additional negation.
      *
      * @property condition named tag or explicit presence condition
      */
@@ -129,8 +127,7 @@ public sealed interface EntitySelectorArgument {
     /**
      * A scoreboard-team filter.
      *
-     * Negation lives inside [condition]; presence conditions carry their polarity and are never
-     * additionally negated.
+     * Negation is in [condition]. Presence conditions contain their polarity and do not receive additional negation.
      *
      * @property condition named team or explicit presence condition
      */
@@ -171,6 +168,11 @@ public sealed interface EntitySelectorArgument {
     public data class Scores private constructor(
         public val scores: List<SelectorScoreRequirement>,
     ) : EntitySelectorArgument {
+        /**
+         * Creates a scores argument from a snapshot of [scores].
+         *
+         * The constructor copies the collection and keeps its iteration order.
+         */
         public constructor(scores: Collection<SelectorScoreRequirement>) : this(scores.toList())
     }
 
@@ -183,7 +185,11 @@ public sealed interface EntitySelectorArgument {
     public data class Advancements private constructor(
         public val advancements: List<SelectorAdvancementRequirement>,
     ) : EntitySelectorArgument {
-        /** Builds an advancements argument from a defensive immutable snapshot of [advancements]. */
+        /**
+         * Creates an advancements argument from a snapshot of [advancements].
+         *
+         * The constructor copies the collection and keeps its iteration order.
+         */
         public constructor(advancements: Collection<SelectorAdvancementRequirement>) : this(advancements.toList())
     }
 }

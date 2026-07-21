@@ -1,16 +1,16 @@
 package io.github.lmliam.kotventure.core.nbt
 
 /**
- * Creates an [NbtPath] starting from a root key.
+ * Creates an [NbtPath] that starts with [key].
  *
- * The key is used verbatim as the first segment, so a pre-formed path string works as a string
- * escape hatch — chaining the indexing operators simply appends to it:
+ * The function does not validate or escape [key]. You can therefore supply a preformed path as the first segment.
+ * Index operators append segments to that string.
  *
  * @sample io.github.lmliam.kotventure.core.nbt.nbtPathFactorySample
  */
 public fun nbtPath(key: String): NbtPath = NbtPath(listOf(NbtPathNode.Key(key)))
 
 /**
- * Creates an [NbtPath] starting from a root list index (rare — for paths beginning with `[n]`).
+ * Creates an [NbtPath] that starts with the root list [index].
  */
 public fun nbtPath(index: Int): NbtPath = NbtPath(listOf(NbtPathNode.Index(index)))

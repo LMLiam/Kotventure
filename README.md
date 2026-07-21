@@ -28,10 +28,10 @@
 </div>
 <!-- markdownlint-enable MD033 MD041 -->
 
-A batteries-included, type-safe Kotlin DSL for [Adventure](https://github.com/PaperMC/adventure) — components, styles,
-titles, boss bars, books, sounds, selectors, NBT, and everything else a player sees. Kotventure wraps Adventure with an
-idiomatic DSL and adds the correctness tooling the space lacks: typed MiniMessage templates, component test matchers,
-snapshot testing, and load-time validation.
+Kotventure is a complete, type-safe Kotlin DSL for [Adventure](https://github.com/PaperMC/adventure). It supports
+components, styles, titles, boss bars, books, sounds, selectors, NBT, and the other content that a player sees.
+Kotventure also supplies typed MiniMessage templates, component test matchers, snapshot tests, and load-time
+validation.
 
 > **Alpha.** The DSL surface may still change before `1.0.0`. See the [Roadmap](docs/ROADMAP.md), and
 > [`docs/DESIGN.md`](docs/DESIGN.md) for the target syntax across the whole player-facing surface.
@@ -76,13 +76,13 @@ val warning = text("Watch out!") {
 </table>
 <!-- markdownlint-enable MD033 -->
 
-Same `Component`, same Adventure underneath — Kotventure never re-implements what Adventure does. It just makes the
-call site read like Kotlin.
+Kotventure produces the same `Component` as Adventure. It does not reimplement Adventure. It gives the call site an
+idiomatic Kotlin form.
 
 ## The full picture
 
-One scenario, end to end: a player joins your event server. A themed nameplate with hover and click, a typed
-MiniMessage broadcast, a gradient title, a sound, and a self-advancing boss bar — all type-safe, all Adventure.
+This example shows what occurs when a player joins an event server. It sends a themed nameplate, a typed MiniMessage
+broadcast, a gradient title, a sound, and an automatic boss bar. All items are type-safe Adventure objects.
 
 ```kotlin
 object EventTheme : Theme("event") {
@@ -144,8 +144,8 @@ fun onJoin(joiner: Audience, everyone: Audience, name: String, onlineCount: Int,
 }
 ```
 
-And because messages are code, they get tests. The `test` module ships Kotest matchers that assert on the component —
-not its serialized form — and `test-snapshot` pins regressions to canonical JSON:
+Messages are code and require tests. The `test` module supplies Kotest matchers that examine the component and not its
+serialised form. The `test-snapshot` module records regressions in canonical JSON:
 
 ```kotlin
 val nameplate =
@@ -161,14 +161,14 @@ nameplate shouldHaveClickAction ClickEvent.Action.SUGGEST_COMMAND
 nameplate shouldMatchSnapshot "join-nameplate"
 ```
 
-Every snippet on this page lives in the repository's `src/samples` source sets and compiles in CI against the real
-API — the README cannot drift from the library.
+Each snippet on this page is in a `src/samples` source set. CI compiles the snippets against the public API. Thus, the
+README stays consistent with the library.
 
 ## Feature tour
 
 <!-- markdownlint-disable MD033 -->
 <details>
-<summary><strong>Components, styles &amp; colors</strong> — keybinds, translatables, gradients, themes</summary>
+<summary><strong>Components, styles &amp; colours:</strong> keybinds, translatables, gradients, themes</summary>
 
 ```kotlin
 val hint = component {
@@ -181,13 +181,13 @@ val hint = component {
 val banner = gradientText("Sky Games", hex("#55FFFF"), hex("#FFAA00"))
 ```
 
-Styles are first-class: build them with `style { }`, apply them with `component styled heading`, and group them into
-`Theme` objects whose properties are compile-checked *and* registrable for runtime lookup.
+Use `style { }` to build styles. Use `component styled heading` to apply them. You can put styles in `Theme` objects.
+The compiler checks the theme properties, and you can register the objects for runtime lookup.
 
 </details>
 
 <details>
-<summary><strong>Typed MiniMessage</strong> — parsing, placeholders, templates, validation, mini→DSL conversion</summary>
+<summary><strong>Typed MiniMessage:</strong> parsing, placeholders, templates, validation, mini→DSL conversion</summary>
 
 ```kotlin
 val motd = mini("<gradient:#55FFFF:#FFAA00>Sky Games</gradient> <gray>— Season 5</gray>")
@@ -198,15 +198,15 @@ val streak = mini("<gold><wins></gold> win streak, <player>!") {
 }
 ```
 
-Templates declare placeholders as delegated properties — the property name *is* the tag, so a typo in `<player>` or a
-missing binding is caught before the message ships. `JoinBroadcast.validate()` reports malformed tags and
-missing/extra placeholders at load time, and `miniToDsl("<gold>Welcome!")` generates the equivalent Kotventure code
-for you.
+Templates declare placeholders as delegated properties. The property name is the tag, and the property type controls
+the permitted binding type. A render call rejects an absent binding before it creates the component. At load time,
+`JoinBroadcast.validate()` reports malformed tags and incorrect placeholder sets. The
+`miniToDsl("<gold>Welcome!")` function generates equivalent Kotventure code.
 
 </details>
 
 <details>
-<summary><strong>Selectors, scores &amp; NBT</strong> — typed vanilla selectors instead of strings</summary>
+<summary><strong>Selectors, scores &amp; NBT:</strong> typed vanilla selectors instead of strings</summary>
 
 ```kotlin
 val champions = allPlayers {
@@ -223,14 +223,14 @@ val scoreboardLine = component {
 val health = entityNbt(self(), nbtPath("Health"))
 ```
 
-Selector scopes model exactly what the vanilla parser accepts per head; malformed combinations are compile errors or
-fail fast with the offending argument named. Strings from configs still work through the strict, offset-reporting
-`parseSelector(...)` bridge.
+Selector scopes model the syntax that the vanilla parser accepts for each head. The compiler rejects malformed
+combinations when possible. Otherwise, the operation stops immediately and identifies the incorrect argument. For
+configuration strings, use the strict `parseSelector(...)` bridge. Its errors include the applicable offset.
 
 </details>
 
 <details>
-<summary><strong>Books, boss bars, titles &amp; tab lists</strong> — one send-DSL for every audience surface</summary>
+<summary><strong>Books, boss bars, titles &amp; tab lists:</strong> one send-DSL for every audience surface</summary>
 
 ```kotlin
 player.book {
@@ -245,13 +245,13 @@ player.tabList {
 }
 ```
 
-The same shape works for `message`, `actionBar`, `title`, `sound`, `bossBar` — including self-advancing timed boss
-bars scheduled on a pluggable `Ticker` — plus signed-chat helpers.
+The same form works for `message`, `actionBar`, `title`, `sound`, and `bossBar`. A `Ticker` can schedule automatic boss
+bars. The API also supplies signed-chat helpers.
 
 </details>
 
 <details>
-<summary><strong>Serializers</strong> — legacy, JSON, plain text, MiniMessage</summary>
+<summary><strong>Serialisers:</strong> legacy, JSON, plain text, MiniMessage</summary>
 
 ```kotlin
 val message = text("Welcome") { color(gold) }
@@ -268,29 +268,29 @@ val imported = "&6Welcome".asLegacyAmpersandComponent()
 
 ## The modules
 
-Modules land lazily, per phase. The table is the target architecture; see [`docs/DESIGN.md`](docs/DESIGN.md) for the
-full design and the [Roadmap](docs/ROADMAP.md) for sequencing.
+The project adds modules only when a phase requires them. This table shows the target architecture. For more
+information, refer to [`docs/DESIGN.md`](docs/DESIGN.md) and the [Roadmap](docs/ROADMAP.md).
 
 | Module                                                 | Purpose                                                                  | Status |
 |--------------------------------------------------------|--------------------------------------------------------------------------|--------|
-| [`core`](modules/core)                                 | Component / style / color DSL, selectors, NBT, themes, audience-send DSL | ✅      |
+| [`core`](modules/core)                                 | Component / style / colour DSL, selectors, NBT, themes, audience-send DSL | ✅      |
 | [`minimessage`](modules/minimessage)                   | Typed MiniMessage templates, validation, MiniMessage ⇄ DSL converter     | ✅      |
-| [`serializer`](modules/serializer)                     | Optional Adventure serializer extension functions                        | ✅      |
+| [`serializer`](modules/serializer)                     | Optional Adventure serialiser extension functions                        | ✅      |
 | [`test`](modules/test)                                 | Kotest component matchers                                                 | ✅      |
-| [`test-snapshot`](modules/test-snapshot)               | Snapshot testing over canonical component JSON                           | ✅      |
-| [`bom`](modules/bom)                                   | Bill of materials for aligning Kotventure and Adventure module versions  | ✅      |
+| [`test-snapshot`](modules/test-snapshot)               | Snapshot tests of canonical component JSON                               | ✅      |
+| [`bom`](modules/bom)                                   | Bill of materials that aligns Kotventure and Adventure module versions   | ✅      |
 | [`paper`](modules/paper)                               | Paper platform bundle: `Ticker` adapter over the Bukkit scheduler        | ✅      |
 | `i18n`                                                 | Translation registry + per-player locale DSL                             | 🔜     |
-| `ansi`                                                 | Render a `Component` to colored terminal output                          | 🔜     |
-| `coroutines`                                           | suspend click-callbacks, async sending, animation scheduling             | 🔜     |
-| `velocity` / `fabric`                                  | Platform adapters & extras                                               | 🔜     |
-| `ksp`                                                  | Typed message-catalog codegen + compile-time validation                  | 🔜     |
+| `ansi`                                                 | Render a `Component` as coloured terminal output                          | 🔜     |
+| `coroutines`                                           | Suspend click callbacks, asynchronous sends, and animation schedules     | 🔜     |
+| `velocity` / `fabric`                                  | Platform adapters and additional features                                | 🔜     |
+| `ksp`                                                  | Typed message-catalogue codegen + compile-time validation                | 🔜     |
 | `gradle-plugin`                                        | Validate / pre-compile MiniMessage resource bundles at build time        | 🔜     |
 
 ## Getting it
 
-Tagged releases are published through [JitPack](https://jitpack.io/#LMLiam/Kotventure). Import the BOM once, then
-depend on the modules you need without repeating versions:
+JitPack publishes each tagged release. Import the BOM one time. Then, add the modules that you require without
+repeated versions:
 
 ```kotlin
 repositories {
@@ -311,24 +311,25 @@ dependencies {
 }
 ```
 
-Replace `<tag>` with a [released tag](https://github.com/LMLiam/Kotventure/releases) (e.g. `0.16.0`). The `test`
-artifacts are test-scope only. The BOM re-exports Adventure's BOM at the baseline pinned in
+Replace `<tag>` with a [released tag](https://github.com/LMLiam/Kotventure/releases), for example `0.16.0`. The `test`
+artefacts are test-scope only. The BOM re-exports Adventure's BOM at the baseline pinned in
 [`gradle/libs.versions.toml`](gradle/libs.versions.toml) (currently 5.2.0).
 
-New here? The [Getting Started guide](docs/GETTING-STARTED.md) walks from install to a tested component in five short
-steps.
+If you are new to Kotventure, use the [Getting Started guide](docs/GETTING-STARTED.md). It gives five short steps from
+installation to a tested component.
 
 ## Build & compatibility
 
-Kotventure builds and tests with the Java 25 Gradle toolchain. Its Adventure baseline sets a Java 21+ minimum
-for consumers. Release process and maintainer permissions live in [`docs/RELEASING.md`](docs/RELEASING.md).
+Kotventure uses the Java 25 Gradle toolchain for builds and tests. The Adventure baseline requires Java 21 or a later
+version for consumers. For the release process and maintainer permissions, refer to
+[`docs/RELEASING.md`](docs/RELEASING.md).
 
 ## Contributing
 
-Contributions are welcome — read the [Contributing Guide](.github/CONTRIBUTING.md). Good entry points are issues
-labelled [`good first issue`](https://github.com/LMLiam/Kotventure/labels/good%20first%20issue). For vulnerabilities,
-follow the [Security Policy](.github/SECURITY.md) rather than opening a public issue.
+We welcome contributions. Read the [Contributing Guide](.github/CONTRIBUTING.md). For a simple first task, select an
+issue with the [`good first issue`](https://github.com/LMLiam/Kotventure/labels/good%20first%20issue) label. To report a
+vulnerability, follow the [Security Policy](.github/SECURITY.md). Do not open a public issue.
 
 ## License
 
-Distributed under the MIT License — see [`LICENSE`](LICENSE.md).
+The MIT License applies. Refer to [`LICENSE`](LICENSE.md).

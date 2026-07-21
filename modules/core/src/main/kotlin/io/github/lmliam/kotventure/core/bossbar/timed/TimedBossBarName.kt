@@ -6,27 +6,24 @@ import net.kyori.adventure.text.Component
 import kotlin.time.Duration
 
 /**
- * Re-renders a managed boss bar's name each tick from the time remaining until completion.
+ * Produces a managed boss-bar name from its remaining lifetime.
  *
- * The block is a regular [ComponentScope], so the dynamic form composes exactly like the static
- * `name { }` form — child builders, styling, and the string shorthands all apply. The SAM keeps
- * `name { remaining -> text("…") }` distinct from the static [TimedBossBarScope.name] overloads
- * during overload resolution.
+ * [render] runs after each progress update. The receiving [ComponentScope] supports the same child and style operations
+ * as a fixed name.
  */
 public fun interface TimedBossBarName {
     /**
-     * Appends the name's content to the receiving component scope for the given remaining
-     * duration.
+     * Appends the name content for [remaining] to the receiving component scope.
      *
      * @param remaining time left until the bar completes.
      */
     public fun ComponentScope.render(remaining: Duration)
 }
 
-/** Fixed name: ignore remaining time; change-detection on the bar skips redundant pushes. */
+/** Adapts a fixed component to the runtime name function. */
 internal fun Component.asFixedTimedName(): (Duration) -> Component = { _ -> this }
 
-/** Dynamic name: re-enter a component scope each tick with [TimedBossBarName] as the renderer. */
+/** Creates a component for each runtime call by invoking this renderer in a new component scope. */
 internal fun TimedBossBarName.asDynamicTimedName(): (Duration) -> Component =
     { remaining ->
         component {

@@ -3,9 +3,9 @@ package io.github.lmliam.kotventure.core.bossbar
 import net.kyori.adventure.bossbar.BossBar
 
 /**
- * Requires this float to lie in Adventure's inclusive boss-bar progress range.
+ * Returns this value when it is in Adventure's inclusive boss-bar progress range.
  *
- * @throws IllegalArgumentException when outside [[BossBar.MIN_PROGRESS], [BossBar.MAX_PROGRESS]]
+ * @throws IllegalArgumentException when this value is outside [[BossBar.MIN_PROGRESS], [BossBar.MAX_PROGRESS]].
  */
 internal fun Float.requireBossBarProgress(label: String = "progress"): Float =
     also {

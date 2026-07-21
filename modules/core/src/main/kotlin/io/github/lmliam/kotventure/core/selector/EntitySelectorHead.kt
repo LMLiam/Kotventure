@@ -1,12 +1,12 @@
 package io.github.lmliam.kotventure.core.selector
 
 /**
- * Java Edition entity-selector heads and the keyword arguments each one accepts.
+ * The supported Java Edition entity-selector heads.
  *
- * Coordinates and floating-point ranges are handled separately, so this enum only gates keyword
- * arguments.
+ * Each head limits the keyword arguments that its typed factory exposes. [SELF] does not support `limit` or `sort`.
+ * Player heads do not support `type`.
  *
- * @property token canonical selector source token, such as `@p`
+ * @property token The canonical selector source token, such as `@p`.
  */
 public enum class EntitySelectorHead(
     public val token: String,

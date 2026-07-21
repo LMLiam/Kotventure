@@ -1,12 +1,11 @@
 # Support
 
-Thanks for using Kotventure! Here's where to go:
+Thank you for your interest in Kotventure. Use these support channels:
 
-- **Questions / how-do-I / ideas:** open a [Discussion](https://github.com/LMLiam/Kotventure/discussions).
+- **Questions, instructions, and ideas:** open a [Discussion](https://github.com/LMLiam/Kotventure/discussions).
 - **Bugs:** open an issue with the **Bug report** template.
-- **Feature requests:** open an issue with the **Feature request** template, or start a Discussion if it's still
-  half-formed.
-- **Security issues:** follow the [Security Policy](SECURITY.md) — do not file a public issue.
+- **Feature requests:** open an issue with the **Feature request** template. Start a Discussion if you need more design work.
+- **Security issues:** follow the [Security Policy](SECURITY.md). Do not file a public issue.
 
-This is an early-stage, community-driven project maintained in spare time, so please be patient with response times.
-The [Roadmap](../docs/ROADMAP.md) shows what's planned and in progress.
+Maintainers work on this early-stage community project in their spare time. A response can take more time.
+The [Roadmap](../docs/ROADMAP.md) shows planned work and work in progress.

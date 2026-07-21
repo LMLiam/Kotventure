@@ -5,7 +5,6 @@ import io.mockk.mockk
 import io.papermc.paper.registry.data.dialog.input.BooleanDialogInput
 import net.kyori.adventure.text.Component
 
-/** Recording [BooleanDialogInput.Builder] whose [build] returns a mockk stub of the captured values. */
 internal class FakeBooleanInputBuilder(
     private val key: String,
     private val label: Component,

@@ -1,9 +1,8 @@
-# Kotventure — Project Roadmap
+# Kotventure Project Roadmap
 
 > **Lifecycle Stages:** Pre‑Alpha → Alpha → Beta → Release
 >
-> This roadmap describes what each stage is *for*. It deliberately does not track which version is current —
-> that lives in the published version and the changelog, not in prose that would rot.
+> This roadmap gives the purpose of each stage. The published version and changelog identify the current version.
 
 ---
 
@@ -11,12 +10,12 @@
 
 **Focus:**
 
-- Expand the core DSL without centralizing every feature in `ComponentScope`.
+- Expand the core DSL without centralising all features in `ComponentScope`.
 - Keep public API surface small while compatibility is still flexible.
-- Harden MiniMessage templates, validation, serializers, and component-testing tools.
-- Keep build, docs, and release metadata aligned with the currently shipped modules.
+- Improve MiniMessage templates, validation, serialisers, and component-test tools.
+- Keep build, documentation, and release metadata consistent with published modules.
 
-**Plan:** See the [phased roadmap in `docs/DESIGN.md`](./DESIGN.md#11-phased-roadmap) for the alpha-phase breakdown.
+**Plan:** Refer to the [phased roadmap in `docs/DESIGN.md`](./DESIGN.md#11-phased-roadmap) for the Alpha phases.
 
 ---
 
@@ -24,16 +23,16 @@
 
 **Focus:**
 
-- Feature‑complete for planned 1.0.
-- API freeze — backwards‑compatibility guaranteed until 2.0.
-- Integration tests with real‑world scenarios / sample projects.
-- Docs polished for production use (including Architecture deep‑dive).
-- Performance profiling and optimisations.
+- Complete all planned 1.0 features.
+- Freeze the API. Guarantee backward compatibility before version 2.0.
+- Add integration tests with real examples and sample projects.
+- Prepare documentation for production use. Include a detailed architecture guide.
+- Measure and optimise performance.
 
 **Milestone Criteria:**
 
 - Ready for production testing.
-- No known breaking changes pending for 1.0.
+- No known breaking changes remain for 1.0.
 
 ---
 
@@ -41,22 +40,22 @@
 
 **Focus:**
 
-- Stable, documented, production‑ready API.
-- Semantic versioning commitment.
-- Signed artifacts deployed.
+- Provide a stable, documented API that is ready for production.
+- Use semantic versioning.
+- Publish signed artefacts.
 
 ---
 
-## 🛣️ Long‑Term Ideas (Post‑1.0)
+## 🛣️ Long-Term Ideas (After 1.0)
 
-- Rich theme/plugin system for styling.
-- Developer tooling (e.g., DSL linting rules, IDE inspections).
-- Performance tuning for large‑scale component trees.
-- Cookbook‑style documentation site.
+- Add a theme and plugin system for styles.
+- Add developer tools, such as DSL lint rules and IDE inspections.
+- Improve performance for large component trees.
+- Add a cookbook documentation site.
 
 ---
 
-## 📆 High‑Level Timeline
+## 📆 Timeline
 
 | Stage     | Target Range | Key Deliverable                      |
 |-----------|--------------|--------------------------------------|

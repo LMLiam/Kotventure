@@ -1,69 +1,66 @@
 ---
 name: reviewing-contributions
-description: Use when reviewing, improving, or landing someone else's PR or PR stack in Kotventure (contributor, intern, or bot-authored) — deciding whether to rework or rebuild, raising design alternatives, updating PR bodies and review threads, and setting project board fields before merge.
+description: >-
+  Use this skill to review, improve, or land another person's Kotventure pull request. It covers design decisions,
+  branch changes, review threads, and project fields.
 ---
 
 # Reviewing contributions
 
-The maintainer-side pass that takes an incoming PR from "submitted" to "landable". The bar is
-the same as for original work: the reviewed PR should read as if a staff engineer wrote it.
+Use this maintainer process to make a submitted pull request ready to land. Apply the same quality requirements as for
+original work.
 
 ## 1. Judge the shape first, then the code
 
-Read the diff against the design skills before line-commenting:
+Read the diff and apply the design skills before you write line comments:
 
-- `idiomatic-kotlin-dsl` — resolution ladder, pressure-test, house rules. A PR built on the
-  wrong rung (typed keys + string overloads, runtime checks for compile-time facts) gets a
-  **shape** conversation, not fifty nitpicks.
-- Hard structural rules: one top-level class/interface/object per file (feature-grouped
-  top-level functions/vals may share), package-by-feature, `internal` implementation,
-  `explicitApi()` + KDoc, tests included (`writing-component-tests`).
+- `idiomatic-kotlin-dsl` supplies the resolution ladder, pressure-test, and house rules. If a pull request uses the wrong level,
+  discuss the API design first. Examples include typed keys with string overloads and runtime checks for compile-time
+  facts.
+- Hard structural rules: Use one top-level class, interface, or object per file. Feature-grouped top-level functions
+  and values can share a file. Use feature packages, `internal` implementations, `explicitApi()`, KDoc, and tests.
+  Refer to `writing-component-tests`.
 
-**Rebuild-or-improve decision:** if the core design is right, improve in place. If the shape
-is wrong, rebuilding on the contributor's branch is usually cheaper and kinder than a
-20-round review — keep their commits' intent, credit them, and say so in the PR.
+If the primary design is correct, improve it in place. If the API form is incorrect, rebuild it on the contributor's
+branch. Preserve the intent of the commits, credit the contributor, and explain the rebuild in the pull request.
 
-## 2. Raise design forks as questions, not fiats
+## 2. Present design alternatives
 
-When a genuinely better shape exists, present it to the maintainer/author as a fork with
-**concrete call-site previews** — the before/after as a consumer writes it — and a
-recommendation. No design decision is locked (issue text and prior plans included), but the
-final call on API shape is the maintainer's.
+When you find a better API form, present it to the maintainer and author as an alternative. Include concrete before and
+after call-site examples and a recommendation. You can review issue text and prior plans. The maintainer makes the final
+API decision.
 
 ## 3. Improve
 
-- Work on the PR branch; **force-push is fine** — feature-branch history is disposable and
-  there are no backwards-compatibility obligations pre-1.0 (no deprecated forwarders, no dual
-  APIs; delete superseded forms outright).
+- Work on the pull-request branch. You can force-push this feature branch. Before version 1.0, do not keep deprecated
+  forwarders or two APIs. Delete replaced forms.
 - Every improvement pass ends green locally: `./gradlew ktlintFormat build` (see
   `fixing-ci-failures` for anything red).
-- Keep commit subjects conventional (`verb(area): …`) — they become the squashed title and
-  the changelog.
+- Use the conventional `verb(area): …` format for commit subjects. They become the squash title and changelog entries.
 
 ## 4. Communicate
 
-- **PR body:** keep it true after your changes — what the PR does now, `Closes #<n>`, the
-  matching template's sections filled in.
-- **Review threads:** answer every open thread — what changed, or why not (branch protection
-  requires conversations resolved). Don't resolve someone else's thread without a reply.
-- Report honestly: if you rebuilt, say you rebuilt; if a test was weakened or skipped, that's
-  a blocker, not a footnote.
+- **Pull-request body:** Keep it accurate after your changes. Describe the current change, include `Closes #<n>`, and
+  complete the applicable template sections.
+- **Review threads:** Answer each open thread with what changed or why it did not change. Do not resolve another
+  person's thread without a reply.
+- State if you rebuilt the change. A weaker or skipped test blocks completion.
 
 ## 5. Project metadata & merge gates
 
-Before calling it done:
+Before you report completion:
 
-- Attach the PR to the issue's GitHub Project (e.g. Kotventure Roadmap) and mirror the
+- Attach the PR to the issue's GitHub Project, such as Kotventure Roadmap. Mirror the
   issue's fields: `Status`, `Priority`, `Area`, `Kind`, `Effort`, `Risk`, `Contributor fit`.
   Verify with `gh project item-list`.
-- Required checks: Build/Test/Lint aggregate, both title validations, dependency review —
-  plus one approving code-owner review and all conversations resolved. Squash-merge only.
-- Watch CI after the final push; a merged-then-red master is your incident.
+- Required checks are the Build, Test, and Lint aggregate, both title validations, and dependency review. Also require
+  one code-owner approval and no unresolved conversation. Use only a squash merge.
+- Monitor CI after the final push. If `master` becomes red after the merge, investigate it immediately.
 
-## Anti-patterns
+## Prohibited review forms
 
-- ❌ Approving code you'd have written differently *on principle* — review the shape, then
-  let style points go if they meet the skills' bars.
-- ❌ Nitpick cascades on a PR whose design is wrong — have the shape conversation first.
-- ❌ Silent rewrites — always narrate what you changed on the contributor's work and why.
-- ❌ Merging with unset project fields or unanswered threads.
+- ❌ Do not reject correct code only because you prefer a different style. Review the API form first, and then apply
+  the skill requirements.
+- ❌ Do not add many small comments when the primary design is incorrect. Discuss the API form first.
+- ❌ Do not rewrite silently. Explain what you changed in the contributor's work and why.
+- ❌ Do not merge with unset project fields or unanswered threads.

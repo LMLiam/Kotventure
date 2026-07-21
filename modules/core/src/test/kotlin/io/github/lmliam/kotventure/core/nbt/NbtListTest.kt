@@ -8,7 +8,6 @@ import io.kotest.matchers.string.shouldContain
 class NbtListTest :
     StringSpec(
         {
-            // Helper to reduce repetition
             fun render(block: NbtCompoundScope.() -> Unit): String = nbt(block).string()
 
             "builds an empty list" {
@@ -104,7 +103,6 @@ class NbtListTest :
                     shouldThrow<IllegalArgumentException> {
                         render { "chars" eq list('a', 'b') }
                     }
-                // Assert the message mentions the NBT element contract (protects future regressions)
                 e.message.shouldContain("NBT list elements must be")
             }
         },

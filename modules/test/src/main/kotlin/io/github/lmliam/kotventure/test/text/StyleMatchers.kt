@@ -8,7 +8,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.Style
 
 /**
- * Matches a component whose root [Style] equals [expected] exactly. Combine with `and`/`or` or negate with `shouldNot`.
+ * Returns a matcher that compares the complete root [Style] with [expected].
  */
 public fun haveStyle(expected: Style): Matcher<Component> =
     Matcher { value ->
@@ -21,7 +21,7 @@ public fun haveStyle(expected: Style): Matcher<Component> =
     }
 
 /**
- * Matches a component whose root font is [expected].
+ * Returns a matcher that compares the root font with [expected].
  */
 public fun haveFont(expected: Key): Matcher<Component> =
     Matcher { value ->
@@ -34,7 +34,7 @@ public fun haveFont(expected: Key): Matcher<Component> =
     }
 
 /**
- * Matches a component that has no root font.
+ * Returns a matcher that accepts a component without a root font.
  */
 public fun haveNoFont(): Matcher<Component> =
     Matcher { value ->
@@ -47,7 +47,7 @@ public fun haveNoFont(): Matcher<Component> =
     }
 
 /**
- * Matches a component whose root shift-click insertion text is [expected].
+ * Returns a matcher that compares the root shift-click insertion text with [expected].
  */
 public fun haveInsertion(expected: String): Matcher<Component> =
     Matcher { value ->
@@ -60,7 +60,7 @@ public fun haveInsertion(expected: String): Matcher<Component> =
     }
 
 /**
- * Matches a component that has no root shift-click insertion text.
+ * Returns a matcher that accepts a component without root shift-click insertion text.
  */
 public fun haveNoInsertion(): Matcher<Component> =
     Matcher { value ->
@@ -73,7 +73,7 @@ public fun haveNoInsertion(): Matcher<Component> =
     }
 
 /**
- * Asserts that this component has exactly [expected] as its root Adventure style.
+ * Verifies that this component has [expected] as its complete root style.
  */
 public infix fun Component.shouldHaveStyle(expected: Style): Component =
     apply {
@@ -81,7 +81,7 @@ public infix fun Component.shouldHaveStyle(expected: Style): Component =
     }
 
 /**
- * Asserts that this component has [expected] as its root font.
+ * Verifies that this component has [expected] as its root font.
  */
 public infix fun Component.shouldHaveFont(expected: Key): Component =
     apply {
@@ -89,7 +89,7 @@ public infix fun Component.shouldHaveFont(expected: Key): Component =
     }
 
 /**
- * Asserts that this component has no root font.
+ * Verifies that this component has no root font.
  */
 public fun Component.shouldNotHaveFont(): Component =
     apply {
@@ -97,7 +97,7 @@ public fun Component.shouldNotHaveFont(): Component =
     }
 
 /**
- * Asserts that this component has [expected] as its root shift-click insertion text.
+ * Verifies that this component has [expected] as its root shift-click insertion text.
  */
 public infix fun Component.shouldHaveInsertion(expected: String): Component =
     apply {
@@ -105,7 +105,7 @@ public infix fun Component.shouldHaveInsertion(expected: String): Component =
     }
 
 /**
- * Asserts that this component has no root shift-click insertion text.
+ * Verifies that this component has no root shift-click insertion text.
  */
 public fun Component.shouldNotHaveInsertion(): Component =
     apply {

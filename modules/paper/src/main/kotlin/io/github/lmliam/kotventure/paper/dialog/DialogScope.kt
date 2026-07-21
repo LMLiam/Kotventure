@@ -10,29 +10,27 @@ import net.kyori.adventure.text.ComponentLike
 import org.bukkit.inventory.ItemStack
 
 /**
- * Configures the common [base][io.papermc.paper.registry.data.dialog.DialogBase] of a [Dialog]:
- * its title, framing, body, and inputs. The dialog type is chosen at the call site with a
- * [DialogKind] token, so each kind's scope extends this base with only its own capabilities.
+ * Configures the common content and behaviour of a [Dialog].
  *
- * The [title] slot is required; every other base slot is optional. Body and [inputs] calls are
- * repeatable and accumulate in call order.
+ * You must set [title] one time. Each other single-value setting is optional and can be set one
+ * time. Calls to [message], [item], and [inputs] add values in call order.
  *
  * @sample io.github.lmliam.kotventure.paper.dialog.dialogSample
  */
 @KotventureDslMarker
 public interface DialogScope {
     /**
-     * The after-action that returns to the previous non-dialog screen when the dialog closes.
+     * Returns the action that opens the previous non-dialog screen after the dialog closes.
      */
     public val close: DialogAfterAction
 
     /**
-     * The after-action that keeps the current screen open when the dialog closes.
+     * Returns the action that does not change the current screen after the dialog closes.
      */
     public val none: DialogAfterAction
 
     /**
-     * The after-action that shows a "waiting for response" screen while the dialog is handled.
+     * Returns the action that shows a wait screen while the server processes the response.
      */
     public val wait: DialogAfterAction
 
@@ -65,41 +63,50 @@ public interface DialogScope {
     public fun <T : ComponentLike> externalTitle(component: T): Unit
 
     /**
-     * Sets whether the dialog can be dismissed with the escape keybind. Called with no argument,
-     * sets it to `true` (defaults to `true` when unset).
+     * Sets whether the user can close the dialog with the escape key.
+     *
+     * The argument and the Paper default are `true`.
      *
      * @throws IllegalStateException when this slot is already set in this block.
      */
     public fun closeOnEscape(value: Boolean = true): Unit
 
     /**
-     * Sets whether the dialog pauses a single-player game while it is open. Called with no
-     * argument, sets it to `true` (defaults to `true` when unset).
+     * Sets whether the dialog pauses a single-player game while it is open.
+     *
+     * The argument and the Paper default are `true`.
      *
      * @throws IllegalStateException when this slot is already set in this block.
      */
     public fun pausesGame(value: Boolean = true): Unit
 
     /**
-     * Sets the action taken after the dialog is closed. Use [close], [none], or [wait].
-     * Defaults to [close] when unset.
+     * Sets the action that occurs after the dialog closes.
+     *
+     * Use [close], [none], or [wait]. The default is [close].
      *
      * @throws IllegalStateException when this slot is already set in this block.
      */
     public fun afterAction(action: DialogAfterAction): Unit
 
     /**
-     * Appends a plain-message body built from a component block. Repeatable; accumulates in order.
+     * Adds a plain-message body from a component block.
+     *
+     * Multiple calls add bodies in call order.
      */
     public fun message(init: ComponentScope.() -> Unit): Unit
 
     /**
-     * Appends a plain-message body. Repeatable; accumulates in order.
+     * Adds a plain-message body.
+     *
+     * Multiple calls add bodies in call order.
      */
     public fun <T : ComponentLike> message(component: T): Unit
 
     /**
-     * Appends an item body for [stack], configured by [init]. Repeatable; accumulates in order.
+     * Adds an item body for [stack] and configures its presentation with [init].
+     *
+     * Multiple calls add bodies in call order. This function does not modify [stack].
      */
     public fun item(
         stack: ItemStack,
@@ -107,13 +114,16 @@ public interface DialogScope {
     ): Unit
 
     /**
-     * Appends an item body for [stack] with default framing. Repeatable; accumulates in order.
+     * Adds an item body for [stack] with Paper's default presentation.
+     *
+     * Multiple calls add bodies in call order. This function does not modify [stack].
      */
     public fun item(stack: ItemStack): Unit
 
     /**
-     * Declares dialog inputs configured by [init]. Repeatable; declarations accumulate in call
-     * order across every block.
+     * Adds dialog inputs configured by [init].
+     *
+     * Multiple calls add inputs in call order.
      */
     public fun inputs(init: InputsScope.() -> Unit): Unit
 }

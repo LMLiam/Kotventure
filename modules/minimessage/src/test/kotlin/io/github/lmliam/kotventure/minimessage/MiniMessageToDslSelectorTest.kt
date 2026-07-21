@@ -188,8 +188,8 @@ class MiniMessageToDslSelectorTest :
 
             context("typed selector round trips") {
                 test("compiles and round-trips a selector exercising every argument") {
-                    // Argument order matches the DSL builder's canonical rendering order, so the
-                    // compiled typed emission serializes back to the identical pattern.
+                    // Argument order matches the canonical order of the DSL builder.
+                    // Thus, the compiled typed output serialises to the same pattern.
                     val pattern =
                         "@e[type=minecraft:zombie,name=\"Boss Mob\",x=12.5,dy=8,distance=0..64," +
                                 "x_rotation=..45,level=0..30,scores={kills=10..,deaths=0..5}," +

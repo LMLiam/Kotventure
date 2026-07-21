@@ -12,10 +12,6 @@ import io.kotest.matchers.shouldBe
 import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.Component
 
-/**
- * Captures tab list header/footer pairs via [sendPlayerListHeaderAndFooter].
- * Kept local to the test for isolation and readability.
- */
 private class TabListRecordingAudience : Audience {
     data class HeaderFooter(
         val header: Component,

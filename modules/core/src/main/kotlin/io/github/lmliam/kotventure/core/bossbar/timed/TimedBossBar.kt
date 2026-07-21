@@ -6,8 +6,7 @@ import net.kyori.adventure.bossbar.BossBar
 import kotlin.time.Duration
 
 /**
- * Handle for a lifecycle-managed boss bar that interpolates progress over a duration and
- * auto-hides when finished or cancelled.
+ * Controls a boss bar that updates over a fixed lifetime and hides itself at termination.
  *
  * Built via [bossBar][io.github.lmliam.kotventure.core.audience.bossBar] with a contextual
  * [Ticker]. The underlying [bar] remains a live-mutable Adventure [BossBar]. Viewers added via
@@ -18,18 +17,18 @@ public class TimedBossBar internal constructor(
     config: TimedBossBarConfig,
     initialViewer: Audience,
 ) {
-    /** The underlying Adventure boss bar; progress and name are updated each tick. */
+    /** The mutable Adventure boss bar that receives each progress and name update. */
     public val bar: BossBar = config.buildInitialBar()
 
     private val runtime = TimedBossBarRuntime(ticker, config, bar, this)
 
     /**
-     * Time remaining until natural completion; frozen while [isPaused] and at the value it had
-     * when [cancel] ended the bar early. [Duration.ZERO] after natural completion.
+     * Time remaining until natural completion. It does not change while [isPaused]. If [cancel] ends the bar early, it
+     * keeps the value at cancellation. It is [Duration.ZERO] after natural completion.
      */
     public val remaining: Duration by runtime::remaining
 
-    /** `true` until the bar finishes naturally or is [cancel]led. */
+    /** `true` until natural completion or the first [cancel] call. */
     public val isRunning: Boolean by runtime::isRunning
 
     /** `true` after [pause] and before [resume], while still [isRunning]. */
@@ -54,8 +53,10 @@ public class TimedBossBar internal constructor(
     public fun resume(): Unit = runtime.resume()
 
     /**
-     * Stops the bar, hides it from all tracked viewers, and fires `onCancel` once when this call
-     * ends a still-running bar. Idempotent after finish or a prior cancel.
+     * Stops updates, hides all tracked viewers, and invokes `onCancel` when this call terminates a running bar.
+     *
+     * The function does nothing after natural completion or an earlier cancellation. It invokes `onCancel` even when
+     * one or more viewers fail to hide, then propagates a hide or hook failure.
      */
     public fun cancel(): Unit = runtime.cancel()
 
@@ -68,7 +69,9 @@ public class TimedBossBar internal constructor(
     public fun show(audience: Audience): Unit = runtime.show(audience)
 
     /**
-     * Hides [bar] from [audience] and stops tracking it for auto-hide.
+     * Hides [bar] from [audience] and stops tracking that audience.
+     *
+     * The function forwards the hide operation even when the audience is not tracked or the bar has terminated.
      */
     public fun hide(audience: Audience): Unit = runtime.hide(audience)
 }

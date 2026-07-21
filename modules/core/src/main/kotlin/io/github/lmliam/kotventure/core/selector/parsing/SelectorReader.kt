@@ -3,10 +3,10 @@ package io.github.lmliam.kotventure.core.selector.parsing
 import io.github.lmliam.kotventure.core.selector.EntitySelectorParseException
 
 /**
- * A character cursor over entity-selector source text.
+ * A cursor over entity-selector source text.
  *
- * Every value parses in place, so each diagnostic offset is the exact cursor position at the
- * failure - parsers built on this reader never reconstruct offsets arithmetically.
+ * Parsing functions capture source positions before they consume values. Diagnostics can therefore identify the
+ * position at which a failure occurred.
  */
 internal class SelectorReader(
     private val source: String,
@@ -17,8 +17,8 @@ internal class SelectorReader(
 
     fun isAtEnd(): Boolean = offset == source.length
 
-    /** Returns the character [distance] positions ahead of the cursor without consuming it. */
-    @Suppress("NOTHING_TO_INLINE") // inline to avoid allocating the lambda where callers are hot
+    /** Returns the character [distance] positions ahead without consuming it. */
+    @Suppress("NOTHING_TO_INLINE")
     inline fun peek(distance: Int = 0): Char? = source.getOrNull(offset + distance)
 
     fun skip() {
@@ -26,16 +26,16 @@ internal class SelectorReader(
     }
 
     /**
-     * Consume a single [expected] char if it matches the next character.
+     * Consumes [expected] if it is the next character.
      *
-     * Returns true when the character was present and consumed.
+     * Returns `true` when the character was present.
      */
     fun consume(expected: Char): Boolean = (peek() == expected).also { if (it) offset++ }
 
     /**
-     * Consumes the whole [expected] token if the source continues with it.
+     * Consumes [expected] if it is the next token.
      *
-     * Returns true when the token was present and consumed.
+     * Returns `true` when the token was present.
      */
     fun consume(expected: String): Boolean =
         source.startsWith(expected, offset).also { if (it) offset += expected.length }
@@ -49,9 +49,7 @@ internal class SelectorReader(
     }
 
     /**
-     * Read characters while [predicate] holds and return the substring from the starting cursor.
-     *
-     * This is inline to avoid allocating the predicate where callers are hot.
+     * Reads and returns characters while [predicate] is `true`.
      */
     inline fun readWhile(predicate: (Char) -> Boolean): String {
         val start = offset

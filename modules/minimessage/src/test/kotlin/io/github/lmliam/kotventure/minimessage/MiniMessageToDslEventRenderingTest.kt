@@ -448,9 +448,9 @@ class MiniMessageToDslEventRenderingTest :
                     )
                 }
 
-                // Asserted via direct write rather than assertGoldenRoundTrip: Adventure's MiniMessage
-                // serializer can't emit a `show_item` hover carrying a removed (non-TagSerializable) data
-                // component, so the round-trip harness can't reach this emission branch.
+                // Use a direct write because Adventure's MiniMessage serialiser cannot emit this value.
+                // The value is a `show_item` hover with a removed, non-TagSerializable data component.
+                // Thus, the round-trip harness cannot reach this emission branch.
                 test("emits removed data components as removed()") {
                     val loot =
                         component {

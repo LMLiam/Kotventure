@@ -1,11 +1,12 @@
 # `kotventure-serializer`
 
-Extension functions over Adventure's serializers, so converting a `Component` to and from wire formats is one call —
-no serializer singletons at the call site.
+This module provides extension functions for Adventure serialisers. One call converts a `Component` to or from a wire
+format.
+You do not need a serialiser singleton at the call site.
 
 ## Getting it
 
-With the BOM imported (see the [root README](../../README.md#getting-it)), add:
+After you import the BOM, add this dependency. Refer to the [root README](../../README.md#getting-it).
 
 ```kotlin
 dependencies {
@@ -33,5 +34,5 @@ val imported = "&6Welcome".asLegacyAmpersandComponent()
 | Plain text   | `toPlainText()`       | —                                                                   |
 | MiniMessage  | `toMiniMessage()`     | `mini(...)` in [`kotventure-minimessage`](../minimessage/README.md) |
 
-Plain text is deliberately one-way (formatting is lost), and MiniMessage parsing lives in the `minimessage` module so
-this one stays a thin serializer shim.
+Plain-text conversion works in one direction because it removes formatting. The `minimessage` module contains MiniMessage parsing.
+Thus, this module remains a small serialiser adapter.

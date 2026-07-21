@@ -31,7 +31,7 @@ import kotlin.io.path.exists
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
 
-/** The component recorded in `styled-component.snapshot.json`; keep in sync with that committed fixture. */
+/** The component in `styled-component.snapshot.json`. Keep it consistent with that committed fixture. */
 private fun styledComponent(): Component =
     text("Hello ") {
         color(red)
@@ -42,11 +42,10 @@ private fun styledComponent(): Component =
     }
 
 /**
- * The component recorded in `rich-message.snapshot.json`; keep in sync with that committed fixture.
+ * Provides the component in `rich-message.snapshot.json`.
  *
- * Deliberately broad: it exercises a styled root carrying both a click and a hover event, a translatable child with a
- * fallback and an argument, and keybind, score, and selector children — so a regression in *any* of those serialised
- * forms surfaces as a single snapshot diff, which is exactly what structural matchers are clumsy at covering.
+ * The fixture covers styles, events, translatable content, keybinds, scores, and selectors. Keep it
+ * consistent with the committed snapshot.
  */
 private fun richMessage(): Component =
     text("Welcome, ") {
@@ -139,7 +138,7 @@ class SnapshotMatchersTest :
                     text("different") shouldNot matchSnapshot("guard")
                 }
 
-                target.readText() shouldBe original // the pure matcher must not write through shouldNot
+                target.readText() shouldBe original
             }
 
             "reports a mismatch with both expected and actual content" {
@@ -150,8 +149,8 @@ class SnapshotMatchersTest :
                         }
 
                     failure.message shouldContain "does not match snapshot <simple-text>"
-                    failure.message shouldContain "\"text\": \"Hello\"" // expected, from the committed fixture
-                    failure.message shouldContain "\"text\": \"Goodbye\"" // actual, from the component under test
+                    failure.message shouldContain "\"text\": \"Hello\""
+                    failure.message shouldContain "\"text\": \"Goodbye\""
                 }
             }
 
@@ -176,7 +175,6 @@ class SnapshotMatchersTest :
                 written.exists() shouldBe true
                 written.readText() shouldContain "\"text\": \"Hello\""
 
-                // The recorded snapshot now satisfies a plain comparison.
                 withSnapshotProperties(dir = tempDir.toString()) {
                     text("Hello") shouldMatchSnapshot "fresh"
                 }

@@ -4,7 +4,7 @@ import net.kyori.adventure.key.InvalidKeyException
 import net.kyori.adventure.key.Key
 
 /**
- * Builds an Adventure [Key] from a [namespace] and [value].
+ * Creates an Adventure [Key] from separate [namespace] and [value] strings.
  *
  * @throws InvalidKeyException when [namespace] or [value] is not valid for an Adventure key.
  */
@@ -14,8 +14,9 @@ public fun key(
 ): Key = Key.key(namespace, value)
 
 /**
- * Builds an Adventure [Key] from a combined `namespace:value` string, defaulting the namespace to
- * `minecraft` when omitted.
+ * Creates an Adventure [Key] from a combined `namespace:value` string.
+ *
+ * Adventure uses the `minecraft` namespace when [key] does not contain a namespace.
  *
  * @throws InvalidKeyException when [key] is not valid for an Adventure key.
  */

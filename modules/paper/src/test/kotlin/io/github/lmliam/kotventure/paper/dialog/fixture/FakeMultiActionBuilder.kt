@@ -5,7 +5,6 @@ import io.mockk.mockk
 import io.papermc.paper.registry.data.dialog.ActionButton
 import io.papermc.paper.registry.data.dialog.type.MultiActionType
 
-/** Recording [MultiActionType.Builder] whose [build] returns a mockk stub of the captured values. */
 internal class FakeMultiActionBuilder(
     private val actions: List<ActionButton>,
 ) : MultiActionType.Builder {

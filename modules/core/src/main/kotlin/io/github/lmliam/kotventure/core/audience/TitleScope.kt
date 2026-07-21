@@ -6,8 +6,7 @@ import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.ComponentLike
 
 /**
- * Scope for configuring a screen title shown via [Audience.title]: the main [title] line, an
- * optional [subtitle], and optional fade [times].
+ * Configures the content and display times of a screen title for [Audience.title].
  *
  * At least one of [title] or [subtitle] must be set before the block ends.
  */
@@ -44,8 +43,8 @@ public interface TitleScope {
     /**
      * Configures fade-in, stay, and fade-out durations via [TitleTimesScope].
      *
-     * Each timing may be set independently; any left unset uses Adventure's default for that slot
-     * (`Title.DEFAULT_TIMES`). When this block is omitted entirely, those same defaults apply.
+     * You can set each time independently. An unset value uses Adventure's default for that slot
+     * (`Title.DEFAULT_TIMES`). The same defaults apply when you omit the complete block.
      *
      * @throws IllegalStateException when times are already configured in this title block, or when
      *   a timing slot is set twice inside [init].

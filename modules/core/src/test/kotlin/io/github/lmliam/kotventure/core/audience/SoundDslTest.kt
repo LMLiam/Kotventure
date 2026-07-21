@@ -14,9 +14,6 @@ import net.kyori.adventure.key.Key
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.sound.SoundStop
 
-/**
- * Captures [playSound] and [stopSound] calls. Kept local to the test for isolation and readability.
- */
 private class SoundRecordingAudience : Audience {
     data class Played(
         val sound: Sound,

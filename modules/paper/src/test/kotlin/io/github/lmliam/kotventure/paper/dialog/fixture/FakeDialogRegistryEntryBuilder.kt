@@ -6,7 +6,6 @@ import io.papermc.paper.registry.data.dialog.DialogRegistryEntry
 import io.papermc.paper.registry.data.dialog.type.DialogType
 import io.papermc.paper.registry.set.RegistryValueSetBuilder
 
-/** Recording [DialogRegistryEntry.Builder] capturing the base and type set by the DSL. */
 internal class FakeDialogRegistryEntryBuilder : DialogRegistryEntry.Builder {
     private var base: DialogBase? = null
     private var type: DialogType? = null

@@ -11,7 +11,6 @@ internal enum class MiniMessagePlaceholderStrategy {
 
 @PublishedApi
 internal inline fun <reified T : Any> miniMessagePlaceholderStrategy(): MiniMessagePlaceholderStrategy {
-    // Box Kotlin primitive types so Int/Double/Boolean classify with their JVM wrapper families.
     val valueType = T::class.javaObjectType
 
     return when {

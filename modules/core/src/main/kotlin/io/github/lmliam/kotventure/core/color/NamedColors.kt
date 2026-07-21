@@ -3,91 +3,93 @@ package io.github.lmliam.kotventure.core.color
 import net.kyori.adventure.text.format.NamedTextColor
 
 /**
- * Standard Adventure `black` color.
+ * The standard Adventure `black` colour.
  */
 public val black: NamedTextColor = NamedTextColor.BLACK
 
 /**
- * Standard Adventure `dark_blue` color.
+ * The standard Adventure `dark_blue` colour.
  */
 public val darkBlue: NamedTextColor = NamedTextColor.DARK_BLUE
 
 /**
- * Standard Adventure `dark_green` color.
+ * The standard Adventure `dark_green` colour.
  */
 public val darkGreen: NamedTextColor = NamedTextColor.DARK_GREEN
 
 /**
- * Standard Adventure `dark_aqua` color.
+ * The standard Adventure `dark_aqua` colour.
  */
 public val darkAqua: NamedTextColor = NamedTextColor.DARK_AQUA
 
 /**
- * Standard Adventure `dark_red` color.
+ * The standard Adventure `dark_red` colour.
  */
 public val darkRed: NamedTextColor = NamedTextColor.DARK_RED
 
 /**
- * Standard Adventure `dark_purple` color.
+ * The standard Adventure `dark_purple` colour.
  */
 public val darkPurple: NamedTextColor = NamedTextColor.DARK_PURPLE
 
 /**
- * Standard Adventure `gold` color.
+ * The standard Adventure `gold` colour.
  */
 public val gold: NamedTextColor = NamedTextColor.GOLD
 
 /**
- * Standard Adventure `gray` color.
+ * The standard Adventure `gray` colour.
  */
 public val gray: NamedTextColor = NamedTextColor.GRAY
 
 /**
- * Standard Adventure `dark_gray` color.
+ * The standard Adventure `dark_gray` colour.
  */
 public val darkGray: NamedTextColor = NamedTextColor.DARK_GRAY
 
 /**
- * Standard Adventure `blue` color.
+ * The standard Adventure `blue` colour.
  */
 public val blue: NamedTextColor = NamedTextColor.BLUE
 
 /**
- * Standard Adventure `green` color.
+ * The standard Adventure `green` colour.
  */
 public val green: NamedTextColor = NamedTextColor.GREEN
 
 /**
- * Standard Adventure `aqua` color.
+ * The standard Adventure `aqua` colour.
  */
 public val aqua: NamedTextColor = NamedTextColor.AQUA
 
 /**
- * Standard Adventure `red` color.
+ * The standard Adventure `red` colour.
  */
 public val red: NamedTextColor = NamedTextColor.RED
 
 /**
- * Standard Adventure `light_purple` color.
+ * The standard Adventure `light_purple` colour.
  */
 public val lightPurple: NamedTextColor = NamedTextColor.LIGHT_PURPLE
 
 /**
- * Standard Adventure `yellow` color.
+ * The standard Adventure `yellow` colour.
  */
 public val yellow: NamedTextColor = NamedTextColor.YELLOW
 
 /**
- * Standard Adventure `white` color.
+ * The standard Adventure `white` colour.
  */
 public val white: NamedTextColor = NamedTextColor.WHITE
 
 /**
- * Finds a standard Adventure named color by its exact Adventure name, such as `dark_blue`.
+ * Returns the Adventure named colour with exact lowercase [name], or `null` when it does not exist.
  */
 public fun namedColor(name: String): NamedTextColor? = NamedTextColor.NAMES.value(name)
 
 /**
- * Finds a standard Adventure named color by its exact Adventure name, or throws if [name] is unknown.
+ * Returns the Adventure named colour with exact lowercase [name].
+ *
+ * @throws NoSuchElementException if [name] is unknown.
  */
 public fun namedColorOrThrow(name: String): NamedTextColor = NamedTextColor.NAMES.valueOrThrow(name)

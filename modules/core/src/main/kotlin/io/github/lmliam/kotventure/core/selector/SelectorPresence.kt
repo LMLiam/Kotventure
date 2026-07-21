@@ -1,8 +1,7 @@
 package io.github.lmliam.kotventure.core.selector
 
 /**
- * Presence condition for selector arguments that test whether a value exists at all, such as
- * `tag` and `team`.
+ * A presence condition for selector arguments such as `tag` and `team`.
  *
  * Access via the scoped [CommonEntitySelectorScope.any] and [CommonEntitySelectorScope.none] constants.
  *
@@ -11,9 +10,9 @@ package io.github.lmliam.kotventure.core.selector
 public enum class SelectorPresence(
     internal val value: String,
 ) {
-    /** Requires at least one value to be present. */
+    /** Requires at least one value. This value renders as `!` after the equals sign. */
     ANY("!"),
 
-    /** Requires no value to be present. */
+    /** Requires no value. This value renders as an empty string after the equals sign. */
     NONE(""),
 }

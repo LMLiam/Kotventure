@@ -5,8 +5,7 @@ import net.kyori.adventure.bossbar.BossBar
 import kotlin.time.Duration
 
 /**
- * Linear progress endpoints for a managed bar, each validated in Adventure's inclusive
- * [[BossBar.MIN_PROGRESS], [BossBar.MAX_PROGRESS]] range.
+ * Validated start and end progress for a linear managed-bar transition.
  */
 internal data class TimedBossBarProgress(
     val from: Float,
@@ -18,9 +17,9 @@ internal data class TimedBossBarProgress(
     }
 
     /**
-     * Interpolates fill for the given [remaining] time within [over].
+     * Returns the linear progress for [remaining] within the positive lifetime [over].
      *
-     * Lands exactly on [to] when [remaining] is zero.
+     * The result is [to] when [remaining] is zero and [from] when it equals [over].
      */
     fun at(
         remaining: Duration,

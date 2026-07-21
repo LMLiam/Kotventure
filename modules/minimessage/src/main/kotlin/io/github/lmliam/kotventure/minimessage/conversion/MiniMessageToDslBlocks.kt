@@ -3,11 +3,7 @@ package io.github.lmliam.kotventure.minimessage.conversion
 import net.kyori.adventure.text.Component
 
 /**
- * Helpers for emitting structured DSL blocks for components.
- *
- * These functions intentionally work as small, composable building blocks:
- * - prefer small helpers for the body emission to avoid duplicated logic
- * - expose a vararg overload for arguments for ergonomic callers
+ * Emits one structured component call, with a block only when the component has body content.
  */
 internal fun KotlinSourceBuilder.appendStructured(
     header: String,
@@ -27,13 +23,9 @@ internal fun KotlinSourceBuilder.appendStructured(
 }
 
 /**
- * Emits a structured-component call with multi-line arguments.
+ * Emits a structured component call with multiline [arguments].
  *
- * The `opener` appears on its own line, each argument is emitted indented and comma-separated
- * , and then either a single closing `)` or a `) { ... }` body that carries
- * [body], the component's style, and its children.
- *
- * This overload accepts a List of argument-emitting lambdas to remain compatible with existing callers.
+ * The call has a block when [body], style, or children produce output.
  */
 internal fun KotlinSourceBuilder.appendStructuredArguments(
     opener: String,
@@ -55,7 +47,7 @@ internal fun KotlinSourceBuilder.appendStructuredArguments(
 }
 
 /**
- * Emit a labelled component argument block, e.g. `label { ... }`.
+ * Emits a labelled component argument block.
  */
 internal fun KotlinSourceBuilder.appendComponentArgument(
     label: String,
@@ -63,10 +55,7 @@ internal fun KotlinSourceBuilder.appendComponentArgument(
 ) = block(label) { appendRoot(component) }
 
 /**
- * Shared small helper that emits the common trailing content for structured blocks:
- * - optional extra body content (via [body])
- * - style emission
- * - child components
+ * Emits extra [body] content, style, and child components in that order.
  */
 private fun KotlinSourceBuilder.emitComponentBody(
     component: Component,

@@ -5,13 +5,14 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import net.kyori.adventure.text.ComponentLike
 
 /**
- * Scope for sending a component as a player-styled chat message: the [BoundChatScope] slots plus
- * the message [content] itself.
+ * Configures the content and client presentation of a player-styled chat message.
+ *
+ * The scope requires one [content] value and one sender name from [BoundChatScope]. Each slot is write-once.
  */
 @KotventureDslMarker
 public interface ChatScope : BoundChatScope {
     /**
-     * Builds the chat message content from a component DSL block.
+     * Creates and sets the chat message content from a component DSL block.
      *
      * @throws IllegalStateException when the content is already set in this block.
      */

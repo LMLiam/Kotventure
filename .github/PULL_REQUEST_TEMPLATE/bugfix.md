@@ -1,6 +1,6 @@
 ## Summary
 
-<!-- Briefly describe the bug and the fix. -->
+<!-- Describe the bug and the correction. Use short sentences. -->
 
 ## Related Issues
 
@@ -8,18 +8,18 @@ Closes #<issue-number>
 
 ## Root Cause Analysis
 
-<!-- What was the underlying cause? Include any reproducible DSL snippet if relevant. -->
+<!-- Describe the cause. Include a DSL example that reproduces the bug, if applicable. -->
 
 ## Fix Details
 
-<!-- Explain the changes you made. -->
+<!-- Describe each change. -->
 
 ## Regression Safety
 
-<!-- How did you ensure this won’t reoccur? (tests, guards, validation) -->
+<!-- List the tests, guards, and validation that prevent the bug from occurring again. -->
 
 ## Checklist
 
-- [ ] Reproduced the issue before fixing
-- [ ] Added regression test(s)
-- [ ] Linked related issue
+- [ ] Reproduce the issue before the correction
+- [ ] Add regression tests
+- [ ] Link the related issue

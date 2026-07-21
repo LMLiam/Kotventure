@@ -11,15 +11,19 @@ import kotlin.properties.ReadOnlyProperty
 import io.github.lmliam.kotventure.minimessage.placeholder.placeholder as createPlaceholder
 
 /**
- * Typed, reusable MiniMessage template with declared placeholders.
+ * A typed, reusable MiniMessage template with required placeholders.
  *
- * Subclass and declare each placeholder as a delegated property so the property name is the tag
- * name (compile-checked at call sites). Render with the [invoke] operator and bind values with
- * [bind][MiniTemplateBindingScope.bind]:
+ * Subclass this type and declare each placeholder during construction. Prefer delegated properties because the Kotlin
+ * property name then becomes the MiniMessage tag name. The placeholder type makes each binding type-safe at the call
+ * site. Use [invoke] to render a new component.
  *
  * @sample io.github.lmliam.kotventure.minimessage.template.miniTemplateRenderSample
  *
- * @param markup the MiniMessage markup string this template renders; must not be blank.
+ * Validation is lazy and cached. Do not declare more placeholders after the first call to [invoke] or
+ * [validate][io.github.lmliam.kotventure.minimessage.validate]. A fully constructed template supports concurrent
+ * validation and rendering. Each render has independent bindings.
+ *
+ * @param markup The MiniMessage markup that this template renders. It must contain a non-whitespace character.
  * @throws IllegalArgumentException when [markup] is blank.
  */
 public abstract class MiniTemplate(
@@ -41,11 +45,10 @@ public abstract class MiniTemplate(
     /**
      * Declares a required placeholder whose MiniMessage tag name is this property's name.
      *
-     * Prefer this form so the Kotlin property and the markup tag cannot drift:
-     * `val player by placeholder<Component>()`.
+     * Prefer this form so the Kotlin property and markup tag have the same name.
      *
-     * @throws IllegalArgumentException when the property name is not a valid MiniMessage tag, is
-     *   already declared, or [T] is unsupported.
+     * @throws IllegalArgumentException when [T] is unsupported, or when the property name is invalid or already
+     * declared.
      */
     protected inline fun <reified T : Any> placeholder():
             PropertyDelegateProvider<MiniTemplate, ReadOnlyProperty<MiniTemplate, MiniMessagePlaceholder<T>>> =
@@ -57,8 +60,8 @@ public abstract class MiniTemplate(
     /**
      * Declares a required placeholder with an explicit MiniMessage tag [name].
      *
-     * Use only when the tag must differ from the Kotlin property name (interop / legacy markup).
-     * Prefer [placeholder] with no name so the property name is the tag.
+     * Use this string bridge only for an external or legacy template. The tag can differ from the Kotlin property
+     * name. Otherwise, use [placeholder] with no name.
      *
      * @throws IllegalArgumentException when [name] is invalid or already declared, or [T] is unsupported.
      */
@@ -77,10 +80,14 @@ public abstract class MiniTemplate(
 }
 
 /**
- * Renders this template after [block] binds every declared placeholder.
+ * Renders a new component after [block] binds every declared placeholder.
  *
- * @throws IllegalArgumentException when the template definition is invalid, or a placeholder is missing,
- *   foreign, or bound more than once.
+ * The function validates the template before it runs [block]. Each placeholder must be bound exactly one time with
+ * the descriptor instance that this template declared. Scalar values become literal text. Component values retain
+ * their structure. The function does not retain bindings after it returns.
+ *
+ * @throws IllegalArgumentException when the template definition is invalid, a binding is missing, a descriptor belongs
+ * to another template, or a placeholder is bound more than one time.
  */
 public operator fun <T : MiniTemplate> T.invoke(block: context(MiniTemplateBindingScope) T.() -> Unit): Component {
     require(validation is ValidationResult.Success) { "MiniMessage template is invalid: $validation." }

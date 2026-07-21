@@ -10,13 +10,10 @@ import net.kyori.adventure.text.format.TextDecoration
 import net.kyori.adventure.text.format.TextDecoration.State
 
 /**
- * Internal builder base that implements [StyleScope] with once-assign slots, then applies each
- * attribute to an Adventure target.
+ * Enforces the write-once [StyleScope] contract for an Adventure builder.
  *
- * Shared by [StyleBuilder] and component builders so slot uniqueness and decoration mapping live
- * in one place. Subclasses implement the Adventure apply hooks only.
- *
- * Public DSL receivers stay on [StyleScope]; this type is not a public scope.
+ * Each style attribute and each decoration has an independent slot. The class rejects a duplicate assignment before
+ * it calls the applicable Adventure hook. Subclasses only adapt those hooks to their target builder.
  */
 internal abstract class OnceStyleBuilder : StyleScope {
     private var color: TextColor? by once()

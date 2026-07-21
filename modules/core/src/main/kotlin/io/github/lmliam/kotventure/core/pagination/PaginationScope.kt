@@ -5,8 +5,7 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import net.kyori.adventure.text.ComponentLike
 
 /**
- * Configures a [Pagination] built via [paginate]: the required per-item [renderer], an optional
- * [header] shown above every page, the [itemsPerPage] page size, and the [nav] row.
+ * Configures the renderer, optional header, page size, and navigation row of a [Pagination].
  *
  * @param T the type of the items being paginated.
  * @sample io.github.lmliam.kotventure.core.pagination.paginateSample
@@ -14,7 +13,7 @@ import net.kyori.adventure.text.ComponentLike
 @KotventureDslMarker
 public interface PaginationScope<T> {
     /**
-     * Builds the header shown above every page from a component DSL block.
+     * Creates and sets the header shown above every page.
      *
      * @throws IllegalStateException when the header is already set in this block.
      */
@@ -28,8 +27,7 @@ public interface PaginationScope<T> {
     public fun <C : ComponentLike> header(component: C)
 
     /**
-     * Sets how each item is rendered onto its page line. Required; every item is rendered once,
-     * eagerly, when the pagination is built.
+     * Sets how to render each item on its page line. This slot is required. The build renders each item one time.
      *
      * @throws IllegalStateException when the renderer is already set in this block.
      */

@@ -5,7 +5,6 @@ import io.mockk.mockk
 import io.papermc.paper.registry.data.dialog.input.SingleOptionDialogInput
 import net.kyori.adventure.text.Component
 
-/** Recording [SingleOptionDialogInput.Builder] whose [build] returns a mockk stub of the captured values. */
 internal class FakeSingleOptionInputBuilder(
     private val key: String,
     private val label: Component,

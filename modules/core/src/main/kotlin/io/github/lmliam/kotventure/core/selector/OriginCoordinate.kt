@@ -1,8 +1,10 @@
 package io.github.lmliam.kotventure.core.selector
 
 /**
- * A single selector origin coordinate, produced by the scoped `x`, `y`, and `z` properties:
- * `origin(12.5.x, 64.y)`.
+ * One finite selector-origin coordinate.
+ *
+ * Create a coordinate with the scoped `x`, `y`, or `z` property. Then, supply it to `origin`, for example
+ * `origin(12.5.x, 64.y)`. A coordinate is immutable and belongs to one axis.
  *
  * @sample io.github.lmliam.kotventure.core.selector.selectorPositionVolumeSample
  */

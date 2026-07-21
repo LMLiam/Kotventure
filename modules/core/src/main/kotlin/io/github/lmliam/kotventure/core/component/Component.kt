@@ -5,9 +5,9 @@ import net.kyori.adventure.text.Component
 /**
  * Returns Adventure's empty [Component] (empty content, no children, no style).
  *
- * Prefer this over [Component.empty] in Kotventure call sites, and over an empty
- * [component] `{ }` block: the empty builder happens to collapse to the same singleton today, but
- * that is an implementation detail of Adventure's text builder, not the intended API for "no text".
+ * Use this function instead of [Component.empty] at Kotventure call sites. Also use it instead of an empty [component]
+ * block. Adventure's empty text builder currently returns the same singleton, but that is an implementation detail.
+ * This function is the specified Kotventure API for no text.
  *
  * @sample io.github.lmliam.kotventure.core.component.emptyComponentSample
  */
@@ -16,20 +16,19 @@ public fun emptyComponent(): Component = Component.empty()
 /**
  * Returns Adventure's newline [Component].
  *
- * Prefer this over [Component.newline] in Kotventure call sites, for the same reason as
- * [emptyComponent] — most useful as a standalone value such as a `join { }` separator; inside a
- * component block, use the scope's own [newline][ComponentScope.newline].
+ * Use this function instead of [Component.newline] at Kotventure call sites. It is primarily a standalone value, such
+ * as a `join { }` separator. In a component block, use [ComponentScope.newline].
  *
  * @sample io.github.lmliam.kotventure.core.component.newlineComponentSample
  */
 public fun newlineComponent(): Component = Component.newline()
 
 /**
- * Builds an Adventure [Component] from a Kotventure component DSL block.
+ * Creates an empty-content [Component] and configures its style and children with [init].
  *
- * The block runs against a [ComponentScope] rooted at an empty text component, so its children and
- * styling become the returned component's.
+ * The function only constructs a value. It does not send the component to an audience.
  *
+ * @throws IllegalStateException when [init] assigns a write-once style slot more than once.
  * @sample io.github.lmliam.kotventure.core.component.componentScopeSample
  */
 public fun component(init: ComponentScope.() -> Unit): Component =

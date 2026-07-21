@@ -1,7 +1,7 @@
 package io.github.lmliam.kotventure.core.nbt
 
 /**
- * Represents a list selection strategy: all elements or a compound filter.
+ * An immutable NBT path segment that selects list elements.
  */
 public class NbtSelection internal constructor(
     internal val node: NbtPathNode,
@@ -15,7 +15,9 @@ public class NbtSelection internal constructor(
 public val all: NbtSelection = NbtSelection(NbtPathNode.AllElements)
 
 /**
- * Selects list elements matching a compound filter (`[{...}]`).
+ * Creates a selection for list elements that match the compound filter from [init].
+ *
+ * @throws IllegalStateException when [init] sets the same key more than one time.
  *
  * @sample io.github.lmliam.kotventure.core.nbt.matchingSample
  */

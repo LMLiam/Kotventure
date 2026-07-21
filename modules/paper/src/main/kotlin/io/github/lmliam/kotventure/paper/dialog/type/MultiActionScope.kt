@@ -4,12 +4,18 @@ import io.github.lmliam.kotventure.paper.dialog.DialogScope
 import io.github.lmliam.kotventure.paper.dialog.action.ButtonScope
 
 /**
- * Configures a multi-action dialog. Beyond the base [DialogScope] slots, at least one [button] is
- * required; the column count and exit button are optional.
+ * Configures a dialog that contains multiple action buttons.
+ *
+ * In addition to the required [DialogScope.title], you must add at least one [button]. The column
+ * count and exit button are optional.
  */
 public interface MultiActionScope : DialogScope {
     /**
-     * Adds an action button configured by [init]. Repeatable; accumulates in call order.
+     * Adds an action button configured by [init].
+     *
+     * Multiple calls add buttons in call order.
+     *
+     * @throws IllegalStateException when [init] does not set the button label.
      */
     public fun button(init: ButtonScope.() -> Unit): Unit
 
@@ -25,6 +31,7 @@ public interface MultiActionScope : DialogScope {
      * Configures the optional exit button.
      *
      * @throws IllegalStateException when the exit button is already configured in this block.
+     * @throws IllegalStateException when [init] does not set the button label.
      */
     public fun exitButton(init: ButtonScope.() -> Unit): Unit
 }

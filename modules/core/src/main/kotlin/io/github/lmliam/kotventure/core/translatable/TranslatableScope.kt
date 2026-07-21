@@ -6,12 +6,15 @@ import io.github.lmliam.kotventure.core.text.TextScope
 import net.kyori.adventure.text.ComponentLike
 
 /**
- * Scope for configuring a translatable component with fallback text, arguments, style, and children.
+ * Configures the fallback, arguments, style, and children of a translatable component.
+ *
+ * Argument functions append values in call order. The client applies those arguments when it resolves the
+ * translation key.
  */
 @KotventureDslMarker
 public interface TranslatableScope : ComponentScope {
     /**
-     * Applies fallback text for clients that cannot resolve the translation key.
+     * Sets the text that a client can use when it cannot resolve the translation key.
      *
      * @throws IllegalStateException when the fallback is already set in this block.
      */

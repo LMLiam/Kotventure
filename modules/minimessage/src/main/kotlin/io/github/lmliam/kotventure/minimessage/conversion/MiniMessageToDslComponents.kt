@@ -11,7 +11,7 @@ import net.kyori.adventure.text.StorageNBTComponent
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.TranslatableComponent
 
-/** Emits [component], unwrapping content-less, style-less text root into bare sequence children. */
+/** Emits [component], or only its children when it is an empty and unstyled text root. */
 internal fun KotlinSourceBuilder.appendRoot(component: Component) {
     if (component is TextComponent && component.content().isEmpty() && !hasDslOutput(component.style())) {
         component.children().forEach { appendComponent(it) }

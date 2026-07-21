@@ -9,31 +9,28 @@ import kotlin.time.Duration
 import kotlin.time.toKotlinDuration
 
 /**
- * Matches [Title.Times] whose fade-in equals [expected].
+ * Returns a matcher that compares the fade-in duration with [expected].
  *
- * Takes [kotlin.time.Duration] so call sites can use `1.ticks` / `3.seconds`; convert Adventure
- * values (e.g. `Title.DEFAULT_TIMES.fadeIn()`) with [toKotlinDuration].
+ * The matcher converts the Adventure duration to a Kotlin [Duration] before comparison.
  */
 public fun haveFadeIn(expected: Duration): Matcher<Title.Times> = timingMatcher("fade-in", expected) { it.fadeIn() }
 
 /**
- * Matches [Title.Times] whose stay equals [expected].
+ * Returns a matcher that compares the stay duration with [expected].
  *
- * Takes [kotlin.time.Duration] so call sites can use `1.ticks` / `3.seconds`; convert Adventure
- * values (e.g. `Title.DEFAULT_TIMES.stay()`) with [toKotlinDuration].
+ * The matcher converts the Adventure duration to a Kotlin [Duration] before comparison.
  */
 public fun haveStay(expected: Duration): Matcher<Title.Times> = timingMatcher("stay", expected) { it.stay() }
 
 /**
- * Matches [Title.Times] whose fade-out equals [expected].
+ * Returns a matcher that compares the fade-out duration with [expected].
  *
- * Takes [kotlin.time.Duration] so call sites can use `1.ticks` / `3.seconds`; convert Adventure
- * values (e.g. `Title.DEFAULT_TIMES.fadeOut()`) with [toKotlinDuration].
+ * The matcher converts the Adventure duration to a Kotlin [Duration] before comparison.
  */
 public fun haveFadeOut(expected: Duration): Matcher<Title.Times> = timingMatcher("fade-out", expected) { it.fadeOut() }
 
 /**
- * Asserts this [Title.Times] has the given fade-in duration.
+ * Verifies that this [Title.Times] has fade-in duration [expected].
  */
 public infix fun Title.Times.shouldHaveFadeIn(expected: Duration): Title.Times =
     apply {
@@ -41,7 +38,7 @@ public infix fun Title.Times.shouldHaveFadeIn(expected: Duration): Title.Times =
     }
 
 /**
- * Asserts this [Title.Times] does not have the given fade-in duration.
+ * Verifies that this [Title.Times] does not have fade-in duration [expected].
  */
 public infix fun Title.Times.shouldNotHaveFadeIn(expected: Duration): Title.Times =
     apply {
@@ -49,7 +46,7 @@ public infix fun Title.Times.shouldNotHaveFadeIn(expected: Duration): Title.Time
     }
 
 /**
- * Asserts this [Title.Times] has the given stay duration.
+ * Verifies that this [Title.Times] has stay duration [expected].
  */
 public infix fun Title.Times.shouldHaveStay(expected: Duration): Title.Times =
     apply {
@@ -57,7 +54,7 @@ public infix fun Title.Times.shouldHaveStay(expected: Duration): Title.Times =
     }
 
 /**
- * Asserts this [Title.Times] does not have the given stay duration.
+ * Verifies that this [Title.Times] does not have stay duration [expected].
  */
 public infix fun Title.Times.shouldNotHaveStay(expected: Duration): Title.Times =
     apply {
@@ -65,7 +62,7 @@ public infix fun Title.Times.shouldNotHaveStay(expected: Duration): Title.Times 
     }
 
 /**
- * Asserts this [Title.Times] has the given fade-out duration.
+ * Verifies that this [Title.Times] has fade-out duration [expected].
  */
 public infix fun Title.Times.shouldHaveFadeOut(expected: Duration): Title.Times =
     apply {
@@ -73,7 +70,7 @@ public infix fun Title.Times.shouldHaveFadeOut(expected: Duration): Title.Times 
     }
 
 /**
- * Asserts this [Title.Times] does not have the given fade-out duration.
+ * Verifies that this [Title.Times] does not have fade-out duration [expected].
  */
 public infix fun Title.Times.shouldNotHaveFadeOut(expected: Duration): Title.Times =
     apply {

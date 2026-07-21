@@ -6,11 +6,12 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.EntityNBTComponent
 
 /**
- * Builds an entity-NBT [Component] — text the client resolves from the NBT of entities matched by a selector.
+ * Creates an entity-NBT [Component]. The client resolves its text from the NBT of the entities that [selector]
+ * matches. This function only creates the component. It does not send the component to an audience.
  *
  * @sample io.github.lmliam.kotventure.core.nbt.entityNbtSample
  *
- * @param selector the entity selector whose NBT is read, constructed via [io.github.lmliam.kotventure.core.selector.self] or friends.
+ * @param selector the entity selector whose NBT is read.
  * @param nbtPath the NBT path within each entity, constructed via [nbtPath].
  * @param init sets [NbtScope.interpret]/[NbtScope.separator] and appends any children.
  */
@@ -30,9 +31,9 @@ internal fun buildEntityNbtComponent(
     ).apply(init).build()
 
 /**
- * Appends an entity-NBT child to this scope, for use inside a `component { }` or other component block.
+ * Creates an entity-NBT component and appends it as the next child of this scope.
  *
- * @param selector the entity selector whose NBT is read, constructed via [io.github.lmliam.kotventure.core.selector.self] or friends.
+ * @param selector the entity selector whose NBT is read.
  * @param nbtPath the NBT path within each entity, constructed via [nbtPath].
  * @param init sets [NbtScope.interpret]/[NbtScope.separator] and appends any children.
  */

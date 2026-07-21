@@ -9,7 +9,7 @@ import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.SelectorComponent
 
 /**
- * Matches a selector component whose pattern is [expected]. Combine with `and`/`or` or negate with `shouldNot`.
+ * Returns a matcher that compares the selector pattern with [expected].
  */
 public fun haveSelectorPattern(expected: String): Matcher<SelectorComponent> =
     Matcher { value ->
@@ -22,13 +22,13 @@ public fun haveSelectorPattern(expected: String): Matcher<SelectorComponent> =
     }
 
 /**
- * Matches a selector component whose pattern is [expected]. Combine with `and`/`or` or negate with `shouldNot`.
+ * Returns a matcher that compares the selector pattern with [expected].
  */
 public fun haveSelectorPattern(expected: EntitySelector): Matcher<SelectorComponent> =
     haveSelectorPattern(expected.asString())
 
 /**
- * Matches a selector component whose separator is [expected].
+ * Returns a matcher that compares the selector separator with [expected].
  */
 public fun <T : ComponentLike> haveSelectorSeparator(expected: T): Matcher<SelectorComponent> =
     Matcher { value ->
@@ -42,7 +42,7 @@ public fun <T : ComponentLike> haveSelectorSeparator(expected: T): Matcher<Selec
     }
 
 /**
- * Matches a selector component that has no separator.
+ * Returns a matcher that accepts a selector component without a separator.
  */
 public fun haveNoSelectorSeparator(): Matcher<SelectorComponent> =
     Matcher { value ->
@@ -55,12 +55,15 @@ public fun haveNoSelectorSeparator(): Matcher<SelectorComponent> =
     }
 
 /**
- * Asserts that this component is a [SelectorComponent] and returns it typed.
+ * Verifies that this component is a [SelectorComponent].
+ *
+ * @return this component as a [SelectorComponent].
+ * @throws AssertionError when this component has a different type.
  */
 public fun Component.shouldBeSelectorComponent(): SelectorComponent = asComponentType("selector")
 
 /**
- * Asserts that this selector component has [expected] as its selector pattern.
+ * Verifies that this selector component has the pattern [expected].
  */
 public infix fun SelectorComponent.shouldHaveSelectorPattern(expected: String): SelectorComponent =
     apply {
@@ -68,7 +71,7 @@ public infix fun SelectorComponent.shouldHaveSelectorPattern(expected: String): 
     }
 
 /**
- * Asserts that this selector component has [expected] as its selector pattern.
+ * Verifies that this selector component has the pattern [expected].
  */
 public infix fun SelectorComponent.shouldHaveSelectorPattern(expected: EntitySelector): SelectorComponent =
     apply {
@@ -76,7 +79,7 @@ public infix fun SelectorComponent.shouldHaveSelectorPattern(expected: EntitySel
     }
 
 /**
- * Asserts that this selector component has [expected] as its separator.
+ * Verifies that this selector component has the separator [expected].
  */
 public infix fun <T : ComponentLike> SelectorComponent.shouldHaveSelectorSeparator(expected: T): SelectorComponent =
     apply {
@@ -84,7 +87,7 @@ public infix fun <T : ComponentLike> SelectorComponent.shouldHaveSelectorSeparat
     }
 
 /**
- * Asserts that this selector component has no separator.
+ * Verifies that this selector component has no separator.
  */
 public fun SelectorComponent.shouldNotHaveSelectorSeparator(): SelectorComponent =
     apply {

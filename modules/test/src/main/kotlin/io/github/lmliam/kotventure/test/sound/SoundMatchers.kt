@@ -8,27 +8,27 @@ import net.kyori.adventure.key.Key
 import net.kyori.adventure.sound.Sound
 
 /**
- * Matches a [Sound] whose name equals [expected].
+ * Returns a matcher that compares the sound name with [expected].
  */
 public fun haveName(expected: Key): Matcher<Sound> = soundMatcher("name", expected) { it.name() }
 
 /**
- * Matches a [Sound] whose source equals [expected].
+ * Returns a matcher that compares the sound source with [expected].
  */
 public fun haveSource(expected: Sound.Source): Matcher<Sound> = soundMatcher("source", expected) { it.source() }
 
 /**
- * Matches a [Sound] whose volume equals [expected].
+ * Returns a matcher that compares the sound volume with [expected].
  */
 public fun haveVolume(expected: Float): Matcher<Sound> = soundMatcher("volume", expected) { it.volume() }
 
 /**
- * Matches a [Sound] whose pitch equals [expected].
+ * Returns a matcher that compares the sound pitch with [expected].
  */
 public fun havePitch(expected: Float): Matcher<Sound> = soundMatcher("pitch", expected) { it.pitch() }
 
 /**
- * Matches a [Sound] whose seed is present and equals [expected].
+ * Returns a matcher that accepts a sound with seed [expected].
  */
 public fun haveSeed(expected: Long): Matcher<Sound> =
     Matcher { value ->
@@ -41,7 +41,7 @@ public fun haveSeed(expected: Long): Matcher<Sound> =
     }
 
 /**
- * Matches a [Sound] with no seed set.
+ * Returns a matcher that accepts a sound without a seed.
  */
 public fun haveNoSeed(): Matcher<Sound> =
     Matcher { value ->
@@ -54,7 +54,7 @@ public fun haveNoSeed(): Matcher<Sound> =
     }
 
 /**
- * Asserts this [Sound] has name [expected].
+ * Verifies that this [Sound] has name [expected].
  */
 public infix fun Sound.shouldHaveName(expected: Key): Sound =
     apply {
@@ -62,7 +62,7 @@ public infix fun Sound.shouldHaveName(expected: Key): Sound =
     }
 
 /**
- * Asserts this [Sound] does not have name [expected].
+ * Verifies that this [Sound] does not have name [expected].
  */
 public infix fun Sound.shouldNotHaveName(expected: Key): Sound =
     apply {
@@ -70,7 +70,7 @@ public infix fun Sound.shouldNotHaveName(expected: Key): Sound =
     }
 
 /**
- * Asserts this [Sound] has source [expected].
+ * Verifies that this [Sound] has source [expected].
  */
 public infix fun Sound.shouldHaveSource(expected: Sound.Source): Sound =
     apply {
@@ -78,7 +78,7 @@ public infix fun Sound.shouldHaveSource(expected: Sound.Source): Sound =
     }
 
 /**
- * Asserts this [Sound] does not have source [expected].
+ * Verifies that this [Sound] does not have source [expected].
  */
 public infix fun Sound.shouldNotHaveSource(expected: Sound.Source): Sound =
     apply {
@@ -86,7 +86,7 @@ public infix fun Sound.shouldNotHaveSource(expected: Sound.Source): Sound =
     }
 
 /**
- * Asserts this [Sound] has volume [expected].
+ * Verifies that this [Sound] has volume [expected].
  */
 public infix fun Sound.shouldHaveVolume(expected: Float): Sound =
     apply {
@@ -94,7 +94,7 @@ public infix fun Sound.shouldHaveVolume(expected: Float): Sound =
     }
 
 /**
- * Asserts this [Sound] does not have volume [expected].
+ * Verifies that this [Sound] does not have volume [expected].
  */
 public infix fun Sound.shouldNotHaveVolume(expected: Float): Sound =
     apply {
@@ -102,7 +102,7 @@ public infix fun Sound.shouldNotHaveVolume(expected: Float): Sound =
     }
 
 /**
- * Asserts this [Sound] has pitch [expected].
+ * Verifies that this [Sound] has pitch [expected].
  */
 public infix fun Sound.shouldHavePitch(expected: Float): Sound =
     apply {
@@ -110,7 +110,7 @@ public infix fun Sound.shouldHavePitch(expected: Float): Sound =
     }
 
 /**
- * Asserts this [Sound] does not have pitch [expected].
+ * Verifies that this [Sound] does not have pitch [expected].
  */
 public infix fun Sound.shouldNotHavePitch(expected: Float): Sound =
     apply {
@@ -118,7 +118,7 @@ public infix fun Sound.shouldNotHavePitch(expected: Float): Sound =
     }
 
 /**
- * Asserts this [Sound] has seed [expected].
+ * Verifies that this [Sound] has seed [expected].
  */
 public infix fun Sound.shouldHaveSeed(expected: Long): Sound =
     apply {
@@ -126,7 +126,7 @@ public infix fun Sound.shouldHaveSeed(expected: Long): Sound =
     }
 
 /**
- * Asserts this [Sound] does not have seed [expected].
+ * Verifies that this [Sound] does not have seed [expected].
  */
 public infix fun Sound.shouldNotHaveSeed(expected: Long): Sound =
     apply {
@@ -134,7 +134,7 @@ public infix fun Sound.shouldNotHaveSeed(expected: Long): Sound =
     }
 
 /**
- * Asserts this [Sound] has no seed set.
+ * Verifies that this [Sound] has no seed.
  */
 public fun Sound.shouldHaveNoSeed(): Sound =
     apply {

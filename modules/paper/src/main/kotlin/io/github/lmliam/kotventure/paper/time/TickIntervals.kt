@@ -5,8 +5,10 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
- * Paper's schedulers cannot express sub-tick periods, so anything that is not a positive
- * whole number of ticks is rejected.
+ * Converts a positive duration that contains an exact number of 50-millisecond ticks.
+ *
+ * @throws IllegalArgumentException when the duration is not positive or not an exact number of
+ *   ticks.
  */
 internal fun Duration.wholeTicks(): Long {
     require(isPositive()) { "repeating interval must be positive, got $this." }

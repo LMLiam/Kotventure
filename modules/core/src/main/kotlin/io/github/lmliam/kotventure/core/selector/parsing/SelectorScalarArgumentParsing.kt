@@ -15,21 +15,13 @@ internal fun SelectorReader.readRangeArgument(argument: SelectorRangeArgument): 
 internal fun SelectorReader.readLevelArgument(): EntitySelectorArgument.Level =
     EntitySelectorArgument.Level(readIntRange("level", nonNegative = true))
 
-/**
- * Read and validate a limit argument. The limit must be positive (> 0).
- *
- * Throws [EntitySelectorParseException][io.github.lmliam.kotventure.core.selector.EntitySelectorParseException] if the limit is not positive.
- */
+/** Reads a positive `limit` value. */
 internal fun SelectorReader.readLimitArgument(): EntitySelectorArgument.Limit {
     val limit = readValidatedInt("Selector limit must be positive") { it > 0 }
     return EntitySelectorArgument.Limit(limit)
 }
 
-/**
- * Read and validate a sort argument against the known [SelectorSort] enum.
- *
- * Throws [EntitySelectorParseException][io.github.lmliam.kotventure.core.selector.EntitySelectorParseException] if the sort value is unsupported.
- */
+/** Reads a [SelectorSort] value. */
 internal fun SelectorReader.readSortArgument(): EntitySelectorArgument.Sort {
     val start = offset
     val token = readValueToken()
@@ -40,13 +32,7 @@ internal fun SelectorReader.readSortArgument(): EntitySelectorArgument.Sort {
 }
 
 /**
- * Generic helper to read and validate an integer.
- *
- * Captures the offset before parsing and fails with [message] if [isValid] returns false.
- *
- * @param message the error message if validation fails
- * @param isValid predicate on the parsed value; returns true if valid
- * @return the parsed and validated integer
+ * Reads an integer and applies [isValid] at the integer's source offset.
  */
 private fun SelectorReader.readValidatedInt(
     message: String,

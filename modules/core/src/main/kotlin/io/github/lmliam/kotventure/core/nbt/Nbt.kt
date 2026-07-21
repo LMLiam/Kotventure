@@ -3,11 +3,12 @@ package io.github.lmliam.kotventure.core.nbt
 import net.kyori.adventure.nbt.api.BinaryTagHolder
 
 /**
- * Builds a [BinaryTagHolder] from compound DSL calls, rendering the compound to SNBT.
+ * Creates a [BinaryTagHolder] from a compound NBT block.
  *
- * This package models **SNBT text** for selector arguments and NBT components — not a full binary
- * NBT library or reimplementation of Adventure NBT types. Build compounds here, render to SNBT, and
- * hand off at the [BinaryTagHolder] / selector edge.
+ * The function renders the compound as SNBT. It rejects duplicate keys. This package models SNBT text for selector
+ * arguments and NBT components. It is not a binary NBT library.
+ *
+ * @throws IllegalStateException when [init] sets the same key more than one time in one compound.
  *
  * @sample io.github.lmliam.kotventure.core.nbt.nbtSample
  */
@@ -17,8 +18,9 @@ public fun nbt(init: NbtCompoundScope.() -> Unit): BinaryTagHolder {
 }
 
 /**
- * Wraps a raw SNBT [snbt] string as a [BinaryTagHolder].
+ * Wraps the raw [snbt] string in a [BinaryTagHolder].
  *
- * Use when SNBT cannot be expressed through the typed compound DSL.
+ * This function does not parse or validate the string. Use it when the compound DSL cannot express the required
+ * SNBT.
  */
 public fun nbt(snbt: String): BinaryTagHolder = BinaryTagHolder.binaryTagHolder(snbt)

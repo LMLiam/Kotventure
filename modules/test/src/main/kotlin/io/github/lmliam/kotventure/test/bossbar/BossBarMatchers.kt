@@ -7,7 +7,7 @@ import io.kotest.matchers.shouldNot
 import net.kyori.adventure.bossbar.BossBar
 
 /**
- * Matches a [BossBar] whose progress equals [expected].
+ * Returns a matcher that compares boss-bar progress with [expected].
  */
 public fun haveProgress(expected: Float): Matcher<BossBar> =
     Matcher { value ->
@@ -20,7 +20,7 @@ public fun haveProgress(expected: Float): Matcher<BossBar> =
     }
 
 /**
- * Matches a [BossBar] whose colour equals [expected].
+ * Returns a matcher that compares the boss-bar colour with [expected].
  */
 public fun haveBossBarColor(expected: BossBar.Color): Matcher<BossBar> =
     Matcher { value ->
@@ -33,7 +33,7 @@ public fun haveBossBarColor(expected: BossBar.Color): Matcher<BossBar> =
     }
 
 /**
- * Matches a [BossBar] whose overlay equals [expected].
+ * Returns a matcher that compares the boss-bar overlay with [expected].
  */
 public fun haveOverlay(expected: BossBar.Overlay): Matcher<BossBar> =
     Matcher { value ->
@@ -46,7 +46,7 @@ public fun haveOverlay(expected: BossBar.Overlay): Matcher<BossBar> =
     }
 
 /**
- * Matches a [BossBar] whose flag set equals [expected].
+ * Returns a matcher that compares the complete boss-bar flag set with [expected].
  */
 public fun haveFlags(expected: Set<BossBar.Flag>): Matcher<BossBar> =
     Matcher { value ->
@@ -59,7 +59,7 @@ public fun haveFlags(expected: Set<BossBar.Flag>): Matcher<BossBar> =
     }
 
 /**
- * Matches a [BossBar] that includes [expected] among its flags.
+ * Returns a matcher that accepts a boss bar that has [expected].
  */
 public fun haveFlag(expected: BossBar.Flag): Matcher<BossBar> =
     Matcher { value ->
@@ -71,7 +71,7 @@ public fun haveFlag(expected: BossBar.Flag): Matcher<BossBar> =
     }
 
 /**
- * Matches a [BossBar] with no flags set.
+ * Returns a matcher that accepts a boss bar without flags.
  */
 public fun haveNoFlags(): Matcher<BossBar> =
     Matcher { value ->
@@ -84,7 +84,7 @@ public fun haveNoFlags(): Matcher<BossBar> =
     }
 
 /**
- * Asserts this [BossBar] has progress [expected].
+ * Verifies that this [BossBar] has progress [expected].
  */
 public infix fun BossBar.shouldHaveProgress(expected: Float): BossBar =
     apply {
@@ -92,7 +92,7 @@ public infix fun BossBar.shouldHaveProgress(expected: Float): BossBar =
     }
 
 /**
- * Asserts this [BossBar] does not have progress [expected].
+ * Verifies that this [BossBar] does not have progress [expected].
  */
 public infix fun BossBar.shouldNotHaveProgress(expected: Float): BossBar =
     apply {
@@ -100,7 +100,7 @@ public infix fun BossBar.shouldNotHaveProgress(expected: Float): BossBar =
     }
 
 /**
- * Asserts this [BossBar] has colour [expected].
+ * Verifies that this [BossBar] has colour [expected].
  */
 public infix fun BossBar.shouldHaveColor(expected: BossBar.Color): BossBar =
     apply {
@@ -108,7 +108,7 @@ public infix fun BossBar.shouldHaveColor(expected: BossBar.Color): BossBar =
     }
 
 /**
- * Asserts this [BossBar] does not have colour [expected].
+ * Verifies that this [BossBar] does not have colour [expected].
  */
 public infix fun BossBar.shouldNotHaveColor(expected: BossBar.Color): BossBar =
     apply {
@@ -116,7 +116,7 @@ public infix fun BossBar.shouldNotHaveColor(expected: BossBar.Color): BossBar =
     }
 
 /**
- * Asserts this [BossBar] has overlay [expected].
+ * Verifies that this [BossBar] has overlay [expected].
  */
 public infix fun BossBar.shouldHaveOverlay(expected: BossBar.Overlay): BossBar =
     apply {
@@ -124,7 +124,7 @@ public infix fun BossBar.shouldHaveOverlay(expected: BossBar.Overlay): BossBar =
     }
 
 /**
- * Asserts this [BossBar] does not have overlay [expected].
+ * Verifies that this [BossBar] does not have overlay [expected].
  */
 public infix fun BossBar.shouldNotHaveOverlay(expected: BossBar.Overlay): BossBar =
     apply {
@@ -132,7 +132,7 @@ public infix fun BossBar.shouldNotHaveOverlay(expected: BossBar.Overlay): BossBa
     }
 
 /**
- * Asserts this [BossBar] has exactly the flag set [expected].
+ * Verifies that this [BossBar] has exactly the flag set [expected].
  */
 public infix fun BossBar.shouldHaveFlags(expected: Set<BossBar.Flag>): BossBar =
     apply {
@@ -140,7 +140,7 @@ public infix fun BossBar.shouldHaveFlags(expected: Set<BossBar.Flag>): BossBar =
     }
 
 /**
- * Asserts this [BossBar] does not have exactly the flag set [expected].
+ * Verifies that this [BossBar] does not have exactly the flag set [expected].
  */
 public infix fun BossBar.shouldNotHaveFlags(expected: Set<BossBar.Flag>): BossBar =
     apply {
@@ -148,7 +148,7 @@ public infix fun BossBar.shouldNotHaveFlags(expected: Set<BossBar.Flag>): BossBa
     }
 
 /**
- * Asserts this [BossBar] includes [expected] among its flags.
+ * Verifies that this [BossBar] has the flag [expected].
  */
 public infix fun BossBar.shouldHaveFlag(expected: BossBar.Flag): BossBar =
     apply {
@@ -156,7 +156,7 @@ public infix fun BossBar.shouldHaveFlag(expected: BossBar.Flag): BossBar =
     }
 
 /**
- * Asserts this [BossBar] does not include [expected] among its flags.
+ * Verifies that this [BossBar] does not have the flag [expected].
  */
 public infix fun BossBar.shouldNotHaveFlag(expected: BossBar.Flag): BossBar =
     apply {
@@ -164,7 +164,7 @@ public infix fun BossBar.shouldNotHaveFlag(expected: BossBar.Flag): BossBar =
     }
 
 /**
- * Asserts this [BossBar] has no flags set.
+ * Verifies that this [BossBar] has no flags.
  */
 public fun BossBar.shouldHaveNoFlags(): BossBar =
     apply {

@@ -5,7 +5,9 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import net.kyori.adventure.text.ComponentLike
 
 /**
- * Configures an item dialog body. Every slot is optional; any left unset uses Paper's default.
+ * Configures the presentation of an item in a dialog body.
+ *
+ * Each setting is optional and can be set one time. An unset setting uses Paper's default.
  */
 @KotventureDslMarker
 public interface ItemBodyScope {
@@ -24,16 +26,18 @@ public interface ItemBodyScope {
     public fun <T : ComponentLike> description(component: T): Unit
 
     /**
-     * Sets whether item decorations (damage bar, stack count) are shown. Called with no argument,
-     * sets it to `true`.
+     * Sets whether the body shows item decorations, such as the damage bar and stack count.
+     *
+     * The default argument is `true`.
      *
      * @throws IllegalStateException when this slot is already set in this block.
      */
     public fun decorations(value: Boolean = true): Unit
 
     /**
-     * Sets whether the item's tooltip is shown on hover. Called with no argument, sets it to
-     * `true`.
+     * Sets whether the body shows the item tooltip when the user points at the item.
+     *
+     * The default argument is `true`.
      *
      * @throws IllegalStateException when this slot is already set in this block.
      */

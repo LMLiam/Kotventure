@@ -3,8 +3,11 @@ package io.github.lmliam.kotventure.core.event
 import net.kyori.adventure.text.event.ClickEvent
 
 /**
- * Builds a reusable click event. Choose exactly one action inside [init] — [ClickActionScope.openUrl], [ClickActionScope.openFile], [ClickActionScope.run],
- * [ClickActionScope.suggest], [ClickActionScope.changePage], [ClickActionScope.copy], or [ClickActionScope.callback].
+ * Creates a reusable click event from the action that [init] selects.
+ *
+ * Select exactly one action. The available actions include [ClickActionScope.openUrl], [ClickActionScope.openFile],
+ * [ClickActionScope.run], [ClickActionScope.suggest], [ClickActionScope.changePage], [ClickActionScope.copy], and
+ * [ClickActionScope.callback]. This function does not attach the event to a component.
  *
  * @sample io.github.lmliam.kotventure.core.event.clickSample
  *
@@ -19,7 +22,7 @@ internal fun buildClickEvent(init: ClickActionScope.() -> Unit): ClickEvent<*> =
         .build()
 
 /**
- * Builds an Adventure click event from a typed [action] and [payload].
+ * Creates an Adventure click event from a typed [action] and [payload].
  *
  * @throws IllegalArgumentException when Adventure rejects the action/payload pair.
  */

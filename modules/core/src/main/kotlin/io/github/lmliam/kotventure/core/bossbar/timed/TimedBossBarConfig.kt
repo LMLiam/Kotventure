@@ -5,10 +5,10 @@ import net.kyori.adventure.text.Component
 import kotlin.time.Duration
 
 /**
- * Immutable configuration snapshot produced by [TimedBossBarBuilder] for [TimedBossBar].
+ * Immutable runtime configuration for one [TimedBossBar].
  *
- * [name] renders the bar name for a remaining duration. Fixed names ignore the argument and
- * return the same component every call, so the bar's change-detection skips redundant pushes.
+ * [name] produces a bar name for a remaining duration. A fixed name returns the same component for every call. The
+ * runtime compares each result with the current name and skips an unchanged update.
  */
 internal data class TimedBossBarConfig(
     val name: (Duration) -> Component,

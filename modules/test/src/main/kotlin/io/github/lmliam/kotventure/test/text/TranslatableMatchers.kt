@@ -8,8 +8,7 @@ import net.kyori.adventure.text.TranslatableComponent
 import net.kyori.adventure.text.TranslationArgument
 
 /**
- * Matches a translatable component whose translation key is [expected]. Combine with `and`/`or` or negate with
- * `shouldNot`.
+ * Returns a matcher that accepts a translatable component with key [expected].
  */
 public fun haveTranslationKey(expected: String): Matcher<Component> =
     Matcher { value ->
@@ -22,7 +21,7 @@ public fun haveTranslationKey(expected: String): Matcher<Component> =
     }
 
 /**
- * Matches a translatable component whose fallback text is [expected].
+ * Returns a matcher that accepts a translatable component with fallback text [expected].
  */
 public fun haveFallback(expected: String): Matcher<Component> =
     Matcher { value ->
@@ -37,7 +36,7 @@ public fun haveFallback(expected: String): Matcher<Component> =
     }
 
 /**
- * Matches a translatable component that has no fallback text.
+ * Returns a matcher that accepts a translatable component without fallback text.
  */
 public fun haveNoFallback(): Matcher<Component> =
     Matcher { value ->
@@ -51,7 +50,7 @@ public fun haveNoFallback(): Matcher<Component> =
     }
 
 /**
- * Matches a translatable component with exactly [expected] translation arguments.
+ * Returns a matcher that accepts a translatable component with [expected] arguments.
  */
 public fun haveArgumentCount(expected: Int): Matcher<Component> =
     Matcher { value ->
@@ -64,7 +63,7 @@ public fun haveArgumentCount(expected: Int): Matcher<Component> =
     }
 
 /**
- * Matches a translatable component whose translation arguments equal [expected] in order.
+ * Returns a matcher that compares translation arguments with [expected] in order.
  */
 public fun haveArguments(expected: List<TranslationArgument>): Matcher<Component> =
     Matcher { value ->
@@ -77,7 +76,7 @@ public fun haveArguments(expected: List<TranslationArgument>): Matcher<Component
     }
 
 /**
- * Asserts that this component is translatable and has [expected] as its translation key.
+ * Verifies that this component is translatable and has the key [expected].
  */
 public infix fun Component.shouldHaveTranslationKey(expected: String): Component =
     apply {
@@ -85,7 +84,7 @@ public infix fun Component.shouldHaveTranslationKey(expected: String): Component
     }
 
 /**
- * Asserts that this component is translatable and has [expected] as its fallback text.
+ * Verifies that this component is translatable and has the fallback text [expected].
  */
 public infix fun Component.shouldHaveFallback(expected: String): Component =
     apply {
@@ -93,7 +92,7 @@ public infix fun Component.shouldHaveFallback(expected: String): Component =
     }
 
 /**
- * Asserts that this component is translatable and has no fallback text.
+ * Verifies that this component is translatable and has no fallback text.
  */
 public fun Component.shouldNotHaveFallback(): Component =
     apply {
@@ -101,7 +100,7 @@ public fun Component.shouldNotHaveFallback(): Component =
     }
 
 /**
- * Asserts that this component is translatable and has exactly [expected] translation arguments.
+ * Verifies that this component is translatable and has [expected] arguments.
  */
 public infix fun Component.shouldHaveArgumentCount(expected: Int): Component =
     apply {
@@ -109,7 +108,7 @@ public infix fun Component.shouldHaveArgumentCount(expected: Int): Component =
     }
 
 /**
- * Asserts that this component is translatable and has exactly [expected] translation arguments in order.
+ * Verifies that this component is translatable and has the arguments [expected] in order.
  */
 public fun Component.shouldHaveArguments(vararg expected: TranslationArgument): Component =
     apply {

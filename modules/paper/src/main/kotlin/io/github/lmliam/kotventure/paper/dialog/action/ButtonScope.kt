@@ -11,11 +11,10 @@ import net.kyori.adventure.text.event.ClickCallback
 import kotlin.time.Duration
 
 /**
- * Configures an action button: its required [label], an optional tooltip and width, and at most
- * one action to run when clicked.
+ * Configures an action button.
  *
- * Choosing more than one action — [onClick], [runCommand], [custom], or [click] — fails when the
- * button is built. Choosing none produces a button with no action.
+ * You must set [label]. The tooltip, width, and action are optional. Select zero or one of
+ * [onClick], [runCommand], [custom], and [click]. A second action fails immediately.
  */
 @KotventureDslMarker
 public interface ButtonScope {
@@ -56,16 +55,19 @@ public interface ButtonScope {
     public fun width(value: Int): Unit
 
     /**
-     * Selects a server-side callback action invoked with the response and clicking audience.
+     * Selects a server-side callback action.
+     *
+     * Paper calls [callback] with the response and the audience that selected the button.
      *
      * @throws IllegalStateException when an action is already selected in this block.
      */
     public fun onClick(callback: DialogActionCallback): Unit
 
     /**
-     * Selects a server-side callback action with a bounded number of [uses] and a [lifetime].
-     *
+     * Selects a server-side callback action with a use limit and a lifetime.
+ *
      * @throws IllegalStateException when an action is already selected in this block.
+     * @throws IllegalArgumentException when [uses] or [lifetime] is not valid for Paper.
      */
     public fun onClick(
         uses: Int,
@@ -84,7 +86,9 @@ public interface ButtonScope {
     ): Unit
 
     /**
-     * Selects a command-template action; `$(input_key)` placeholders resolve to input values.
+     * Selects a command-template action.
+     *
+     * At run time, Paper replaces each `$(input_key)` placeholder with its input value.
      *
      * @throws IllegalStateException when an action is already selected in this block.
      */
@@ -108,10 +112,11 @@ public interface ButtonScope {
     ): Unit
 
     /**
-     * Selects a static click-event action, reusing the core click DSL to build the event.
+     * Selects a static click-event action with the core click DSL.
      *
      * @throws IllegalStateException when an action is already selected in this block, or when
      *   [init] does not choose exactly one click action.
+     * @throws IllegalArgumentException when the selected click action has an invalid value.
      */
     public fun click(init: ClickActionScope.() -> Unit): Unit
 }

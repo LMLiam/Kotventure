@@ -3,7 +3,7 @@ package io.github.lmliam.kotventure.core.nbt
 import io.github.lmliam.kotventure.core.key.key
 import io.github.lmliam.kotventure.core.selector.self
 
-@Suppress("unused") // samples exist for documentation generation
+@Suppress("unused") // Dokka uses these samples.
 internal fun nbtPathSample() {
     nbtPath("Items")[0]["tag"]["display"]["Name"]
     nbtPath("Inventory")[all]["id"]
@@ -28,10 +28,10 @@ internal fun nbtPathSelectionSample() {
 }
 
 internal fun nbtPathFactorySample() {
-    // Structured
+    // Build a structured path.
     nbtPath("Items")[0]["id"]
 
-    // Pre-formed string, still chainable
+    // Continue a path from a pre-formed string.
     nbtPath("Items[0]")["tag"]
 }
 

@@ -6,8 +6,10 @@ import io.papermc.paper.dialog.Dialog
 import io.papermc.paper.registry.set.RegistrySet
 
 /**
- * Configures a dialog-list dialog. Beyond the base [DialogScope] slots, the presented [dialogs]
- * are required; every other slot here is optional.
+ * Configures a dialog that links to other dialogs.
+ *
+ * In addition to the required [DialogScope.title], you must set [dialogs]. Each other setting is
+ * optional.
  */
 public interface DialogListScope : DialogScope {
     /**
@@ -18,7 +20,7 @@ public interface DialogListScope : DialogScope {
     public fun dialogs(dialogs: RegistrySet<Dialog>): Unit
 
     /**
-     * Sets the number of columns the entries are laid out in.
+     * Sets the number of columns that contain the entries.
      *
      * @throws IllegalStateException when this slot is already set in this block.
      * @throws IllegalArgumentException when [value] is not positive.
@@ -37,6 +39,7 @@ public interface DialogListScope : DialogScope {
      * Configures the optional exit button.
      *
      * @throws IllegalStateException when the exit button is already configured in this block.
+     * @throws IllegalStateException when [init] does not set the button label.
      */
     public fun exitButton(init: ButtonScope.() -> Unit): Unit
 }

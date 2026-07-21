@@ -1,7 +1,7 @@
 # Pull Request Template
 
 <!--
-PR title MUST follow: verb(area): something  (e.g. feat(core): add the style DSL)
+PR title MUST follow: verb(area): something. For example: feat(core): add the style DSL
 Enforced by the Conventional Titles workflow. See .github/CONTRIBUTING.md.
 
 Prefer a type-specific template? Append ?template=feature.md (or bugfix.md / docs.md / chore.md)
@@ -10,7 +10,7 @@ to the PR URL, or pick one from .github/PULL_REQUEST_TEMPLATE/.
 
 ## Summary
 
-<!-- What does this change and why? Keep it concise but clear. -->
+<!-- Describe the change and its purpose. Use short, clear sentences. -->
 
 ## Related issues
 
@@ -20,21 +20,22 @@ Closes #<issue-number>
 
 <!-- Tick all that apply. -->
 
-- [ ] feat — new capability
-- [ ] fix — bug fix
-- [ ] refactor — internal, no behaviour change
+- [ ] feat: new capability
+- [ ] fix: bug fix
+- [ ] refactor: internal change with no behaviour change
 - [ ] docs
 - [ ] test
 - [ ] chore / build / ci
 
 ## Testing
 
-<!-- What did you add/run? Note the Kotest specs and whether `./gradlew build` passes. -->
+<!-- List the checks that you ran. Identify the Kotest specifications and the result of `./gradlew build`. -->
 
 ## Checklist
 
-- [ ] Title and commit subjects follow `verb(area): something`
-- [ ] Linked the related issue
-- [ ] Tests added/updated (dogfood the `test` matchers where applicable)
-- [ ] `./gradlew ktlintCheck spotlessCheck` clean; `explicitApi()` satisfied with KDoc on public API
-- [ ] Updated `docs/` and `CHANGELOG.md` if user-facing
+- [ ] Make the title and commit subjects follow `verb(area): something`.
+- [ ] Link the related issue.
+- [ ] Add or update tests. Use the `test` matchers where applicable.
+- [ ] Run `./gradlew ktlintCheck spotlessCheck` and make sure that it passes.
+- [ ] Add KDoc to the public API and satisfy `explicitApi()`.
+- [ ] Update `docs/` for user-facing changes.

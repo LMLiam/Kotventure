@@ -12,10 +12,6 @@ import io.kotest.matchers.shouldBe
 import net.kyori.adventure.text.TranslatableComponent
 import net.kyori.adventure.text.format.NamedTextColor
 
-/**
- * Verifies core component normalisation and traversal interoperate with the serializers:
- * compaction preserves rendered meaning, and both normalised and traversed trees survive a JSON round trip.
- */
 class ComponentUtilityRoundTripTest :
     StringSpec(
         {
@@ -28,11 +24,9 @@ class ComponentUtilityRoundTripTest :
 
                 val compacted = message.compact()
 
-                // Compaction never changes how the tree renders.
                 compacted.toPlainText() shouldBe "Hello, world"
                 compacted.toPlainText() shouldBe message.toPlainText()
 
-                // The normalised tree survives a serialize/deserialize round trip unchanged.
                 val roundTripped = compacted.toJson().asJsonComponent()
                 roundTripped shouldBe compacted
                 roundTripped shouldContainText "Hello, world"

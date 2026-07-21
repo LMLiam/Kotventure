@@ -6,11 +6,13 @@ import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 
 /**
- * Creates an [ItemStack] of [material] and [amount], then configures its text through [init].
+ * Creates an [ItemStack] with [material] and [amount].
  *
- * Construction only — the item is not added to an inventory or otherwise displayed.
+ * The [init] block modifies the custom name and lore of the new stack. This function does not add
+ * the stack to an inventory and does not display it.
  *
  * @throws IllegalArgumentException when [material] is not an item or [amount] is less than one.
+ * @return the new and configured item stack.
  * @sample io.github.lmliam.kotventure.paper.item.itemSample
  */
 public fun item(

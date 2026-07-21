@@ -4,12 +4,14 @@ import io.github.lmliam.kotventure.core.component.ComponentScope
 import net.kyori.adventure.text.Component
 
 /**
- * Builds a selector [Component] — text the client expands to the names matched by an entity selector.
+ * Creates a selector [Component]. The client expands it to the names that [selector] matches.
+ *
+ * This function only creates the component. It does not resolve the selector or send the component to an audience.
  *
  * @sample io.github.lmliam.kotventure.core.selector.selectorSample
  *
- * @param selector the entity selector, constructed via [self], [entities], or friends.
- * @param init configures the selector (e.g. its separator) and appends any children.
+ * @param selector The entity selector, for example a selector from [self] or [entities].
+ * @param init Configures the separator, style, and children.
  */
 public fun selector(
     selector: EntitySelector,
@@ -22,10 +24,10 @@ internal fun buildSelectorComponent(
 ): Component = SelectorComponentBuilder(selector.asString()).apply(init).build()
 
 /**
- * Appends a selector child to this scope, for use inside a `component { }` or other component block.
+ * Creates a selector component and appends it as the next child of this scope.
  *
- * @param selector the entity selector, constructed via [self], [entities], or friends.
- * @param init configures the selector (e.g. its separator) and appends any children.
+ * @param selector The entity selector, for example a selector from [self] or [entities].
+ * @param init Configures the separator, style, and children.
  */
 public fun ComponentScope.selector(
     selector: EntitySelector,

@@ -5,7 +5,9 @@ import net.kyori.adventure.text.event.HoverEvent
 import net.kyori.adventure.text.event.HoverEventSource
 
 /**
- * Scope for applying Adventure hover events.
+ * Applies one Adventure hover event to the enclosing component or style.
+ *
+ * Each function can be called one time in a scope. A null source explicitly clears an inherited hover event.
  */
 @KotventureDslMarker
 public interface HoverScope {

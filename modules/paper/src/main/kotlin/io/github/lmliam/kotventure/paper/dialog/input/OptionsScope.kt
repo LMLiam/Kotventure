@@ -3,18 +3,20 @@ package io.github.lmliam.kotventure.paper.dialog.input
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 
 /**
- * Declares the options of a single-option input. Each option is identified by its id and
- * accumulates in call order.
+ * Adds entries to a single-choice input.
+ *
+ * The receiver string is the entry identifier. Calls add entries in call order. The completed
+ * input rejects duplicate identifiers.
  */
 @KotventureDslMarker
 public interface OptionsScope {
     /**
-     * Adds an option with this id, configured by [init].
+     * Adds an entry with the receiver identifier and configures it with [init].
      */
     public operator fun String.invoke(init: OptionScope.() -> Unit): Unit
 
     /**
-     * Adds an option with this id and no display override.
+     * Adds an entry with the receiver identifier and Paper's default display.
      */
     public operator fun String.unaryPlus(): Unit
 }

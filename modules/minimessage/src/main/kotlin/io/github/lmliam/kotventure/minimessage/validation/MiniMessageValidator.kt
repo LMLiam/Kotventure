@@ -11,11 +11,10 @@ private val STRICT_MINI_MESSAGE: MiniMessage = MiniMessage.builder().strict(true
 private val LENIENT_MINI_MESSAGE: MiniMessage = MiniMessage.miniMessage()
 
 /**
- * Runs strict malformed-tag detection and lenient placeholder detection for [input].
+ * Runs strict tag validation and lenient placeholder detection for [input].
  *
- * Diagnostics are emitted in this order: malformed tags first, then missing and extra placeholders.
- * If the lenient pass fails unexpectedly, it contributes a single
- * [MiniMessageDiagnostic.ValidationEngineFailure] instead of partial mismatch diagnostics.
+ * The result puts a malformed-tag diagnostic first. Missing and extra placeholder diagnostics follow. If a pass fails
+ * unexpectedly, it returns one [MiniMessageDiagnostic.ValidationEngineFailure] for that pass.
  */
 internal fun runValidation(
     input: String,
@@ -27,7 +26,7 @@ internal fun runValidation(
     return if (diagnostics.isEmpty()) ValidationResult.Success else ValidationResult.Failure(diagnostics)
 }
 
-/** Uses Adventure strict mode to detect malformed or unclosed tags. */
+/** Uses Adventure strict mode to detect the first malformed or unclosed tag. */
 private fun detectMalformedTags(
     input: String,
     placeholders: List<MiniMessagePlaceholder<*>>,
@@ -53,8 +52,7 @@ private fun detectMalformedTags(
 /**
  * Uses a recording lenient parse to detect missing and extra placeholders.
  *
- * Placeholder names that collide with standard Adventure tags are still recorded when declared, so
- * `<gold>` can satisfy a placeholder named `gold`.
+ * A declared name that matches a standard Adventure tag is still recorded.
  */
 private fun detectPlaceholderMismatches(
     input: String,
@@ -89,7 +87,7 @@ private fun buildPlaceholderMismatchDiagnostics(
     return missing + extra
 }
 
-/** Resolves placeholder names as self-closing tags for the strict malformed-tag pass. */
+/** Resolves declared placeholder names as self-closing tags during strict validation. */
 private fun buildPlaceholderNameResolver(placeholders: List<MiniMessagePlaceholder<*>>): TagResolver {
     if (placeholders.isEmpty()) return TagResolver.empty()
     val selfClosingTag = Tag.selfClosingInserting(emptyComponent())

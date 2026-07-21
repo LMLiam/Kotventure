@@ -8,15 +8,20 @@ private fun recordHint(verb: String): String =
     "Re-run with ${SnapshotConfig.UPDATE_ENV}=true (or -D${SnapshotConfig.UPDATE_PROPERTY}=true) to $verb it."
 
 /**
- * Matches a component against the committed snapshot named [name].
+ * Returns a Kotest matcher for the snapshot named [name].
  *
- * This matcher never writes, so it is safe to compose and negate. Missing and mismatched snapshots
- * fail with the expected and actual JSON plus record/update instructions.
+ * The matcher never writes a file, including in update mode. You can compose or negate it without
+ * a write side effect. A failed result includes the expected and actual JSON and update instructions.
+ *
+ * The matcher validates [name] when Kotest evaluates it.
  */
 public fun matchSnapshot(name: String): Matcher<Component> = matchSnapshot(name, compact = false)
 
 /**
- * Matches a compacted component against the committed snapshot named [name].
+ * Returns a Kotest matcher that compares the compacted component with snapshot [name].
+ *
+ * The matcher has the same read-only contract as [matchSnapshot]. Adventure compacts the component
+ * before the comparison.
  */
 public fun matchCompactedSnapshot(name: String): Matcher<Component> = matchSnapshot(name, compact = true)
 

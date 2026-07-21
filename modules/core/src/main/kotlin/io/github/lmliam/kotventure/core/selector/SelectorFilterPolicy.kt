@@ -1,15 +1,12 @@
 package io.github.lmliam.kotventure.core.selector
 
 /**
- * Multiplicity policy for a filter-group selector argument (`name`, `type`, `tag`, …).
- *
- * Single source of truth for the DSL builder ([SelectorFilterGroup]), the immutable model
- * ([EntitySelector]), and the parse path — so the three cannot drift.
+ * Defines the permitted polarity combinations for a filter argument.
  */
 internal enum class SelectorFilterPolicy {
     /**
-     * At most one positive value; positives cannot be mixed with exclusions.
-     * Multiple exclusions alone are allowed.
+     * Permits at most one positive value. Does not permit a mixture of positive values and exclusions. Permits multiple
+     * exclusions.
      */
     EXCLUSIVE,
 
@@ -18,8 +15,7 @@ internal enum class SelectorFilterPolicy {
 }
 
 /**
- * Filter-group multiplicity for this keyword, or `null` when the keyword is a singleton (or not a
- * filter group).
+ * Returns this keyword's filter policy, or null when it is not a filter argument.
  */
 internal val SelectorArgumentKeyword.filterPolicy: SelectorFilterPolicy?
     get() =
@@ -44,11 +40,9 @@ internal val SelectorArgumentKeyword.filterPolicy: SelectorFilterPolicy?
         }
 
 /**
- * Whether this filter-group entry is an exclusion for exclusive-policy purposes.
+ * Returns whether this filter entry is an exclusion for policy checks.
  *
- * Named/`!value` filters use [EntitySelectorArgument.Negatable.isNegated]. Presence filters encode
- * polarity in the presence value itself (`team=!` / `tag=!` → [SelectorPresence.ANY]), so
- * [SelectorStringCondition.Presence.isNegated] stays `false` and must not be used here.
+ * Presence filters store their polarity in [SelectorPresence] instead of `isNegated`.
  */
 internal val EntitySelectorArgument.Negatable.isFilterExclusion: Boolean
     get() =

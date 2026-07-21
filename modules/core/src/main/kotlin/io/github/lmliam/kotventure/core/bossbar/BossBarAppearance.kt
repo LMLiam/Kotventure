@@ -3,8 +3,9 @@ package io.github.lmliam.kotventure.core.bossbar
 import net.kyori.adventure.bossbar.BossBar
 
 /**
- * Immutable snapshot of the shared bar-strip look, with unset slots resolved to Adventure's
- * classic full-pink-bar defaults.
+ * Resolved colour, overlay, and flags for one boss bar.
+ *
+ * Construction replaces unset scope values with Adventure's pink, continuous, no-flag defaults.
  */
 internal data class BossBarAppearance(
     val color: BossBar.Color,

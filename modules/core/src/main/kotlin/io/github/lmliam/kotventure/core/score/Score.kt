@@ -5,11 +5,12 @@ import io.github.lmliam.kotventure.core.component.ComponentScope
 import net.kyori.adventure.text.Component
 
 /**
- * Builds a score [Component] — text the client resolves to a scoreboard value at display time.
+ * Creates a score [Component]. The client resolves it to the value of [objective] for [name] at display time.
+ * This function only creates the component. It does not read a scoreboard or send the component to an audience.
  *
  * @sample io.github.lmliam.kotventure.core.score.scoreSample
  *
- * @param name the scoreholder, e.g. a player name or selector like `"@s"`.
+ * @param name the score holder, for example a player name or a selector such as `"@s"`.
  * @param objective the scoreboard objective to read.
  * @param init styles the component and appends any children.
  */
@@ -29,9 +30,9 @@ internal fun buildScoreComponent(
     ).apply(init).build()
 
 /**
- * Appends a score child to this scope, for use inside a `component { }` or other component block.
+ * Creates a score component and appends it as the next child of this scope.
  *
- * @param name the scoreholder, e.g. a player name or selector like `"@s"`.
+ * @param name the score holder, for example a player name or a selector such as `"@s"`.
  * @param objective the scoreboard objective to read.
  * @param init styles the child and appends any of its own children.
  */

@@ -29,12 +29,13 @@ private val NAMED_COLOR_LITERALS: Map<NamedTextColor, String> =
         NamedTextColor.WHITE to "white",
     )
 
-/** Renders [value] as a double-quoted Kotlin string literal with its contents escaped. */
+/** Returns [value] as an escaped, double-quoted Kotlin string literal. */
 internal fun quoted(value: String): String = "\"${escapeKotlinString(value)}\""
 
 /**
- * Renders [color] as the Kotventure colour-DSL expression that reconstructs it: a named-colour property
- * (`gold`, `darkBlue`, ...) for the sixteen named colours, otherwise a `hex("#RRGGBB")` call.
+ * Returns the Kotventure colour expression for [color].
+ *
+ * The sixteen named colours use their DSL properties. Other colours use `hex("#RRGGBB")`.
  */
 internal fun colorLiteral(color: TextColor): String =
     when (color) {
@@ -43,12 +44,9 @@ internal fun colorLiteral(color: TextColor): String =
     }
 
 /**
- * Renders [color] as the DSL expression that reconstructs it by composing
- * [hex][io.github.lmliam.kotventure.core.color.hex] and the
- * [shadow][io.github.lmliam.kotventure.core.style.StyleScope.shadow] overload.
+ * Returns the Kotventure shadow-colour arguments for [color].
  *
- * Emits `hex("#RRGGBB"), alpha = 0xAA` when alpha differs from the default (0xFF),
- * otherwise just `hex("#RRGGBB")`. The call site wraps this in `shadow(...)`.
+ * A non-opaque colour includes an `alpha` argument. The caller adds the `shadow` call.
  */
 internal fun shadowColorLiteral(color: ShadowColor): String {
     val argb = color.value()
@@ -63,12 +61,14 @@ internal fun shadowColorLiteral(color: ShadowColor): String {
     }
 }
 
-/** Renders [key] as a `key("namespace", "value")` call. */
+/** Returns [key] as a `key("namespace", "value")` call. */
 internal fun keyLiteral(key: Key): String = "key(${quoted(key.namespace())}, ${quoted(key.value())})"
 
 /**
- * Renders [contents] as the object-contents expression that reconstructs it, using the single-argument `sprite` form
- * when the sprite uses Adventure's default atlas, and the matching `head` form for player-head contents.
+ * Returns an object-contents expression for [contents].
+ *
+ * A sprite in Adventure's default atlas uses the one-argument `sprite` call. Player-head contents use the applicable
+ * `head` call.
  */
 internal fun objectContentsLiteral(contents: ObjectContents): String =
     when (contents) {
@@ -87,9 +87,10 @@ internal fun objectContentsLiteral(contents: ObjectContents): String =
     }
 
 /**
- * Renders [contents] as the `head(...)` call that reconstructs it. The `<head>` tag sets exactly one skin source -
- * a name, a UUID, or a texture key - plus the hat flag. Profile properties and multiple skin sources are not
- * producible by the tag and have no DSL surface, so they are rejected rather than silently dropped.
+ * Returns the lossless `head` expression for [contents].
+ *
+ * The converter requires one skin source and no profile properties. It rejects other states because the DSL cannot
+ * represent them without loss.
  */
 private fun playerHeadLiteral(contents: PlayerHeadObjectContents): String {
     if (contents.profileProperties().isNotEmpty()) {
@@ -116,7 +117,7 @@ private fun playerHeadLiteral(contents: PlayerHeadObjectContents): String {
     }
 }
 
-/** Escapes [value] for embedding inside a double-quoted Kotlin string literal. */
+/** Escapes [value] for a double-quoted Kotlin string literal. */
 internal fun escapeKotlinString(value: String): String =
     buildString {
         value.forEach { character ->
@@ -137,19 +138,19 @@ internal fun escapeKotlinString(value: String): String =
         }
     }
 
-/** Emits a [Byte] literal, parenthesising negatives so the [Byte] type is preserved. */
+/** Returns a [Byte] literal and parenthesises a negative value. */
 internal fun kotlinByteLiteral(value: Byte): String = if (value < 0) "($value).toByte()" else "$value.toByte()"
 
-/** Emits a [Short] literal, parenthesising negatives so the [Short] type is preserved. */
+/** Returns a [Short] literal and parenthesises a negative value. */
 internal fun kotlinShortLiteral(value: Short): String = if (value < 0) "($value).toShort()" else "$value.toShort()"
 
-/** Emits an [Int] literal, handling the special case of [Int.MIN_VALUE]. */
+/** Returns an [Int] literal, including the [Int.MIN_VALUE] constant. */
 internal fun kotlinIntLiteral(value: Int): String = if (value == Int.MIN_VALUE) "Int.MIN_VALUE" else value.toString()
 
-/** Emits a [Long] literal with an `L` suffix, handling the special case of [Long.MIN_VALUE]. */
+/** Returns a [Long] literal, including the [Long.MIN_VALUE] constant. */
 internal fun kotlinLongLiteral(value: Long): String = if (value == Long.MIN_VALUE) "Long.MIN_VALUE" else "${value}L"
 
-/** Emits a [Float] literal, including non-finite constants. */
+/** Returns a [Float] literal, including non-finite constants. */
 internal fun kotlinFloatLiteral(value: Float): String =
     when {
         value.isNaN() -> "Float.NaN"
@@ -158,7 +159,7 @@ internal fun kotlinFloatLiteral(value: Float): String =
         else -> "${value}f"
     }
 
-/** Emits a [Double] literal, including non-finite constants. */
+/** Returns a [Double] literal, including non-finite constants. */
 internal fun kotlinDoubleLiteral(value: Double): String =
     when {
         value.isNaN() -> "Double.NaN"
@@ -167,7 +168,7 @@ internal fun kotlinDoubleLiteral(value: Double): String =
         else -> value.toString()
     }
 
-/** Emits a [Number] as the matching Kotlin source literal for MiniMessage ⇄ DSL conversion. */
+/** Returns [value] as the applicable Kotlin numeric literal. */
 internal fun kotlinNumberLiteral(value: Number): String =
     when (value) {
         is Double -> kotlinDoubleLiteral(value)

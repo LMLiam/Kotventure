@@ -14,28 +14,24 @@ import net.kyori.adventure.nbt.LongBinaryTag
 import net.kyori.adventure.nbt.ShortBinaryTag
 import net.kyori.adventure.nbt.StringBinaryTag
 import net.kyori.adventure.nbt.TagStringIO
-import java.io.IOException
 
 private val tagStringIO = TagStringIO.tagStringIO()
 
 /**
- * Converts an SNBT compound string into the body of a Kotventure NBT DSL block.
+ * Converts an SNBT compound to the body of a Kotventure NBT block.
  *
- * The result is the sequence of `"key" eq value` calls that go inside `nbt { ... }` or
- * `component(key) { ... }`. An empty compound renders to `""`.
+ * The result contains the `"key" eq value` calls. An empty compound returns an empty string.
  *
- * Keys are emitted in alphabetical order for deterministic, JDK-independent output.
- * Since NBT compounds are unordered, reordering is semantically transparent.
+ * Keys use alphabetical order so output is deterministic. NBT compounds do not define key order.
  *
- * @return the DSL body, or `null` if the SNBT is malformed, has trailing content,
- * or contains a tag type the typed DSL cannot express (triggering a raw fallback).
+ * @return The DSL body, or null when the source is malformed, has trailing content, or contains an unsupported tag
+ * type.
  */
 internal fun snbtToDslBody(snbt: String): String? {
     val compound =
         try {
             tagStringIO.asCompound(snbt)
         } catch (_: Exception) {
-            // Catches IOException and underlying parser exceptions (e.g., IllegalStateException)
             return null
         }
     return renderCompoundBody(compound)
@@ -75,7 +71,7 @@ private fun renderTag(tag: BinaryTag): String? =
         is ListBinaryTag ->
             renderListLiteral(tag)
 
-        else -> null // No typed DSL representation; fall back to raw SNBT.
+        else -> null
     }
 
 private fun renderListLiteral(list: ListBinaryTag): String? {

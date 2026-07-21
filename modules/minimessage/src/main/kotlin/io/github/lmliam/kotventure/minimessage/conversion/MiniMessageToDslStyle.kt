@@ -39,7 +39,7 @@ internal fun KotlinSourceBuilder.appendStyle(style: Style) {
 }
 
 /**
- * Emits a `style { ... }` block for the attributes that have no shorthand directly on a component scope.
+ * Emits a style block for font, insertion, and disabled decorations.
  */
 private fun KotlinSourceBuilder.appendStyleBlock(style: Style) {
     val font = style.font()

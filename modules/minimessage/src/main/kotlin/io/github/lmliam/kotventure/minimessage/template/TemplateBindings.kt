@@ -5,7 +5,7 @@ import io.github.lmliam.kotventure.minimessage.placeholder.MiniMessageResolverBu
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 
 /**
- * Collects the placeholder bindings for a single [MiniTemplate] render and turns them into a resolver.
+ * Collects the bindings for one [MiniTemplate] render.
  */
 internal class TemplateBindings(
     private val template: MiniTemplate,
@@ -27,7 +27,7 @@ internal class TemplateBindings(
         builder.resolve(placeholder, value)
     }
 
-    /** Fails if any declared placeholder was not bound during the render block. */
+    /** Fails if a declared placeholder has no binding. */
     fun requireComplete() {
         val missing = template.placeholders.keys - boundNames
         require(missing.isEmpty()) {

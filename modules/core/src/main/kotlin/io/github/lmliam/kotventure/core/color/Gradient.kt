@@ -7,17 +7,17 @@ import kotlin.math.floor
 import kotlin.math.min
 
 /**
- * Immutable color gradient that interpolates across an ordered list of at least two [TextColor] stops.
+ * An immutable colour gradient with an ordered list of two or more [TextColor] stops.
  *
- * Create instances with [gradient]; the constructor is internal so construction has a single public
- * entry point.
+ * The constructor copies [stops], so later changes to the input collection do not change the gradient. Use [gradient]
+ * to create an instance.
  *
- * @throws IllegalArgumentException if fewer than two stops are supplied.
+ * @throws IllegalArgumentException when fewer than two stops are supplied.
  */
 public class ColorGradient internal constructor(
     stops: Iterable<TextColor>,
 ) {
-    /** The gradient's color stops, in order, as a defensive immutable copy. */
+    /** An immutable copy of the colour stops in interpolation order. */
     public val stops: List<TextColor> =
         stops.toList().also { copiedStops ->
             require(copiedStops.size >= 2) {
@@ -26,11 +26,11 @@ public class ColorGradient internal constructor(
         }
 
     /**
-     * Returns the color at [progress] along the gradient.
+     * Returns the interpolated colour at [progress].
      *
-     * @param progress the position, where `0f` is the first stop and `1f` the last; values outside `0f..1f`
-     *   are clamped.
-     * @throws IllegalArgumentException if [progress] is not finite.
+     * @param progress the position, where `0f` is the first stop and `1f` is the last. The function limits values
+     *   outside `0f..1f` to that range.
+     * @throws IllegalArgumentException when [progress] is not finite.
      */
     public fun colorAt(progress: Float): TextColor {
         require(progress.isFinite()) {
@@ -45,32 +45,33 @@ public class ColorGradient internal constructor(
 }
 
 /**
- * Creates a [ColorGradient] from two or more color stops.
- *
- * This is the public construction entry for [ColorGradient].
+ * Creates a [ColorGradient] from two or more colour stops.
  *
  * @sample io.github.lmliam.kotventure.core.color.gradientSample
  *
- * @throws IllegalArgumentException if fewer than two stops are supplied.
+ * @throws IllegalArgumentException when fewer than two stops are supplied.
  */
 public fun gradient(vararg stops: TextColor): ColorGradient = ColorGradient(stops.asList())
 
 /**
- * Creates a [ColorGradient] from an iterable of two or more color stops.
+ * Creates a [ColorGradient] from an iterable of two or more colour stops.
  *
- * This is the public construction entry for [ColorGradient] when stops are already a collection.
+ * The function copies [stops]. Later changes to the iterable do not change the result.
  *
- * @throws IllegalArgumentException if fewer than two stops are supplied.
+ * @throws IllegalArgumentException when fewer than two stops are supplied.
  */
 public fun gradient(stops: Iterable<TextColor>): ColorGradient = ColorGradient(stops)
 
 /**
- * Builds a component that spreads [stops] across [value], coloring one child per code point.
+ * Creates a component with one coloured child for each Unicode code point in [value].
+ *
+ * An empty value returns [emptyComponent]. A one-code-point value uses the first stop. Longer values use the first and
+ * last stops at their endpoints and interpolate the other code points.
  *
  * @sample io.github.lmliam.kotventure.core.color.gradientTextSample
  *
- * @param value the text to color; its code points (not chars) are colored so surrogate pairs stay intact.
- * @throws IllegalArgumentException if fewer than two stops are supplied.
+ * @param value the text to colour. The function colours code points, not `Char` values, to keep surrogate pairs intact.
+ * @throws IllegalArgumentException when fewer than two stops are supplied.
  */
 public fun gradientText(
     value: String,
@@ -78,9 +79,12 @@ public fun gradientText(
 ): Component = gradientText(value, gradient(*stops))
 
 /**
- * Builds a component that spreads [gradient] across [value], coloring one child per code point.
+ * Creates a component with one child per Unicode code point and colours it with [gradient].
  *
- * @param value the text to color; its code points (not chars) are colored so surrogate pairs stay intact.
+ * An empty value returns [emptyComponent]. A one-code-point value uses the first stop. Longer values use the first and
+ * last stops at their endpoints and interpolate the other code points.
+ *
+ * @param value the text to colour. The function colours code points, not `Char` values, to keep surrogate pairs intact.
  */
 public fun gradientText(
     value: String,

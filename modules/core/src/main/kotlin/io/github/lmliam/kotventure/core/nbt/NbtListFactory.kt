@@ -1,32 +1,33 @@
 package io.github.lmliam.kotventure.core.nbt
 
 /**
- * Builds a homogeneous NBT list (`TAG_List`) of [values].
+ * Creates an NBT list (`TAG_List`) from [values].
  *
- * The element type is fixed by [T], so a well-typed call (`list(1, 2, 3)`, `list("a", "b")`)
- * produces a list of one kind. Mixing element types (`list("a", 1)`) compiles — [T] simply
- * widens to a common supertype — but is rejected at runtime with a descriptive error.
+ * Minecraft requires all list elements to have the same NBT type. This function does not enforce that rule when
+ * [values] contain different supported Kotlin types. Supply values that map to one NBT type.
  *
- * Supported element types: the scalars (`String`, `Boolean`, `Byte`, `Short`, `Int`, `Long`,
- * `Float`, `Double`), the arrays (`ByteArray`, `IntArray`, `LongArray`), and nested lists
- * ([NbtList]) — so `list(list(1, 2), list(3, 4))` and `list(intArrayOf(1), intArrayOf(2))`
- * are lists of lists and lists of arrays. `Boolean` renders as a byte (`true` -> `1b`).
- * For lists of compounds, use the [list] overload that takes compound blocks.
+ * Supported elements are strings, booleans, numeric scalar types, [ByteArray], [IntArray], [LongArray], and nested
+ * [NbtList] values. A boolean renders as a byte. The function copies input arrays. Use the compound-block overload of
+ * [list] for a list of compounds.
  *
- * Defined as an extension on [NbtCompoundScope] so it stays scoped to an `nbt { ... }` block.
- *
- * @throws IllegalArgumentException if any element is null or not a supported NBT element type.
+ * @throws IllegalArgumentException when an element is null or has an unsupported type.
  * @sample io.github.lmliam.kotventure.core.nbt.nbtListSample
  */
 @Suppress("UnusedReceiverParameter")
 public fun <T> NbtCompoundScope.list(vararg values: T): NbtList = NbtList(values.map { it.toNbtValue() })
 
-/** Iterable overload for ergonomics. */
+/**
+ * Creates an NBT list from [values].
+ *
+ * This overload has the same type, copy, and validation rules as [list].
+ *
+ * @throws IllegalArgumentException when an element is null or has an unsupported type.
+ */
 @Suppress("UnusedReceiverParameter")
 public fun <T> NbtCompoundScope.list(values: Iterable<T>): NbtList = NbtList(values.map { it.toNbtValue() })
 
 /**
- * Builds an empty NBT list (`TAG_List` with no elements): `"Items" eq list()`.
+ * Creates an empty NBT list (`TAG_List` with no elements).
  *
  * @sample io.github.lmliam.kotventure.core.nbt.nbtListSample
  */
@@ -34,7 +35,9 @@ public fun <T> NbtCompoundScope.list(values: Iterable<T>): NbtList = NbtList(val
 public fun NbtCompoundScope.list(): NbtList = NbtList(emptyList())
 
 /**
- * Builds a homogeneous NBT list (`TAG_List`) of the compounds built by [blocks].
+ * Creates an NBT list of the compounds that [blocks] build.
+ *
+ * The list keeps the order of [blocks]. A block throws [IllegalStateException] if it sets a duplicate key.
  *
  * @sample io.github.lmliam.kotventure.core.nbt.nbtListSample
  */
@@ -43,7 +46,7 @@ public fun NbtCompoundScope.list(): NbtList = NbtList(emptyList())
 public fun NbtCompoundScope.list(vararg blocks: NbtCompoundScope.() -> Unit): NbtList =
     NbtList(blocks.map(::buildNbtCompound))
 
-/** Build a compound and wrap as a compound value. Put this next to your nbt DSL if you prefer. */
+/** Creates one internal compound value from [block]. */
 internal fun buildNbtCompound(block: NbtCompoundScope.() -> Unit): NbtValue.CompoundValue =
     NbtValue.CompoundValue(NbtCompoundBuilder().apply(block).build())
 

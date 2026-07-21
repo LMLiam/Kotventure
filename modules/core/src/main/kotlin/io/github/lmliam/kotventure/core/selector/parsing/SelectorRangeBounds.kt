@@ -4,8 +4,7 @@ package io.github.lmliam.kotventure.core.selector.parsing
 private const val RANGE_SEPARATOR = ".."
 
 /**
- * The bounds of one parsed range, carrying each bound's source offset so validation failures
- * point at the offending bound.
+ * Holds parsed bounds and their source offsets for precise validation errors.
  */
 internal class SelectorRangeBounds<T : Comparable<T>>(
     private val reader: SelectorReader,
@@ -52,7 +51,7 @@ internal fun <T : Comparable<T>> SelectorReader.readRangeBounds(
     return SelectorRangeBounds(this, minimum, minimumOffset, maximum, maximumOffset)
 }
 
-/** Reads a bound token, stopping at value delimiters and at the [RANGE_SEPARATOR]. */
+/** Reads a bound token up to a value delimiter or [RANGE_SEPARATOR]. */
 internal fun SelectorReader.readRangeBoundToken(): String {
     val start = offset
     while (true) {

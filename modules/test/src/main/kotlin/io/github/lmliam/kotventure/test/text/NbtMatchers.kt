@@ -14,7 +14,7 @@ import net.kyori.adventure.text.NBTComponent
 import net.kyori.adventure.text.StorageNBTComponent
 
 /**
- * Matches an NBT component whose path is [expected]. Combine with `and`/`or` or negate with `shouldNot`.
+ * Returns a matcher that compares the NBT path with [expected].
  */
 public fun haveNbtPath(expected: String): Matcher<NBTComponent<*>> =
     Matcher { value ->
@@ -27,12 +27,12 @@ public fun haveNbtPath(expected: String): Matcher<NBTComponent<*>> =
     }
 
 /**
- * Matches an NBT component whose path is [expected]. Combine with `and`/`or` or negate with `shouldNot`.
+ * Returns a matcher that compares the NBT path with [expected].
  */
 public fun haveNbtPath(expected: NbtPath): Matcher<NBTComponent<*>> = haveNbtPath(expected.asString())
 
 /**
- * Matches an NBT component whose interpret flag is [expected].
+ * Returns a matcher that compares the NBT interpret state with [expected].
  */
 public fun haveInterpretState(expected: Boolean): Matcher<NBTComponent<*>> =
     Matcher { value ->
@@ -45,7 +45,7 @@ public fun haveInterpretState(expected: Boolean): Matcher<NBTComponent<*>> =
     }
 
 /**
- * Matches an NBT component whose separator is [expected].
+ * Returns a matcher that compares the NBT separator with [expected].
  */
 public fun <T : ComponentLike> haveNbtSeparator(expected: T): Matcher<NBTComponent<*>> =
     Matcher { value ->
@@ -59,7 +59,7 @@ public fun <T : ComponentLike> haveNbtSeparator(expected: T): Matcher<NBTCompone
     }
 
 /**
- * Matches an NBT component that has no separator.
+ * Returns a matcher that accepts an NBT component without a separator.
  */
 public fun haveNoNbtSeparator(): Matcher<NBTComponent<*>> =
     Matcher { value ->
@@ -72,7 +72,7 @@ public fun haveNoNbtSeparator(): Matcher<NBTComponent<*>> =
     }
 
 /**
- * Matches a block NBT component whose block position is [expected].
+ * Returns a matcher that compares the block position with [expected].
  */
 public fun haveBlockPos(expected: BlockNBTComponent.Pos): Matcher<BlockNBTComponent> =
     Matcher { value ->
@@ -85,7 +85,7 @@ public fun haveBlockPos(expected: BlockNBTComponent.Pos): Matcher<BlockNBTCompon
     }
 
 /**
- * Matches an entity NBT component whose selector is [expected].
+ * Returns a matcher that compares the entity selector with [expected].
  */
 public fun haveEntitySelector(expected: String): Matcher<EntityNBTComponent> =
     Matcher { value ->
@@ -98,7 +98,7 @@ public fun haveEntitySelector(expected: String): Matcher<EntityNBTComponent> =
     }
 
 /**
- * Matches a storage NBT component whose storage key is [expected].
+ * Returns a matcher that compares the storage key with [expected].
  */
 public fun haveStorageKey(expected: Key): Matcher<StorageNBTComponent> =
     Matcher { value ->
@@ -111,22 +111,31 @@ public fun haveStorageKey(expected: Key): Matcher<StorageNBTComponent> =
     }
 
 /**
- * Asserts that this component is a [BlockNBTComponent] and returns it typed.
+ * Verifies that this component is a [BlockNBTComponent].
+ *
+ * @return this component as a [BlockNBTComponent].
+ * @throws AssertionError when this component has a different type.
  */
 public fun Component.shouldBeBlockNbtComponent(): BlockNBTComponent = asComponentType("block NBT")
 
 /**
- * Asserts that this component is an [EntityNBTComponent] and returns it typed.
+ * Verifies that this component is an [EntityNBTComponent].
+ *
+ * @return this component as an [EntityNBTComponent].
+ * @throws AssertionError when this component has a different type.
  */
 public fun Component.shouldBeEntityNbtComponent(): EntityNBTComponent = asComponentType("entity NBT")
 
 /**
- * Asserts that this component is a [StorageNBTComponent] and returns it typed.
+ * Verifies that this component is a [StorageNBTComponent].
+ *
+ * @return this component as a [StorageNBTComponent].
+ * @throws AssertionError when this component has a different type.
  */
 public fun Component.shouldBeStorageNbtComponent(): StorageNBTComponent = asComponentType("storage NBT")
 
 /**
- * Asserts that this NBT component has [expected] as its NBT path.
+ * Verifies that this NBT component has the path [expected].
  */
 public infix fun NBTComponent<*>.shouldHaveNbtPath(expected: String): NBTComponent<*> =
     apply {
@@ -134,7 +143,7 @@ public infix fun NBTComponent<*>.shouldHaveNbtPath(expected: String): NBTCompone
     }
 
 /**
- * Asserts that this NBT component has [expected] as its NBT path.
+ * Verifies that this NBT component has the path [expected].
  */
 public infix fun NBTComponent<*>.shouldHaveNbtPath(expected: NbtPath): NBTComponent<*> =
     apply {
@@ -142,7 +151,7 @@ public infix fun NBTComponent<*>.shouldHaveNbtPath(expected: NbtPath): NBTCompon
     }
 
 /**
- * Asserts that this NBT component interprets fetched NBT as component JSON.
+ * Verifies that this NBT component interprets fetched NBT as component JSON.
  */
 public fun NBTComponent<*>.shouldInterpret(): NBTComponent<*> =
     apply {
@@ -150,7 +159,7 @@ public fun NBTComponent<*>.shouldInterpret(): NBTComponent<*> =
     }
 
 /**
- * Asserts that this NBT component does not interpret fetched NBT as component JSON.
+ * Verifies that this NBT component does not interpret fetched NBT as component JSON.
  */
 public fun NBTComponent<*>.shouldNotInterpret(): NBTComponent<*> =
     apply {
@@ -158,7 +167,7 @@ public fun NBTComponent<*>.shouldNotInterpret(): NBTComponent<*> =
     }
 
 /**
- * Asserts that this NBT component has [expected] as its separator.
+ * Verifies that this NBT component has the separator [expected].
  */
 public infix fun <T : ComponentLike> NBTComponent<*>.shouldHaveNbtSeparator(expected: T): NBTComponent<*> =
     apply {
@@ -166,7 +175,7 @@ public infix fun <T : ComponentLike> NBTComponent<*>.shouldHaveNbtSeparator(expe
     }
 
 /**
- * Asserts that this NBT component has no separator.
+ * Verifies that this NBT component has no separator.
  */
 public fun NBTComponent<*>.shouldNotHaveNbtSeparator(): NBTComponent<*> =
     apply {
@@ -174,7 +183,7 @@ public fun NBTComponent<*>.shouldNotHaveNbtSeparator(): NBTComponent<*> =
     }
 
 /**
- * Asserts that this block NBT component has [expected] as its block position.
+ * Verifies that this block NBT component has the position [expected].
  */
 public infix fun BlockNBTComponent.shouldHaveBlockPos(expected: BlockNBTComponent.Pos): BlockNBTComponent =
     apply {
@@ -182,7 +191,7 @@ public infix fun BlockNBTComponent.shouldHaveBlockPos(expected: BlockNBTComponen
     }
 
 /**
- * Asserts that this entity NBT component has [expected] as its selector.
+ * Verifies that this entity NBT component has the selector [expected].
  */
 public infix fun EntityNBTComponent.shouldHaveEntitySelector(expected: String): EntityNBTComponent =
     apply {
@@ -190,7 +199,7 @@ public infix fun EntityNBTComponent.shouldHaveEntitySelector(expected: String): 
     }
 
 /**
- * Asserts that this entity NBT component has [expected] as its selector.
+ * Verifies that this entity NBT component has the selector [expected].
  */
 public infix fun EntityNBTComponent.shouldHaveEntitySelector(expected: EntitySelector): EntityNBTComponent =
     apply {
@@ -198,7 +207,7 @@ public infix fun EntityNBTComponent.shouldHaveEntitySelector(expected: EntitySel
     }
 
 /**
- * Asserts that this storage NBT component has [expected] as its storage key.
+ * Verifies that this storage NBT component has the storage key [expected].
  */
 public infix fun StorageNBTComponent.shouldHaveStorageKey(expected: Key): StorageNBTComponent =
     apply {

@@ -4,14 +4,13 @@ import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.chat.SignedMessage
 
 /**
- * Builds a component and its bound chat type from a [ChatScope] block and sends it to this
- * [Audience] as a non-system, player-styled chat message.
+ * Creates a component and bound chat type from [init], then sends a player-styled message to this [Audience].
  *
- * Unlike [message], which sends an unattributed system line, the client renders this through the
- * player-chat pipeline: attributed to the scope's `name` in the chosen chat-type format and subject
- * to the viewer's chat visibility settings.
+ * Unlike [message], this function does not send an unattributed system line. The client uses the player-chat pipeline.
+ * It attributes the message to the scope's `name`, uses the selected chat-type format, and applies the viewer's chat
+ * visibility settings.
  *
- * Works for any audience — a player, the console, or a forwarding audience over many members.
+ * Works for any audience, such as a player, the console, or a forwarding audience over many members.
  *
  * @throws IllegalStateException when the block leaves `name` or `content` unset, or sets any slot
  *   twice.
@@ -23,12 +22,11 @@ public fun Audience.chat(init: ChatScope.() -> Unit) {
 }
 
 /**
- * Builds a bound chat type from a [BoundChatScope] block and sends the already-signed [signed]
- * message to this [Audience] with it.
+ * Creates a bound chat type from [init] and sends the existing [signed] message to this [Audience].
  *
- * A genuine player-signed [SignedMessage] cannot be constructed by hand — obtain one from a
- * platform source such as Paper's chat event (`signedMessage()`) or its Brigadier signed-message
- * command argument; server-authored system messages come from [systemMessage].
+ * You cannot construct a genuine player-signed [SignedMessage] manually. Get one from a platform source, such as
+ * Paper's chat event (`signedMessage()`) or its Brigadier signed-message command argument. Use [systemMessage] for a
+ * server-authored system message.
  *
  * @throws IllegalStateException when the block leaves `name` unset, or sets any slot twice.
  * @sample io.github.lmliam.kotventure.core.audience.signedChatSample

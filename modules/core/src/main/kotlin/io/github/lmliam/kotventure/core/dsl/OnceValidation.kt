@@ -1,7 +1,10 @@
 package io.github.lmliam.kotventure.core.dsl
 
 /**
- * Returns a delegate that additionally rejects values outside [range].
+ * Adds [range] validation to this write-once delegate.
+ *
+ * Validation occurs when the property receives a non-null value. A rejected value does not consume the property, so
+ * a later valid assignment can succeed. A `null` assignment bypasses validation and consumes the property.
  *
  * @throws IllegalArgumentException when an assigned value is outside [range].
  */
@@ -12,7 +15,10 @@ public fun <T : Comparable<T>> OnceAssign.inRange(range: ClosedRange<T>): Valida
     }
 
 /**
- * Returns a delegate that additionally rejects non-positive values.
+ * Adds positive-value validation to this write-once delegate.
+ *
+ * Validation occurs when the property receives a non-null value. A rejected value does not consume the property, so
+ * a later valid assignment can succeed. A `null` assignment bypasses validation and consumes the property.
  *
  * @throws IllegalArgumentException when an assigned value is not positive.
  */

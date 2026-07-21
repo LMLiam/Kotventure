@@ -7,13 +7,11 @@ import kotlin.reflect.KProperty
  * A write-once property delegate for nullable builder slots that additionally validates every
  * non-null assignment.
  *
- * Reads return `null` until the first assignment. The double-set check runs first: a second
- * assignment always fails with [IllegalStateException], even if the new value would itself be
- * valid. [validate] then runs on non-null values; a rejected value does not consume the slot, so
- * a later, valid assignment still succeeds.
+ * Reads return `null` until the first assignment. The duplicate-assignment check runs before [validate]. Thus, a
+ * second assignment always fails with [IllegalStateException]. A rejected non-null value does not consume the slot,
+ * so a later valid assignment can succeed.
  *
- * Built by combinators such as [inRange] and [positive] on [OnceAssign]; not constructed
- * directly.
+ * Constructed by combinators such as [inRange] and [positive] on [OnceAssign]. Do not construct it directly.
  */
 @InternalKotventureApi
 public class ValidatedOnceAssign<T> internal constructor(
@@ -34,8 +32,8 @@ public class ValidatedOnceAssign<T> internal constructor(
     /**
      * Assigns the slot once.
      *
-     * A `null` assignment still consumes the slot. A non-null [value] is validated first; a
-     * rejected value does not consume the slot.
+     * A `null` assignment consumes the slot. The function validates a non-null [value] first. A rejected value does not
+     * consume the slot.
      *
      * @throws IllegalStateException when the slot has already been assigned.
      * @throws IllegalArgumentException when [validate] rejects a non-null [value].

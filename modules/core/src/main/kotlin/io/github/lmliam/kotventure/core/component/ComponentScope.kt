@@ -6,39 +6,39 @@ import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.format.Style
 
 /**
- * The receiver inside a component-building block (such as `component { }` or `text { }`).
+ * Configures the style and ordered children of one Adventure component.
  *
- * It adds children — via [append], [newline], and the feature extensions like
- * [text][io.github.lmliam.kotventure.core.text.text], [keybind][io.github.lmliam.kotventure.core.keybind.keybind], and
- * [translatable][io.github.lmliam.kotventure.core.translatable.translatable] — on top of the styling it inherits from
- * [StyleScope], so a component's own style and its
- * children are configured in one place.
+ * The scope inherits component styling from [StyleScope]. Use [append], [newline], and feature extensions to add
+ * children in declaration order.
+ * Feature extensions include [text][io.github.lmliam.kotventure.core.text.text],
+ * [keybind][io.github.lmliam.kotventure.core.keybind.keybind], and
+ * [translatable][io.github.lmliam.kotventure.core.translatable.translatable].
  *
  * @sample io.github.lmliam.kotventure.core.component.componentScopeSample
  */
 @KotventureDslMarker
 public interface ComponentScope : StyleScope {
     /**
-     * Applies a complete Adventure style to the component being configured.
+     * Replaces the component's complete Adventure style with [style].
      *
      * @throws IllegalStateException when a style is already applied in this block.
      */
     public fun style(style: Style)
 
     /**
-     * Applies style attributes from [init] to the component being configured.
+     * Builds and applies one complete Adventure style from [init].
      *
      * @throws IllegalStateException when a style is already applied in this block.
      */
     public fun style(init: StyleScope.() -> Unit)
 
     /**
-     * Appends an existing Adventure [ComponentLike] as a child of the component being configured.
+     * Appends [component] as the next child without copying it.
      */
     public fun <T : ComponentLike> append(component: T)
 
     /**
-     * Appends an Adventure newline component as a child of the component being configured.
+     * Appends an Adventure newline component as the next child.
      */
     public fun newline()
 }

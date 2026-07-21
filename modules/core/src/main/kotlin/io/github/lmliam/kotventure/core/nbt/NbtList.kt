@@ -1,11 +1,11 @@
 package io.github.lmliam.kotventure.core.nbt
 
 /**
- * A homogeneous NBT list (`TAG_List`).
+ * An NBT list value (`TAG_List`).
  *
- * Every element shares one NBT type — Minecraft rejects mixed-type lists. Homogeneity is guaranteed by
- * construction: build one with [list] (scalars, arrays, nested lists) or the [list] compound-block
- * overload, then assign it with [NbtCompoundScope.eq].
+ * Minecraft requires all elements of an NBT list to have the same type. The scalar [list] overload accepts mixed
+ * supported Kotlin types and does not enforce this rule. Supply values of one NBT type. The compound-block overload
+ * always creates a list of compounds.
  *
  * @sample io.github.lmliam.kotventure.core.nbt.nbtListSample
  */

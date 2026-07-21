@@ -20,12 +20,7 @@ import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Type
 import java.util.Map.entry
 
 /**
- * Converts the DSL builder's validated state into the shared typed argument model, in canonical
- * rendering order.
- *
- * [parseSelector] produces the same model from validated source, so both construction paths
- * render through one renderer. This ensures DSL and string-parsed selectors produce identical
- * output.
+ * Converts validated builder state to typed arguments in canonical order.
  */
 internal fun EntitySelectorBuilder.selectorArguments(): List<EntitySelectorArgument> =
     buildList {
@@ -60,12 +55,7 @@ internal fun EntitySelectorBuilder.selectorArguments(): List<EntitySelectorArgum
     }
 
 /**
- * Generic helper to convert a filter group's entries into typed arguments.
- *
- * Maps each entry to an argument using the provided conversion function, preserving polarity.
- *
- * @param toArgument conversion function that builds an argument from value and negation flag
- * @return list of converted arguments in declaration order
+ * Converts this filter group with [toArgument] and keeps entry polarity and order.
  */
 private fun <T> SelectorFilterGroup<T>.arguments(
     toArgument: (value: T, isNegated: Boolean) -> EntitySelectorArgument,
@@ -75,9 +65,9 @@ private fun <T> SelectorFilterGroup<T>.arguments(
     }
 
 /**
- * Convert a type or type-tag string into a [Type] argument.
+ * Converts a type or type-tag string to a [Type] argument.
  *
- * Strings starting with `#` denote entity-type tags; others denote direct entity types.
+ * A string that starts with `#` identifies an entity-type tag. Other strings identify direct entity types.
  */
 private fun typeArgument(
     value: String,
@@ -93,7 +83,7 @@ private fun typeArgument(
 }
 
 /**
- * Convert a predicate ID string into a [Predicate] argument.
+ * Converts a predicate ID to a [Predicate] argument.
  */
 private fun predicateArgument(
     value: String,
@@ -101,7 +91,7 @@ private fun predicateArgument(
 ): Predicate = Predicate(key(value), isNegated)
 
 /**
- * Convert a team name into a [Team] argument with negation.
+ * Converts a team name and polarity to a [Team] argument.
  */
 private fun teamArgument(
     value: String,
@@ -109,7 +99,7 @@ private fun teamArgument(
 ): Team = Team(SelectorStringCondition(value, isNegated))
 
 /**
- * Convert a tag name into a [Tag] argument with negation.
+ * Converts a tag name and polarity to a [Tag] argument.
  */
 private fun tagArgument(
     value: String,
@@ -117,9 +107,9 @@ private fun tagArgument(
 ): Tag = Tag(SelectorStringCondition(value, isNegated))
 
 /**
- * Convert an NBT compound into an [Nbt] argument with negation.
+ * Converts an NBT compound and polarity to an [Nbt] argument.
  *
- * The compound is rendered to SNBT source for storage.
+ * The argument stores the rendered SNBT source.
  */
 private fun nbtArgument(
     value: NbtCompound,
@@ -127,9 +117,7 @@ private fun nbtArgument(
 ): Nbt = Nbt(SnbtCompoundSource(renderCompound(value)), isNegated)
 
 /**
- * Convert an [AdvancementCondition] into the corresponding [SelectorAdvancementProgress].
- *
- * Models either full completion or criteria-specific progress.
+ * Converts an [AdvancementCondition] to public advancement progress.
  */
 private fun AdvancementCondition.progress(): SelectorAdvancementProgress =
     when (this) {
@@ -141,6 +129,6 @@ private fun AdvancementCondition.progress(): SelectorAdvancementProgress =
     }
 
 /**
- * Check if this string represents an entity-type tag (starts with `#`).
+ * Returns whether this string starts with the entity-type-tag prefix.
  */
 private fun String.isEntityTypeTag(): Boolean = startsWith("#")

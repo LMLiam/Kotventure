@@ -15,20 +15,17 @@ import org.bukkit.Keyed
 import org.bukkit.Registry
 
 /**
- * ServiceLoader-registered [RegistryAccess] so that initializing registry-backed Paper constants
- * succeeds in a plain unit test without a running server. Dialog lookups return a placeholder
- * [FakeDialog], while the data-component registry returns keyed placeholder component types.
+ * Supplies [RegistryAccess] to tests through `ServiceLoader` when no server is running.
  *
- * This runs from inside [org.bukkit.Registry]'s own class initialization (its `<clinit>` eagerly
- * builds legacy registries for every registry type, [Dialog] included), so every placeholder here
- * is constructed fresh per call rather than read from a Kotlin `object` singleton or built as a
- * mockk stub. Both alternatives read a static field during their own initialization: a
- * singleton's backing field is only assigned once its class finishes initializing, and a mockk
- * proxy forces its target interface to finish initializing before objenesis can instantiate it.
- * [Registry] itself is the class already mid-initialization on this thread, so either alternative
- * re-enters that same not-yet-finished `<clinit>`, reads the not-yet-assigned field, and throws
- * (`NullPointerException` for the singleton, `ExceptionInInitializerError` for mockk). A plain
- * constructor call has no such field to race.
+ * Dialog lookups return a placeholder [FakeDialog]. Data-component lookups return keyed placeholder
+ * component types. Paper calls this provider while it initialises [org.bukkit.Registry].
+ *
+ * Construct a new placeholder for each call. Do not read a placeholder from a Kotlin `object`, and
+ * do not use a MockK proxy on this path. Both alternatives read a static field before
+ * [org.bukkit.Registry] completes initialisation.
+ *
+ * A Kotlin singleton can throw `NullPointerException` in this state. A MockK proxy can throw
+ * `ExceptionInInitializerError`. A direct constructor call does not read the incomplete static state.
  */
 class FakeRegistryAccess : RegistryAccess {
     @Suppress("OVERRIDE_DEPRECATION")

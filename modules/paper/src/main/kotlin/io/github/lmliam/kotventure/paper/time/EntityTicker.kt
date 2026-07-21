@@ -8,10 +8,10 @@ import java.util.function.Consumer
 import kotlin.time.Duration
 
 /**
- * [Ticker] over [entity]'s scheduler: repeating work becomes a
- * [runAtFixedRate][io.papermc.paper.threadedregions.scheduler.EntityScheduler.runAtFixedRate]
- * task owned by [plugin] that follows the entity's region, with the first fire one full interval
- * after scheduling. Scheduling on an already-removed entity throws [IllegalStateException].
+ * Implements [Ticker] with the scheduler that follows [entity].
+ *
+ * The first run occurs after one interval. Scheduling fails with [IllegalStateException] if Paper
+ * has retired the entity scheduler.
  */
 internal class EntityTicker(
     private val plugin: Plugin,

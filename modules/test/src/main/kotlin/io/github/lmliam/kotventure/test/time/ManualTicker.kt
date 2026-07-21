@@ -6,34 +6,29 @@ import java.util.PriorityQueue
 import kotlin.time.Duration
 
 /**
- * Deterministic [Ticker] for unit tests: virtual time moves only via [advance].
+ * Provides a deterministic [Ticker] for single-threaded unit tests.
  *
- * Due repeating work fires in schedule order (earliest due first; same-time ties keep registration
- * order). Phase is preserved: each fire re-queues at `previousDue + interval`, not
- * `currentTime + interval`, so jumping multiple intervals does not drift.
+ * Virtual time changes only when [advance] changes it. Due tasks run in chronological order. Tasks
+ * with the same due time run in registration order.
  *
- * Modeled after the virtual-clock loop in kotlinx-coroutines-test's
- * `TestCoroutineScheduler.advanceTimeBy` (event heap + advance-to-next-due), without a coroutines
- * dependency.
+ * A repeating task keeps its original phase. Its next due time is its previous due time plus the
+ * interval. Thus, one large advance runs every missed interval without drift.
  *
- * Thread-safety: single-threaded test use only.
+ * This class is not thread-safe.
  */
 public class ManualTicker : Ticker {
     /**
-     * Current virtual time.
+     * Gets the current virtual time.
      *
-     * Only advances through [advance]; never wall-clock.
+     * Only [advance] changes this value. The ticker does not use wall-clock time.
      */
     public var currentTime: Duration = Duration.ZERO
         private set
 
-    /** Breaks ties so two tasks due at the same instant fire in registration order. */
+    /** Keeps registration order for tasks that have the same due time. */
     private var nextSequence: Long = 0L
 
-    /**
-     * Min-heap of pending firings. Entries are immutable; a repeating task re-offers a new
-     * [ManualTickerScheduleEntry] after each successful fire instead of mutating an in-heap key.
-     */
+    /** Contains pending runs in due-time and registration order. */
     private val schedule: PriorityQueue<ManualTickerScheduleEntry> =
         PriorityQueue(
             compareBy(
@@ -43,13 +38,16 @@ public class ManualTicker : Ticker {
         )
 
     /**
-     * Advances the virtual clock by [duration] and runs every task due at or before the new
-     * clock value, in chronological order.
+     * Advances virtual time by [duration] and runs all tasks due in that period.
+ *
+     * The method runs tasks in chronological order. If tasks have the same due time, it runs them
+     * in registration order. A task can cancel itself or another task during its action.
      *
-     * A task that stays active after its action is re-queued at `dueAt + interval`.
-     * Cancelled heads are dropped lazily when they reach the front of the heap.
-     *
+     * If an action throws an exception, this method propagates it. Virtual time remains at that
+     * action's due time, and the failed repeating task is not scheduled again.
+ *
      * @throws IllegalArgumentException when [duration] is negative.
+     * @throws Throwable when a scheduled action throws it.
      */
     public fun advance(duration: Duration) {
         require(!duration.isNegative()) { "advance duration must not be negative, got $duration." }
@@ -69,8 +67,10 @@ public class ManualTicker : Ticker {
     }
 
     /**
-     * Schedules [action] every [interval] of manual time; first run falls due at
-     * current time + [interval] and fires only when [advance] crosses it.
+     * Schedules [action] after each [interval] of virtual time.
+     *
+     * The first run is due at the current time plus [interval]. Only [advance] can run the action.
+     * The returned task can cancel future runs.
      *
      * @throws IllegalArgumentException when [interval] is not positive.
      */
@@ -96,10 +96,7 @@ public class ManualTicker : Ticker {
             )
     }
 
-    /**
-     * Pops the earliest still-active schedule entry with `dueAt <= limit`, discarding cancelled
-     * heads along the way. Returns `null` when nothing is due by [limit].
-     */
+    /** Returns and removes the first active entry due at or before [limit]. */
     private fun pollNextDueAtOrBefore(limit: Duration): ManualTickerScheduleEntry? {
         while (true) {
             val head = schedule.peek() ?: return null

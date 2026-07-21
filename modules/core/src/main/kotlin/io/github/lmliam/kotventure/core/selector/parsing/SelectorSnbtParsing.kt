@@ -5,8 +5,8 @@ import io.github.lmliam.kotventure.core.selector.isAllowedInUnquotedSelectorToke
 /**
  * Validates one SNBT compound at the cursor, consuming exactly the compound's source.
  *
- * Java Edition 26.2 container forms are accepted: trailing commas in compounds, lists, and typed
- * arrays, plus heterogeneous list elements.
+ * This validator accepts Java Edition 26.2 container forms. These include trailing commas in compounds, lists, and
+ * typed arrays. Lists can contain different element types.
  */
 internal fun SelectorReader.validateSnbtCompound() {
     expect('{')
@@ -20,8 +20,7 @@ internal fun SelectorReader.validateSnbtCompound() {
 }
 
 /**
- * Reads `,`-separated container elements up to and including [closingDelimiter], accepting empty
- * containers and trailing commas.
+ * Reads comma-separated elements through [closingDelimiter]. It accepts empty containers and trailing commas.
  */
 private inline fun SelectorReader.readSnbtElements(
     closingDelimiter: Char,
@@ -40,9 +39,7 @@ private inline fun SelectorReader.readSnbtElements(
 }
 
 /**
- * Validate a single SNBT value: compound, list, array, quoted string, or unquoted scalar.
- *
- * Consumes the value from the source at the current cursor.
+ * Validates and consumes one SNBT value at the cursor.
  */
 private fun SelectorReader.validateSnbtValue() {
     when (peek()) {
@@ -55,8 +52,7 @@ private fun SelectorReader.validateSnbtValue() {
 }
 
 /**
- * Validate a list or typed array. Typed arrays have a single-char prefix (`B`, `I`, `L`)
- * followed by `;`, then heterogeneous or typed elements.
+ * Validates a list or typed array. A typed array starts with `B;`, `I;`, or `L;`.
  */
 private fun SelectorReader.validateSnbtListOrArray() {
     expect('[')
@@ -72,7 +68,7 @@ private fun SelectorReader.validateSnbtListOrArray() {
 }
 
 /**
- * Validate a single typed-array element and fail with a precise offset if invalid.
+ * Validates one typed-array element at its source offset.
  */
 private fun SelectorReader.validateSnbtTypedArrayValue(arrayType: Char) {
     val valueOffset = offset
@@ -83,10 +79,7 @@ private fun SelectorReader.validateSnbtTypedArrayValue(arrayType: Char) {
 }
 
 /**
- * Typed-array elements are an optionally signed integer, suffixed `b`/`B` for byte arrays and
- * `l`/`L` for long arrays. `toByteOrNull`/`toIntOrNull`/`toLongOrNull` accept exactly that
- * unsuffixed language (and reject overflow), so no separate syntax check is needed — the scalar
- * reader has already restricted the charset.
+ * Checks the suffix and numeric range of one typed-array element.
  */
 private fun isValidSnbtTypedArrayValue(
     value: String,
@@ -100,9 +93,7 @@ private fun isValidSnbtTypedArrayValue(
     }
 
 /**
- * Validate a compound key (quoted string or unquoted identifier).
- *
- * Fails if the key is empty or malformed.
+ * Validates one quoted or unquoted compound key.
  */
 private fun SelectorReader.validateSnbtCompoundKey() {
     when (peek()) {
@@ -115,19 +106,17 @@ private fun SelectorReader.validateSnbtCompoundKey() {
 }
 
 /**
- * Read an unquoted SNBT scalar (identifier or number).
+ * Reads an unquoted SNBT scalar.
  *
- * Consumes characters until a terminator (`,`, `]`, `}`, or whitespace) is encountered.
- * Fails if the scalar is empty or contains disallowed characters.
+ * The scalar ends at a comma, closing delimiter, or whitespace. It must contain at least one permitted character.
  *
- * @return the unquoted scalar string
+ * @return The unquoted scalar.
  */
 private fun SelectorReader.readSnbtUnquotedScalar(): String {
     val start = offset
     while (peek()?.let { !it.isSnbtScalarTerminator() && it.isAllowedInUnquotedSelectorToken() } == true) {
         skip()
     }
-    // Check for invalid characters that would have stopped the loop
     if (peek()?.let { !it.isSnbtScalarTerminator() } == true) {
         fail("Invalid unquoted SNBT token")
     }
@@ -137,14 +126,12 @@ private fun SelectorReader.readSnbtUnquotedScalar(): String {
 }
 
 /**
- * Check if this character is a terminator for an unquoted SNBT scalar.
- *
- * Terminators are `,`, `]`, `}`, or whitespace.
+ * Returns whether this character terminates an unquoted SNBT scalar.
  */
 private fun Char.isSnbtScalarTerminator(): Boolean = this in ",]}" || isWhitespace()
 
 /**
- * Skip over all contiguous whitespace characters at the current cursor.
+ * Skips contiguous whitespace at the cursor.
  */
 private fun SelectorReader.skipSnbtWhitespace() {
     while (peek()?.isWhitespace() == true) skip()

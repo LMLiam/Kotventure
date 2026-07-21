@@ -14,8 +14,9 @@ import net.kyori.adventure.text.ComponentLike
 import kotlin.time.Duration
 
 /**
- * Collects [TimedBossBarScope] slots into an immutable [TimedBossBarConfig], then starts a
- * [TimedBossBar] against the given [Ticker] and initial viewer.
+ * Validates [TimedBossBarScope] state and starts a [TimedBossBar] for one initial viewer.
+ *
+ * [build] takes an immutable configuration snapshot before it constructs the runtime.
  */
 internal class TimedBossBarBuilder(
     private val appearance: BossBarAppearanceBuilder = BossBarAppearanceBuilder(),
@@ -23,7 +24,7 @@ internal class TimedBossBarBuilder(
     BossBarAppearanceScope by appearance {
     private var name: ((Duration) -> Component)? by once()
 
-    // Not named `progress`: BossBarAppearanceScope already has `val progress: Overlay`.
+    // The appearance scope owns `progress` as an overlay name, so this slot uses the endpoint name.
     private var progressEndpoints: TimedBossBarProgress? by once { "'progress' is already set." }
     private var every: Duration? by once()
     private var onTick: (TimedBossBar.(Duration) -> Unit)? by once()
@@ -72,8 +73,7 @@ internal class TimedBossBarBuilder(
     private fun toConfig(over: Duration): TimedBossBarConfig {
         val lifetime = over.requirePositive(label = "over")
         val interval = every ?: 1.ticks
-        // Each tick subtracts `every` from remaining; a larger cadence would miss the lifetime
-        // entirely and complete only after the first (late) fire.
+        // A cadence longer than the lifetime would make the first update late.
         require(interval <= lifetime) {
             "'every' ($interval) must not exceed 'over' ($lifetime)."
         }

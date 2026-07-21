@@ -6,8 +6,10 @@ import net.kyori.adventure.text.event.ClickCallback
 import kotlin.time.Duration as KotlinDuration
 
 /**
- * Selects the single action a click event performs. Exactly one action must be chosen per `click { }` block;
- * choosing none or more than one fails when the event is built.
+ * Selects the action for a click event.
+ *
+ * Select exactly one action in each `click { }` block. The block throws [IllegalStateException] if it selects no
+ * action or more than one action. Adventure can reject an invalid payload when the scope creates the event.
  *
  * @sample io.github.lmliam.kotventure.core.event.clickActionScopeSample
  */
@@ -35,6 +37,8 @@ public interface ClickActionScope {
 
     /**
      * Selects a click action that changes a book to [page].
+     *
+     * @throws IllegalArgumentException when Adventure rejects [page].
      */
     public fun changePage(page: Int)
 
@@ -50,6 +54,8 @@ public interface ClickActionScope {
 
     /**
      * Selects a server-side callback click action from [function] with [uses] and [lifetime].
+     *
+     * @throws IllegalArgumentException when Adventure rejects [uses] or [lifetime].
      */
     public fun callback(
         uses: Int,

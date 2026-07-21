@@ -1,27 +1,27 @@
 ---
 name: documenting-public-api
-description: Use when writing or reviewing KDoc, adding a public declaration (explicitApi is on), choosing how to link a symbol in docs, adding an @sample, updating module READMEs or docs/, or when Dokka fails on a warning.
+description: >-
+  Use this skill to write or review KDoc, public declarations, samples, module READMEs, or docs. Also use it for Dokka
+  warnings and documentation links.
 ---
 
 # Documenting public API
 
-`explicitApi()` is on for every library module (missing visibility/return types fail
-compilation) and Dokka runs with `failOnWarning` + `reportUndocumented`: an undocumented
-public declaration or an unresolvable KDoc link fails `dokkaGenerate` in CI. This includes
-deliberate `toString`/`equals`/`hashCode` overrides and companion objects — give them a
-one-line contract (`/** Value equality over the node list. */`). Docs are part of the
-change, written alongside the code — not after.
+Each library module uses `explicitApi()`. Compilation fails if a public declaration has no explicit visibility or
+return type. Dokka uses `failOnWarning` and `reportUndocumented`. Thus, an undocumented public declaration or an
+unresolved KDoc link fails `dokkaGenerate` in CI. This rule includes deliberate `toString`, `equals`, and `hashCode`
+overrides, and companion objects. Give them a one-line contract such as `/** Compares values in the node list. */`.
+Write documentation as part of the change.
 
 ## What KDoc must say
 
-State the **contract**, not the signature: what the caller gets, the invariants, and every
-failure mode.
+State the **contract**, not the signature. Explain the result, invariants, and each failure mode.
 
 ```kotlin
 /**
  * Builds a [Sound] configured by [init].
  *
- * Construction only — no side effects. Use this when a sound value is shared, stored, or
+ * Construction only. This function has no side effects. Use this when a sound value is shared, stored, or
  * passed to a later playback API.
  *
  * @throws IllegalStateException when any slot is set twice.
@@ -29,48 +29,44 @@ failure mode.
  */
 ```
 
-- `@throws` on every fail-fast path — duplicate-singleton `IllegalStateException`s are part
-  of the DSL contract (see `idiomatic-kotlin-dsl`), so they are documented, always.
-- Say when a function has **no side effects** (or exactly which it has — "builds **and
-  shows**") — that distinction is this DSL's biggest reader question.
-- Don't restate the signature ("Sets the color" above `fun color(...)` adds nothing);
-  document behaviour the types can't express.
+- Add `@throws` for each immediate failure. A duplicate singleton causes `IllegalStateException` as part of the DSL
+  contract. Refer to `idiomatic-kotlin-dsl`.
+- State when a function has **no side effects**. If it has side effects, identify them. For example, state that it
+  "builds **and shows**" a boss bar.
+- Do not restate the signature. Document behaviour that the types do not express.
 
-## Linking symbols — priority order
+## Linking symbols: priority order
 
-1. `[Ref]` — short bracket reference; **import the symbol** so it resolves.
-2. `[text][fully.qualified.name]` — when a short ref can't resolve or reads badly.
-3. `` `code` `` — last resort, for non-symbols.
+1. Use `[Ref]` for a short bracket reference. **Import the symbol** so that it resolves.
+2. Use `[text][fully.qualified.name]` when a short reference does not resolve or is unclear.
+3. Use `` `code` `` only for text that is not a symbol.
 
-Never write a bare FQN link `[io.github.lmliam.…Foo]` when an import + `[Foo]` works.
+Do not write a bare FQN link such as `[io.github.lmliam.…Foo]` when an import and `[Foo]` work.
 
-## Samples — `@sample`
+## Samples: `@sample`
 
-Each module has a `src/samples/kotlin` source set (compiled by `check`, excluded from
-coverage, rendered by Dokka):
+Each module has a `src/samples/kotlin` source set. The `check` task compiles it, Kover excludes it, and Dokka renders
+it.
 
-- Write an `internal fun <feature>Sample()` in the mirrored package under
-  `src/samples/kotlin`, reference it as
+- Write an `internal fun <feature>Sample()` in the matching package under `src/samples/kotlin`. Refer to it as
   `@sample io.github.lmliam.kotventure.<module>.<pkg>.<name>Sample`.
-- Samples are real compiled code — they break when the API changes, which is the point.
-  Use them for any entry point whose call shape isn't obvious from the signature (DSL
-  blocks, `bind`, context parameters).
+- Samples are compiled code and detect API changes. Use them when a signature does not make the call form clear. These
+  cases include DSL blocks, `bind`, and context parameters.
 
 ## Comments in code
 
-- Comments explain **why** — a constraint the code can't show. Never what the next line does,
-  where code came from, or why a change is correct (that's PR-review talk).
-- **No narrating comments in Gradle/CI glue** — job names, task `description`s, and
-  `docs/CI.md` carry intent. SHA pin comments (`# vX.Y.Z`) on Actions are fine.
-- No internal audit IDs in repo files; don't document deferred/future work in `docs/`.
+- Comments explain a constraint that the code cannot show. Do not describe the next line, the source of the code, or a
+  pull-request decision.
+- Do not add narrative comments to Gradle or CI files. Job names, task `description` values, and `docs/CI.md` state the
+  intent. SHA pin comments such as `# vX.Y.Z` are permitted in Actions workflows.
+- Do not add internal audit identifiers to repository files. Do not describe deferred work in `docs/`.
 
 ## Beyond KDoc
 
-- **Module README** (`modules/<name>/README.md`): what the artifact is, how to depend on it,
-  the surface at a glance — follow `modules/test/README.md` as the exemplar.
-- **`docs/`** updated in the same PR for user-facing changes; `docs/DESIGN.md` §5 snippets
-  are illustrative — keep them plausible, don't treat them as API tests.
-- **`CHANGELOG.md` is generated** (release-please) — never hand-edit; your commit subjects
-  are the changelog entries, write them to be read.
-- Verify docs build: `./gradlew build` covers sample compilation; Dokka runs in CI
-  (`dokkaGenerate` locally when touching doc markup broadly).
+- A **module README** explains the artefact, its dependency, and its primary API. Use `modules/test/README.md` as the
+  model.
+- Update **`docs/`** in the same pull request for a change that affects users. The examples in section 5 of
+  `docs/DESIGN.md` are illustrative. Keep them plausible, but do not use them as API tests.
+- Release-please generates **`CHANGELOG.md`**. Do not edit it. Write commit subjects that are suitable changelog entries.
+- Verify the documentation build. `./gradlew build` compiles samples, and CI runs Dokka. Run `dokkaGenerate` locally
+  after a large change to documentation markup.

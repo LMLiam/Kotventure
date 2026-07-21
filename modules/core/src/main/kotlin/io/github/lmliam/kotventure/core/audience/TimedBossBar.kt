@@ -8,15 +8,14 @@ import net.kyori.adventure.audience.Audience
 import kotlin.time.Duration
 
 /**
- * Builds a lifecycle-managed [TimedBossBar] that interpolates progress over [over], shows it on
+ * Creates a lifecycle-managed [TimedBossBar] that interpolates progress over [over], shows it on
  * this [Audience], and schedules updates on the contextual [Ticker].
  *
  * Provide a ticker once with `context(ticker) { … }` (platform adapters in production,
- * `ManualTicker` in tests). The [over] parameter is what opts into managed behaviour; the static
- * [bossBar] overload builds a plain Adventure bar.
+ * `ManualTicker` in tests). The [over] parameter selects managed behaviour. The static [bossBar] overload builds a
+ * plain Adventure bar.
  *
- * @param over positive lifetime of the bar; progress reaches its end value exactly when this
- *   elapses.
+ * @param over the positive lifetime of the bar. Progress reaches its end value when this duration elapses.
  * @param init configures name, colour, progress endpoints, cadence, and lifecycle hooks.
  * @return a [TimedBossBar] handle for pause/resume/cancel and extra viewers.
  * @throws IllegalArgumentException when [over] is not positive, a progress endpoint is outside
@@ -34,8 +33,7 @@ public fun Audience.bossBar(
  * Shows the managed [bar] to this [Audience] and tracks this audience for auto-hide on
  * completion or cancel.
  *
- * Same verb as the static [show] overload; equivalent to [TimedBossBar.show], including the
- * no-op once the bar has finished or been cancelled.
+ * This function delegates to [TimedBossBar.show]. It does nothing after the bar finishes or is cancelled.
  *
  * @sample io.github.lmliam.kotventure.core.audience.timedBossBarSample
  */
@@ -44,7 +42,7 @@ public fun Audience.show(bar: TimedBossBar): Unit = bar.show(this)
 /**
  * Hides the managed [bar] from this [Audience] and stops tracking this audience for auto-hide.
  *
- * Same verb as the static [hide] overload; equivalent to [TimedBossBar.hide].
+ * This function delegates to [TimedBossBar.hide].
  *
  * @sample io.github.lmliam.kotventure.core.audience.timedBossBarSample
  */

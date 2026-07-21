@@ -9,7 +9,7 @@ import net.kyori.adventure.text.ObjectComponent
 import net.kyori.adventure.text.`object`.ObjectContents
 
 /**
- * Matches an object component whose contents are [expected]. Combine with `and`/`or` or negate with `shouldNot`.
+ * Returns a matcher that compares object contents with [expected].
  */
 public fun haveObjectContents(expected: ObjectContents): Matcher<ObjectComponent> =
     Matcher { value ->
@@ -22,7 +22,7 @@ public fun haveObjectContents(expected: ObjectContents): Matcher<ObjectComponent
     }
 
 /**
- * Matches an object component whose fallback component is [expected].
+ * Returns a matcher that compares the fallback component with [expected].
  */
 public fun <T : ComponentLike> haveObjectFallback(expected: T): Matcher<ObjectComponent> =
     Matcher { value ->
@@ -36,7 +36,7 @@ public fun <T : ComponentLike> haveObjectFallback(expected: T): Matcher<ObjectCo
     }
 
 /**
- * Matches an object component that has no fallback component.
+ * Returns a matcher that accepts an object component without a fallback.
  */
 public fun haveNoObjectFallback(): Matcher<ObjectComponent> =
     Matcher { value ->
@@ -49,12 +49,15 @@ public fun haveNoObjectFallback(): Matcher<ObjectComponent> =
     }
 
 /**
- * Asserts that this component is an [ObjectComponent] and returns it typed.
+ * Verifies that this component is an [ObjectComponent].
+ *
+ * @return this component as an [ObjectComponent].
+ * @throws AssertionError when this component has a different type.
  */
 public fun Component.shouldBeObjectComponent(): ObjectComponent = asComponentType("object")
 
 /**
- * Asserts that this object component has [expected] as its contents.
+ * Verifies that this object component has [expected] as its contents.
  */
 public infix fun ObjectComponent.shouldHaveObjectContents(expected: ObjectContents): ObjectComponent =
     apply {
@@ -62,7 +65,7 @@ public infix fun ObjectComponent.shouldHaveObjectContents(expected: ObjectConten
     }
 
 /**
- * Asserts that this object component has [expected] as its fallback component.
+ * Verifies that this object component has [expected] as its fallback.
  */
 public infix fun <T : ComponentLike> ObjectComponent.shouldHaveObjectFallback(expected: T): ObjectComponent =
     apply {
@@ -70,7 +73,7 @@ public infix fun <T : ComponentLike> ObjectComponent.shouldHaveObjectFallback(ex
     }
 
 /**
- * Asserts that this object component has no fallback component.
+ * Verifies that this object component has no fallback.
  */
 public fun ObjectComponent.shouldNotHaveObjectFallback(): ObjectComponent =
     apply {

@@ -5,10 +5,9 @@ import kotlin.time.Duration
 /**
  * Schedules repeating work on a platform clock.
  *
- * Core ships no default implementation — platforms provide real tickers (for example a Paper
+ * Core has no default implementation. Platforms provide real tickers, such as a Paper
  * scheduler adapter) and the `test` module ships a deterministic `ManualTicker` for unit tests.
- * This is the seed of the animation ticker; later animation work grows this interface rather than
- * replacing it.
+ * Implementations define the execution thread but must preserve the delay and cancellation contracts below.
  *
  * @see TickerTask
  */
@@ -19,7 +18,7 @@ public interface Ticker {
      *
      * @param interval positive delay between successive invocations.
      * @param action work to run on the ticker's thread each interval.
-     * @return a handle that can [TickerTask.cancel] further invocations.
+     * @return a handle that can [TickerTask.cancel] future invocations.
      * @throws IllegalArgumentException when [interval] is not positive.
      */
     public fun repeating(
