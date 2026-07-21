@@ -136,17 +136,24 @@ val kit = audience.ask(kitPrompt)
 A prompt class can carry its dependencies, and an object can hold a static prompt:
 
 ```kotlin
-class ShopPrompt(shop: Shop) : Prompt<Item>({
-    shop.stockFor(viewer).forEach { item -> option(item) { text("[${item.name}]") } }
-})
+class ShopPrompt(shop: Shop) : Prompt<Item>(
+    {
+        shop.stockFor(viewer).forEach { item -> option(item) { text("[${item.name}]") } }
+    },
+)
 
-object KitPrompt : Prompt<Kit>({
-    text("Choose a kit: ")
-    option(Kit.ARCHER) { text("[Archer]") { color(green) } }
-})
+object KitPrompt : Prompt<Kit>(
+    {
+        text("Choose a kit: ")
+        option(Kit.ARCHER) { text("[Archer]") { color(green) } }
+    },
+)
 
 val kit = audience.ask(KitPrompt, lifetime = 5.minutes)
 ```
+
+A supertype call cannot take a trailing lambda. Therefore, the block stays inside the parentheses, and the project
+formatter puts it on its own line.
 
 Kotventure scopes use one DSL marker. Therefore, an `option` block masks `viewer`. Inside an option block, use a label
 such as `this@ask.viewer`, or read the property into a local value before the block.
