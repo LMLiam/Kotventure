@@ -28,11 +28,10 @@ import net.kyori.adventure.text.event.ClickEvent
 import org.bukkit.inventory.ItemStack
 
 /**
- * ServiceLoader-registered [DialogInstancesProvider] backing the dialog DSL tests.
+ * Supplies Paper dialog instances to tests through `ServiceLoader`.
  *
- * Record-only results (buttons, bodies, inputs, types) are built as inline mockk stubs. Only the
- * fluent builder interfaces, which accumulate state across a chain that mockk fights, are the
- * small recording classes in their own fixture files.
+ * Inline MockK stubs represent immutable results. Small fake builders record state across fluent
+ * builder calls because ordinary stubs do not record these call sequences clearly.
  */
 class FakeDialogInstancesProvider : DialogInstancesProvider {
     override fun dialogBaseBuilder(title: Component): DialogBase.Builder = FakeDialogBaseBuilder(title)

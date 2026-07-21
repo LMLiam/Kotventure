@@ -15,20 +15,17 @@ import org.bukkit.Keyed
 import org.bukkit.Registry
 
 /**
- * A ServiceLoader-registered [RegistryAccess] for unit tests that do not run a server.
+ * Supplies [RegistryAccess] to tests through `ServiceLoader` when no server is running.
  *
- * Dialog lookups return a placeholder [FakeDialog]. The data-component registry returns keyed placeholder component
- * types. This provider operates during the class initialisation of [org.bukkit.Registry]. Its `<clinit>` creates
- * legacy registries for all registry types, including [Dialog].
+ * Dialog lookups return a placeholder [FakeDialog]. Data-component lookups return keyed placeholder
+ * component types. Paper calls this provider while it initialises [org.bukkit.Registry].
  *
- * Construct a new placeholder for each call. Do not read it from a Kotlin `object` or construct a MockK stub. Both
- * alternatives read a static field during their class initialisation. A singleton assigns its backing field only after
- * its class completes initialisation. A MockK proxy makes its target interface complete initialisation before Objenesis
- * constructs it.
+ * Construct a new placeholder for each call. Do not read a placeholder from a Kotlin `object`, and
+ * do not use a MockK proxy on this path. Both alternatives read a static field before
+ * [org.bukkit.Registry] completes initialisation.
  *
- * Either alternative enters the incomplete [Registry] `<clinit>` again and reads an unassigned field.
- * The singleton then throws `NullPointerException`, and MockK throws `ExceptionInInitializerError`. A direct constructor
- * call does not have this race.
+ * A Kotlin singleton can throw `NullPointerException` in this state. A MockK proxy can throw
+ * `ExceptionInInitializerError`. A direct constructor call does not read the incomplete static state.
  */
 class FakeRegistryAccess : RegistryAccess {
     @Suppress("OVERRIDE_DEPRECATION")

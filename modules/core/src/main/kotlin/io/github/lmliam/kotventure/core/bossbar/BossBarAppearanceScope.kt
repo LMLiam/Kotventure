@@ -4,19 +4,18 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import net.kyori.adventure.bossbar.BossBar
 
 /**
- * The look of the bar strip shared by every boss-bar scope: optional [color]/[overlay] and the
- * screen-effect flag toggles.
+ * Configures the strip colour, overlay, and screen-effect flags of a boss bar.
  *
  * This scope does not contain progress or name slots. The static and time-managed scopes use different forms of these
  * slots. Each concrete scope declares its applicable form so that the compiler rejects an incorrect form.
  *
- * Scope-bound [BossBar.Color] and [BossBar.Overlay] vals (`red`, `notched10`, …) shadow top-level
- * text colours only inside this block. [KotventureDslMarker] prevents nested component scopes from seeing them.
+ * Scope-bound [BossBar.Color] and [BossBar.Overlay] values, such as [red] and [notched10], are available only in this
+ * DSL scope. [KotventureDslMarker] prevents a nested component scope from using them by mistake.
  */
 @KotventureDslMarker
 public interface BossBarAppearanceScope {
     /**
-     * Sets the bar colour (the strip colour — not the name text colour).
+     * Sets the colour of the bar strip. This setting does not change the colour of the name text.
      *
      * Prefer the scope-bound vals ([pink], [red], …) so no enum import is needed.
      *
@@ -83,7 +82,7 @@ public interface BossBarAppearanceScope {
         get() = BossBar.Color.WHITE
 
     /**
-     * Continuous [BossBar.Overlay.PROGRESS] overlay (no notches).
+     * The continuous [BossBar.Overlay.PROGRESS] overlay, without notches.
      *
      * Coexists with the float `progress` slots on the concrete scopes. `progress(0.25f)` resolves to the function.
      * `overlay(progress)` resolves to this property.

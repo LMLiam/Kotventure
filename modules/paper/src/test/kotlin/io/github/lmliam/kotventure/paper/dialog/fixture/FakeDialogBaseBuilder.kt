@@ -8,7 +8,6 @@ import io.papermc.paper.registry.data.dialog.body.DialogBody
 import io.papermc.paper.registry.data.dialog.input.DialogInput
 import net.kyori.adventure.text.Component
 
-/** Recording [DialogBase.Builder] whose [build] returns a mockk stub of the captured values. */
 internal class FakeDialogBaseBuilder(
     private val title: Component,
 ) : DialogBase.Builder {

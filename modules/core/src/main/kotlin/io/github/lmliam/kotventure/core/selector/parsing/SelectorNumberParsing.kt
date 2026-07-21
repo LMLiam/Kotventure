@@ -36,24 +36,13 @@ internal fun SelectorReader.parseSelectorDouble(
         ?: failAt(valueOffset, "Expected a finite decimal number")
 }
 
-/**
- * Vanilla integers: optional '-' then ASCII digits.
- *
- * `toIntOrNull` is intentionally looser (accepts '+' and non-ASCII digits), so we
-validate here.
- */
+/** Accepts an optional minus sign followed by one or more ASCII digits. */
 private fun String.isSelectorInteger(): Boolean {
     val digits = removePrefix("-")
     return digits.isNotEmpty() && digits.all(Char::isAsciiDigit)
 }
 
-/**
- * Vanilla decimals: optional '-', ASCII digits, and at most one '.'.
- * Examples allowed: "3", "-2.5", ".5", "1."
- *
- * We split on the first '.' and ensure the concatenated digits are all ASCII digits and
-non-empty.
- */
+/** Accepts a plain decimal with an optional minus sign and no exponent. */
 private fun String.isSelectorDecimal(): Boolean {
     val withoutSign = removePrefix("-")
     val digits = withoutSign.split('.', limit = 2).joinToString("")

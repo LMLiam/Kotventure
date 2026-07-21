@@ -22,10 +22,6 @@ import net.kyori.adventure.title.TitlePart
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toKotlinDuration
 
-/**
- * Captures titles via [sendTitlePart], matching Adventure's default [Audience.showTitle].
- * Kept local to the test for isolation and readability.
- */
 private class TitleRecordingAudience : Audience {
     val titles = mutableListOf<Title>()
     private var titlePart: Component = emptyComponent()

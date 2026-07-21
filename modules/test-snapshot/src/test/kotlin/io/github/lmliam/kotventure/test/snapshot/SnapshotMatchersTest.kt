@@ -42,11 +42,10 @@ private fun styledComponent(): Component =
     }
 
 /**
- * The component in `rich-message.snapshot.json`. Keep it consistent with that committed fixture.
+ * Provides the component in `rich-message.snapshot.json`.
  *
- * This broad fixture has a styled root with click and hover events. It also has a translatable child with a fallback
- * and an argument, and keybind, score, and selector children. A regression in one of these serialised forms produces
- * one snapshot diff. Structural matchers are not suitable for this broad comparison.
+ * The fixture covers styles, events, translatable content, keybinds, scores, and selectors. Keep it
+ * consistent with the committed snapshot.
  */
 private fun richMessage(): Component =
     text("Welcome, ") {
@@ -139,7 +138,7 @@ class SnapshotMatchersTest :
                     text("different") shouldNot matchSnapshot("guard")
                 }
 
-                target.readText() shouldBe original // the pure matcher must not write through shouldNot
+                target.readText() shouldBe original
             }
 
             "reports a mismatch with both expected and actual content" {
@@ -150,8 +149,8 @@ class SnapshotMatchersTest :
                         }
 
                     failure.message shouldContain "does not match snapshot <simple-text>"
-                    failure.message shouldContain "\"text\": \"Hello\"" // expected, from the committed fixture
-                    failure.message shouldContain "\"text\": \"Goodbye\"" // actual, from the component under test
+                    failure.message shouldContain "\"text\": \"Hello\""
+                    failure.message shouldContain "\"text\": \"Goodbye\""
                 }
             }
 
@@ -176,7 +175,6 @@ class SnapshotMatchersTest :
                 written.exists() shouldBe true
                 written.readText() shouldContain "\"text\": \"Hello\""
 
-                // The recorded snapshot now satisfies a plain comparison.
                 withSnapshotProperties(dir = tempDir.toString()) {
                     text("Hello") shouldMatchSnapshot "fresh"
                 }

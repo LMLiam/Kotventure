@@ -12,11 +12,11 @@ own matchers.
 
 ## The three dogfooding rules
 
-1. **Use project matchers.** Do not write a manual check. The complete catalogue includes content,
-   colour, style, decorations, children, click/hover, translatable, keybind, score, selector,
-   NBT, object, book, boss bar, sound, title times — is documented in
+1. **Use project matchers.** Do not write a manual check. The matcher catalogue includes content,
+   colour, style, decorations, children, events, translatable content, keybinds, scores, selectors,
+   NBT, objects, books, boss bars, sounds, and title times. Refer to
    [`modules/test/README.md`](../../../modules/test/README.md). If a required matcher does not exist, add it to the
-   `test` module. Supply a factory, infix convenience function, and tests for the match and failure message.
+   `test` module. Supply a factory, an infix function, and tests for success and failure messages.
 2. **Use Kotventure entry points for arrange and act steps** when an equivalent exists.
    `audienceOf(a, b)` not `Audience.audience(a, b)`, `emptyAudience()` not `Audience.empty()`,
    `component { }` / `bossBar { }` not raw builders. Check the owning feature package before
@@ -27,7 +27,12 @@ own matchers.
 ```kotlin
 class StyleDslTest : StringSpec({
     "applies colour and bold" {
-        val component = component { text("Hello") { color(NamedTextColor.AQUA); bold() } }
+        val component = component {
+            text("Hello") {
+                color(NamedTextColor.AQUA)
+                bold()
+            }
+        }
 
         val greeting = component.childAt(0)
         greeting shouldHaveColor NamedTextColor.AQUA
@@ -39,10 +44,10 @@ class StyleDslTest : StringSpec({
 
 ## Matcher semantics
 
-- **Two forms for each attribute:** Infix `shouldHave…` convenience functions test one attribute and return
-  the receiver, so it chains), and `have…`/`contain…` `Matcher<Component>` factories that
-  compose with Kotest's `and`, `or`, `shouldNot`, and `invert()`. Use convenience functions by default. Use factories
-  for composition and negation.
+- **Two forms for each attribute.** Infix `shouldHave…` functions test one attribute and return
+  the receiver for chained assertions. The `have…` and `contain…` factories return a
+  `Matcher<Component>`. Compose factories with Kotest's `and`, `or`, `shouldNot`, and `invert()`.
+  Use infix functions by default. Use factories for composition and negation.
 - **Decorations are tri-state.** `shouldNotHaveDecoration(BOLD)` asserts the state is
   `NOT_SET` (inherits), *not* merely "not TRUE". To assert an explicit off, use
   `shouldHaveDecoration(BOLD, State.FALSE)` / `haveDecorationState(...)`.
@@ -56,8 +61,8 @@ class StyleDslTest : StringSpec({
 - **Do not compare error message text.** Test failure positions structurally with
   the split-string matcher: `"@e[limit=" shouldFailToParseAt "0]"` asserts parsing fails
   exactly at the string boundary (`EntitySelectorParseException.offset`).
-- Round-trips: `"@a[tag=alpha]".shouldBeCanonicalSelector()`; rendering:
-  `selector shouldRenderAs "@e[…]"`.
+- Use `"@a[tag=alpha]".shouldBeCanonicalSelector()` for round trips.
+- Use `selector shouldRenderAs "@e[…]"` for rendering.
 
 ## Snapshot tests (`test-snapshot` module)
 
@@ -76,16 +81,15 @@ component shouldMatchCompactedSnapshot "join-toast"   // whitespace-flattened te
 
 ## Compile-fail tests
 
-For `@DslMarker` scope-safety and other must-not-compile guarantees, use the
-`assertDoesNotCompile(fileName, source, *expectedMessages)` helper
-(`test/compilation/Assertions.kt` in the module's test sources, backed by kctfork) instead of a comment that says
-"kotlinc should reject".
+Use `assertDoesNotCompile(fileName, source, *expectedMessages)` for `@DslMarker` scope safety and
+other compile-failure contracts. The module test sources contain this kctfork-based helper in
+`test/compilation/Assertions.kt`. Do not use a comment that only says that the compiler must reject code.
 
 ## What to cover
 
 - Happy path + nesting/children order.
 - Every edge case named in the issue's acceptance criteria.
-- Fail-fast contracts: duplicate-singleton calls throw `IllegalStateException` — assert the
+- Fail-fast contracts: duplicate-singleton calls throw `IllegalStateException`. Assert the
   *type* (`shouldThrow<IllegalStateException>`), not the message text.
 - New matchers: both the match and the failure message.
 

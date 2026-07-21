@@ -8,17 +8,16 @@ import net.kyori.adventure.text.ComponentLike
 import kotlin.time.Duration
 
 /**
- * Configures a lifecycle-managed [TimedBossBar]: required [name], interpolated [progress], update
- * cadence, lifecycle hooks, and the shared [appearance][BossBarAppearanceScope] slots.
+ * Configures the name, progress, cadence, hooks, and appearance of a [TimedBossBar].
  *
- * Static [progress][BossBarScope.progress] is intentionally absent — a managed bar owns its fill
+ * Static [progress][BossBarScope.progress] is intentionally absent. A managed bar owns its fill
  * amount over time. Unset [progress] gives a full-to-empty countdown. Unset [every] gives one game tick.
  *
  * @sample io.github.lmliam.kotventure.core.audience.timedBossBarSample
  */
 public interface TimedBossBarScope : BossBarAppearanceScope {
     /**
-     * Builds a fixed boss bar name from a component DSL block.
+     * Creates and sets a fixed boss-bar name from a component DSL block.
      *
      * @throws IllegalStateException when the name is already set in this block.
      */
@@ -32,13 +31,10 @@ public interface TimedBossBarScope : BossBarAppearanceScope {
     public fun <T : ComponentLike> name(component: T)
 
     /**
-     * Re-renders the bar name every tick from the time remaining until completion.
+     * Sets a name renderer that receives the remaining lifetime after each update.
      *
-     * Call site: `name { remaining -> text("… ${remaining.inWholeSeconds}s") }`. The block is a
-     * component scope exactly like the fixed `name { }` form — the extra `remaining` parameter
-     * is the only difference. The SAM [TimedBossBarName] keeps this overload distinct from the
-     * fixed forms during overload resolution. The function updates the bar only when the rendered component differs
-     * from the current name. Thus, unchanged frames do not cause viewer updates.
+     * Call site: `name { remaining -> text("… ${remaining.inWholeSeconds}s") }`. The function updates the mutable bar
+     * only when the rendered component differs from its current name.
      *
      * @throws IllegalStateException when the name is already set in this block.
      */
@@ -65,7 +61,7 @@ public interface TimedBossBarScope : BossBarAppearanceScope {
     /**
      * Sets how often the bar updates (progress, dynamic name, [onTick]).
      *
-     * Defaults to one game tick when unset. Must not exceed the bar's `over` lifetime — each
+     * Defaults to one game tick when unset. Must not exceed the bar's `over` lifetime. Each
      * tick subtracts this interval from remaining time.
      *
      * @param interval the positive delay between updates. It must be `<= over` when the bar is built.
@@ -78,8 +74,9 @@ public interface TimedBossBarScope : BossBarAppearanceScope {
     /**
      * Invoked after each progress update and name re-render while the bar is running.
      *
-     * The [TimedBossBar] handle is the receiver. The lambda's `remaining` argument is the time after this tick's update.
-     * The lambda runs on the ticker's thread.
+     * The [TimedBossBar] handle is the receiver. The `remaining` argument is the time after this update. The lambda runs
+     * on the ticker's thread. On the final tick, it runs before viewer removal and [onFinish]. A thrown exception does
+     * not prevent final viewer removal or [onFinish].
      *
      * @throws IllegalStateException when this hook is already set in this block.
      */
@@ -88,8 +85,8 @@ public interface TimedBossBarScope : BossBarAppearanceScope {
     /**
      * Invoked once when the bar reaches the end of its lifetime naturally.
      *
-     * Does not run when [TimedBossBar.cancel] ends the bar early. The [TimedBossBar] handle is the
-     * receiver. Runs on the ticker's thread.
+     * It does not run when [TimedBossBar.cancel] ends the bar early. The [TimedBossBar] handle is the receiver. The hook
+     * runs on the ticker's thread after the runtime attempts to hide all tracked viewers.
      *
      * @throws IllegalStateException when this hook is already set in this block.
      */
@@ -98,8 +95,8 @@ public interface TimedBossBarScope : BossBarAppearanceScope {
     /**
      * Invoked once when [TimedBossBar.cancel] ends the bar early.
      *
-     * Does not run on natural completion. The [TimedBossBar] handle is the receiver. Runs on the
-     * ticker's thread.
+     * It does not run on natural completion. The [TimedBossBar] handle is the receiver. The hook runs on the cancelling
+     * thread after the runtime attempts to hide all tracked viewers.
      *
      * @throws IllegalStateException when this hook is already set in this block.
      */

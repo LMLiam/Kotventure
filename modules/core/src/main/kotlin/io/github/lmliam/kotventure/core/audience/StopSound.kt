@@ -5,7 +5,7 @@ import io.github.lmliam.kotventure.core.sound.SoundStopScope
 import net.kyori.adventure.audience.Audience
 
 /**
- * Builds a [net.kyori.adventure.sound.SoundStop] from [init] and stops matching sounds on this
+ * Creates a [net.kyori.adventure.sound.SoundStop] from [init] and stops matching sounds on this
  * [Audience], forwarding to Adventure's native [Audience.stopSound].
  *
  * Supported shapes inside [init]:

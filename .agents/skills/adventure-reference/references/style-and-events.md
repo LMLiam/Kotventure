@@ -1,6 +1,6 @@
 # Style, colour, and events
 
-## Style — `net.kyori.adventure.text.format`
+## Style: `net.kyori.adventure.text.format`
 
 - `Style.style(...)` overloads and `Style.empty()`. Create a builder with `Style.style { }` (Consumer) or
   `Style.style().build()`. Accessors mirror components: `.color()`, `.font()`,
@@ -24,10 +24,10 @@
 - Tri-state `TextDecoration.State` has `NOT_SET`, `FALSE`, and `TRUE`. `NOT_SET` inherits from the parent. `FALSE`
   disables the decoration. The DSL and matchers preserve this difference. Refer to the NOT_SET rules in
   `writing-component-tests`.
-- `component.decoration(d)` returns the `State`; `.decoration(d, boolean)` and
-  `.decoration(d, State)` set it.
+- `component.decoration(d)` returns the `State`. The `.decoration(d, boolean)` and
+  `.decoration(d, State)` functions set it.
 
-## Click events — `net.kyori.adventure.text.event.ClickEvent`
+## Click events: `net.kyori.adventure.text.event.ClickEvent`
 
 In version 5.x, `ClickEvent<P>` and `ClickEvent.Action<P>` are generic over their payloads.
 
@@ -38,7 +38,7 @@ In version 5.x, `ClickEvent<P>` and `ClickEvent.Action<P>` are generic over thei
 - Adventure also has custom and dialog payloads. The `core` `ClickActionScope` models the set that vanilla can express.
   Check `core/event` before you extend it.
 
-## Hover events — `net.kyori.adventure.text.event.HoverEvent`
+## Hover events: `net.kyori.adventure.text.event.HoverEvent`
 
 - `HoverEvent.showText(ComponentLike)`.
 - `HoverEvent.showItem(Key, count)` and the data-components overload

@@ -3,12 +3,16 @@ package io.github.lmliam.kotventure.paper.dialog.input
 import io.github.lmliam.kotventure.core.component.ComponentScope
 
 /**
- * Configures an input label: a component block (via the inherited [ComponentScope]) plus whether
- * the label is shown.
+ * Builds an input label and controls its visibility.
+ *
+ * Use the inherited [ComponentScope] functions to build the label component. If you do not call
+ * [visible], Paper uses its default visibility.
  */
 public interface LabelScope : ComponentScope {
     /**
-     * Sets whether the label is shown. Called with no argument, sets it to `true`.
+     * Sets whether the input shows the label.
+     *
+     * The default argument is `true`.
      *
      * @throws IllegalStateException when this slot is already set in this block.
      */

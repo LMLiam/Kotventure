@@ -9,19 +9,14 @@ import kotlin.concurrent.withLock
 import kotlin.time.Duration
 
 /**
- * Lock-guarded lifecycle and tick progression for a [TimedBossBar].
+ * Serialises the lifecycle and tick state of a [TimedBossBar].
  *
- * Owns running/paused state, remaining time, viewer tracking, and the ticker task.
-Adventure
- * show/hide and terminal hooks run outside the lock.
+ * The lock protects running state, pause state, remaining time, viewer tracking, and the ticker task. Adventure show
+ * and hide operations run outside the lock. Terminal hooks also run outside the lock.
  *
- * **This-escape:** [owner] is the constructing [TimedBossBar]. [start] may schedule
-ticks before
- * that constructor returns, so [TimedBossBarConfig.onTick] can observe [owner]
-mid-construction
- * on a real scheduler thread. Callers must not assume the facade is fully initialised
-inside
- * early hooks.
+ * [owner] is still under construction when [start] schedules the first task. A ticker that invokes a task immediately
+ * can expose that incomplete owner to an early hook. Runtime code must not assume that construction has returned when
+ * the first hook starts.
  */
 internal class TimedBossBarRuntime(
     private val ticker: Ticker,
@@ -37,8 +32,7 @@ internal class TimedBossBarRuntime(
     private var paused = false
 
     /**
-     * Invalidated on every [detachTask] so a cancelled/stale ticker callback cannot advance after
-     * pause/resume schedules a replacement (cancel alone does not abort an in-flight action).
+     * Changes on every [detachTask] so a stale callback cannot update a resumed or terminated bar.
      */
     private var tickGeneration: Int = 0
 
@@ -67,7 +61,7 @@ internal class TimedBossBarRuntime(
     }
 
     fun resume() {
-        // Schedule under the lock so cancel cannot race a new task into existence after stop.
+        // Schedule under the lock so that cancellation cannot create a replacement task.
         lock.withLock {
             check(running) { "Cannot resume a finished or cancelled TimedBossBar." }
             check(paused) { "TimedBossBar is not paused." }
@@ -95,7 +89,7 @@ internal class TimedBossBarRuntime(
 
         audience.showBossBar(bar)
 
-        // If cancel/finish raced between track and show, undo the visible bar
+        // A concurrent termination can occur after tracking but before the show operation completes.
         val stillTracked = lock.withLock { running && audience in viewers }
         if (!stillTracked) {
             audience.hideBossBar(bar)
@@ -108,8 +102,10 @@ internal class TimedBossBarRuntime(
     }
 
     /**
-     * Cancels the detached ticker task, hides every snapshotted viewer (isolating per-viewer
-     * failures), then always runs the terminal [hook] once.
+     * Cancels the detached task, attempts to hide every snapshotted viewer, and then invokes [hook].
+     *
+     * Viewer failures do not stop later hide attempts. The function keeps the first failure and suppresses later
+     * failures. The `finally` block guarantees that the terminal hook runs.
      */
     private fun finaliseShutdown(
         shutdown: TimedBossBarShutdown,
@@ -134,8 +130,7 @@ internal class TimedBossBarRuntime(
     }
 
     private fun onTick(generation: Int) {
-        // At ZERO, mark natural stop under the same lock as the tick so cancel() from onTick
-        // cannot steal completion (onFinish must win) and a thrown onTick still finalises hide.
+        // Mark natural completion before the hook so concurrent cancellation cannot replace it.
         val outcome = lock.withLock { advanceOrNull(generation) } ?: return
         try {
             config.onTick?.invoke(owner, outcome.remaining)
@@ -145,9 +140,10 @@ internal class TimedBossBarRuntime(
     }
 
     /**
-     * Advances remaining time under [lock]. When the tick lands on [Duration.ZERO], atomically
-     * marks the bar stopped and returns the [TimedBossBarShutdown] for outside-lock finalisation.
-     * Stale generation (detached tasks) are ignored.
+     * Applies one valid tick while [lock] is held.
+     *
+     * A tick at [Duration.ZERO] marks the bar as stopped and returns shutdown work for execution outside the lock. A
+     * callback from a detached task returns `null` without changing state.
      */
     private fun advanceOrNull(generation: Int): TickOutcome? {
         if (!running || paused || generation != tickGeneration) return null
@@ -164,8 +160,9 @@ internal class TimedBossBarRuntime(
     }
 
     /**
-     * Ends the bar under [lock]: clears running state, detaches the ticker task, and snapshots
-     * viewers. Adventure hide and task cancel happen outside the lock via [finaliseShutdown].
+     * Marks the bar as stopped, detaches its task, and removes a snapshot of its viewers while [lock] is held.
+     *
+     * [finaliseShutdown] cancels the task and hides the snapshot after the caller releases the lock.
      */
     private fun markStopped(): TimedBossBarShutdown {
         running = false
@@ -176,7 +173,7 @@ internal class TimedBossBarRuntime(
         )
     }
 
-    /** The result of one locked tick. [shutdown] is non-null only after natural completion. */
+    /** Tick state that carries shutdown work only for natural completion. */
     private data class TickOutcome(
         val remaining: Duration,
         val shutdown: TimedBossBarShutdown?,

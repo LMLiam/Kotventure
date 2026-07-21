@@ -5,9 +5,15 @@ import io.github.lmliam.kotventure.core.selector.parsing.readArgumentValue
 import io.github.lmliam.kotventure.core.selector.readSelectorArgument
 
 /**
- * Parses Java Edition entity-selector source into an [EntitySelector].
+ * Parses one complete Java Edition entity selector.
  *
- * @throws EntitySelectorParseException if [source] is not valid selector syntax
+ * The parser accepts the six heads in [EntitySelectorHead] and the typed arguments that their scopes expose. Selector
+ * syntax does not permit extra whitespace. Quoted strings and SNBT values can contain the whitespace that their own
+ * syntax permits. The returned selector keeps source argument order. Its [EntitySelector.asString] output uses
+ * canonical number, quoting, and empty-argument forms.
+ *
+ * @throws EntitySelectorParseException when [source] is invalid, unsupported, or has trailing content. The exception
+ * identifies the zero-based source offset at which parsing failed.
  * @sample io.github.lmliam.kotventure.core.selector.parseSelectorSample
  */
 public fun parseSelector(source: String): EntitySelector = SelectorReader(source).readEntitySelector()

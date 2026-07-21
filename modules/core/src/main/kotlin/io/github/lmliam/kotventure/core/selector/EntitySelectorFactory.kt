@@ -1,7 +1,12 @@
 package io.github.lmliam.kotventure.core.selector
 
 /**
- * Builds an `@s` selector targeting the executing entity, with optional arguments.
+ * Creates an `@s` selector for the executing entity.
+ *
+ * [init] can use common arguments and entity-type filters. It cannot use `limit` or `sort`.
+ *
+ * @throws IllegalArgumentException when an argument value is invalid.
+ * @throws IllegalStateException when [init] repeats a singleton argument or creates an invalid filter combination.
  *
  * @sample io.github.lmliam.kotventure.core.selector.selfSample
  */
@@ -9,7 +14,12 @@ public fun self(init: SelfEntitySelectorScope.() -> Unit = {}): EntitySelector =
     buildSelector(EntitySelectorHead.SELF, init)
 
 /**
- * Builds a `@p` selector targeting the nearest player, with optional arguments.
+ * Creates an `@p` selector for the nearest player.
+ *
+ * [init] can use common arguments, `limit`, and `sort`. It cannot use entity-type filters.
+ *
+ * @throws IllegalArgumentException when an argument value is invalid.
+ * @throws IllegalStateException when [init] repeats a singleton argument or creates an invalid filter combination.
  *
  * @sample io.github.lmliam.kotventure.core.selector.nearestPlayerSample
  */
@@ -17,7 +27,12 @@ public fun nearestPlayer(init: PlayerEntitySelectorScope.() -> Unit = {}): Entit
     buildSelector(EntitySelectorHead.NEAREST_PLAYER, init)
 
 /**
- * Builds an `@a` selector targeting all players, with optional arguments.
+ * Creates an `@a` selector for all players.
+ *
+ * [init] can use common arguments, `limit`, and `sort`. It cannot use entity-type filters.
+ *
+ * @throws IllegalArgumentException when an argument value is invalid.
+ * @throws IllegalStateException when [init] repeats a singleton argument or creates an invalid filter combination.
  *
  * @sample io.github.lmliam.kotventure.core.selector.allPlayersSample
  */
@@ -25,7 +40,12 @@ public fun allPlayers(init: PlayerEntitySelectorScope.() -> Unit = {}): EntitySe
     buildSelector(EntitySelectorHead.ALL_PLAYERS, init)
 
 /**
- * Builds an `@r` selector targeting a random player, with optional arguments.
+ * Creates an `@r` selector for a random player.
+ *
+ * [init] can use common arguments, `limit`, and `sort`. It cannot use entity-type filters.
+ *
+ * @throws IllegalArgumentException when an argument value is invalid.
+ * @throws IllegalStateException when [init] repeats a singleton argument or creates an invalid filter combination.
  *
  * @sample io.github.lmliam.kotventure.core.selector.randomPlayerSample
  */
@@ -33,7 +53,12 @@ public fun randomPlayer(init: PlayerEntitySelectorScope.() -> Unit = {}): Entity
     buildSelector(EntitySelectorHead.RANDOM_PLAYER, init)
 
 /**
- * Builds an `@e` selector targeting all entities, with optional arguments.
+ * Creates an `@e` selector for all entities.
+ *
+ * [init] can use all typed selector arguments.
+ *
+ * @throws IllegalArgumentException when an argument value is invalid.
+ * @throws IllegalStateException when [init] repeats a singleton argument or creates an invalid filter combination.
  *
  * @sample io.github.lmliam.kotventure.core.selector.entitiesSample
  */
@@ -41,7 +66,13 @@ public fun entities(init: EntitySelectorScope.() -> Unit = {}): EntitySelector =
     buildSelector(EntitySelectorHead.ENTITIES, init)
 
 /**
- * Builds an `@n` selector targeting the nearest entity, with optional arguments.
+ * Creates an `@n` selector for the nearest entity.
+ *
+ * [init] can use all typed selector arguments. Java Edition treats the default `limit` and `sort` values of `@n` as
+ * overridable, so this scope includes both arguments.
+ *
+ * @throws IllegalArgumentException when an argument value is invalid.
+ * @throws IllegalStateException when [init] repeats a singleton argument or creates an invalid filter combination.
  *
  * @sample io.github.lmliam.kotventure.core.selector.nearestEntitySample
  */

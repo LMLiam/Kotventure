@@ -1,21 +1,18 @@
 package io.github.lmliam.kotventure.core.selector
 
 /**
- * Records selector-argument occurrences and reports the first multiplicity error. A singleton argument in
- * [singletonSelectorArgumentNames] can occur one time. An exclusive filter group permits one positive value and does
- * not permit a mixture of positive and negative values.
+ * Records selector-argument occurrences and returns the first multiplicity error.
  *
- * [EntitySelector] and the parser use this validation. The parser reports the returned message at the source offset of
- * the incorrect argument. [SelectorFilterGroup] cannot use it because DSL polarity is final only when the block ends.
- * The `!` operator negates an entry after its addition. Therefore, the builder validates in two phases.
+ * [EntitySelector] and the parser use this policy. The DSL builder uses [SelectorFilterGroup] because a later `!` can
+ * change an entry's polarity before the block returns.
  */
 internal class SelectorArgumentOccurrences {
     private val singletons = mutableSetOf<String>()
 
-    /** Per-name polarity of an exclusive filter group: [SelectorFilterPolarity.NEGATIVE] once any exclusion is recorded. */
+    /** Stores the polarity that each exclusive filter group has established. */
     private val exclusivePolarities = mutableMapOf<String, SelectorFilterPolarity>()
 
-    /** Records one occurrence of [name], returning the violation for a repeated singleton. */
+    /** Records [name] and returns an error for a repeated singleton. */
     fun recordName(name: String): String? =
         when {
             name !in singletonSelectorArgumentNames -> null
@@ -24,8 +21,7 @@ internal class SelectorArgumentOccurrences {
         }
 
     /**
-     * Records [argument]'s filter polarity, returning the violation for an exclusive-policy
-     * breach. Singleton and [SelectorFilterPolicy.REPEATABLE] arguments are never violations.
+     * Records the polarity of [argument] and returns an exclusive-filter error.
      */
     fun recordFilter(argument: EntitySelectorArgument): String? {
         val keyword = argument.keyword ?: return null

@@ -6,7 +6,6 @@ import io.papermc.paper.registry.data.dialog.ActionButton
 import io.papermc.paper.registry.data.dialog.action.DialogAction
 import net.kyori.adventure.text.Component
 
-/** Recording [ActionButton.Builder] whose [build] returns a mockk stub of the captured values. */
 internal class FakeActionButtonBuilder(
     private val label: Component,
 ) : ActionButton.Builder {

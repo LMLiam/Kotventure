@@ -3,17 +3,14 @@ package io.github.lmliam.kotventure.core.selector
 import io.github.lmliam.kotventure.core.nbt.renderValue
 
 /**
- * Render this argument as `name=value` selector source text.
+ * Renders this argument as canonical `name=value` source text.
  *
- * Coordinate and range types supply their argument names. Keyword arguments get their names from [argumentName]. The
- * rendered value includes negation when applicable.
+ * The rendered value includes a leading `!` when the argument is negated.
  */
 internal fun EntitySelectorArgument.render(): String = "$argumentName=${renderValue()}"
 
 /**
- * Render the value portion of this argument (everything after `name=`).
- *
- * Handles negation prefixes, quoting, compound structures, and range formatting as appropriate.
+ * Renders the value after the equals sign.
  */
 private fun EntitySelectorArgument.renderValue(): String =
     when (this) {
@@ -39,15 +36,15 @@ private fun EntitySelectorArgument.renderValue(): String =
     }
 
 /**
- * Render the negation prefix (`!`) if this argument is negated, or an empty string otherwise.
+ * Returns `!` when this argument is negated, or an empty string otherwise.
  */
 private val EntitySelectorArgument.Negatable.negationPrefix: String
     get() = if (isNegated) SELECTOR_NEGATION_PREFIX.toString() else ""
 
 /**
- * Render an entity type or entity-type tag.
+ * Renders an entity type or entity-type tag.
  *
- * Renders direct types without a change. Adds a `#` prefix to tags.
+ * A tag has a leading `#`.
  */
 private fun SelectorEntityType.render(): String =
     when (this) {
@@ -56,15 +53,13 @@ private fun SelectorEntityType.render(): String =
     }
 
 /**
- * Render a name, quoting it only if it contains characters disallowed in unquoted selector tokens.
+ * Renders a name and quotes it when unquoted selector syntax cannot contain it.
  */
 private fun EntitySelectorArgument.Name.renderQuotable(): String =
     if (value.all(Char::isAllowedInUnquotedSelectorToken)) value else value.quoteSelectorString()
 
 /**
- * Render a string as a quoted selector string with proper escape sequences.
- *
- * Escapes quotes and backslashes. Encloses the string in double quotes.
+ * Quotes a selector string and escapes double quotes and backslashes.
  */
 private fun String.quoteSelectorString(): String =
     buildString(length + 2) {
@@ -77,14 +72,12 @@ private fun String.quoteSelectorString(): String =
     }
 
 /**
- * Check if this character needs to be escaped in a quoted selector string.
- *
- * Backslashes and double quotes require escaping.
+ * Returns whether a quoted selector string must escape this character.
  */
 private fun Char.needsEscape(): Boolean = this == '\\' || this == '"'
 
 /**
- * Render a string condition (named value or presence keyword).
+ * Renders a named or presence condition.
  */
 private fun SelectorStringCondition.render(): String =
     when (this) {
@@ -93,7 +86,7 @@ private fun SelectorStringCondition.render(): String =
     }
 
 /**
- * Render advancement progress: either a boolean for full completion or a criteria map.
+ * Renders complete-advancement state or a criteria map.
  */
 private fun SelectorAdvancementProgress.render(): String =
     when (this) {

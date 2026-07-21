@@ -21,7 +21,7 @@ State the **contract**, not the signature. Explain the result, invariants, and e
 /**
  * Builds a [Sound] configured by [init].
  *
- * Construction only — no side effects. Use this when a sound value is shared, stored, or
+ * Construction only. This function has no side effects. Use this when a sound value is shared, stored, or
  * passed to a later playback API.
  *
  * @throws IllegalStateException when any slot is set twice.
@@ -35,7 +35,7 @@ State the **contract**, not the signature. Explain the result, invariants, and e
   "builds **and shows**" a boss bar.
 - Do not restate the signature. Document behaviour that the types do not express.
 
-## Linking symbols — priority order
+## Linking symbols: priority order
 
 1. Use `[Ref]` for a short bracket reference. **Import the symbol** so that it resolves.
 2. Use `[text][fully.qualified.name]` when a short reference does not resolve or is unclear.
@@ -43,7 +43,7 @@ State the **contract**, not the signature. Explain the result, invariants, and e
 
 Do not write a bare FQN link such as `[io.github.lmliam.…Foo]` when an import and `[Foo]` work.
 
-## Samples — `@sample`
+## Samples: `@sample`
 
 Each module has a `src/samples/kotlin` source set. The `check` task compiles it, Kover excludes it, and Dokka renders
 it.

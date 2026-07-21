@@ -3,7 +3,10 @@ package io.github.lmliam.kotventure.core.event
 import net.kyori.adventure.text.event.HoverEvent
 
 /**
- * Builds a reusable hover event. Choose exactly one payload inside [init] — [HoverContentScope.text], [HoverContentScope.item], or [HoverContentScope.entity].
+ * Creates a reusable hover event from the payload that [init] selects.
+ *
+ * Select exactly one of [HoverContentScope.text], [HoverContentScope.item], or [HoverContentScope.entity]. This
+ * function does not attach the event to a component.
  *
  * @sample io.github.lmliam.kotventure.core.event.hoverSample
  *
@@ -18,7 +21,7 @@ internal fun buildHoverEvent(init: HoverContentScope.() -> Unit): HoverEvent<*> 
         .build()
 
 /**
- * Builds an Adventure hover event from a typed [action] and [value].
+ * Creates an Adventure hover event from a typed [action] and [value].
  *
  * @throws IllegalArgumentException when Adventure rejects the action/value pair.
  */

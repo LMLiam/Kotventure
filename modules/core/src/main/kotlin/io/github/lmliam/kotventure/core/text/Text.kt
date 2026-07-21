@@ -4,12 +4,16 @@ import io.github.lmliam.kotventure.core.component.ComponentScope
 import net.kyori.adventure.text.Component
 
 /**
- * Builds a text [Component] with [value] as its literal content.
+ * Creates a text [Component] with literal [value], then applies [init].
+ *
+ * The function only constructs a value. It does not send the component to an audience.
  *
  * @sample io.github.lmliam.kotventure.core.text.textSample
  *
  * @param value the literal text content.
  * @param init styles the component and appends any children.
+ * @throws IllegalStateException when [init] sets the content again, assigns another write-once slot twice, or applies a
+ *   gradient to empty content.
  */
 public fun text(
     value: String,
@@ -26,18 +30,24 @@ internal fun buildTextComponent(
     }
 
 /**
- * Builds a text [Component] whose content is set inside [init] via `content(...)`, for when content and
- * styling are configured together.
+ * Creates a text [Component] whose content, style, and children come from [init].
+ *
+ * If [init] does not set content, the result has empty literal content. The function only constructs a value.
+ *
+ * @throws IllegalStateException when [init] assigns a write-once slot more than once or applies a gradient to empty
+ *   content.
  */
 public fun text(init: TextScope.() -> Unit): Component = buildTextComponent(init)
 
 internal fun buildTextComponent(init: TextScope.() -> Unit): Component = TextBuilder().apply(init).build()
 
 /**
- * Appends a text child with [value] as its content, for use inside a `component { }` or other component block.
+ * Appends a text child with literal [value] to this component scope.
  *
  * @param value the literal text content.
  * @param init styles the child and appends any of its own children.
+ * @throws IllegalStateException when [init] sets the content again, assigns another write-once slot twice, or applies a
+ *   gradient to empty content.
  */
 public fun ComponentScope.text(
     value: String,
@@ -47,7 +57,10 @@ public fun ComponentScope.text(
 }
 
 /**
- * Appends a text child whose content is set inside [init] via `content(...)`.
+ * Appends a text child whose content, style, and children come from [init].
+ *
+ * @throws IllegalStateException when [init] assigns a write-once slot more than once or applies a gradient to empty
+ *   content.
  */
 public fun ComponentScope.text(init: TextScope.() -> Unit) {
     append(buildTextComponent(init))

@@ -4,26 +4,28 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import net.kyori.adventure.key.Key
 
 /**
- * The advancement-to-condition entries of one vanilla `advancements={...}` selector argument.
+ * Declares advancement requirements for one vanilla `advancements={...}` selector argument.
+ *
+ * Entries keep declaration order. Each advancement can occur one time.
  *
  * @sample io.github.lmliam.kotventure.core.selector.selectorAdvancementsSample
  */
 @KotventureDslMarker
 public sealed interface SelectorAdvancementsScope {
     /**
-     * Requires this advancement to be complete (`true`) or incomplete (`false`):
-     * `key("minecraft", "story/smelt_iron") eq true`.
+     * Requires this advancement to be complete when [completed] is `true`, or incomplete when it is `false`.
      *
-     * @throws IllegalStateException if this advancement already has a condition
+     * @throws IllegalStateException when this advancement already has a condition.
      */
     public infix fun Key.eq(completed: Boolean)
 
     /**
-     * Requires per-criterion completion states within this advancement:
-     * `key("my_pack", "boss") eq { "kill_dragon" eq true }`. An empty block renders the valid
-     * vanilla form `{}`.
+     * Requires the per-criterion completion states that [criteria] declares.
      *
-     * @throws IllegalStateException if this advancement already has a condition
+     * An empty block renders as `{}`.
+     *
+     * @throws IllegalArgumentException when a criterion name is empty or invalid.
+     * @throws IllegalStateException when this advancement or a criterion occurs more than one time.
      */
     public infix fun Key.eq(criteria: AdvancementCriteriaScope.() -> Unit)
 }

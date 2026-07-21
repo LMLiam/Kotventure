@@ -1,10 +1,10 @@
 package io.github.lmliam.kotventure.minimessage.validation
 
 /**
- * The outcome of validating MiniMessage markup against its declared placeholders.
+ * The result of validating MiniMessage markup and its declared placeholders.
  *
- * Either [Success] (the markup is well-formed and every declared placeholder is present) or
- * [Failure] (one or more [MiniMessageDiagnostic] were found).
+ * [Success] means that strict parsing succeeded and the markup and declarations contain the same placeholder names.
+ * [Failure] contains one or more diagnostics.
  */
 public sealed interface ValidationResult {
     /** `true` when this result is [Success]. Otherwise, `false`. */
@@ -14,19 +14,17 @@ public sealed interface ValidationResult {
     public val isFailure: Boolean get() = this is Failure
 
     /**
-     * Validation found no issues: the input is well-formed and every declared placeholder
-     * has a corresponding tag in the input (and vice versa).
+     * Indicates that validation found no tag or placeholder issues.
      */
     public data object Success : ValidationResult
 
     /**
-     * Validation found one or more issues.
+     * Contains the issues that validation found.
      *
-     * @property diagnostics Non-empty list of diagnostics. Ordering guarantee: malformed-tag
-     *   diagnostics appear first, then missing-placeholder diagnostics in placeholder declaration
-     *   order, then extra-placeholder diagnostics in the order the tags were encountered in the
-     *   input. A [MiniMessageDiagnostic.ValidationEngineFailure] may appear in place of the
-     *   corresponding pass's diagnostics when the parser itself fails unexpectedly.
+     * @property diagnostics A non-empty immutable snapshot. A malformed-tag diagnostic comes first. Missing-placeholder
+     * diagnostics then follow declaration order. Extra-placeholder diagnostics follow their first occurrence in the
+     * input. A [MiniMessageDiagnostic.ValidationEngineFailure] replaces the diagnostics of a pass that failed
+     * unexpectedly.
      */
     @ConsistentCopyVisibility
     public data class Failure private constructor(
@@ -36,9 +34,13 @@ public sealed interface ValidationResult {
             require(diagnostics.isNotEmpty()) { "Failure must carry at least one diagnostic." }
         }
 
-        /** Factory for [Failure] values. */
+        /** Creates [Failure] values. */
         public companion object {
-            /** Creates a [Failure] with a defensive copy of [diagnostics]. */
+            /**
+             * Creates a failure from a snapshot of [diagnostics].
+             *
+             * @throws IllegalArgumentException when [diagnostics] is empty.
+             */
             public operator fun invoke(diagnostics: List<MiniMessageDiagnostic>): Failure =
                 Failure(diagnostics.toList())
         }

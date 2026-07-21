@@ -6,9 +6,10 @@ import kotlin.concurrent.withLock
 private val snapshotPropertyLock = ReentrantLock()
 
 /**
- * Runs [block] with the snapshot system properties set to [update]/[dir] (or cleared when their value is the default),
- * restoring whatever values were present before. The save/mutate/restore is held under a [ReentrantLock] so the
- * global-property change stays isolated even if the suite is ever configured to run specs concurrently.
+ * Runs [block] with temporary snapshot system properties.
+ *
+ * The function restores the previous properties after [block] completes or throws an exception. A
+ * [ReentrantLock] isolates these process-wide changes from concurrent tests.
  */
 internal fun <T> withSnapshotProperties(
     update: Boolean = false,

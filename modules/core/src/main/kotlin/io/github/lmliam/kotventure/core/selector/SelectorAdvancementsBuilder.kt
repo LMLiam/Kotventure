@@ -2,7 +2,7 @@ package io.github.lmliam.kotventure.core.selector
 
 import net.kyori.adventure.key.Key
 
-/** The mutable builder behind one `advancements { ... }` block, keyed in declaration order. */
+/** Collects one ordered advancements block and rejects duplicate keys. */
 internal class SelectorAdvancementsBuilder : SelectorAdvancementsScope {
     val advancements: Map<Key, AdvancementCondition>
         field = linkedMapOf()

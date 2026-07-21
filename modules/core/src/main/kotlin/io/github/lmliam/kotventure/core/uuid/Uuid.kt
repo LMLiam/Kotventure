@@ -3,8 +3,8 @@ package io.github.lmliam.kotventure.core.uuid
 import java.util.UUID
 
 /**
- * Parses a [UUID] from its standard string [value].
+ * Parses [value] with [UUID.fromString].
  *
- * @throws IllegalArgumentException if [value] is not a valid UUID string.
+ * @throws IllegalArgumentException when [value] is not accepted by [UUID.fromString].
  */
 public fun uuid(value: String): UUID = UUID.fromString(value)

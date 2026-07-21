@@ -4,7 +4,7 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import kotlin.time.Duration
 
 /**
- * Scope for configuring a title's fade-in, stay, and fade-out durations.
+ * Configures a title's fade-in, stay, and fade-out durations.
  *
  * Any slot left unset falls back to Adventure's default for that slot
  * (`Title.DEFAULT_TIMES`).

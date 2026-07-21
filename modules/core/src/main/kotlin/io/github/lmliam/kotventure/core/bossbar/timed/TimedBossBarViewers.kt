@@ -6,9 +6,9 @@ import java.util.Collections
 import java.util.IdentityHashMap
 
 /**
- * Identity-tracked audiences watching a managed boss bar.
+ * Tracks managed boss-bar viewers by object identity.
  *
- * Not thread-safe on its own — the owning [TimedBossBar] serializes access.
+ * This class is not thread-safe. [TimedBossBarRuntime] serialises access with its state lock.
  */
 internal class TimedBossBarViewers {
     private val viewers: MutableSet<Audience> =
@@ -20,7 +20,7 @@ internal class TimedBossBarViewers {
 
     operator fun contains(audience: Audience): Boolean = audience in viewers
 
-    /** Copies current viewers and clears the set so auto-hide cannot double-target them. */
+    /** Removes and returns all current viewers so later shutdown work cannot target them twice. */
     fun snapshotAndClear(): List<Audience> {
         val snapshot = viewers.toList()
         viewers.clear()
@@ -28,8 +28,10 @@ internal class TimedBossBarViewers {
     }
 
     /**
-     * Hides [bar] from every audience, isolating per-viewer failures so one throw cannot leave
-     * the rest visible. Rethrows the first error with the others suppressed.
+     * Attempts to hide [bar] from every entry in [audiences].
+     *
+     * A failure does not stop later attempts. After all attempts, the function throws the first failure and attaches
+     * later failures as suppressed exceptions.
      */
     fun hideAll(
         bar: BossBar,

@@ -1,4 +1,4 @@
-# Components — `net.kyori.adventure.text`
+# Components: `net.kyori.adventure.text`
 
 All component types are immutable `Component` subtypes. Their factories are on `Component`. Adventure also supplies
 builders such as `Component.text()` with no argument. Kotventure usually calls direct factories and the `style` and
@@ -31,7 +31,7 @@ builders such as `Component.text()` with no argument. Kotventure usually calls d
 - `Component.blockNBT()`, `Component.entityNBT()`, `Component.storageNBT()` →
   `BlockNBTComponent` / `EntityNBTComponent` / `StorageNBTComponent`, all
   `NBTComponent<C, B>` with `.nbtPath()`, `.interpret()`, `.separator()`.
-- `BlockNBTComponent.Pos` — `LocalPos` / `WorldPos` coordinate forms; parse with
+- `BlockNBTComponent.Pos` has `LocalPos` and `WorldPos` coordinate forms. Parse a string with
   `BlockNBTComponent.Pos.fromString("…")`.
 - `EntityNBTComponent.selector()`. `StorageNBTComponent.storage()` is a `Key`.
 
@@ -39,15 +39,15 @@ builders such as `Component.text()` with no argument. Kotventure usually calls d
 
 - Component data uses `BinaryTagHolder` from `net.kyori.adventure.nbt.api` in `adventure-api`. Construct it with
   `BinaryTagHolder.binaryTagHolder(snbtString)`.
-- The full tag model lives in the separate `adventure-nbt` artifact (a `minimessage`
-  dependency, **not** available in `core`): `CompoundBinaryTag.builder()`, typed tags
-  (`IntBinaryTag`, `StringBinaryTag`, `ListBinaryTag`, array tags…), SNBT round-trip via
-  `TagStringIO.get().asString(tag)` / `.asCompound(snbt)`.
+- The full tag model is in the separate `adventure-nbt` artefact. The `minimessage` module depends
+  on this artefact, but `core` does not. Use `CompoundBinaryTag.builder()` and typed tags such as
+  `IntBinaryTag`, `StringBinaryTag`, `ListBinaryTag`, and the array tags. Use
+  `TagStringIO.get().asString(tag)` and `.asCompound(snbt)` for an SNBT round trip.
 
 ## Object components (sprites, player heads)
 
 - `` Component.`object`() `` uses backticks because `object` is a Kotlin keyword. It returns `ObjectComponent.Builder`
-  with `.contents(ObjectContents)` — contents from
+  with `.contents(ObjectContents)`. Get contents from
   `ObjectContents.sprite(...)` → `SpriteObjectContents` and
   `ObjectContents.playerHead()...` → `PlayerHeadObjectContents` (name / uuid / profile
   properties / texture skin sources).
@@ -59,7 +59,7 @@ builders such as `Component.text()` with no argument. Kotventure usually calls d
   `JoinConfiguration.separator(c)`, `.noSeparators()`, `.builder()` (prefix/suffix/last
   separator).
 - `component.iterable(ComponentIteratorType.DEPTH_FIRST, flags)` /
-  `.iterator(...)` with `ComponentIteratorFlag` — Kotventure exposes this as
+  `.iterator(...)` with `ComponentIteratorFlag`. Kotventure exposes this as
   `Component.asSequence()` in `core/text`.
 - `ComponentLike` is the general input type for a value that can become a component. Use it instead of `Component` in
   DSL signatures when possible. Call `.asComponent()` to get the component.

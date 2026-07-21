@@ -4,22 +4,37 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 
 /**
- * Serializes this component to legacy ampersand (`&`) formatting.
+ * Serialises this component to legacy text that uses `&` as the control character.
+ *
+ * Legacy text cannot represent all component data. The conversion can discard information such as
+ * click events, hover events, fonts, and insertion text.
+ *
+ * @return the legacy text representation.
  */
 public fun Component.toLegacyAmpersand(): String = LegacyComponentSerializer.legacyAmpersand().serialize(this)
 
 /**
- * Deserializes this legacy ampersand (`&`) string to an Adventure component.
+ * Deserialises receiver text that uses `&` legacy control codes.
+ *
+ * @return a component with the text and supported legacy formatting.
  */
 public fun String.asLegacyAmpersandComponent(): Component =
     LegacyComponentSerializer.legacyAmpersand().deserialize(this)
 
 /**
- * Serializes this component to legacy section-sign formatting.
+ * Serialises this component to legacy text that uses the section sign (`§`) as the control
+ * character.
+ *
+ * Legacy text cannot represent all component data. The conversion can discard information such as
+ * click events, hover events, fonts, and insertion text.
+ *
+ * @return the legacy text representation.
  */
 public fun Component.toLegacySection(): String = LegacyComponentSerializer.legacySection().serialize(this)
 
 /**
- * Deserializes this legacy section-sign string to an Adventure component.
+ * Deserialises receiver text that uses section-sign legacy control codes.
+ *
+ * @return a component with the text and supported legacy formatting.
  */
 public fun String.asLegacySectionComponent(): Component = LegacyComponentSerializer.legacySection().deserialize(this)

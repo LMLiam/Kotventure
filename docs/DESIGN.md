@@ -1,4 +1,4 @@
-# Kotventure — Design
+# Kotventure design
 
 > This document specifies the agreed architecture and scope. The GitHub epic and its subissues use this document.
 > The syntax examples are **illustrative**. The implementation can refine them.
@@ -28,10 +28,10 @@ internationalisation, and idiomatic serialiser access.
 
 | Project                           | Description                                                                 | Difference                                                                  |
 |-----------------------------------|-----------------------------------------------------------------------------|-----------------------------------------------------------------------------|
-| Adventure's retired Kotlin extras | Former official Kotlin builders/operators                                   | Adventure 5.0 removed it; it has no MiniMessage tools, tests, or platform UI |
+| Adventure's retired Kotlin extras | Former official Kotlin builders/operators                                   | Adventure 5.0 removed it. It has no MiniMessage tools, tests, or platform UI |
 | Pluto‑Studio/`adventure-kt`       | Component DSL, `mini()`, styles, titles, and multiplatform support          | No typed MiniMessage, test toolkit, code generator, or ANSI tools           |
 | HoshiKurama component DSL         | `buildComponent {}`                                                         | Stale (2021), narrow                                                        |
-| KSpigot / KPaper                  | General Kotlin server libraries that include a chat DSL                    | Not specific to Adventure; part of larger frameworks                        |
+| KSpigot / KPaper                  | General Kotlin server libraries that include a chat DSL                    | Not specific to Adventure. Part of larger frameworks                        |
 
 **Conclusion:** provide a broad scope and tools that help users make correct software. Do not compete only on a basic
 component builder.
@@ -100,7 +100,10 @@ Selector filters that permit negation use a prefix (`!tag("hidden")`). The proje
 ```kotlin
 // ── Construction ───────────────────────────────────────────────
 val msg = component {
-    text("Hello ") { color(AQUA); bold() }
+    text("Hello ") {
+        color(AQUA)
+        bold()
+    }
     "world" { color(hex("#FF00AA")) }        // string-literal sugar for text("world") { … }
     +"!"                                      // bare literal → plain text child
     newline()
@@ -150,7 +153,10 @@ val title = component {
 object Brand : Theme("brand") {
     val primary = hex("#5865F2")
 
-    val header: Style by style { color(primary); bold() }
+    val header: Style by style {
+        color(primary)
+        bold()
+    }
     val error: Style by style { color(RED) }
 }
 val themes = ThemeRegistry()
@@ -176,14 +182,14 @@ player.title {
 val dragon = bossBar {
     name { text("Ender Dragon") { color(0x9B30FF) } }
     progress(0.25f)
-    color(red)              // BossBar.Color — scope-bound, no enum import
+    color(red)              // Scope-bound BossBar.Color. No enum import is necessary.
     overlay(notched10)
     darkenScreen()
     playBossMusic()
 }
 player.show(dragon)
 player.hide(dragon)
-val raid = player.bossBar { name { text("Raid") } }   // build + show; keep for hide/updates
+val raid = player.bossBar { name { text("Raid") } }   // Builds and shows. Keep the handle for changes or hiding.
 
 val rules = book {
     title { text("Server Rules") }
@@ -195,13 +201,13 @@ player.book {
     page { text("One-shot welcome") }
 }
 val alert = sound(key("minecraft:block.bell.use")) {   // build once, share
-    source(music)           // Sound.Source — scope-bound, no enum import
+    source(music)           // Scope-bound Sound.Source. No enum import is necessary.
     volume(2f)
     pitch(0.5f)
 }
 player.play(alert)
 player.sound(key("minecraft:entity.pig.ambient")) {    // build + play one-shot
-    emitter(self)           // follows the recipient; or at(x, y, z) — world position
+    emitter(self)           // Follows the recipient. Use at(x, y, z) for a world position.
 }
 player.stopSound { source(music) }
 player.stopSound { all() }
@@ -210,8 +216,8 @@ player.tabList {
     footer { text("play.example.org") }
 }
 
-// Managed (timed) boss bars — context(ticker) once; `over` opts into lifecycle management
-// val ticker = plugin.ticker()   // platform-provided (kotventure-paper); ManualTicker in tests
+// Put the ticker in context one time. The `over` argument enables lifecycle management.
+// val ticker = plugin.ticker()   // The Paper module supplies this ticker. Tests use ManualTicker.
 context(ticker) {
     val meteor = player.bossBar(over = 30.seconds) {
         name { remaining -> text("Meteor in ${remaining.inWholeSeconds}s") }
@@ -221,7 +227,9 @@ context(ticker) {
         every(1.ticks)
         onFinish { /* natural completion */ }
     }
-    meteor.pause(); meteor.resume(); meteor.cancel()
+    meteor.pause()
+    meteor.resume()
+    meteor.cancel()
 }
 
 
@@ -357,7 +365,7 @@ release each slice independently.
 | Phase | Milestone         | Focus                                                                                                                                                                 |
 |-------|-------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **0** | Pre‑Alpha `0.0.x` | Foundations: drop SPI, restructure, CI, JitPack, BOM stub. **First slice:** `component { text { color/decorate } }` + first matcher + `toMiniMessage()`. Tag `0.0.1`. |
-| **1** | Alpha `0.1–0.3`   | Core DSL: full components, styles/events/gradients, themes; MiniMessage typed templates + validation + converter; serializer extensions; test matchers + snapshots.   |
+| **1** | Alpha `0.1–0.3`   | Core DSL: full components, styles, events, gradients, and themes. MiniMessage typed templates, validation, and converter. Serialiser extensions. Test matchers and snapshots.   |
 | **2** | Alpha `0.4–0.6`   | Audience & UX: send DSL (message/actionbar/title/book/sound/tablist), managed boss bars/titles, pagination, GUI/lore builders (Paper), coroutines.                    |
 | **3** | Alpha `0.7–0.8`   | Animation engine + built‑ins, i18n registry + locale DSL, typed message catalogue (KSP), ANSI preview, Gradle build plugin.                                           |
 | **4** | Beta `0.9.x`      | Velocity + Fabric bundles, compile‑time style validation (KSP), API freeze, perf pass, docs/cookbook, integration tests.                                              |
@@ -389,4 +397,4 @@ release each slice independently.
 - Optional **Sponge** / **BungeeCord** bundles post‑1.0.
 - IDE inspections / detekt rules for the DSL (long‑term tooling).
 - A hosted **playground** / cookbook docs site.
-- Scoreboard/sidebar helpers (not Adventure core — evaluate as a Paper‑bundle extra).
+- Scoreboard and sidebar helpers are not part of Adventure core. Evaluate them as a Paper bundle extra.

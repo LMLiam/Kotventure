@@ -4,8 +4,8 @@ Use these six steps to create, style, test, and send a component. Each example a
 
 ## 1. Install
 
-[JitPack](https://jitpack.io/#LMLiam/Kotventure) publishes tagged releases. Import the BOM one time.
-Then, add the necessary modules without duplicate versions:
+[JitPack](https://jitpack.io/#LMLiam/Kotventure) publishes tagged releases. Import the BOM once.
+Then, add the necessary modules. The BOM keeps their versions consistent:
 
 ```kotlin
 repositories {
@@ -25,7 +25,7 @@ dependencies {
 ```
 
 Replace `<tag>` with a [released tag](https://github.com/LMLiam/Kotventure/releases). Kotventure uses the Java 25 Gradle toolchain.
-Your project needs Java 21 or newer, which is the minimum Adventure version.
+Your project needs Java 21 or newer because Adventure requires Java 21.
 
 ## 2. Build your first component
 
@@ -51,7 +51,7 @@ The result is an Adventure `Component`. Give it to an applicable Adventure API.
 
 ## 3. Style it
 
-Each text block contains style slots such as `color(...)`, `bold()`, `click { }`, and `hover { }`.
+Each text block has style slots such as `color(...)`, `bold()`, `click { }`, and `hover { }`.
 Make a reusable style with `style { }`. Apply it with `style(...)` in a block or with the `styled` infix function:
 
 ```kotlin
@@ -117,7 +117,7 @@ val line = JoinBroadcast {
 ```
 
 Validate configuration markup during load with `validate(...)` or `template.validate()`.
-Diagnostics identify malformed tags and missing or additional placeholders before the player sees the message.
+Diagnostics identify malformed tags and missing or extra placeholders before the player sees the message.
 
 ## 6. Test it
 

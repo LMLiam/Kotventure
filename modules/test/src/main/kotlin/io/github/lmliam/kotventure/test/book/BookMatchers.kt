@@ -8,7 +8,7 @@ import net.kyori.adventure.inventory.Book
 import net.kyori.adventure.text.Component
 
 /**
- * Matches a [Book] whose title equals [expected].
+ * Returns a matcher that compares the book title with [expected].
  */
 public fun haveTitle(expected: Component): Matcher<Book> =
     Matcher { value ->
@@ -21,7 +21,7 @@ public fun haveTitle(expected: Component): Matcher<Book> =
     }
 
 /**
- * Matches a [Book] whose author equals [expected].
+ * Returns a matcher that compares the book author with [expected].
  */
 public fun haveAuthor(expected: Component): Matcher<Book> =
     Matcher { value ->
@@ -34,7 +34,7 @@ public fun haveAuthor(expected: Component): Matcher<Book> =
     }
 
 /**
- * Matches a [Book] with exactly [expected] pages.
+ * Returns a matcher that compares the page count with [expected].
  */
 public fun havePageCount(expected: Int): Matcher<Book> =
     Matcher { value ->
@@ -47,7 +47,9 @@ public fun havePageCount(expected: Int): Matcher<Book> =
     }
 
 /**
- * Matches a [Book] whose page at [index] equals [expected].
+ * Returns a matcher that compares the page at [index] with [expected].
+ *
+ * The matcher produces a failed result if [index] is outside the page list.
  */
 public fun havePageAt(
     index: Int,
@@ -78,7 +80,7 @@ public fun havePageAt(
     }
 
 /**
- * Matches a [Book] whose pages equal [expected] in order.
+ * Returns a matcher that compares all pages with [expected] in order.
  */
 public fun havePages(expected: List<Component>): Matcher<Book> =
     Matcher { value ->
@@ -91,7 +93,7 @@ public fun havePages(expected: List<Component>): Matcher<Book> =
     }
 
 /**
- * Asserts this [Book] has title [expected].
+ * Verifies that this [Book] has the title [expected].
  */
 public infix fun Book.shouldHaveTitle(expected: Component): Book =
     apply {
@@ -99,7 +101,7 @@ public infix fun Book.shouldHaveTitle(expected: Component): Book =
     }
 
 /**
- * Asserts this [Book] does not have title [expected].
+ * Verifies that this [Book] does not have the title [expected].
  */
 public infix fun Book.shouldNotHaveTitle(expected: Component): Book =
     apply {
@@ -107,7 +109,7 @@ public infix fun Book.shouldNotHaveTitle(expected: Component): Book =
     }
 
 /**
- * Asserts this [Book] has author [expected].
+ * Verifies that this [Book] has the author [expected].
  */
 public infix fun Book.shouldHaveAuthor(expected: Component): Book =
     apply {
@@ -115,7 +117,7 @@ public infix fun Book.shouldHaveAuthor(expected: Component): Book =
     }
 
 /**
- * Asserts this [Book] does not have author [expected].
+ * Verifies that this [Book] does not have the author [expected].
  */
 public infix fun Book.shouldNotHaveAuthor(expected: Component): Book =
     apply {
@@ -123,7 +125,7 @@ public infix fun Book.shouldNotHaveAuthor(expected: Component): Book =
     }
 
 /**
- * Asserts this [Book] has exactly [expected] pages.
+ * Verifies that this [Book] has [expected] pages.
  */
 public infix fun Book.shouldHavePageCount(expected: Int): Book =
     apply {
@@ -131,7 +133,7 @@ public infix fun Book.shouldHavePageCount(expected: Int): Book =
     }
 
 /**
- * Asserts this [Book] does not have exactly [expected] pages.
+ * Verifies that this [Book] does not have [expected] pages.
  */
 public infix fun Book.shouldNotHavePageCount(expected: Int): Book =
     apply {
@@ -139,7 +141,7 @@ public infix fun Book.shouldNotHavePageCount(expected: Int): Book =
     }
 
 /**
- * Asserts this [Book] has page [expected] at [index].
+ * Verifies that this [Book] has page [expected] at [index].
  */
 public fun Book.shouldHavePageAt(
     index: Int,
@@ -150,7 +152,7 @@ public fun Book.shouldHavePageAt(
     }
 
 /**
- * Asserts this [Book] does not have page [expected] at [index].
+ * Verifies that this [Book] does not have page [expected] at [index].
  */
 public fun Book.shouldNotHavePageAt(
     index: Int,
@@ -161,7 +163,7 @@ public fun Book.shouldNotHavePageAt(
     }
 
 /**
- * Asserts this [Book] has pages [expected] in order.
+ * Verifies that this [Book] has the pages [expected] in order.
  */
 public infix fun Book.shouldHavePages(expected: List<Component>): Book =
     apply {
@@ -169,7 +171,7 @@ public infix fun Book.shouldHavePages(expected: List<Component>): Book =
     }
 
 /**
- * Asserts this [Book] does not have pages [expected] in order.
+ * Verifies that this [Book] does not have the pages [expected] in order.
  */
 public infix fun Book.shouldNotHavePages(expected: List<Component>): Book =
     apply {

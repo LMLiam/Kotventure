@@ -4,8 +4,7 @@ import io.github.lmliam.kotventure.core.time.TickerTask
 import kotlin.time.Duration
 
 /**
- * A [ManualTicker] repeating unit: fires [action] and, while still active, reports the next due
- * time as `dueAt + interval`.
+ * Stores the action and state of one repeating [ManualTicker] task.
  */
 internal class ManualTickerTask(
     private val interval: Duration,
@@ -15,10 +14,10 @@ internal class ManualTickerTask(
         private set
 
     /**
-     * Invokes [action] once at virtual time [dueAt].
+     * Runs [action] one time for the scheduled time [dueAt].
      *
-     * @return next due time (`dueAt + interval`) when the task should keep repeating, or `null`
-     *   when it was already cancelled or cancelled itself during [action].
+     * @return the next due time, or `null` if the task is cancelled.
+     * @throws Throwable when [action] throws it.
      */
     fun fire(dueAt: Duration): Duration? {
         if (!isActive) {

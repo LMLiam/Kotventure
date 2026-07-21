@@ -6,7 +6,7 @@ import net.kyori.adventure.inventory.Book
 import net.kyori.adventure.text.ComponentLike
 
 /**
- * Configures an Adventure [Book]: optional [title] and [author], and zero or more [page]s.
+ * Configures the optional [title], optional [author], and ordered pages of an Adventure [Book].
  *
  * Unset title and author default to [net.kyori.adventure.text.Component.empty]. Pages accumulate
  * in call order via [page] or bulk [pages]. Title and author may each be set at most once.
@@ -16,7 +16,7 @@ import net.kyori.adventure.text.ComponentLike
 @KotventureDslMarker
 public interface BookScope {
     /**
-     * Builds the book title from a component DSL block.
+     * Creates and sets the book title from a component DSL block.
      *
      * @throws IllegalStateException when the title is already set in this block.
      */
@@ -30,7 +30,7 @@ public interface BookScope {
     public fun <T : ComponentLike> title(component: T)
 
     /**
-     * Builds the book author from a component DSL block.
+     * Creates and sets the book author from a component DSL block.
      *
      * @throws IllegalStateException when the author is already set in this block.
      */
@@ -44,7 +44,7 @@ public interface BookScope {
     public fun <T : ComponentLike> author(component: T)
 
     /**
-     * Appends a page built from a component DSL block.
+     * Creates a page from a component DSL block and appends it.
      *
      * Pages are kept in call order. Components that exceed the client page limit are truncated
      * client-side (Adventure does not reflow to the next page).

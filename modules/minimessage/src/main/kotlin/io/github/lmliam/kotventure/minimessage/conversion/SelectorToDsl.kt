@@ -12,11 +12,10 @@ import io.github.lmliam.kotventure.core.selector.SelectorRangeArgument
 import io.github.lmliam.kotventure.core.selector.SelectorStringCondition
 
 /**
- * Emit [selector] as the typed selector-DSL expression that reconstructs it.
+ * Emits the typed selector expression for [selector].
  *
- * The factory name (e.g. `entities`, `self`, ...) is emitted, and each argument becomes one scope
- * call in model order. Coordinates for a group are collapsed into a single `origin(...)` or
- * `volume(...)` call, emitted the first time that group appears.
+ * Arguments keep model order. Coordinate arguments combine into one `origin` or `volume` call at the position of the
+ * first coordinate in that group.
  */
 internal fun KotlinSourceBuilder.appendEntitySelector(selector: EntitySelector) {
     val factory = selector.head.factoryName
@@ -39,8 +38,7 @@ private val EntitySelectorHead.factoryName: String
         }
 
 /**
- * Emit selector arguments preserving model order. Coordinates are emitted as grouped calls the
- * first time their coordinate-group appears.
+ * Emits selector arguments in model order and groups coordinates.
  */
 private fun KotlinSourceBuilder.appendArguments(arguments: List<EntitySelectorArgument>) {
     val emittedCoordinateGroups = mutableSetOf<String>()
@@ -80,7 +78,7 @@ private fun KotlinSourceBuilder.appendArguments(arguments: List<EntitySelectorAr
 }
 
 /**
- * Emit one grouped coordinate call (e.g. `origin(x, y, z)`) the first time the group is seen.
+ * Emits one coordinate group at its first occurrence.
  */
 private fun KotlinSourceBuilder.emitCoordinateGroupIfFirstSeen(
     groupFunction: String,
@@ -123,7 +121,7 @@ private val SelectorEntityType.dslFunction: String
 private val EntitySelectorArgument.Negatable.negation: String
     get() = if (isNegated) "!" else ""
 
-/** Emit name/team/tag conditions (negation and presence variants). */
+/** Emits a named or presence condition. */
 private fun KotlinSourceBuilder.appendStringCondition(
     function: String,
     condition: SelectorStringCondition,

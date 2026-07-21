@@ -13,11 +13,20 @@ private val jsonSerializer: GsonComponentSerializer =
         .build()
 
 /**
- * Serializes this component to Adventure's JSON component format.
+ * Serialises this component to Adventure JSON.
+ *
+ * The shared serialiser uses Adventure compatibility options and supports legacy hover-event data.
+ *
+ * @return the JSON representation of this component.
  */
 public fun Component.toJson(): String = jsonSerializer.serialize(this)
 
 /**
- * Deserializes this Adventure JSON component string to an Adventure component.
+ * Deserialises the receiver Adventure JSON to a component.
+ *
+ * The shared serialiser accepts legacy hover-event data.
+ *
+ * @return the component represented by the receiver JSON.
+ * @throws com.google.gson.JsonParseException when Adventure cannot parse the JSON or component data.
  */
 public fun String.asJsonComponent(): Component = jsonSerializer.deserialize(this)

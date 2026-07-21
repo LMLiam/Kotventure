@@ -5,7 +5,6 @@ import io.mockk.mockk
 import io.papermc.paper.registry.data.dialog.input.NumberRangeDialogInput
 import net.kyori.adventure.text.Component
 
-/** Recording [NumberRangeDialogInput.Builder] whose [build] returns a mockk stub of the captured values. */
 internal class FakeNumberRangeInputBuilder(
     private val key: String,
     private val label: Component,

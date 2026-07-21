@@ -6,7 +6,6 @@ import io.papermc.paper.registry.data.dialog.body.ItemDialogBody
 import io.papermc.paper.registry.data.dialog.body.PlainMessageDialogBody
 import org.bukkit.inventory.ItemStack
 
-/** Recording [ItemDialogBody.Builder] whose [build] returns a mockk stub of the captured values. */
 internal class FakeItemDialogBodyBuilder(
     private val item: ItemStack,
 ) : ItemDialogBody.Builder {

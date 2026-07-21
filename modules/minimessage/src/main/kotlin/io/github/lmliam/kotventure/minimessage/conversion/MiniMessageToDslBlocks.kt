@@ -3,10 +3,7 @@ package io.github.lmliam.kotventure.minimessage.conversion
 import net.kyori.adventure.text.Component
 
 /**
- * Helpers for emitting structured DSL blocks for components.
- *
- * These functions are small, composable blocks. Small helpers emit the body without duplicate logic. A vararg overload
- * supplies arguments to callers.
+ * Emits one structured component call, with a block only when the component has body content.
  */
 internal fun KotlinSourceBuilder.appendStructured(
     header: String,
@@ -26,12 +23,9 @@ internal fun KotlinSourceBuilder.appendStructured(
 }
 
 /**
- * Emits a structured-component call with multi-line arguments.
+ * Emits a structured component call with multiline [arguments].
  *
- * The `opener` is on its own line. Each argument has an indent and a separating comma. The output then has a closing
- * `)` or a `) { ... }` body. The body contains [body], the component's style, and its children.
- *
- * This overload accepts a List of argument-emitting lambdas to remain compatible with existing callers.
+ * The call has a block when [body], style, or children produce output.
  */
 internal fun KotlinSourceBuilder.appendStructuredArguments(
     opener: String,
@@ -53,7 +47,7 @@ internal fun KotlinSourceBuilder.appendStructuredArguments(
 }
 
 /**
- * Emit a labelled component argument block, e.g. `label { ... }`.
+ * Emits a labelled component argument block.
  */
 internal fun KotlinSourceBuilder.appendComponentArgument(
     label: String,
@@ -61,10 +55,7 @@ internal fun KotlinSourceBuilder.appendComponentArgument(
 ) = block(label) { appendRoot(component) }
 
 /**
- * Shared small helper that emits the common trailing content for structured blocks:
- * - optional extra body content (via [body])
- * - style emission
- * - child components
+ * Emits extra [body] content, style, and child components in that order.
  */
 private fun KotlinSourceBuilder.emitComponentBody(
     component: Component,

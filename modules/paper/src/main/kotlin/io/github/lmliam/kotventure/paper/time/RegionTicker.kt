@@ -8,9 +8,9 @@ import java.util.function.Consumer
 import kotlin.time.Duration
 
 /**
- * [Ticker] over the scheduler of the region containing [location]: repeating work becomes a
- * [runAtFixedRate][io.papermc.paper.threadedregions.scheduler.RegionScheduler.runAtFixedRate]
- * task owned by [plugin], with the first fire one full interval after scheduling.
+ * Implements [Ticker] with the scheduler for the region that contains [location].
+ *
+ * Each scheduling call reads the location. The first run occurs after one interval.
  */
 internal class RegionTicker(
     private val plugin: Plugin,

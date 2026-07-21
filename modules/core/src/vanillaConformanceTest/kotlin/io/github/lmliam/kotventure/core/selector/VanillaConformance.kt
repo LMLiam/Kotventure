@@ -8,11 +8,7 @@ import net.minecraft.commands.arguments.selector.EntitySelectorParser
 import net.minecraft.commands.arguments.selector.options.EntitySelectorOptions
 import net.minecraft.server.Bootstrap
 
-/**
- * Test helpers asserting vanilla Minecraft selector parse behaviour.
- *
- * These helpers are intentionally small and throw test failures via Kotest's [fail].
- */
+/** Verifies that the vanilla Minecraft parser accepts this selector. */
 internal fun EntitySelector.shouldBeAcceptedByVanilla() {
     val source = asString()
     vanillaRejection(source)?.let { failure ->
@@ -27,7 +23,7 @@ internal fun EntitySelector.shouldBeAcceptedByVanilla() {
     }
 }
 
-/** Asserts that the vanilla parser rejects this selector source. */
+/** Verifies that the vanilla Minecraft parser rejects this selector source. */
 internal fun String.shouldBeRejectedByVanilla() =
     if (vanillaRejection(this) == null) {
         fail("Minecraft Java Edition $minecraftVersion accepted intentionally invalid selector `$this`")
@@ -35,7 +31,7 @@ internal fun String.shouldBeRejectedByVanilla() =
         Unit
     }
 
-    /** The Minecraft version in assertion messages. The test runner must supply it. */
+/** Gets the Minecraft version that the test runner supplies. */
 private val minecraftVersion: String =
     requireNotNull(
         System.getProperty("kotventure.conformance.minecraftVersion"),
@@ -43,7 +39,7 @@ private val minecraftVersion: String =
         "Run the suite through the vanillaConformanceTest Gradle task"
     }
 
-/** Ensure Minecraft/Brigadier parser bootstrapping runs once on first use. */
+/** Initialises the Minecraft and Brigadier parsers one time. */
 private val vanillaParserBootstrap: Unit by lazy {
     SharedConstants.tryDetectVersion()
     Bootstrap.bootStrap()

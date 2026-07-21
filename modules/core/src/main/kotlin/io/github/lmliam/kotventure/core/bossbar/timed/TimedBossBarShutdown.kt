@@ -4,8 +4,9 @@ import io.github.lmliam.kotventure.core.time.TickerTask
 import net.kyori.adventure.audience.Audience
 
 /**
- * Snapshot taken when a [TimedBossBar] leaves the running state: the detached ticker task and
- * the viewers that still need to be hidden outside the bar's lock.
+ * Detached task and viewer snapshot produced when a [TimedBossBar] terminates.
+ *
+ * The runtime uses this value after it releases its state lock.
  */
 internal data class TimedBossBarShutdown(
     val task: TickerTask?,

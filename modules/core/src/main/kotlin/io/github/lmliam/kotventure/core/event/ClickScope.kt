@@ -4,7 +4,9 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import net.kyori.adventure.text.event.ClickEvent
 
 /**
- * Scope for applying Adventure click events.
+ * Applies one Adventure click event to the enclosing component or style.
+ *
+ * Each function can be called one time in a scope. A null event explicitly clears an inherited click event.
  */
 @KotventureDslMarker
 public interface ClickScope {

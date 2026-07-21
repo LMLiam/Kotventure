@@ -17,17 +17,17 @@ design test. Then, apply the project idioms. Complete the design section before 
 When a caller refers to a named item, use the highest possible level. Each lower level gives less compile-time safety
 and more runtime flexibility. Move to a lower level only when the higher level is not possible:
 
-1. **Plain property** — The declaration site knows the set of names. The compiler finds an incorrect or absent entry.
+1. **Plain property:** The declaration site knows the set of names. The compiler finds an incorrect or absent entry.
    No library mechanism is necessary.
-2. **Delegated property** (`by` + `PropertyDelegateProvider`) — you need a compile-checked
+2. **Delegated property** (`by` + `PropertyDelegateProvider`): You need a compile-checked
    property **and** the name at runtime for registry lookup, serialisation, or interoperability. The
    delegate sees `property.name` at bind time, so one declaration serves both worlds.
    Live example: `MiniTemplate.placeholder()` in
-   `modules/minimessage/.../template/MiniTemplate.kt` — `val player by placeholder<Component>()`
+   In `modules/minimessage/.../template/MiniTemplate.kt`, `val player by placeholder<Component>()`
    makes the Kotlin property name the MiniMessage tag name. Thus, the property and markup stay consistent.
-3. **Typed key (value/data class)** — The set is dynamic because it comes from configuration or user input. Thus,
+3. **Typed key (value/data class):** The set is dynamic because it comes from configuration or user input. Thus,
    properties are not possible. Keys validate values that raw strings cannot validate.
-4. **Raw string** — Use raw strings only at interoperability boundaries, such as configuration files, cross-plugin
+4. **Raw string:** Use raw strings only at interoperability boundaries, such as configuration files, cross-plugin
    lookup, or serialised formats. Do not make them the primary API for Kotlin callers.
 
 **Do not supply two levels for the same concept.** A typed API plus string overloads gives two methods for one task.
@@ -46,7 +46,7 @@ If the design fails one of these tests, change the design. Do not add more API t
 - **Is there one clear method for each use case?** Give a technical reason if two call forms produce the same result.
 - **Does construction change global state?** A value declaration does not register the value. When runtime
   lookup is genuinely needed, the owning feature exposes a small explicit registry
-  (e.g. `ThemeRegistry` in `core/theme`) and registration is a separate explicit call. No
+  such as `ThemeRegistry` in `core/theme`. Registration is a separate explicit call. No
   process-wide registries, `ServiceLoader`, SPI, or reflection.
 - **Count the public declarations.** Each additional type, overload, and helper must be necessary. You can add lookup
   convenience later, but you cannot remove released API without a compatibility cost.
@@ -70,24 +70,23 @@ before you use a different design.
 - **Required values are parameters. Optional values go in the block.** This rule also applies to plain values.
   `text("Hello") { color(red) }`, not `text("Hello", color = red)`.
 - **Slots in scopes are function calls and not `var` properties.** Use `progress(0.25f)` and
-  `color(red)` — assignment syntax is not part of the DSL grammar here.
+  `color(red)`. Assignment syntax is not part of the DSL grammar here.
 - **Reject malformed input. Do not normalise it.** Setting a singleton twice in one block
   throws `IllegalStateException` naming the argument (see `OnceAssign` in `core/dsl`).
   Last-write-wins is not a convention here. Genuinely repeatable arguments accumulate in call
   order.
-- **Capability scopes model what the target parser accepts**, not a name's semantic intent —
-  e.g. the `@n` selector scope keeps `sort`/`limit` because vanilla treats them as overridable
-  defaults there.
-- **Scope-bound sugar uses stdlib-style names as scope members** — `list()` inside
+- **Capability scopes model what the target parser accepts**, not the semantic intent of a name.
+  For example, the `@n` selector scope keeps `sort` and `limit`. Vanilla treats them as overridable defaults there.
+- **Scope-bound sugar uses stdlib-style names as scope members.** `list()` inside
   `NbtCompoundScope` beats a global `nbtList()`. Shadowing the stdlib only inside the block is
   the point. Build scope-bound operators with context parameters where they read best.
-- **Plain verb-first top-level functions for parse bridges** — `parseSelector(...)`, not
+- **Use plain verb-first top-level functions for parse bridges.** Use `parseSelector(...)`, not
   `EntitySelector.invoke(...)` or a `String` extension.
 - **Do not use `Impl` or `Base` suffixes.** A single implementation is a concrete class. Put an `internal` constructor
   behind a public interface only when the interface is necessary. Compose shared behaviour with a named abstraction
   and interface delegation. Do not use an abstract `Base` class.
 - **Prefer `inline fun <reified T>`** over `Class<*>`/`KClass` parameters.
-- **Use the newest Kotlin features when they express intent better** — experimental ones with
+- **Use the newest Kotlin features when they express intent better.** Experimental features require
   maintainer approval. Explicit backing fields are enabled repo-wide
   (`-Xexplicit-backing-fields`): prefer `val tags: List<String>` + `field = mutableListOf()`
   over `_name` pairs.

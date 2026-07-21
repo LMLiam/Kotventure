@@ -5,29 +5,34 @@ import io.github.lmliam.kotventure.core.text.TextScope
 import net.kyori.adventure.text.ComponentLike
 
 /**
- * Accumulates item lore lines in call order.
+ * Builds the complete lore list for an item.
+ *
+ * Each call adds one line. The scope preserves call order. Item functions replace existing lore
+ * with the completed list.
  */
 @KotventureDslMarker
 public interface LoreScope {
     /**
-     * Adds this string as a plain, explicitly non-italic lore line.
+     * Adds the receiver string as a plain, non-italic lore line.
      */
     public operator fun String.unaryPlus()
 
     /**
-     * Adds this string as a styled lore line configured by [init].
+     * Adds the receiver string as a styled lore line configured by [init].
      *
-     * The line is explicitly non-italic unless [init] sets an italic state.
+     * The line is non-italic unless [init] sets the italic state.
      */
     public operator fun String.invoke(init: TextScope.() -> Unit)
 
     /**
-     * Adds this component-like value as a lore line, explicitly non-italic unless it sets an italic state.
+     * Adds the receiver component-like value as a lore line.
+     *
+     * The line is non-italic unless the component has an italic state.
      */
     public operator fun ComponentLike.unaryPlus()
 
     /**
-     * Adds an empty spacer line.
+     * Adds an empty spacer line without an explicit italic state.
      */
     public fun blank()
 }

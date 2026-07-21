@@ -1,15 +1,10 @@
 package io.github.lmliam.kotventure.core.selector
 
 /**
- * The entries of one selector argument, in call order.
+ * Collects one filter argument in call order.
  *
- * A statement's polarity is final when the statement completes. The `!` operator applies before the next statement.
- * Thus, an exclusive group can reject an addition after a positive entry at that call site. One error is visible only
- * later: exclusions followed by a positive entry that stays positive. [validate] finds this error when the selector
- * block ends.
- *
- * [SelectorArgumentKeyword.filterPolicy] supplies the policy for [keyword]. Thus, the builder stays consistent with
- * model and parser validation.
+ * The caller can negate an entry after it is added. [validate] therefore checks the final polarity when the selector
+ * block returns.
  */
 internal class SelectorFilterGroup<T>(
     keyword: SelectorArgumentKeyword,
@@ -29,8 +24,8 @@ internal class SelectorFilterGroup<T>(
     ): SelectorFilterExpression = addEntry(owner, value, SelectorFilterPolarity.POSITIVE)
 
     /**
-     * Adds [value] with a fixed [polarity] and does not return a negatable value. Presence filters such as `tag(any)`
-     * and `team(none)` contain their polarity in the value. Thus, `!` cannot change it again.
+     * Adds [value] with a fixed [polarity]. Presence filters store their polarity in the value and cannot be negated
+     * again.
      */
     fun addFixed(
         owner: EntitySelectorBuilder,

@@ -14,12 +14,12 @@ original work.
 
 Read the diff and apply the design skills before you write line comments:
 
-- `idiomatic-kotlin-dsl` — resolution ladder, pressure-test, house rules. A PR built on the
-  wrong level, discuss the API design first. Examples include typed keys with string overloads and runtime checks for
-  compile-time facts.
-- Hard structural rules: one top-level class/interface/object per file (feature-grouped
-  top-level functions/vals may share), package-by-feature, `internal` implementation,
-  `explicitApi()` + KDoc, tests included (`writing-component-tests`).
+- `idiomatic-kotlin-dsl` supplies the resolution ladder, pressure-test, and house rules. If a pull request uses the wrong level,
+  discuss the API design first. Examples include typed keys with string overloads and runtime checks for compile-time
+  facts.
+- Hard structural rules: Use one top-level class, interface, or object per file. Feature-grouped top-level functions
+  and values can share a file. Use feature packages, `internal` implementations, `explicitApi()`, KDoc, and tests.
+  Refer to `writing-component-tests`.
 
 If the primary design is correct, improve it in place. If the API form is incorrect, rebuild it on the contributor's
 branch. Preserve the intent of the commits, credit the contributor, and explain the rebuild in the pull request.
@@ -50,7 +50,7 @@ API decision.
 
 Before you report completion:
 
-- Attach the PR to the issue's GitHub Project (e.g. Kotventure Roadmap) and mirror the
+- Attach the PR to the issue's GitHub Project, such as Kotventure Roadmap. Mirror the
   issue's fields: `Status`, `Priority`, `Area`, `Kind`, `Effort`, `Risk`, `Contributor fit`.
   Verify with `gh project item-list`.
 - Required checks are the Build, Test, and Lint aggregate, both title validations, and dependency review. Also require
@@ -63,4 +63,4 @@ Before you report completion:
   the skill requirements.
 - ❌ Do not add many small comments when the primary design is incorrect. Discuss the API form first.
 - ❌ Do not rewrite silently. Explain what you changed in the contributor's work and why.
-- ❌ Merging with unset project fields or unanswered threads.
+- ❌ Do not merge with unset project fields or unanswered threads.

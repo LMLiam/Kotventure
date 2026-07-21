@@ -35,7 +35,7 @@ After `koverHtmlReport`, open `build/reports/kover/html/index.html` in a browser
 For macOS, use `open build/reports/kover/html/index.html`. Review line coverage for each module, package, and class.
 
 [`gradle/libs.versions.toml`](../gradle/libs.versions.toml) contains dependency and plugin coordinates. Add shared
-versions there first. Then, use catalog aliases or Gradle helper scripts that refer to the catalog.
+versions there first. Then, use catalogue aliases or Gradle helper scripts that refer to the catalogue.
 
 For CI architecture, workflows, the release-please heavy-CI gate, and local composites, refer to [`docs/CI.md`](../docs/CI.md).
 

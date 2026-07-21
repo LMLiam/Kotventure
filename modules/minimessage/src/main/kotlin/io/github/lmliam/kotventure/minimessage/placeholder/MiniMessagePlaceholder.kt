@@ -12,12 +12,14 @@ internal fun requireValidMiniMessageTagName(name: String) {
 }
 
 /**
- * A typed MiniMessage placeholder descriptor.
+ * An immutable typed descriptor for one MiniMessage placeholder.
  *
- * The type parameter controls which values can be bound with [MiniMessageResolverScope.resolve]. Two descriptors are
- * equal when they share both name and value type.
+ * The type parameter controls the values that [MiniMessageResolverScope.resolve] and
+ * [bind][io.github.lmliam.kotventure.minimessage.template.bind] accept. Two descriptors are equal when they have the
+ * same name and boxed JVM value type. Template binding also checks that the descriptor is the same instance that the
+ * template declared.
  *
- * @property name The MiniMessage tag name this placeholder substitutes.
+ * @property name The MiniMessage tag name that this placeholder resolves.
  */
 public class MiniMessagePlaceholder<T : Any>
 @PublishedApi
@@ -30,25 +32,23 @@ internal constructor(
         requireValidMiniMessageTagName(name)
     }
 
-    /** Value equality over [name] and the bound value type. */
+    /** Returns `true` when [other] has the same [name] and boxed JVM value type. */
     override fun equals(other: Any?): Boolean =
         this === other ||
                 (other is MiniMessagePlaceholder<*> && name == other.name && type == other.type)
 
-    /** Consistent with [equals]: derived from [name] and the bound value type. */
+    /** Returns a hash code for [name] and the boxed JVM value type. */
     override fun hashCode(): Int = 31 * name.hashCode() + type.hashCode()
 }
 
 /**
- * Creates a typed MiniMessage placeholder descriptor named [name].
+ * Creates a typed MiniMessage placeholder descriptor with [name].
  *
- * Supported value families are [ComponentLike], [String], [Number], and [Boolean]. String, number, and boolean
- * placeholders bind as literal text. Use [MiniMessageResolverScope.parsed] for string substitutions that contain
- * markup.
+ * [T] must be [ComponentLike], [String], [Number], [Boolean], or a subtype of one of those types. Components retain
+ * their structure. Strings, numbers, and booleans bind as literal text. Use [MiniMessageResolverScope.parsed] for a
+ * string replacement that contains markup.
  *
- * @throws IllegalArgumentException when [T] is outside the supported value families or [name] is not a valid
- *   MiniMessage tag name.
+ * @throws IllegalArgumentException when [T] is unsupported or [name] does not match `[!?#]?[a-z0-9_-]+`.
  */
 public inline fun <reified T : Any> placeholder(name: String): MiniMessagePlaceholder<T> =
-    // Box Kotlin primitive types so Int/Double/Boolean compare equal across creation sites.
     MiniMessagePlaceholder(name, T::class.javaObjectType, miniMessagePlaceholderStrategy<T>())

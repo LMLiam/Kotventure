@@ -3,11 +3,12 @@ package io.github.lmliam.kotventure.core.time
 /**
  * A scheduled unit of work produced by [Ticker.repeating].
  *
- * Cancelling is idempotent: a second [cancel] is a no-op.
+ * Cancellation is idempotent. It prevents future invocations but does not have to interrupt an action that is already
+ * running.
  */
 public interface TickerTask {
     /**
-     * Stops this task so it will not fire again.
+     * Prevents future invocations of this task.
      *
      * Safe to call more than once.
      */

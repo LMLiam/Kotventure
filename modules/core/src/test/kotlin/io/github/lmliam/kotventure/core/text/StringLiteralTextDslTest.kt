@@ -11,9 +11,9 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import net.kyori.adventure.text.Component
 
-// The string-literal operators are built here, outside the StringSpec lambda, because Kotest's own
-// `String.invoke` test-declaration operator would otherwise shadow the `"text" { }` sugar at the call site.
-// This is a test-harness collision only; production call sites have no competing `String.invoke`.
+// Build the string-literal operators outside the StringSpec lambda.
+// The Kotest `String.invoke` operator would otherwise hide the `"text" { }` operation.
+// This name conflict occurs only in the test harness.
 private fun styledChild(): Component =
     component {
         "Hello" {

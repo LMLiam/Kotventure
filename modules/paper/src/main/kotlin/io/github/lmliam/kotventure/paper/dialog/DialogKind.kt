@@ -3,13 +3,14 @@ package io.github.lmliam.kotventure.paper.dialog
 import io.papermc.paper.dialog.Dialog
 
 /**
- * A compile-time token selecting one dialog type. Passed to [dialog] (or
- * [Audience.dialog][io.github.lmliam.kotventure.paper.dialog.dialog]), its type parameter [S]
- * fixes which scope the configuration block receives, so the chosen kind's own capabilities — and
- * only those — are in scope.
+ * Selects a dialog type and its configuration scope.
  *
- * Obtain a kind from the tokens in this package: [notice], [confirmation], [multiAction],
- * [dialogList], and [serverLinks].
+ * Pass one of [notice], [confirmation], [multiAction], [dialogList], or [serverLinks] to [dialog].
+ * The selected kind determines which type-specific functions are available in the block.
+ *
+ * This token is immutable. It does not construct or register a dialog until you pass it to [dialog].
+ *
+ * @param S the configuration scope for the selected dialog type.
  */
 public class DialogKind<S : DialogScope> internal constructor(
     internal val build: (init: S.() -> Unit) -> Dialog,

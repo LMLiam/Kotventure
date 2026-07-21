@@ -7,8 +7,10 @@ import io.github.lmliam.kotventure.core.nbt.NbtCompoundScope
 import net.kyori.adventure.key.Key
 
 /**
- * The single mutable builder behind every typed selector head. Head-specific safety is
- * compile-time: each factory narrows its lambda receiver to a capability scope.
+ * Collects arguments for all typed selector scopes.
+ *
+ * A factory exposes only the capabilities of its head. This builder validates shared state and returns arguments in
+ * canonical order.
  */
 internal class EntitySelectorBuilder : EntitySelectorScope {
     var limit: Int? by once()
@@ -43,7 +45,6 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
 
     private var isConfiguring = false
 
-    // Scope sugar: provided as overridable getters for subclass extensibility
     override val any: SelectorPresence get() = SelectorPresence.ANY
     override val none: SelectorPresence get() = SelectorPresence.NONE
 

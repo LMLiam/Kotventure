@@ -5,7 +5,6 @@ import io.mockk.mockk
 import io.papermc.paper.registry.data.dialog.input.TextDialogInput
 import net.kyori.adventure.text.Component
 
-/** Recording [TextDialogInput.Builder] whose [build] returns a mockk stub of the captured values. */
 internal class FakeTextInputBuilder(
     private val key: String,
     private val label: Component,

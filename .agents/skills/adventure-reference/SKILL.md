@@ -10,8 +10,8 @@ description: >-
 This document maps the Adventure API that the project wraps. **Confirm that each call exists before you release it.**
 Use sources in this order:
 
-1. **Dependency sources** — open the class from the Gradle dependency in the IDE.
-2. **Javadoc** — https://jd.advntr.dev
+1. **Dependency sources:** Open the class from the Gradle dependency in the IDE.
+2. **Javadoc:** https://jd.advntr.dev
 3. These reference files. They describe the Adventure API that Kotventure uses, but not the complete API.
 
 Read `adventureApi` in `gradle/libs.versions.toml` to get the target version. Do not assume a version. Artefact
@@ -26,7 +26,7 @@ The `core` module can use only `adventure-api`.
 | `Style`, colours, `ShadowColor`, decorations, tri-state values, fonts, insertion, `ClickEvent`, and `HoverEvent` | [references/style-and-events.md](references/style-and-events.md) |
 | `Audience` operations: messages, chat + `SignedMessage`, titles, action bar, sounds, boss bars, books, tab list | [references/audiences.md](references/audiences.md) |
 | Serialisers (Gson/JSON, legacy, plain), `Key`/`Keyed`, and platform integration | [references/serializers-and-platforms.md](references/serializers-and-platforms.md) |
-| MiniMessage (parsing, tag resolvers, placeholders, strict mode) | the `minimessage-reference` skill — it covers both the Adventure API and Kotventure's typed layer |
+| MiniMessage (parsing, tag resolvers, placeholders, strict mode) | The `minimessage-reference` skill covers both the Adventure API and Kotventure's typed layer. |
 
 ## Rules when wrapping
 

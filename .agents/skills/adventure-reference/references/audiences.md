@@ -1,4 +1,4 @@
-# Audiences — `net.kyori.adventure.audience.Audience`
+# Audiences: `net.kyori.adventure.audience.Audience`
 
 An `Audience` is a message receiver, such as a player, console, group, or proxy source. Use
 `Audience.audience(a, b, …)` and `Audience.empty()` for composition. Kotventure supplies `audienceOf(...)` and
@@ -6,26 +6,26 @@ An `Audience` is a message receiver, such as a player, console, group, or proxy 
 
 ## Messages & chat
 
-- `sendMessage(Component)` — plain system-style message.
+- `sendMessage(Component)` sends a plain system-style message.
 - Bound chat: `sendMessage(Component, ChatType.Bound)` / `sendMessage(SignedMessage, ChatType.Bound)`.
   - `ChatType` constants: `CHAT`, `SAY_COMMAND`, `MSG_COMMAND_INCOMING/OUTGOING`,
     `TEAM_MSG_COMMAND_INCOMING/OUTGOING`, `EMOTE_COMMAND` (`net.kyori.adventure.chat`).
   - `chatType.bind(nameComponent, targetComponent?)` → `ChatType.Bound`.
-- `SignedMessage.system(content, Component?)`; signatures via
-  `SignedMessage.signature(ByteArray)`.
+- `SignedMessage.system(content, Component?)` creates a system message.
+- `SignedMessage.signature(ByteArray)` creates a signature.
 - Deletion: `deleteMessage(SignedMessage)` / `deleteMessage(SignedMessage.Signature)`.
 - `sendActionBar(Component)`.
 - `Identity` (`net.kyori.adventure.identity`) identifies message senders where required.
 
-## Titles — `net.kyori.adventure.title`
+## Titles: `net.kyori.adventure.title`
 
 - `Title.title(main, subtitle)` / `(main, subtitle, Title.Times)`.
-- `Title.Times.times(fadeIn, stay, fadeOut)` — three `java.time.Duration` values. Tick helpers are in
+- `Title.Times.times(fadeIn, stay, fadeOut)` accepts three `java.time.Duration` values. Tick helpers are in
   `net.kyori.adventure.util.Ticks` (`Ticks.duration(n)`).
-- `showTitle(Title)`, `clearTitle()`, `resetTitle()`; partial updates via
-  `sendTitlePart(TitlePart.TITLE|SUBTITLE|TIMES, value)`.
+- `showTitle(Title)`, `clearTitle()`, and `resetTitle()` control complete titles.
+- `sendTitlePart(TitlePart.TITLE|SUBTITLE|TIMES, value)` updates one part.
 
-## Sounds — `net.kyori.adventure.sound`
+## Sounds: `net.kyori.adventure.sound`
 
 - `Sound.sound(Key, Sound.Source, volume, pitch)`. The `Sound.sound()` builder adds `.seed(long)`.
 - Play: `playSound(Sound)` (at the listener), `playSound(Sound, Emitter)`
@@ -33,7 +33,7 @@ An `Audience` is a message receiver, such as a player, console, group, or proxy 
 - Stop: `stopSound(SoundStop)` with `SoundStop.all()`, `.named(Key)`, `.source(Source)`, or
   `.namedOnSource(Key, Source)`. The convenience form is `stopSound(Sound)`.
 
-## Boss bars — `net.kyori.adventure.bossbar`
+## Boss bars: `net.kyori.adventure.bossbar`
 
 - `BossBar.bossBar(name, progress, Color, Overlay)`. Progress is in the range `0f..1f`
   (`BossBar.MIN_PROGRESS`/`MAX_PROGRESS`).

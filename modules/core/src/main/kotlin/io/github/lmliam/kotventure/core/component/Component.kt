@@ -24,11 +24,11 @@ public fun emptyComponent(): Component = Component.empty()
 public fun newlineComponent(): Component = Component.newline()
 
 /**
- * Builds an Adventure [Component] from a Kotventure component DSL block.
+ * Creates an empty-content [Component] and configures its style and children with [init].
  *
- * The block runs against a [ComponentScope] rooted at an empty text component, so its children and
- * styling become the returned component's.
+ * The function only constructs a value. It does not send the component to an audience.
  *
+ * @throws IllegalStateException when [init] assigns a write-once style slot more than once.
  * @sample io.github.lmliam.kotventure.core.component.componentScopeSample
  */
 public fun component(init: ComponentScope.() -> Unit): Component =

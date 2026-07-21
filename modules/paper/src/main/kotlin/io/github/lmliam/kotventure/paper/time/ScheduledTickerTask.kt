@@ -4,8 +4,9 @@ import io.github.lmliam.kotventure.core.time.TickerTask
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask
 
 /**
- * A [TickerTask] over a scheduled [ScheduledTask]. [cancel] delegates to the Paper task. You can safely cancel the Paper
- * task more than one time and from all threads.
+ * Implements [TickerTask] with a Paper [ScheduledTask].
+ *
+ * [cancel] stops future runs. It does not interrupt a run that is in progress.
  */
 internal class ScheduledTickerTask(
     private val scheduledTask: ScheduledTask,

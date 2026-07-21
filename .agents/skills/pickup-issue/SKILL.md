@@ -15,8 +15,9 @@ and project metadata.
 1. **Read the issue completely**: `gh issue view $ARGUMENTS --comments`. Extract Scope,
    Acceptance criteria, Dependencies, milestone, and any maintainer decisions in the
    comments. Comments override the issue body when they conflict.
-2. **Conditions that require maintainer input:** Stop before you write code if a dependency is not merged, the scope is
-   unclear, or the proposed API fails the `idiomatic-kotlin-dsl` design test. Propose a better API form when applicable.
+2. **Conditions that require maintainer input:** Stop before you write code if a dependency is not merged or the scope
+   is unclear. Also stop if the proposed API fails the `idiomatic-kotlin-dsl` design test. Propose a better API form
+   when applicable.
 3. **Branch:** Create `type/issue-$ARGUMENTS/short-desc` from the current `origin/master`. Match the type to the issue
    kind, such as `feat`, `fix`, or `refactor`.
 4. **Execute the `adding-a-dsl-feature` checklist** from step 2 (design gate) onward,

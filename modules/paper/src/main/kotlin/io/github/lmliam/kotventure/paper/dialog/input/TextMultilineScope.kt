@@ -3,7 +3,9 @@ package io.github.lmliam.kotventure.paper.dialog.input
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 
 /**
- * Configures multi-line options for a text input. Both slots are optional.
+ * Configures a multi-line text input.
+ *
+ * Both settings are optional and can be set one time. An unset setting uses Paper's default.
  */
 @KotventureDslMarker
 public interface TextMultilineScope {

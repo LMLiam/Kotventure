@@ -10,18 +10,20 @@ import net.kyori.adventure.text.format.TextDecoration
 import net.kyori.adventure.text.format.TextDecoration.State
 
 /**
- * Configures the visual attributes of a component or reusable style. The attributes are colour, shadow, font,
- * insertion, decorations, and the click and hover behaviour from [ClickScope] and [HoverScope].
+ * Configures the style of a component or reusable style value.
+ *
+ * The available attributes are colour, shadow, font, insertion, decorations, and the event behaviour from [ClickScope]
+ * and [HoverScope]. Each attribute and each named decoration is write-once in one block.
  *
  * **Decorations.** Each named decoration (`bold`, `italic`, `underlined`, `strikethrough`,
  * `obfuscated`) and the generic [decoration]/[decorate] APIs share the same three forms and the
  * same once-assign rule:
- * - no-arg enable — e.g. `bold()`
- * - nullable flag — e.g. `bold(false)`, `bold(null)` → [State.TRUE] / [State.FALSE] / [State.NOT_SET]
- * - explicit [State] — e.g. `bold(State.TRUE)`
+ * - Call with no argument to enable, for example `bold()`.
+ * - Call with a nullable flag, for example `bold(false)` or `bold(null)`. These calls use [State.TRUE], [State.FALSE],
+ *   or [State.NOT_SET].
+ * - Call with an explicit [State], for example `bold(State.TRUE)`.
  *
- * Setting the same attribute twice in one block throws [IllegalStateException] (named in the
- * message). That contract applies to every setter below unless a method documents otherwise.
+ * A duplicate assignment throws [IllegalStateException]. The exception message identifies the duplicate attribute.
  *
  * @sample io.github.lmliam.kotventure.core.style.styleScopeSample
  */
@@ -30,23 +32,25 @@ public interface StyleScope :
     ClickScope,
     HoverScope {
     /**
-     * Applies [color], or clears it when [color] is null.
+     * Sets [color], or explicitly clears inherited colour when [color] is `null`.
      *
- * @throws IllegalStateException when the colour is already set in this block.
+     * @throws IllegalStateException when the colour is already set in this block.
      */
     public fun color(color: TextColor?)
 
     /**
-     * Applies shadow [color], or clears it when [color] is null.
+     * Sets shadow [color], or explicitly clears inherited shadow colour when [color] is `null`.
      *
-     * @throws IllegalStateException when already set in this block.
+     * @throws IllegalStateException when shadow colour is already set in this block.
      */
     public fun shadow(color: ShadowColor?)
 
     /**
-     * Applies a shadow colour with [alpha] in `0..255`. The default value is fully opaque.
+     * Sets a shadow from [color] and [alpha]. The default alpha is fully opaque.
      *
-     * @throws IllegalStateException when shadow is already set in this block.
+     * [alpha] must be in `0..255`. Kotventure passes the value to Adventure without additional validation.
+     *
+     * @throws IllegalStateException when shadow colour is already set in this block.
      */
     public fun shadow(
         color: TextColor,
@@ -56,16 +60,16 @@ public interface StyleScope :
     }
 
     /**
-     * Applies [font], or clears it when [font] is null.
+     * Sets [font], or explicitly clears the inherited font when [font] is `null`.
      *
-     * @throws IllegalStateException when already set in this block.
+     * @throws IllegalStateException when the font is already set in this block.
      */
     public fun font(font: Key?)
 
     /**
-     * Applies shift-click [insertion] text, or clears it when [insertion] is null.
+     * Sets shift-click [insertion] text, or explicitly clears it when [insertion] is `null`.
      *
-     * @throws IllegalStateException when already set in this block.
+     * @throws IllegalStateException when insertion text is already set in this block.
      */
     public fun insertion(insertion: String?)
 
@@ -98,77 +102,137 @@ public interface StyleScope :
         state: State,
     )
 
-    /** Enables [TextDecoration.BOLD]. @throws IllegalStateException when already set. */
+    /**
+     * Enables [TextDecoration.BOLD].
+     *
+     * @throws IllegalStateException when bold is already set in this block.
+     */
     public fun bold() {
         bold(true)
     }
 
-    /** Sets [TextDecoration.BOLD] from [flag]. @throws IllegalStateException when already set. */
+    /**
+     * Sets bold to `TRUE`, `FALSE`, or `NOT_SET` for a `true`, `false`, or `null` [flag].
+     *
+     * @throws IllegalStateException when bold is already set in this block.
+     */
     public fun bold(flag: Boolean?) {
         decoration(TextDecoration.BOLD, flag)
     }
 
-    /** Sets [TextDecoration.BOLD] to [state]. @throws IllegalStateException when already set. */
+    /**
+     * Sets bold to [state].
+     *
+     * @throws IllegalStateException when bold is already set in this block.
+     */
     public fun bold(state: State) {
         decoration(TextDecoration.BOLD, state)
     }
 
-    /** Enables [TextDecoration.ITALIC]. @throws IllegalStateException when already set. */
+    /**
+     * Enables [TextDecoration.ITALIC].
+     *
+     * @throws IllegalStateException when italic is already set in this block.
+     */
     public fun italic() {
         italic(true)
     }
 
-    /** Sets [TextDecoration.ITALIC] from [flag]. @throws IllegalStateException when already set. */
+    /**
+     * Sets italic to `TRUE`, `FALSE`, or `NOT_SET` for a `true`, `false`, or `null` [flag].
+     *
+     * @throws IllegalStateException when italic is already set in this block.
+     */
     public fun italic(flag: Boolean?) {
         decoration(TextDecoration.ITALIC, flag)
     }
 
-    /** Sets [TextDecoration.ITALIC] to [state]. @throws IllegalStateException when already set. */
+    /**
+     * Sets italic to [state].
+     *
+     * @throws IllegalStateException when italic is already set in this block.
+     */
     public fun italic(state: State) {
         decoration(TextDecoration.ITALIC, state)
     }
 
-    /** Enables [TextDecoration.UNDERLINED]. @throws IllegalStateException when already set. */
+    /**
+     * Enables [TextDecoration.UNDERLINED].
+     *
+     * @throws IllegalStateException when underlined is already set in this block.
+     */
     public fun underlined() {
         underlined(true)
     }
 
-    /** Sets [TextDecoration.UNDERLINED] from [flag]. @throws IllegalStateException when already set. */
+    /**
+     * Sets underlined to `TRUE`, `FALSE`, or `NOT_SET` for a `true`, `false`, or `null` [flag].
+     *
+     * @throws IllegalStateException when underlined is already set in this block.
+     */
     public fun underlined(flag: Boolean?) {
         decoration(TextDecoration.UNDERLINED, flag)
     }
 
-    /** Sets [TextDecoration.UNDERLINED] to [state]. @throws IllegalStateException when already set. */
+    /**
+     * Sets underlined to [state].
+     *
+     * @throws IllegalStateException when underlined is already set in this block.
+     */
     public fun underlined(state: State) {
         decoration(TextDecoration.UNDERLINED, state)
     }
 
-    /** Enables [TextDecoration.STRIKETHROUGH]. @throws IllegalStateException when already set. */
+    /**
+     * Enables [TextDecoration.STRIKETHROUGH].
+     *
+     * @throws IllegalStateException when strikethrough is already set in this block.
+     */
     public fun strikethrough() {
         strikethrough(true)
     }
 
-    /** Sets [TextDecoration.STRIKETHROUGH] from [flag]. @throws IllegalStateException when already set. */
+    /**
+     * Sets strikethrough to `TRUE`, `FALSE`, or `NOT_SET` for a `true`, `false`, or `null` [flag].
+     *
+     * @throws IllegalStateException when strikethrough is already set in this block.
+     */
     public fun strikethrough(flag: Boolean?) {
         decoration(TextDecoration.STRIKETHROUGH, flag)
     }
 
-    /** Sets [TextDecoration.STRIKETHROUGH] to [state]. @throws IllegalStateException when already set. */
+    /**
+     * Sets strikethrough to [state].
+     *
+     * @throws IllegalStateException when strikethrough is already set in this block.
+     */
     public fun strikethrough(state: State) {
         decoration(TextDecoration.STRIKETHROUGH, state)
     }
 
-    /** Enables [TextDecoration.OBFUSCATED]. @throws IllegalStateException when already set. */
+    /**
+     * Enables [TextDecoration.OBFUSCATED].
+     *
+     * @throws IllegalStateException when obfuscated is already set in this block.
+     */
     public fun obfuscated() {
         obfuscated(true)
     }
 
-    /** Sets [TextDecoration.OBFUSCATED] from [flag]. @throws IllegalStateException when already set. */
+    /**
+     * Sets obfuscated to `TRUE`, `FALSE`, or `NOT_SET` for a `true`, `false`, or `null` [flag].
+     *
+     * @throws IllegalStateException when obfuscated is already set in this block.
+     */
     public fun obfuscated(flag: Boolean?) {
         decoration(TextDecoration.OBFUSCATED, flag)
     }
 
-    /** Sets [TextDecoration.OBFUSCATED] to [state]. @throws IllegalStateException when already set. */
+    /**
+     * Sets obfuscated to [state].
+     *
+     * @throws IllegalStateException when obfuscated is already set in this block.
+     */
     public fun obfuscated(state: State) {
         decoration(TextDecoration.OBFUSCATED, state)
     }

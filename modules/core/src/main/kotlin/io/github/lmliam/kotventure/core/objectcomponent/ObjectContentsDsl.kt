@@ -7,12 +7,12 @@ import net.kyori.adventure.text.`object`.SpriteObjectContents
 import java.util.UUID
 
 /**
- * Builds sprite object contents using Adventure's default sprite atlas.
+ * Creates sprite contents for [sprite] in the default Adventure sprite atlas.
  */
 public fun sprite(sprite: Key): SpriteObjectContents = ObjectContents.sprite(sprite)
 
 /**
- * Builds sprite object contents from [sprite] in [atlas].
+ * Creates sprite contents for [sprite] in [atlas].
  */
 public fun sprite(
     atlas: Key,
@@ -20,7 +20,9 @@ public fun sprite(
 ): SpriteObjectContents = ObjectContents.sprite(atlas, sprite)
 
 /**
- * Builds player-head object contents for the player named [name], rendering the hat layer when [hat] is `true`.
+ * Creates player-head contents for the player named [name].
+ *
+ * The client renders the hat layer when [hat] is `true`.
  */
 public fun head(
     name: String,
@@ -33,7 +35,9 @@ public fun head(
         .build()
 
 /**
- * Builds player-head object contents for the player with UUID [id], rendering the hat layer when [hat] is `true`.
+ * Creates player-head contents for the player with UUID [id].
+ *
+ * The client renders the hat layer when [hat] is `true`.
  */
 public fun head(
     id: UUID,
@@ -46,7 +50,9 @@ public fun head(
         .build()
 
 /**
- * Builds player-head object contents drawn from the skin [texture] key, rendering the hat layer when [hat] is `true`.
+ * Creates player-head contents from the skin [texture].
+ *
+ * The client renders the hat layer when [hat] is `true`.
  */
 public fun head(
     texture: Key,

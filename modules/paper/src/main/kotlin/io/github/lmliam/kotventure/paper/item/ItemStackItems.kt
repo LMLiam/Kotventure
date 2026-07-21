@@ -9,9 +9,10 @@ import io.papermc.paper.datacomponent.item.ItemLore
 import org.bukkit.inventory.ItemStack
 
 /**
- * Replaces this item's custom-name data component with styled literal [value].
+ * Replaces the custom-name data component of this stack with the styled literal [value].
  *
- * The resulting component is explicitly non-italic unless [init] sets an italic state.
+ * The function modifies this stack in place. The name is non-italic unless [init] sets the italic
+ * state.
  *
  * @sample io.github.lmliam.kotventure.paper.item.itemSample
  */
@@ -23,9 +24,10 @@ public fun ItemStack.name(
 }
 
 /**
- * Replaces this item's lore data component with the lines accumulated by [init].
+ * Replaces the lore data component of this stack with the lines from [init].
  *
- * Each non-empty line is explicitly non-italic unless that line sets an italic state.
+ * The function modifies this stack in place. Calls in [init] preserve their order. Each line other
+ * than a [LoreScope.blank] line is non-italic unless that line sets the italic state.
  *
  * @sample io.github.lmliam.kotventure.paper.item.itemSample
  */

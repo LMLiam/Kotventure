@@ -4,18 +4,13 @@ package io.github.lmliam.kotventure.core.selector
  * An immutable, structured entity selector such as `@s`, `@p`, or
  * `@e[type=minecraft:armor_stand,limit=1]`.
  *
- * Construct a selector through a typed target factory such as [entities]. Use [parseSelector] to validate selector
- * source.
+ * Use a typed factory such as [entities] to create a selector. Use [parseSelector] to parse and validate selector
+ * source. The constructor copies [arguments], and the selector does not change after construction.
  *
- * Package structure: [EntitySelectorHead] and its factories limit the capability scope. [EntitySelectorBuilder] is the
- * one mutable backend. Its singleton slots fail immediately, and its filter groups enforce repetition policy. This
- * type and sealed [EntitySelectorArgument] types form the immutable model. [parseSelector] and `parsing/` produce the
- * same model from vanilla source. [asString] is the one render path for DSL and parsed selectors.
- *
- * @property head selector head (determines which arguments are valid)
- * @property arguments arguments in source or DSL rendering order (immutable list)
- * @throws IllegalArgumentException if an argument is incompatible with [head], a singleton argument occurs more than
- *   one time, or an exclusive filter group has an invalid combination.
+ * @property head The selector head. The head determines which arguments are valid.
+ * @property arguments The arguments in source or DSL rendering order.
+ * @throws IllegalArgumentException when an argument is incompatible with [head], a singleton argument occurs more
+ * than one time, or an exclusive filter group has an invalid combination.
  */
 @ConsistentCopyVisibility
 public data class EntitySelector private constructor(
@@ -23,9 +18,9 @@ public data class EntitySelector private constructor(
     public val arguments: List<EntitySelectorArgument>,
 ) {
     /**
-     * Builds a selector from a defensive immutable snapshot of [arguments].
+     * Creates a selector from a snapshot of [arguments].
      *
-     * The provided collection is copied to prevent external mutation.
+     * The constructor copies the collection before it validates the arguments.
      */
     public constructor(
         head: EntitySelectorHead,
@@ -41,9 +36,10 @@ public data class EntitySelector private constructor(
     }
 
     /**
-     * Renders this selector as canonical entity-selector source text.
+     * Returns this selector as canonical entity-selector source text.
      *
-     * Produces `@<head>` for no arguments. Produces `@<head>[arg1,arg2,...]` when arguments are present.
+     * A selector with no arguments renders as its head. Other selectors keep the order of [arguments] and render as
+     * `@<head>[arg1,arg2,...]`.
      */
     public fun asString(): String =
         if (arguments.isEmpty()) {
@@ -52,6 +48,6 @@ public data class EntitySelector private constructor(
             head.token + arguments.joinToString(",", "[", "]", transform = EntitySelectorArgument::render)
         }
 
-    /** Same canonical rendering as [asString]. */
+    /** Returns the same canonical source text as [asString]. */
     public override fun toString(): String = asString()
 }

@@ -41,7 +41,8 @@ class MyPlugin : JavaPlugin() {
 The same code runs on Paper and Folia. Select the ticker for the dispatch target. Kotventure does not use a mode selection.
 The global ticker uses the global tick context. The entity ticker follows the entity region.
 
-The location ticker uses the region that contains the location. The server cancels scheduled tasks when the plugin stops.
+The location ticker selects the region when you schedule a task. It does not follow later location changes. The server
+cancels scheduled tasks when the plugin stops.
 
 Paper schedulers operate only on complete game ticks (50 ms). `repeating` rejects an interval that it cannot honour.
 It throws `IllegalArgumentException` and does not round the interval. It accepts `1.seconds`, `500.milliseconds`, and `3.ticks`.
@@ -56,7 +57,8 @@ Kotventure does not need more runtime configuration.
 ## Item name & lore
 
 The `io.github.lmliam.kotventure.paper.item` package creates item stacks. It replaces custom names or lore through Paper data components or `ItemMeta`.
-Each non-empty line has a non-italic style unless the line selects italics. This prevents the inherited Minecraft italic style.
+Each line other than a `blank()` line has a non-italic style unless the line selects italics. This prevents the inherited
+Minecraft italic style.
 
 ```kotlin
 val sword = item(Material.DIAMOND_SWORD) {
@@ -84,13 +86,16 @@ Each token puts only its capabilities in scope. Use one of these entry points:
 
 ```kotlin
 val reward = dialog(confirmation) {
-    title { text("Daily reward") }              // required; other base slots are optional
+    title { text("Daily reward") }              // The title is required. Other base slots are optional.
     externalTitle { text("Rewards") }
     closeOnEscape(false)
     afterAction(wait)                           // close / none / wait
     message { text("Claim your reward?") }      // bodies and inputs accumulate in order
     inputs {
-        boolean("subscribe") { label { text("Subscribe") }; default() }
+        boolean("subscribe") {
+            label { text("Subscribe") }
+            default()
+        }
     }
     yes {                                       // confirmation's own yes/no buttons
         label { text("Claim") }
@@ -100,22 +105,27 @@ val reward = dialog(confirmation) {
     no { label { text("Later") } }
 }
 
-player.dialog(notice) { title { text("Welcome") }; button { label { text("Understood") } } }
+player.dialog(notice) {
+    title { text("Welcome") }
+    button { label { text("Understood") } }
+}
 ```
 
 Each singleton slot rejects a second assignment. A missing `title` causes `IllegalStateException`.
 Repeatable bodies and `inputs { … }` blocks keep call order. Each dialog scope contains only the values that Paper accepts:
 
 - `notice { button { … } }` has an optional button.
-- `confirmation { yes { … }; no { … } }` requires both buttons.
-- `multiAction { button { … }; columns(…); exitButton { … } }` has repeatable buttons.
-- `dialogList { dialogs(…); columns(…); buttonWidth(…); exitButton { … } }` requires dialogs.
-- `serverLinks { columns(…); buttonWidth(…); exitButton { … } }` requires `columns` and `buttonWidth`.
+- A `confirmation` dialog requires both `yes` and `no` buttons.
+- A `multiAction` dialog accepts multiple `button` blocks. It also accepts `columns` and `exitButton`.
+- A `dialogList` dialog requires `dialogs`. It also accepts `columns`, `buttonWidth`, and `exitButton`.
+- A `serverLinks` dialog requires `columns` and `buttonWidth`. It also accepts `exitButton`.
 
 Put inputs in `inputs { … }`. Available inputs are `text`, `boolean`, `range(key, range)`, and `option`.
-Use `values { true("yes"); false("no") }` for custom Boolean values. Use `format(label, ": ", value)` for a range.
+Use a `values` block for custom Boolean values. Set the `true` and `false` receiver values in this block. Use
+`format(label, ": ", value)` for a range.
 
-Use `options { "id" { display { … }; default() }; +"id" }` for options.
+Use an `options` block to add option identifiers. An option block can set `display` and `default`. The unary `+`
+form adds an identifier with Paper's default display.
 A button can have one action. Select `onClick`, `runCommand`, `custom`, or the core `click` DSL.
 
 Dialogs require a Minecraft **1.21.6+** server and client. Adventure `showDialog` and `closeDialog` provide the transport.

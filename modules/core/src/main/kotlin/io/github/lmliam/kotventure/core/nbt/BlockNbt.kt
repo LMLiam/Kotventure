@@ -5,11 +5,12 @@ import net.kyori.adventure.text.BlockNBTComponent
 import net.kyori.adventure.text.Component
 
 /**
- * Builds a block-NBT [Component] — text the client resolves from a block entity's NBT data at a position.
+ * Creates a block-NBT [Component]. The client resolves its text from the NBT data of the block entity at [pos].
+ * This function only creates the component. It does not send the component to an audience.
  *
  * @sample io.github.lmliam.kotventure.core.nbt.blockNbtSample
  *
- * @param pos the block position to read, e.g. from [blockPos].
+ * @param pos the block position to read, for example a position from [blockPos].
  * @param nbtPath the NBT path within the block entity, constructed via [nbtPath].
  * @param init sets [NbtScope.interpret]/[NbtScope.separator] and appends any children.
  */
@@ -29,9 +30,9 @@ internal fun buildBlockNbtComponent(
     ).apply(init).build()
 
 /**
- * Appends a block-NBT child to this scope, for use inside a `component { }` or other component block.
+ * Creates a block-NBT component and appends it as the next child of this scope.
  *
- * @param pos the block position to read, e.g. from [blockPos].
+ * @param pos the block position to read, for example a position from [blockPos].
  * @param nbtPath the NBT path within the block entity, constructed via [nbtPath].
  * @param init sets [NbtScope.interpret]/[NbtScope.separator] and appends any children.
  */

@@ -19,8 +19,8 @@ This directory is the **single source of truth**. Each entry in
 | [`documenting-public-api`](documenting-public-api/SKILL.md) | KDoc, `@sample`, linking rules, module READMEs |
 | [`fixing-ci-failures`](fixing-ci-failures/SKILL.md) | Investigate a failed or unusual CI check |
 | [`reviewing-contributions`](reviewing-contributions/SKILL.md) | Review or land another person's pull request |
-| [`pickup-issue`](pickup-issue/SKILL.md) | **User-invoked**: `/pickup-issue <n>` — start an issue end-to-end |
-| [`land-pr`](land-pr/SKILL.md) | **User-invoked**: `/land-pr <n>` — maintainer pass on a contributor PR |
+| [`pickup-issue`](pickup-issue/SKILL.md) | **User-invoked:** `/pickup-issue <n>` starts an issue end-to-end. |
+| [`land-pr`](land-pr/SKILL.md) | **User-invoked:** `/land-pr <n>` starts a maintainer pass on a contributor PR. |
 
 ## Format
 

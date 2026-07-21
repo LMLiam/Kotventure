@@ -9,7 +9,10 @@ import net.kyori.adventure.text.ComponentLike
 import java.util.UUID
 
 /**
- * Scope for selecting the single payload shown by a hover event.
+ * Selects the payload for a hover event.
+ *
+ * Select exactly one payload in each `hover { }` block. The block throws [IllegalStateException] if it selects no
+ * payload or more than one payload.
  */
 @KotventureDslMarker
 public interface HoverContentScope {
@@ -35,6 +38,7 @@ public interface HoverContentScope {
      * Selects an item hover payload from [key] and [count], with its data components declared by [components].
      *
      * @throws IllegalArgumentException when [count] is negative.
+     * @throws IllegalStateException when [components] declares the same data-component key more than one time.
      */
     public fun item(
         key: Key,
@@ -46,6 +50,7 @@ public interface HoverContentScope {
      * Selects an item hover payload from [item] and [count], with its data components declared by [components].
      *
      * @throws IllegalArgumentException when [count] is negative.
+     * @throws IllegalStateException when [components] declares the same data-component key more than one time.
      */
     public fun item(
         item: Keyed,

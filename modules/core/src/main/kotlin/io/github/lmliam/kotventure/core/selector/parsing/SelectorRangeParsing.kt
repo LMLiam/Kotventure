@@ -4,9 +4,7 @@ import io.github.lmliam.kotventure.core.selector.SelectorIntRange
 import io.github.lmliam.kotventure.core.selector.SelectorRange
 import io.github.lmliam.kotventure.core.selector.SelectorRangeArgument
 
-/**
- * Read a double range for a selector argument.
- */
+/** Reads and validates a floating-point range for [argument]. */
 internal fun SelectorReader.readDoubleRange(argument: SelectorRangeArgument): SelectorRange {
     val bounds = readRangeBounds { readDoubleBound() }
     if (argument.hasNonNegativeOrderedBounds) {
@@ -17,10 +15,10 @@ internal fun SelectorReader.readDoubleRange(argument: SelectorRangeArgument): Se
 }
 
 /**
- * Read an int range for a selector argument.
+ * Reads and validates an integer range.
  *
- * @param argumentName the name of the selector argument (used for error messages)
- * @param nonNegative whether bounds must be non-negative
+ * @param argumentName The argument name for diagnostics.
+ * @param nonNegative Whether bounds must be non-negative.
  */
 internal fun SelectorReader.readIntRange(
     argumentName: String,
@@ -33,8 +31,7 @@ internal fun SelectorReader.readIntRange(
 }
 
 /**
- * Generic helper that reads a range-bound token and parses it with [parser].
- * Captures the reader offset before token reading so parsers can report accurate positions.
+ * Reads one optional range bound and gives its source offset to [parser].
  */
 private inline fun <T> SelectorReader.readBound(parser: (String, Int) -> T?): T? {
     val start = offset

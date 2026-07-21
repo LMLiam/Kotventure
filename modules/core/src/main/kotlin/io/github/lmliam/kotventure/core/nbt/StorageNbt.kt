@@ -6,11 +6,12 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.StorageNBTComponent
 
 /**
- * Builds a storage-NBT [Component] — text the client resolves from command-storage NBT under a key.
+ * Creates a storage-NBT [Component]. The client resolves its text from command-storage NBT under [storage]. This
+ * function only creates the component. It does not send the component to an audience.
  *
  * @sample io.github.lmliam.kotventure.core.nbt.storageNbtSample
  *
- * @param storage the command-storage key to read, e.g. from `key(...)`.
+ * @param storage the command-storage key to read.
  * @param nbtPath the NBT path within that storage, constructed via [nbtPath].
  * @param init sets [NbtScope.interpret]/[NbtScope.separator] and appends any children.
  */
@@ -30,9 +31,9 @@ internal fun buildStorageNbtComponent(
     ).apply(init).build()
 
 /**
- * Appends a storage-NBT child to this scope, for use inside a `component { }` or other component block.
+ * Creates a storage-NBT component and appends it as the next child of this scope.
  *
- * @param storage the command-storage key to read, e.g. from `key(...)`.
+ * @param storage the command-storage key to read.
  * @param nbtPath the NBT path within that storage, constructed via [nbtPath].
  * @param init sets [NbtScope.interpret]/[NbtScope.separator] and appends any children.
  */

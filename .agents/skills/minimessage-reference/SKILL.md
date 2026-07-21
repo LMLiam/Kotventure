@@ -10,7 +10,7 @@ description: >-
 This skill covers the typed Kotventure API in `io.github.lmliam.kotventure.minimessage` and the raw Adventure API. Use
 the typed API in project code. Use the raw Adventure API only to implement the wrapper.
 
-## Parsing — `mini`
+## Parsing: `mini`
 
 ```kotlin
 mini("<gold>Hello")                                  // Component
@@ -24,7 +24,7 @@ mini("<gold>Hello <who>") {                          // with placeholder resolve
 component { mini("<gray>inline chunk") }             // splice into the component DSL
 ```
 
-## Typed templates — `MiniTemplate`
+## Typed templates: `MiniTemplate`
 
 Use compiler-checked templates to reuse markup. This is level 2 of the resolution ladder in `idiomatic-kotlin-dsl`.
 Declare placeholders as delegated properties so that the property name is the tag name. Render with `invoke` and
@@ -63,7 +63,7 @@ validate(markup, placeholders) // free-form check
 `ValidationEngineFailure`. A `MalformedTag` has a message and start and end indexes. An offset can be
 `LOCATION_UNKNOWN`. Validation uses Adventure's **strict** parser.
 
-## Conversion — `miniToDsl`
+## Conversion: `miniToDsl`
 
 `miniToDsl("<gold><bold>Hi")` → Kotlin source for the equivalent Kotventure DSL. Notes:
 
@@ -71,14 +71,14 @@ validate(markup, placeholders) // free-form check
   the source markup.
 - The strict `core` parser processes selector patterns and emits typed selector factories in canonical form. Invalid
   patterns cause an exception that gives the error offset.
-- Throws `IllegalArgumentException` for shapes with no DSL surface (e.g. a player head
-  without a single skin source, unsupported click/data-component payloads).
+- Throws `IllegalArgumentException` for shapes with no DSL surface. Examples are a player head
+  without one skin source and unsupported click or data-component payloads.
 
 ## Serialising back
 
-`Component.toMiniMessage()` — from the `serializer` module.
+The `serializer` module supplies `Component.toMiniMessage()`.
 
-## Raw Adventure API — `net.kyori.adventure.text.minimessage`
+## Raw Adventure API: `net.kyori.adventure.text.minimessage`
 
 - `MiniMessage.miniMessage()` gives the shared default instance. It supplies `.deserialize(str, TagResolver...)` and
   `.serialize(component)`.

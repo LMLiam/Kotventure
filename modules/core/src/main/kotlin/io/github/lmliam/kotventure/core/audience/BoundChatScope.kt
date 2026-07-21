@@ -6,12 +6,14 @@ import net.kyori.adventure.chat.ChatType
 import net.kyori.adventure.text.ComponentLike
 
 /**
- * Scope for configuring the bound chat type of a player-styled chat message: the sender [name], an
- * optional [target], and the [type] of chat the client renders it as.
+ * Configures the client presentation of a player-styled chat message.
+ *
+ * [name] is required. [type] defaults to [chat]. [target] is optional and is useful for directed chat types. Each slot
+ * is write-once.
  */
 @KotventureDslMarker
 public interface BoundChatScope {
-    /** Ordinary player chat — the [type] used when none is set. */
+    /** Ordinary player chat. This is the [type] that the scope uses when no type is set. */
     public val chat: ChatType get() = ChatType.CHAT
 
     /** A message sent with the `/say` command. */
@@ -42,7 +44,7 @@ public interface BoundChatScope {
     public fun type(type: ChatType)
 
     /**
-     * Builds the sender name shown alongside the message from a component DSL block.
+     * Creates and sets the sender name from a component DSL block.
      *
      * @throws IllegalStateException when the name is already set in this block.
      */
@@ -56,8 +58,7 @@ public interface BoundChatScope {
     public fun <T : ComponentLike> name(component: T)
 
     /**
-     * Builds the message target shown by directed chat types (such as the `/msg` commands) from a
-     * component DSL block.
+     * Creates and sets the target shown by a directed chat type, such as a `/msg` type.
      *
      * @throws IllegalStateException when the target is already set in this block.
      */

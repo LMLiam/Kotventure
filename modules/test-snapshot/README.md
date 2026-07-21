@@ -48,7 +48,7 @@ Record mode writes a missing or different snapshot:
 | Snapshot directory | `kotventure.snapshot.dir`    | `SNAPSHOT_DIR`       | Reads and writes snapshots directly at `<dir>/<name>.snapshot.json` (no `snapshots/` subfolder), replacing the default test-resources location |
 
 ```bash
-# Review the diff first; then record intentional changes:
+# Review the diff first. Then, record intentional changes.
 SNAPSHOT_UPDATE=true ./gradlew :your-module:test
 ```
 

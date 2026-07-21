@@ -28,7 +28,7 @@ the steps in the specified order:
 - Confirm the target **module** and **feature package** in sections 4 and 5 of `docs/DESIGN.md`. The `core` module
   depends only on `adventure-api`. Enable modules in `settings.gradle` only when they are necessary.
 
-## 2. Design the surface — GATE
+## 2. Design the surface: gate
 
 Read the `idiomatic-kotlin-dsl` skill **before you make a plan or write code**. Apply its resolution ladder, design
 test, and project rules to your proposal. Review the design if it contains typed key classes, string overloads,
@@ -79,7 +79,7 @@ If a check fails, use the `fixing-ci-failures` skill. Do not decrease the covera
 
 - Use `verb(area): something` for commit subjects and the pull-request title. Use a lowercase verb and include a scope.
   CI enforces this format. `.github/CONTRIBUTING.md` lists the recommended verbs and areas.
-- Branch: `type/issue-<n>/short-desc` (e.g. `feat/issue-19/style-dsl`).
+- Branch: `type/issue-<n>/short-desc`, for example `feat/issue-19/style-dsl`.
 - Select the applicable template from `.github/PULL_REQUEST_TEMPLATE/`. Link the issue with `Closes #<n>`.
 - If the issue is in a GitHub Project, add the pull request to the same project. Copy `Status`, `Priority`, `Area`,
   `Kind`, `Effort`, `Risk`, and `Contributor fit` from the issue. Before you report completion, use

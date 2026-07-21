@@ -20,6 +20,6 @@ Closes #<issue-number>
 
 ## Checklist
 
-- [ ] Reproduced the issue before the correction
-- [ ] Added regression tests
-- [ ] Linked related issue
+- [ ] Reproduce the issue before the correction
+- [ ] Add regression tests
+- [ ] Link the related issue

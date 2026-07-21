@@ -19,5 +19,5 @@ Closes #<issue-number> <!-- (if applicable) -->
 
 ## Checklist
 
-- [ ] Linked the related issue, if applicable
-- [ ] Verified that the build and tests pass
+- [ ] Link the related issue, if applicable
+- [ ] Verify that the build and tests pass

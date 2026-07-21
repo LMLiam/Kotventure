@@ -8,7 +8,8 @@ import io.github.lmliam.kotventure.core.bossbar.bossBar as buildBossBar
 /**
  * Shows [bar] to this [Audience].
  *
- * Type-overloaded [show] so future showable types (books, …) can share the verb.
+ * [BossBar] is mutable. The audience observes later changes to the same bar. An audience without a boss-bar surface
+ * ignores the operation.
  *
  * @sample io.github.lmliam.kotventure.core.audience.audienceShowHideBossBarSample
  */
@@ -17,14 +18,14 @@ public fun Audience.show(bar: BossBar): Unit = showBossBar(bar)
 /**
  * Hides [bar] from this [Audience].
  *
- * Type-overloaded [hide] so future hideable types can share the verb.
+ * This operation does not dispose of the mutable bar. Other audiences can continue to see it.
  *
  * @sample io.github.lmliam.kotventure.core.audience.audienceShowHideBossBarSample
  */
 public fun Audience.hide(bar: BossBar): Unit = hideBossBar(bar)
 
 /**
- * Builds a [BossBar] from [init], shows it on this [Audience], and returns it for later
+ * Creates a [BossBar] from [init], shows it on this [Audience], and returns the same mutable bar for later
  * [hide] or live updates.
  *
  * Works for a player, the console, or a forwarding audience. An audience without a boss-bar surface ignores it.

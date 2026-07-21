@@ -3,10 +3,12 @@ package io.github.lmliam.kotventure.core.selector
 /**
  * A floating-point range for selector arguments such as `distance`, `pitch`, and `yaw`.
  *
- * Use [atMost], [atLeast], or [exactly] to construct open-ended or exact bounds. For a closed range, give a Kotlin range
- * directly to the applicable argument, for example `distance(0.5..10.0)`. The consuming argument applies its
- * validation. For example, `distance` rejects negative or descending bounds, but rotations accept both. Integer
- * arguments such as `level` and `scores` use [SelectorIntRange].
+ * Use [atMost], [atLeast], or [exactly] to create open-ended or exact bounds. Give a Kotlin range directly to an
+ * applicable argument to create a closed range, for example `distance(0.5..10.0)`. The consuming argument validates
+ * the range. For example, `distance` rejects negative or descending bounds, but rotations accept both.
+ *
+ * The range is immutable. [toString] returns a canonical vanilla decimal form without exponent notation. Integer
+ * arguments use [SelectorIntRange].
  */
 @ConsistentCopyVisibility
 public data class SelectorRange internal constructor(
@@ -22,25 +24,37 @@ public data class SelectorRange internal constructor(
                 else -> "${minimum.renderedBound()}..${maximum.renderedBound()}"
             }
 
-    /** The vanilla selector-argument rendering (`5`, `1.5..`, `..3`, `1..3.5`). */
+    /** Returns the canonical vanilla range form, such as `5`, `1.5..`, `..3`, or `1..3.5`. */
     override fun toString(): String = rendered
 }
 
 private fun Double?.renderedBound(): String = this?.let(::formatSelectorNumber).orEmpty()
 
-/** A range matching values up to and including [max] (renders as `..max`). */
+/**
+ * Returns a range that matches values up to and including [max].
+ *
+ * @throws IllegalArgumentException when [max] is not finite.
+ */
 public fun atMost(max: Double): SelectorRange {
     require(max.isFinite()) { "Range value must be finite, got: $max" }
     return SelectorRange(minimum = null, maximum = max)
 }
 
-/** A range matching values at least [min] (renders as `min..`). */
+/**
+ * Returns a range that matches values greater than or equal to [min].
+ *
+ * @throws IllegalArgumentException when [min] is not finite.
+ */
 public fun atLeast(min: Double): SelectorRange {
     require(min.isFinite()) { "Range value must be finite, got: $min" }
     return SelectorRange(minimum = min, maximum = null)
 }
 
-/** A range matching exactly [value] (renders as `value`). */
+/**
+ * Returns a range that matches exactly [value].
+ *
+ * @throws IllegalArgumentException when [value] is not finite.
+ */
 public fun exactly(value: Double): SelectorRange {
     require(value.isFinite()) { "Range value must be finite, got: $value" }
     return SelectorRange(minimum = value, maximum = value)

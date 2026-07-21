@@ -16,7 +16,7 @@ import io.papermc.paper.dialog.Dialog
 import net.kyori.adventure.audience.Audience
 
 /**
- * The notice dialog kind: an informational dialog with a single acknowledgement button.
+ * Selects a notice dialog with one optional acknowledgement button.
  *
  * @sample io.github.lmliam.kotventure.paper.dialog.showDialogSample
  */
@@ -24,7 +24,7 @@ public val notice: DialogKind<NoticeScope> =
     DialogKind { init -> NoticeBuilder(DialogBaseBuilder()).apply(init).build() }
 
 /**
- * The confirmation dialog kind: a yes/no dialog whose two buttons are both required.
+ * Selects a confirmation dialog with required confirmation and rejection buttons.
  *
  * @sample io.github.lmliam.kotventure.paper.dialog.dialogSample
  */
@@ -32,23 +32,23 @@ public val confirmation: DialogKind<ConfirmationScope> =
     DialogKind { init -> ConfirmationBuilder(DialogBaseBuilder()).apply(init).build() }
 
 /**
- * The multi-action dialog kind: one or more action buttons in an optional column layout with an
- * optional exit button.
+ * Selects a dialog with one or more action buttons.
+ *
+ * The dialog can put the buttons in columns and can include an exit button.
  */
 public val multiAction: DialogKind<MultiActionScope> =
     DialogKind { init -> MultiActionBuilder(DialogBaseBuilder()).apply(init).build() }
 
 /**
- * The dialog-list dialog kind: a menu of entry buttons for a required set of
- * [dialogs][DialogListScope.dialogs].
+ * Selects a dialog that shows a required set of [dialogs][DialogListScope.dialogs].
  */
 public val dialogList: DialogKind<DialogListScope> =
     DialogKind { init -> DialogListBuilder(DialogBaseBuilder()).apply(init).build() }
 
 /**
- * The server-links dialog kind: the server's link list laid out in a required
- * [columns][ServerLinksScope.columns] count with buttons of a required
- * [buttonWidth][ServerLinksScope.buttonWidth].
+ * Selects a dialog that shows the server link list.
+ *
+ * You must set [columns][ServerLinksScope.columns] and [buttonWidth][ServerLinksScope.buttonWidth].
  */
 public val serverLinks: DialogKind<ServerLinksScope> =
     DialogKind { init -> ServerLinksBuilder(DialogBaseBuilder()).apply(init).build() }
@@ -56,11 +56,12 @@ public val serverLinks: DialogKind<ServerLinksScope> =
 /**
  * Builds a [Dialog] of [kind] configured by [init].
  *
- * This function only constructs the dialog and has no side effects. It does not show the dialog. Use it when a
- * dialog value is stored, reused, or passed to a later display call.
+ * This function does not show or register the dialog. The returned value is independent of later
+ * changes to the configuration block.
  *
  * @throws IllegalStateException when the required title is missing, a singleton slot is set
  *   twice, or the chosen kind's required configuration is incomplete.
+ * @throws IllegalArgumentException when a configured value is outside its permitted range.
  * @sample io.github.lmliam.kotventure.paper.dialog.dialogSample
  */
 public fun <S : DialogScope> dialog(
@@ -71,11 +72,13 @@ public fun <S : DialogScope> dialog(
 /**
  * Builds a [Dialog] of [kind] configured by [init] and shows it to this audience.
  *
- * Dialogs require a Minecraft 1.21.6+ server and client. On platforms or audiences that do not
- * support dialogs, Adventure's [Audience.showDialog] is a documented no-op.
+ * This function constructs the dialog before it calls [Audience.showDialog]. Therefore, invalid
+ * configuration fails before the display call. Adventure does nothing if the audience cannot show
+ * dialogs.
  *
  * @throws IllegalStateException when the required title is missing, a singleton slot is set
  *   twice, or the chosen kind's required configuration is incomplete.
+ * @throws IllegalArgumentException when a configured value is outside its permitted range.
  * @sample io.github.lmliam.kotventure.paper.dialog.showDialogSample
  */
 public fun <S : DialogScope> Audience.dialog(

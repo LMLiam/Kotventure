@@ -10,7 +10,8 @@ import kotlin.concurrent.withLock
  * This registry exists for dynamic lookup and interop cases where the theme name is only known
  * at runtime.
  *
- * Lifecycle: [register] fails on duplicate names. [replace] and [unregister] support reload operations that replace or
+ * Each registry owns its providers and default independently. Its operations are safe for concurrent callers.
+ * [register] fails on duplicate names. [replace] and [unregister] support reload operations that replace or
  * remove a theme after startup. Prefer unregistering with the
  * theme object (`themes.unregister(Brand)`) when it is available.
  */
@@ -109,7 +110,7 @@ public class ThemeRegistry {
         }
 
     /**
-     * Returns the theme provider registered as [name], or null when none exists.
+     * Returns the theme provider registered as [name], or `null` when none exists.
      */
     public fun theme(name: String): ThemeProvider? =
         lock.withLock {
@@ -117,7 +118,7 @@ public class ThemeRegistry {
         }
 
     /**
-     * Returns the theme provider registered as this registry's default theme, or null when none
+     * Returns this registry's default theme provider, or `null` when none
      * exists.
      */
     public fun defaultTheme(): ThemeProvider? =

@@ -3,15 +3,18 @@ package io.github.lmliam.kotventure.paper.dialog.input
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 
 /**
- * Declares a dialog's inputs. Each input is identified by a unique key and accumulates in call
- * order. Input groups are independent of the dialog type.
+ * Adds inputs to a dialog.
+ *
+ * Each declaration supplies the key that identifies its value in a dialog action. Use a unique
+ * key for each input. This scope preserves declaration order but does not check key uniqueness.
  */
 @KotventureDslMarker
 public interface InputsScope {
     /**
-     * Declares a text input identified by [key], configured by [init].
+     * Adds a text input with [key] and configures it with [init].
      *
      * @throws IllegalStateException when [init] does not set the required label.
+     * @throws IllegalArgumentException when [init] sets a value outside its permitted range.
      */
     public fun text(
         key: String,
@@ -19,7 +22,7 @@ public interface InputsScope {
     ): Unit
 
     /**
-     * Declares a boolean input identified by [key], configured by [init].
+     * Adds a Boolean input with [key] and configures it with [init].
      *
      * @throws IllegalStateException when [init] does not set the required label.
      */
@@ -29,10 +32,10 @@ public interface InputsScope {
     ): Unit
 
     /**
-     * Declares a number-range (slider) input identified by [key] over [range], configured by
-     * [init].
+     * Adds a number-range input with [key] and the inclusive [range].
      *
      * @throws IllegalStateException when [init] does not set the required label.
+     * @throws IllegalArgumentException when [init] sets a value outside its permitted range.
      */
     public fun range(
         key: String,
@@ -41,9 +44,11 @@ public interface InputsScope {
     ): Unit
 
     /**
-     * Declares a single-option (radio) input identified by [key], configured by [init].
+     * Adds a single-choice input with [key] and configures it with [init].
      *
-     * @throws IllegalStateException when [init] does not set the required label or valid options.
+     * @throws IllegalStateException when the label or options are incomplete, option identifiers
+     *   repeat, or more than one option is the default.
+     * @throws IllegalArgumentException when [init] sets a value outside its permitted range.
      */
     public fun option(
         key: String,

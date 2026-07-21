@@ -3,7 +3,7 @@ package io.github.lmliam.kotventure.core.sound
 import net.kyori.adventure.sound.Sound
 
 /**
- * Configures an Adventure [Sound]: optional [source], [volume], [pitch], and [seed].
+ * Configures the source, volume, pitch, and weighted-selection seed of an Adventure [Sound].
  *
  * Unset slots keep Adventure defaults ([Sound.Source.MASTER], volume `1`, pitch `1`, and no seed
  * so the receiver's world seed is used at playback). Each slot may be set at most once.
@@ -24,8 +24,8 @@ public interface SoundScope : SoundSourceScope {
     /**
      * Sets the playback volume.
      *
-     * Defaults to `1` when unset. Adventure receives the value without Minecraft-range limits. The platform interprets
-     * it during playback. Values are usually non-negative, and `1` is full volume.
+     * Defaults to `1` when unset. Volume primarily controls the audible distance. Adventure declares a non-negative
+     * value but does not validate it. The receiving platform interprets the value during playback.
      *
      * @throws IllegalStateException when the volume is already set in this block.
      */
@@ -34,8 +34,8 @@ public interface SoundScope : SoundSourceScope {
     /**
      * Sets the playback pitch.
      *
-     * Defaults to `1` when unset. Adventure receives the value without Minecraft-range limits. The platform interprets
-     * it during playback. Values are usually from `0.5` to `2.0`, and `1` is natural pitch.
+     * Defaults to `1` when unset. Adventure does not validate the value. The receiving platform interprets it during
+     * playback.
      *
      * @throws IllegalStateException when the pitch is already set in this block.
      */

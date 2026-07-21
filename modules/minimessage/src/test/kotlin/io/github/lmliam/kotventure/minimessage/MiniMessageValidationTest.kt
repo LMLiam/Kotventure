@@ -13,10 +13,6 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.ParsingException
 
-// ---------------------------------------------------------------------------
-// Fixture templates
-// ---------------------------------------------------------------------------
-
 private object ValidationWelcomeTemplate : MiniTemplate("<gold>Welcome <player>, <count> new messages</gold>") {
     val player = placeholder<Component>("player")
     val count = placeholder<Int>("count")
@@ -29,10 +25,6 @@ private object ValidationExtraTagTemplate : MiniTemplate("<gold>Hello <player> <
 class MiniMessageValidationTest :
     StringSpec(
         {
-            // ---------------------------------------------------------------
-            // AC1–AC4: Happy paths
-            // ---------------------------------------------------------------
-
             "well-formed markup with all placeholders returns Success" {
                 val player = placeholder<Component>("player")
                 val count = placeholder<Int>("count")
@@ -56,10 +48,6 @@ class MiniMessageValidationTest :
                 result shouldBe ValidationResult.Success
             }
 
-            // ---------------------------------------------------------------
-            // AC1: Malformed tag detection
-            // ---------------------------------------------------------------
-
             "unclosed standard tag returns Failure with MalformedTag diagnostic" {
                 val result =
                     validate(
@@ -67,16 +55,12 @@ class MiniMessageValidationTest :
                         placeholders = emptyList(),
                     )
 
-                // <gold> without </gold> is well-formed in lenient mode but strict mode requires close
-                // — however Adventure strict mode only throws for unclosed child-allowing tags at EOF.
-                // <gold> IS a child-allowing tag, so it DOES throw in strict mode.
                 val failure = result.shouldBeInstanceOf<ValidationResult.Failure>()
                 failure.diagnostics shouldHaveSize 1
                 failure.diagnostics[0].shouldBeInstanceOf<MiniMessageDiagnostic.MalformedTag>()
             }
 
             "MalformedTag carries non-unknown start and end index when Adventure reports location" {
-                // Adventure reports position info for unclosed child-allowing tags at end-of-string.
                 val result =
                     validate(
                         input = "<gold>Hello world",
@@ -86,7 +70,6 @@ class MiniMessageValidationTest :
                 val failure = result.shouldBeInstanceOf<ValidationResult.Failure>()
                 val malformed = failure.diagnostics.filterIsInstance<MiniMessageDiagnostic.MalformedTag>()
                 malformed shouldHaveSize 1
-                // Adventure provides start/end indices for this error — neither should be LOCATION_UNKNOWN.
                 malformed[0].startIndex shouldNotBe MiniMessageDiagnostic.MalformedTag.LOCATION_UNKNOWN
                 malformed[0].endIndex shouldNotBe MiniMessageDiagnostic.MalformedTag.LOCATION_UNKNOWN
             }
@@ -94,8 +77,6 @@ class MiniMessageValidationTest :
             "unclosed non-standard-tag in markup produces MalformedTag with message" {
                 val player = placeholder<Component>("player")
 
-                // <player> resolves as self-closing — will NOT trigger malformed
-                // <gold> without close WILL trigger malformed under strict mode
                 val result =
                     validate(
                         input = "<gold><player>joined",
@@ -109,16 +90,9 @@ class MiniMessageValidationTest :
             }
 
             "MalformedTag.LOCATION_UNKNOWN sentinel is sourced from Adventure not hardcoded" {
-                // Verify the sentinel is mirrored from Adventure rather than hardcoded.
-                // Changing this value in Adventure would then be caught at compile time.
                 MiniMessageDiagnostic.MalformedTag.LOCATION_UNKNOWN shouldBe ParsingException.LOCATION_UNKNOWN
             }
 
-            // F3: LOCATION_UNKNOWN path — Adventure 5.1.1 does not expose a public API input
-            // that produces the sentinel from ParsingException.startIndex()/endIndex(); the value
-            // is passed through unmodified from Adventure. The compile-time binding above proves
-            // the constant is Adventure-derived. The test below confirms indices are forwarded as-is
-            // when Adventure DOES report a location (the non-sentinel path).
             "MalformedTag start and end indices are passed through from Adventure without modification" {
                 val result =
                     validate(
@@ -129,14 +103,9 @@ class MiniMessageValidationTest :
                 val failure = result.shouldBeInstanceOf<ValidationResult.Failure>()
                 val malformed = failure.diagnostics.filterIsInstance<MiniMessageDiagnostic.MalformedTag>()
                 malformed shouldHaveSize 1
-                // Adventure reports non-sentinel indices here; verify they are forwarded verbatim.
                 malformed[0].startIndex shouldNotBe MiniMessageDiagnostic.MalformedTag.LOCATION_UNKNOWN
                 malformed[0].endIndex shouldNotBe MiniMessageDiagnostic.MalformedTag.LOCATION_UNKNOWN
             }
-
-            // ---------------------------------------------------------------
-            // AC2: Missing placeholder detection
-            // ---------------------------------------------------------------
 
             "placeholder in spec but absent from markup returns MissingPlaceholder" {
                 val player = placeholder<Component>("player")
@@ -154,10 +123,6 @@ class MiniMessageValidationTest :
                 missing[0].name shouldBe "count"
             }
 
-            // ---------------------------------------------------------------
-            // AC3: Extra placeholder detection
-            // ---------------------------------------------------------------
-
             "placeholder tag in markup but not in spec returns ExtraPlaceholder" {
                 val player = placeholder<Component>("player")
 
@@ -173,10 +138,6 @@ class MiniMessageValidationTest :
                 extra[0].name shouldBe "oops"
             }
 
-            // ---------------------------------------------------------------
-            // AC4: Multiple diagnostics; ordering
-            // ---------------------------------------------------------------
-
             "placeholder present in both markup and spec is not flagged while unspecced tag is reported as extra" {
                 val player = placeholder<Component>("player")
 
@@ -186,8 +147,6 @@ class MiniMessageValidationTest :
                         placeholders = listOf(player, placeholder<String>("missing-one")),
                     )
 
-                // <player> and <missing-one> are in both spec and markup — neither is missing or extra.
-                // <extra-one> is in markup but not in spec — reported as ExtraPlaceholder.
                 val failure = result.shouldBeInstanceOf<ValidationResult.Failure>()
                 val missing = failure.diagnostics.filterIsInstance<MiniMessageDiagnostic.MissingPlaceholder>()
                 val extra = failure.diagnostics.filterIsInstance<MiniMessageDiagnostic.ExtraPlaceholder>()
@@ -199,9 +158,6 @@ class MiniMessageValidationTest :
             "all three diagnostic kinds appear in one markup — malformed then missing then extra" {
                 val player = placeholder<Component>("player")
 
-                // <gold> unclosed -> malformed
-                // <player> declared but absent -> missing
-                // <extra> in markup but not spec -> extra
                 val result =
                     validate(
                         input = "<gold>Hello <extra>",
@@ -219,17 +175,12 @@ class MiniMessageValidationTest :
                 missing[0].name shouldBe "player"
                 extra[0].name shouldBe "extra"
 
-                // Ordering: malformed first, then missing, then extra
                 val malformedIdx = failure.diagnostics.indexOf(malformed[0])
                 val missingIdx = failure.diagnostics.indexOf(missing[0])
                 val extraIdx = failure.diagnostics.indexOf(extra[0])
                 (malformedIdx < missingIdx) shouldBe true
                 (missingIdx < extraIdx) shouldBe true
             }
-
-            // ---------------------------------------------------------------
-            // Standard-tag filter
-            // ---------------------------------------------------------------
 
             "standard Adventure tags are not reported as extra placeholders" {
                 val result =
@@ -238,8 +189,6 @@ class MiniMessageValidationTest :
                         placeholders = emptyList(),
                     )
 
-                // <gold> and <bold> are standard tags; strict mode still requires close — both are
-                // closed properly here, so no malformed. No spec -> no missing. No extra either.
                 result shouldBe ValidationResult.Success
             }
 
@@ -256,10 +205,6 @@ class MiniMessageValidationTest :
                 extra[0].name shouldBe "my-placeholder"
             }
 
-            // ---------------------------------------------------------------
-            // MiniTemplate extension
-            // ---------------------------------------------------------------
-
             "MiniTemplate.validate() returns Success for a correct template" {
                 val result = ValidationWelcomeTemplate.validate()
 
@@ -274,10 +219,6 @@ class MiniMessageValidationTest :
                 extra shouldHaveSize 1
                 extra[0].name shouldBe "oops"
             }
-
-            // ---------------------------------------------------------------
-            // Extension properties
-            // ---------------------------------------------------------------
 
             "ValidationResult.isSuccess is true for Success and false for Failure" {
                 val player = placeholder<Component>("player")
@@ -298,19 +239,11 @@ class MiniMessageValidationTest :
                 success.isFailure shouldBe false
             }
 
-            // ---------------------------------------------------------------
-            // Model invariants
-            // ---------------------------------------------------------------
-
             "Failure requires non-empty diagnostics list" {
                 shouldThrow<IllegalArgumentException> {
                     ValidationResult.Failure(emptyList())
                 }
             }
-
-            // ---------------------------------------------------------------
-            // Ordering guarantees
-            // ---------------------------------------------------------------
 
             "missing placeholders are emitted in spec declaration order" {
                 val alpha = placeholder<String>("alpha")
@@ -340,10 +273,6 @@ class MiniMessageValidationTest :
                 extra.map { it.name } shouldBe listOf("first", "second", "third")
             }
 
-            // ---------------------------------------------------------------
-            // Edge cases
-            // ---------------------------------------------------------------
-
             "duplicate placeholder tag in markup is recorded only once" {
                 val player = placeholder<Component>("player")
 
@@ -356,13 +285,7 @@ class MiniMessageValidationTest :
                 result shouldBe ValidationResult.Success
             }
 
-            // ---------------------------------------------------------------
-            // F2 regression: placeholder whose name collides with a standard tag
-            // ---------------------------------------------------------------
-
             "placeholder named same as standard tag is not falsely reported as MissingPlaceholder when used in markup" {
-                // 'gold' is a standard Adventure colour tag.  A spec placeholder with that name
-                // must be recognised as present when <gold> appears in the markup.
                 val gold = placeholder<String>("gold")
 
                 val result =
@@ -371,7 +294,6 @@ class MiniMessageValidationTest :
                         placeholders = listOf(gold),
                     )
 
-                // No MissingPlaceholder("gold") — the tag IS in the markup.
                 result shouldBe ValidationResult.Success
             }
 
@@ -391,8 +313,6 @@ class MiniMessageValidationTest :
             }
 
             "standard tag not in spec is never reported as ExtraPlaceholder when spec has standard-named placeholder" {
-                // Only 'gold' is in the spec; <bold> is standard but not in spec.
-                // <bold> must not show up as ExtraPlaceholder.
                 val gold = placeholder<String>("gold")
 
                 val result =
@@ -404,13 +324,7 @@ class MiniMessageValidationTest :
                 result shouldBe ValidationResult.Success
             }
 
-            // ---------------------------------------------------------------
-            // F1 regression: validate() must never throw, even on malformed input
-            // ---------------------------------------------------------------
-
             "validate returns a result rather than throwing for markup that is well-formed in lenient mode" {
-                // This exercises the lenient-parse path (Pass 2) for a variety of inputs; none
-                // should propagate an exception.
                 val inputs =
                     listOf(
                         "",
@@ -421,7 +335,6 @@ class MiniMessageValidationTest :
                     )
 
                 for (input in inputs) {
-                    // shouldNotThrow is enforced by the test harness — any exception fails the test.
                     validate(input, emptyList())
                 }
             }

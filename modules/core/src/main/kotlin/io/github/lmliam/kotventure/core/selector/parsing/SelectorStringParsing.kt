@@ -6,15 +6,13 @@ import io.github.lmliam.kotventure.core.selector.isAllowedInUnquotedSelectorToke
 internal fun SelectorReader.readValueToken(): String = readWhile { it !in ",]}" }
 
 /**
- * Validate an unquoted token for correct characters.
+ * Validates an unquoted selector token.
  *
- * The token must be non-empty and all characters must be allowed in unquoted selector
-tokens.
- * Fails at [valueOffset] if validation fails.
+ * The token must be non-empty and contain only characters that Brigadier permits in an unquoted string.
  *
- * @param value the token string to validate
- * @param valueOffset the cursor offset when the token began (for error reporting)
- * @param description a brief noun phrase describing the token (e.g., "sort value")
+ * @param value The token to validate.
+ * @param valueOffset The source offset at which the token starts.
+ * @param description The token description for the diagnostic.
  */
 internal fun SelectorReader.validateUnquotedToken(
     value: String,
@@ -27,15 +25,14 @@ internal fun SelectorReader.validateUnquotedToken(
 }
 
 /**
- * Reads and decodes a string delimited by `'` or `"`. Only the delimiter and `\` can be escaped.
+ * Reads and decodes a string delimited by `'` or `"`.
  *
- * Callers must find the opening quote before they call this function. The function consumes the quote and returns the
- * string without delimiters.
+ * A backslash can escape a single quote, a double quote, or another backslash. The cursor must be on the opening
+ * quote. The returned string does not include the delimiters.
  *
- * @return the decoded string (without delimiters)
- * @throws io.github.lmliam.kotventure.core.selector.EntitySelectorParseException if the
-string is
- * unterminated or contains invalid escapes
+ * @return The decoded string without delimiters.
+ * @throws io.github.lmliam.kotventure.core.selector.EntitySelectorParseException when the string is unterminated or
+ * contains an invalid escape.
  */
 internal fun SelectorReader.readQuotedString(): String {
     val quoteOffset = offset
@@ -57,14 +54,7 @@ internal fun SelectorReader.readQuotedString(): String {
 }
 
 /**
- * Handle an escape sequence in a quoted string.
- *
- * Valid escapes are the quote character itself or a backslash. Any other escape is
-invalid.
- *
- * @param quoteOffset the offset of the opening quote (for unterminated-string errors)
- * @param escapeOffset the offset of the backslash (for invalid-escape errors)
- * @return the escaped character to append to the decoded string
+ * Reads one quoted-string escape and reports an error at the opening quote or backslash.
  */
 private fun SelectorReader.handleEscape(
     quoteOffset: Int,

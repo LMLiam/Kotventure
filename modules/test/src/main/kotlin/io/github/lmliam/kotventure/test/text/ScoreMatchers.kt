@@ -7,7 +7,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ScoreComponent
 
 /**
- * Matches a score component whose score name is [expected]. Combine with `and`/`or` or negate with `shouldNot`.
+ * Returns a matcher that compares the score name with [expected].
  */
 public fun haveScoreName(expected: String): Matcher<ScoreComponent> =
     Matcher { value ->
@@ -20,7 +20,7 @@ public fun haveScoreName(expected: String): Matcher<ScoreComponent> =
     }
 
 /**
- * Matches a score component whose objective is [expected].
+ * Returns a matcher that compares the score objective with [expected].
  */
 public fun haveScoreObjective(expected: String): Matcher<ScoreComponent> =
     Matcher { value ->
@@ -33,12 +33,15 @@ public fun haveScoreObjective(expected: String): Matcher<ScoreComponent> =
     }
 
 /**
- * Asserts that this component is a [ScoreComponent] and returns it typed.
+ * Verifies that this component is a [ScoreComponent].
+ *
+ * @return this component as a [ScoreComponent].
+ * @throws AssertionError when this component has a different type.
  */
 public fun Component.shouldBeScoreComponent(): ScoreComponent = asComponentType("score")
 
 /**
- * Asserts that this score component has [expected] as its score name.
+ * Verifies that this score component has the score name [expected].
  */
 public infix fun ScoreComponent.shouldHaveScoreName(expected: String): ScoreComponent =
     apply {
@@ -46,7 +49,7 @@ public infix fun ScoreComponent.shouldHaveScoreName(expected: String): ScoreComp
     }
 
 /**
- * Asserts that this score component has [expected] as its score objective.
+ * Verifies that this score component has the objective [expected].
  */
 public infix fun ScoreComponent.shouldHaveScoreObjective(expected: String): ScoreComponent =
     apply {

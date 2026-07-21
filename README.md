@@ -168,7 +168,7 @@ README stays consistent with the library.
 
 <!-- markdownlint-disable MD033 -->
 <details>
-<summary><strong>Components, styles &amp; colours</strong> — keybinds, translatables, gradients, themes</summary>
+<summary><strong>Components, styles &amp; colours:</strong> keybinds, translatables, gradients, themes</summary>
 
 ```kotlin
 val hint = component {
@@ -187,7 +187,7 @@ The compiler checks the theme properties, and you can register the objects for r
 </details>
 
 <details>
-<summary><strong>Typed MiniMessage</strong> — parsing, placeholders, templates, validation, mini→DSL conversion</summary>
+<summary><strong>Typed MiniMessage:</strong> parsing, placeholders, templates, validation, mini→DSL conversion</summary>
 
 ```kotlin
 val motd = mini("<gradient:#55FFFF:#FFAA00>Sky Games</gradient> <gray>— Season 5</gray>")
@@ -198,15 +198,15 @@ val streak = mini("<gold><wins></gold> win streak, <player>!") {
 }
 ```
 
-Templates declare placeholders as delegated properties. The property name is the tag. The compiler finds an
-incorrect `<player>` tag or an absent binding before the application sends the message. At load time,
+Templates declare placeholders as delegated properties. The property name is the tag, and the property type controls
+the permitted binding type. A render call rejects an absent binding before it creates the component. At load time,
 `JoinBroadcast.validate()` reports malformed tags and incorrect placeholder sets. The
-`miniToDsl("<gold>Welcome!")` function generates the equivalent Kotventure code.
+`miniToDsl("<gold>Welcome!")` function generates equivalent Kotventure code.
 
 </details>
 
 <details>
-<summary><strong>Selectors, scores &amp; NBT</strong> — typed vanilla selectors instead of strings</summary>
+<summary><strong>Selectors, scores &amp; NBT:</strong> typed vanilla selectors instead of strings</summary>
 
 ```kotlin
 val champions = allPlayers {
@@ -230,7 +230,7 @@ configuration strings, use the strict `parseSelector(...)` bridge. Its errors in
 </details>
 
 <details>
-<summary><strong>Books, boss bars, titles &amp; tab lists</strong> — one send-DSL for every audience surface</summary>
+<summary><strong>Books, boss bars, titles &amp; tab lists:</strong> one send-DSL for every audience surface</summary>
 
 ```kotlin
 player.book {
@@ -251,7 +251,7 @@ bars. The API also supplies signed-chat helpers.
 </details>
 
 <details>
-<summary><strong>Serialisers</strong> — legacy, JSON, plain text, MiniMessage</summary>
+<summary><strong>Serialisers:</strong> legacy, JSON, plain text, MiniMessage</summary>
 
 ```kotlin
 val message = text("Welcome") { color(gold) }
@@ -275,7 +275,7 @@ information, refer to [`docs/DESIGN.md`](docs/DESIGN.md) and the [Roadmap](docs/
 |--------------------------------------------------------|--------------------------------------------------------------------------|--------|
 | [`core`](modules/core)                                 | Component / style / colour DSL, selectors, NBT, themes, audience-send DSL | ✅      |
 | [`minimessage`](modules/minimessage)                   | Typed MiniMessage templates, validation, MiniMessage ⇄ DSL converter     | ✅      |
-| [`serializer`](modules/serializer)                     | Optional Adventure serializer extension functions                        | ✅      |
+| [`serializer`](modules/serializer)                     | Optional Adventure serialiser extension functions                        | ✅      |
 | [`test`](modules/test)                                 | Kotest component matchers                                                 | ✅      |
 | [`test-snapshot`](modules/test-snapshot)               | Snapshot tests of canonical component JSON                               | ✅      |
 | [`bom`](modules/bom)                                   | Bill of materials that aligns Kotventure and Adventure module versions   | ✅      |
@@ -311,7 +311,7 @@ dependencies {
 }
 ```
 
-Replace `<tag>` with a [released tag](https://github.com/LMLiam/Kotventure/releases) (e.g. `0.16.0`). The `test`
+Replace `<tag>` with a [released tag](https://github.com/LMLiam/Kotventure/releases), for example `0.16.0`. The `test`
 artefacts are test-scope only. The BOM re-exports Adventure's BOM at the baseline pinned in
 [`gradle/libs.versions.toml`](gradle/libs.versions.toml) (currently 5.2.0).
 

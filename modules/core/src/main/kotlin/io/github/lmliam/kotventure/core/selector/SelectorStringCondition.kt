@@ -1,7 +1,7 @@
 package io.github.lmliam.kotventure.core.selector
 
 /**
- * A named or presence-based condition for selector arguments such as `tag` and `team`.
+ * An immutable named or presence-based condition for a `tag` or `team` selector argument.
  */
 public sealed interface SelectorStringCondition : SelectorNegatable {
     /**
@@ -35,11 +35,11 @@ public sealed interface SelectorStringCondition : SelectorNegatable {
         override val isNegated: Boolean get() = false
     }
 
-    /** Construction from selector-source semantics. */
+    /** Converts parsed selector-source values to typed conditions. */
     public companion object {
         /**
-         * Maps the vanilla empty-value rule. An empty [value] is a presence test. `tag=` requires no value, and `tag=!`
-         * requires a value. A non-empty [value] is a named condition.
+         * Converts the vanilla empty-value rule. An empty [value] creates a presence condition. For example, `tag=`
+         * requires no tag, and `tag=!` requires a tag. A non-empty [value] creates a named condition.
          */
         internal operator fun invoke(
             value: String,

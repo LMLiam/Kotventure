@@ -7,8 +7,7 @@ import net.kyori.adventure.text.event.ClickCallback
 import kotlin.time.Duration
 
 /**
- * Configures a [Pagination]'s nav row: the [previous]/[next] button labels, the page-position
- * [indicator] between them, and the [uses]/[lifetime] limits of the buttons' click callbacks.
+ * Configures labels, an indicator, and callback limits for a [Pagination] navigation row.
  *
  * Defaults when a slot is left unset: `« Previous` and `Next »` labels, a `page/pageCount`
  * indicator, unlimited callback uses, and Adventure's default callback lifetime of twelve hours.
@@ -18,15 +17,14 @@ import kotlin.time.Duration
 @KotventureDslMarker
 public interface NavScope {
     /**
-     * The [uses] count that lets a nav button be clicked any number of times —
+     * The [uses] count that lets a navigation button be clicked any number of times.
      * [ClickCallback.UNLIMITED_USES], and what applies when [uses] is never called.
      */
     public val unlimited: Int
         get() = ClickCallback.UNLIMITED_USES
 
     /**
-     * Builds the label of the button that navigates to the preceding page from a component DSL
-     * block.
+     * Creates and sets the preceding-page label from a component DSL block.
      *
      * @throws IllegalStateException when the previous label is already set in this block.
      */
@@ -40,8 +38,7 @@ public interface NavScope {
     public fun <C : ComponentLike> previous(component: C)
 
     /**
-     * Builds the label of the button that navigates to the following page from a component DSL
-     * block.
+     * Creates and sets the following-page label from a component DSL block.
      *
      * @throws IllegalStateException when the next label is already set in this block.
      */

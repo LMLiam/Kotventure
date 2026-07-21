@@ -9,10 +9,10 @@ import org.bukkit.Registry
 import java.util.stream.Stream
 
 /**
- * A minimal [Registry] that returns one placeholder [Dialog] for each lookup.
+ * Provides one placeholder [Dialog] for each registry lookup.
  *
- * This registry lets Paper resolve static [Dialog] constants during class initialisation. It implements only the
- * lookup paths that these constants use.
+ * Paper uses this registry to resolve static [Dialog] constants during class initialisation. Other
+ * registry operations are outside the test scope and fail if a test calls them.
  */
 internal class FakeDialogRegistry(
     private val dialog: Dialog,

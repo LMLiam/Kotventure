@@ -15,6 +15,6 @@ Closes #<issue-number> <!-- (if applicable) -->
 
 ## Checklist
 
-- [ ] Verified that examples compile
-- [ ] Linked related issue (if applicable)
-- [ ] Confirmed that the content matches current API behaviour
+- [ ] Verify that examples compile
+- [ ] Link the related issue, if applicable
+- [ ] Confirm that the content matches current API behaviour

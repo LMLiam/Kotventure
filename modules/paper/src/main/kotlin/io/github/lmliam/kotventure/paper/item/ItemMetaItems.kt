@@ -5,9 +5,10 @@ import io.github.lmliam.kotventure.core.text.text
 import org.bukkit.inventory.meta.ItemMeta
 
 /**
- * Replaces this metadata's custom name with styled literal [value].
+ * Replaces the custom name in this metadata with the styled literal [value].
  *
- * The resulting component is explicitly non-italic unless [init] sets an italic state.
+ * The function modifies this [ItemMeta]. It does not apply detached metadata to an item stack.
+ * The name is non-italic unless [init] sets the italic state.
  *
  * @sample io.github.lmliam.kotventure.paper.item.editItemMetaSample
  */
@@ -19,9 +20,11 @@ public fun ItemMeta.name(
 }
 
 /**
- * Replaces this metadata's lore with the lines accumulated by [init].
+ * Replaces the lore in this metadata with the lines from [init].
  *
- * Each non-empty line is explicitly non-italic unless that line sets an italic state.
+ * The function modifies this [ItemMeta]. It does not apply detached metadata to an item stack.
+ * Calls in [init] preserve their order. Each line other than a [LoreScope.blank] line is
+ * non-italic unless that line sets the italic state.
  *
  * @sample io.github.lmliam.kotventure.paper.item.editItemMetaSample
  */

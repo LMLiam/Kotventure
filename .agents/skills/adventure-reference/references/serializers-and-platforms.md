@@ -4,9 +4,9 @@ Kotventure's `serializer` module wraps these as `Component.toJson()`, `String.as
 `toLegacyAmpersand()/toLegacySection()` + `asLegacy…Component()`, `toPlainText()`, and
 `toMiniMessage()`. Use these extensions in project code. Use the raw APIs below only to implement the extensions.
 
-## JSON — `adventure-text-serializer-gson`
+## JSON: `adventure-text-serializer-gson`
 
-- `GsonComponentSerializer.gson()` — `.serialize(Component)` / `.deserialize(String)`.
+- `GsonComponentSerializer.gson()` supplies `.serialize(Component)` and `.deserialize(String)`.
 - Options via `GsonComponentSerializer.builder()` + `JSONOptions`
   (`net.kyori.adventure.text.serializer.json`).
 - Legacy hover payloads require `NBTLegacyHoverEventSerializer` from
@@ -29,7 +29,7 @@ describes parsing and tag resolvers.
 `ANSIComponentSerializer` is in `adventure-text-serializer-ansi`. It is not currently a dependency. Add the catalogue
 entry when the module is added.
 
-## Keys — `net.kyori.adventure.key`
+## Keys: `net.kyori.adventure.key`
 
 - `Key.key("namespace:value")` and `Key.key(namespace, value)` throw `InvalidKeyException` for invalid characters. The
   default namespace is `minecraft`.

@@ -1,7 +1,7 @@
 # Pull Request Template
 
 <!--
-PR title MUST follow: verb(area): something  (e.g. feat(core): add the style DSL)
+PR title MUST follow: verb(area): something. For example: feat(core): add the style DSL
 Enforced by the Conventional Titles workflow. See .github/CONTRIBUTING.md.
 
 Prefer a type-specific template? Append ?template=feature.md (or bugfix.md / docs.md / chore.md)
@@ -33,9 +33,9 @@ Closes #<issue-number>
 
 ## Checklist
 
-- [ ] Title and commit subjects follow `verb(area): something`
-- [ ] Linked the related issue
-- [ ] Added or updated tests. Used the `test` matchers where applicable.
-- [ ] `./gradlew ktlintCheck spotlessCheck` passes.
-- [ ] Public API has KDoc and satisfies `explicitApi()`.
-- [ ] Updated `docs/` for user-facing changes.
+- [ ] Make the title and commit subjects follow `verb(area): something`.
+- [ ] Link the related issue.
+- [ ] Add or update tests. Use the `test` matchers where applicable.
+- [ ] Run `./gradlew ktlintCheck spotlessCheck` and make sure that it passes.
+- [ ] Add KDoc to the public API and satisfy `explicitApi()`.
+- [ ] Update `docs/` for user-facing changes.

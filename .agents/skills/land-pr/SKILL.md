@@ -15,12 +15,11 @@ Use the `reviewing-contributions` workflow to make the submitted pull request re
    `gh pr checks $ARGUMENTS`, plus unresolved review threads
    (`gh api repos/{owner}/{repo}/pulls/$ARGUMENTS/comments`). Also read the linked issue. Compare the pull request with
    its acceptance criteria.
-2. **Run the `reviewing-contributions` process:** Decide whether to improve or rebuild the API. Then, make changes on
-   then improvements on the PR branch, ending green locally
-   (`./gradlew ktlintFormat build`).
+2. **Run the `reviewing-contributions` process:** Decide whether to improve or rebuild the API. Then, make the
+   improvements on the pull-request branch. Finish with a successful local run of `./gradlew ktlintFormat build`.
 3. **Answer each thread:** State what changed or why it did not change. Do not resolve a thread silently.
 4. **Complete the work:** Make sure that the pull-request body is accurate. Set the project fields and verify them with
-   `gh project item-list`, CI green after the final push. Report what was changed on the
-   contributor's work and what remains for the maintainer to decide.
+   `gh project item-list`. Make sure that CI is green after the final push. Report the changes to the contributor's
+   work and the decisions that remain for the maintainer.
 
 Do not merge unless the maintainer gives an explicit instruction.

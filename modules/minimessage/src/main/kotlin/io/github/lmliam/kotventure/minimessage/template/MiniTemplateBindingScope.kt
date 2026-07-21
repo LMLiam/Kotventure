@@ -4,15 +4,19 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import io.github.lmliam.kotventure.minimessage.placeholder.MiniMessagePlaceholder
 
 /**
- * Receiver for a template render block, binding a value to each declared placeholder.
+ * Binds values for one template render.
  *
- * Inside the block, bind with the [bind] infix function: `player bind playerName`. The value type is
- * checked at compile time against the placeholder's type parameter. Binding the same placeholder twice,
- * binding a placeholder from another template, or leaving one unbound all fail when the block completes.
+ * The placeholder type constrains the value type at compile time. A binding fails immediately if its placeholder
+ * belongs to another template or already has a value. The render fails after the block if any required placeholder has
+ * no value.
  */
 @KotventureDslMarker
 public interface MiniTemplateBindingScope {
-    /** Records [value] as the binding for [placeholder]. Use the [bind] infix form at call sites. */
+    /**
+     * Records [value] for [placeholder] in this render.
+     *
+     * @throws IllegalArgumentException when [placeholder] belongs to another template or already has a value.
+     */
     public fun <T : Any> bind(
         placeholder: MiniMessagePlaceholder<T>,
         value: T,
@@ -20,10 +24,10 @@ public interface MiniTemplateBindingScope {
 }
 
 /**
- * Binds [value] to this placeholder for the current render, e.g. `player bind playerName`.
+ * Binds [value] to this placeholder for the current render.
  *
- * @throws IllegalArgumentException if this placeholder is not declared on the template being rendered,
- *   or has already been bound in this render.
+ * @throws IllegalArgumentException when this descriptor is not the instance that the current template declared, or
+ * when it already has a value in this render.
  */
 context(scope: MiniTemplateBindingScope)
 public infix fun <T : Any> MiniMessagePlaceholder<T>.bind(value: T): Unit = scope.bind(this, value)

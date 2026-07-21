@@ -14,23 +14,23 @@ parameters. The items below are public API with KDoc. Open the applicable file f
 
 ## component & text
 
-- `component { }` → `Component`; `emptyComponent()`.
-- `text("value") { …style/children… }` and `text { content("…"); … }`; both also as
+- `component { }` returns `Component`. `emptyComponent()` returns an empty component.
+- `text("value") { …style/children… }` and `text { content("…") }` are also available as
   `ComponentScope.text(...)` for nesting. `ComponentScope` adds `append(componentLike)`,
   `newline()`, `style(Style)`, `style { }`.
-- `Component.asSequence()` — depth-first traversal (`core.text`).
+- `Component.asSequence()` supplies depth-first traversal (`core.text`).
 
 ## style and colour
 
-- `style { }` → `Style`; `component styled someStyle` (infix on `ComponentLike`).
+- `style { }` returns `Style`. Use `component styled someStyle` as an infix operation on `ComponentLike`.
 - `StyleScope` slots: `color(c)`, `shadow(color[, alpha])`, `font(key)`, `insertion(s)`,
   `bold()` / `italic()` / `underlined()` / `strikethrough()` / `obfuscated()` (each also
   taking `Boolean?` or `TextDecoration.State`), `decorate(d)`, plus click/hover (below).
   Each slot throws `IllegalStateException` if set twice in one block.
 - Colours: `hex("#a1b2c3")`, `rgb(r, g, b)`, `hsv(h, s, v)`, `interpolate(t, a, b)`,
   `namedColor("aqua")` (nullable) / `namedColorOrThrow(...)`.
-- Gradients: `gradient(vararg stops)` / `gradient(iterable)` → `ColorGradient`;
-  `gradientText("text", gradient)` → per-character coloured component.
+- Gradients: `gradient(vararg stops)` and `gradient(iterable)` return `ColorGradient`.
+  `gradientText("text", gradient)` returns a component with a colour for each character.
 
 ## audience
 
@@ -45,32 +45,32 @@ parameters. The items below are public API with KDoc. Open the applicable file f
 - Boss bars: `Audience.bossBar { }` builds and shows a bar, and then returns it. `Audience.show(bar)` and `hide(bar)`
   also accept `TimedBossBar`.
 - Books: `Audience.book { }` (builds and opens), `Audience.open(book)`.
-- Tab list: `Audience.tabList { header { }; footer { } }`.
+- Tab list: `Audience.tabList { header { } footer { } }`.
 
 ## book & bossbar
 
-- `book { title { }; author { }; page { }; pages(...) }` → `Book`.
-- `bossBar { name { }; progress(0.5f); color(...); overlay(...); darkenScreen(); playBossMusic(); createWorldFog() }`
-  → `BossBar` (`BossBarScope` extends the appearance scope).
+- `book { title { } author { } page { } pages(...) }` returns `Book`.
+- `bossBar { name { } progress(0.5f) color(...) overlay(...) }` returns `BossBar`.
+  `BossBarScope` also supplies `darkenScreen()`, `playBossMusic()`, and `createWorldFog()`.
 - Timed: `core.bossbar.timed` contains automatic bars. A `Ticker` context parameter controls them. Use
   `context(ticker) { audience.bossBar(over = 10.seconds) { } }` to get `TimedBossBar`. The package also contains the
   runtime and shutdown types.
 
 ## event
 
-- `click { runCommand("/spawn") }` → `ClickEvent<*>`; scope covers `openUrl`, `openFile`,
+- `click { runCommand("/spawn") }` returns `ClickEvent<*>`. The scope supplies `openUrl`, `openFile`,
   `runCommand`, `suggestCommand`, `changePage`, `copyToClipboard`, `callback(fn)` /
   `callback(options, fn)`.
-- `hover { text { } / item(...) / entity(...) }` → `HoverEvent<*>`; item data components via
-  `ItemDataComponentScope` (`removed()` marks removals).
+- `hover { text { } }`, `hover { item(...) }`, and `hover { entity(...) }` return `HoverEvent<*>`.
+  `ItemDataComponentScope` configures item data components. `removed()` marks a removal.
 - Both are also available directly in a `StyleScope` block.
 
 ## key, keybind, score, sound
 
 - `key("namespace:value")` / `key(namespace, value)`.
-- `keybind("key.jump") { }`; also `ComponentScope.keybind(...)`.
-- `score(name, objective) { }`; also as scope extension.
-- `sound(key) { source(...); volume(...); pitch(...); seed(...) }` → `Sound`.
+- `keybind("key.jump") { }` is also available as `ComponentScope.keybind(...)`.
+- `score(name, objective) { }` is also available as a scope extension.
+- `sound(key) { source(...) volume(...) pitch(...) seed(...) }` returns `Sound`.
 
 ## selector (typed vanilla entity selectors)
 
@@ -88,15 +88,15 @@ parameters. The items below are public API with KDoc. Open the applicable file f
 - `nbt { }` → `BinaryTagHolder`. In a compound scope, use `"key" eq value` for a primitive, `"key" eq { }` for a nested
   compound, and `list()` for a list. `nbt("{snbt}")` is the string bridge. `nbtPath("key")` and `nbtPath(index)` are
   typed paths. `matching { }` returns `NbtSelection`.
-- NBT components: `blockNbt(path, pos) { }`, `entityNbt(path, selector) { }`,
-  `storageNbt(path, key) { }`; positions via `blockPos(x, y, z)`,
+- NBT components: `blockNbt(path, pos) { }`, `entityNbt(path, selector) { }`, and
+  `storageNbt(path, key) { }`. Create positions with `blockPos(x, y, z)`,
   `relativeBlockPos(...)`, `blockPos("~1 ~2 ~3")`.
 - Object components: `display(contents) { }` with `sprite(...)` or `head(...)` contents.
   `Component.renderObjectFallbacks()` for non-supporting viewers.
 
 ## translatable, theme, time, uuid
 
-- `translatable("key") { fallback("…"); arg(...); args(...) }` has component, Boolean, and number argument overloads. It
+- `translatable("key") { fallback("…") arg(...) args(...) }` has component, Boolean, and number argument overloads. It
   is also a scope extension.
 - `theme`: Subclass `Theme` and declare `val header by style { }`. The property name is the dynamic lookup key at
   resolution-ladder level 2. `ThemeRegistry` supplies explicit registration and lookup. The package also supplies

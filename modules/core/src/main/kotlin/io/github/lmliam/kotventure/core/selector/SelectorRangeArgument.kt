@@ -1,9 +1,9 @@
 package io.github.lmliam.kotventure.core.selector
 
 /**
- * Floating-point range arguments supported by Java Edition selectors.
+ * The floating-point range arguments that Java Edition selectors support.
  *
- * @property argumentName canonical selector argument name
+ * @property argumentName The canonical selector argument name.
  */
 public enum class SelectorRangeArgument(
     public val argumentName: String,

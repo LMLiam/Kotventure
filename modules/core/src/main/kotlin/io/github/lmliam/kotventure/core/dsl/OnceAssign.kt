@@ -11,9 +11,8 @@ import kotlin.reflect.KProperty
  * The default failure message includes the delegated property's name. Supply a custom message
  * when the delegate's property name differs from the public DSL slot name.
  *
- * This type is not generic, but its `getValue` and `setValue` operators are generic. Thus, `by once()` gets its type
- * from the delegated property. `kotlin.properties.Delegates.notNull()` uses the same mechanism. Chains such as
- * `by once().inRange(1..1024)` also work without an explicit type argument. Refer to [inRange].
+ * The operator functions infer their type from the delegated property. Validation combinators such as [inRange]
+ * preserve this inference.
  */
 @InternalKotventureApi
 public class OnceAssign internal constructor(
@@ -53,7 +52,8 @@ public class OnceAssign internal constructor(
 /**
  * Creates a write-once delegate for a nullable builder property.
  *
- * The optional [alreadySetMessage] is evaluated only when a second assignment is attempted.
+ * The optional [alreadySetMessage] is evaluated only when a second assignment occurs. Creating the delegate does not
+ * evaluate it or change builder state.
  *
  * @param alreadySetMessage the custom duplicate-assignment message. If it is absent, the function uses the delegated
  *   property's name.

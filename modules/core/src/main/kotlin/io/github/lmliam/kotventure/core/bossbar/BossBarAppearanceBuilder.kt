@@ -4,8 +4,10 @@ import io.github.lmliam.kotventure.core.dsl.once
 import net.kyori.adventure.bossbar.BossBar
 
 /**
- * Collects the [BossBarAppearanceScope] slots. Concrete boss-bar builders compose this object through interface
- * delegation and get the resolved snapshot from [build].
+ * Enforces write-once appearance slots and resolves their Adventure defaults.
+ *
+ * Static and timed boss-bar builders delegate [BossBarAppearanceScope] to this class so they use identical defaults
+ * and duplicate-assignment rules.
  */
 internal class BossBarAppearanceBuilder : BossBarAppearanceScope {
     private var color: BossBar.Color? by once()

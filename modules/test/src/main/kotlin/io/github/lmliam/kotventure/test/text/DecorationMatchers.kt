@@ -9,14 +9,14 @@ import net.kyori.adventure.text.format.TextDecoration
 import net.kyori.adventure.text.format.TextDecoration.State
 
 /**
- * Matches a component whose root style enables [decoration] (state [State.TRUE]).
+ * Returns a matcher that accepts a component with [decoration] enabled on the root style.
  *
- * For an explicit on/off/inherited check use [haveDecorationState]. Combine with `and`/`or` or negate with `shouldNot`.
+ * Use [haveDecorationState] to test an explicit enabled, disabled, or unset state.
  */
 public fun haveDecoration(decoration: TextDecoration): Matcher<Component> = haveDecorationState(decoration, State.TRUE)
 
 /**
- * Matches a component whose root style sets [decoration] to [state].
+ * Returns a matcher that accepts [state] for [decoration] on the root style.
  */
 public fun haveDecorationState(
     decoration: TextDecoration,
@@ -32,7 +32,7 @@ public fun haveDecorationState(
     }
 
 /**
- * Asserts that this component has [expected] enabled on its root style.
+ * Verifies that this component enables [expected] on its root style.
  */
 public infix fun Component.shouldHaveDecoration(expected: TextDecoration): Component =
     apply {
@@ -40,7 +40,7 @@ public infix fun Component.shouldHaveDecoration(expected: TextDecoration): Compo
     }
 
 /**
- * Asserts that this component has [decoration] set to [state] on its root style.
+ * Verifies that this component sets [decoration] to [state] on its root style.
  */
 public fun Component.shouldHaveDecoration(
     decoration: TextDecoration,
@@ -51,13 +51,11 @@ public fun Component.shouldHaveDecoration(
     }
 
 /**
- * Asserts that this component leaves [expected] **unset** on its root style
- * (state [State.NOT_SET]).
+ * Verifies that this component leaves [expected] unset on its root style.
  *
- * This is **not** the inverse of [shouldHaveDecoration]. Explicit
- * [State.FALSE] fails here — use [shouldHaveDecoration] with
- * [State.FALSE], or a `shouldNotBe…` sugar such as [shouldNotBeBold], when
- * you mean "not enabled" (`FALSE` or `NOT_SET`).
+ * This function requires [State.NOT_SET]. It does not accept [State.FALSE]. Use the explicit-state
+ * overload of [shouldHaveDecoration] when you require [State.FALSE]. Use a function such as
+ * [shouldNotBeBold] when both states mean "not enabled".
  */
 public infix fun Component.shouldNotHaveDecoration(expected: TextDecoration): Component =
     apply {
@@ -65,7 +63,7 @@ public infix fun Component.shouldNotHaveDecoration(expected: TextDecoration): Co
     }
 
 /**
- * Asserts that this component is bold ([TextDecoration.BOLD] is [State.TRUE]).
+ * Verifies that this component enables [TextDecoration.BOLD] on its root style.
  */
 public fun Component.shouldBeBold(): Component =
     apply {
@@ -73,11 +71,9 @@ public fun Component.shouldBeBold(): Component =
     }
 
 /**
- * Asserts that this component is not bold ([TextDecoration.BOLD] is not
- * [State.TRUE]).
+ * Verifies that this component does not enable [TextDecoration.BOLD] on its root style.
  *
- * Both [State.NOT_SET] and [State.FALSE] pass. This differs from
- * [shouldNotHaveDecoration], which requires [State.NOT_SET] only.
+ * This function accepts [State.NOT_SET] and [State.FALSE].
  */
 public fun Component.shouldNotBeBold(): Component =
     apply {
@@ -85,7 +81,7 @@ public fun Component.shouldNotBeBold(): Component =
     }
 
 /**
- * Asserts that this component is italic ([TextDecoration.ITALIC] is [State.TRUE]).
+ * Verifies that this component enables [TextDecoration.ITALIC] on its root style.
  */
 public fun Component.shouldBeItalic(): Component =
     apply {
@@ -93,11 +89,9 @@ public fun Component.shouldBeItalic(): Component =
     }
 
 /**
- * Asserts that this component is not italic ([TextDecoration.ITALIC] is not
- * [State.TRUE]).
+ * Verifies that this component does not enable [TextDecoration.ITALIC] on its root style.
  *
- * Both [State.NOT_SET] and [State.FALSE] pass. This differs from
- * [shouldNotHaveDecoration], which requires [State.NOT_SET] only.
+ * This function accepts [State.NOT_SET] and [State.FALSE].
  */
 public fun Component.shouldNotBeItalic(): Component =
     apply {
@@ -105,8 +99,7 @@ public fun Component.shouldNotBeItalic(): Component =
     }
 
 /**
- * Asserts that this component is underlined ([TextDecoration.UNDERLINED] is
- * [State.TRUE]).
+ * Verifies that this component enables [TextDecoration.UNDERLINED] on its root style.
  */
 public fun Component.shouldBeUnderlined(): Component =
     apply {
@@ -114,11 +107,9 @@ public fun Component.shouldBeUnderlined(): Component =
     }
 
 /**
- * Asserts that this component is not underlined ([TextDecoration.UNDERLINED]
- * is not [State.TRUE]).
+ * Verifies that this component does not enable [TextDecoration.UNDERLINED] on its root style.
  *
- * Both [State.NOT_SET] and [State.FALSE] pass. This differs from
- * [shouldNotHaveDecoration], which requires [State.NOT_SET] only.
+ * This function accepts [State.NOT_SET] and [State.FALSE].
  */
 public fun Component.shouldNotBeUnderlined(): Component =
     apply {
@@ -126,8 +117,7 @@ public fun Component.shouldNotBeUnderlined(): Component =
     }
 
 /**
- * Asserts that this component is struck through ([TextDecoration.STRIKETHROUGH]
- * is [State.TRUE]).
+ * Verifies that this component enables [TextDecoration.STRIKETHROUGH] on its root style.
  */
 public fun Component.shouldBeStrikethrough(): Component =
     apply {
@@ -135,11 +125,9 @@ public fun Component.shouldBeStrikethrough(): Component =
     }
 
 /**
- * Asserts that this component is not struck through
- * ([TextDecoration.STRIKETHROUGH] is not [State.TRUE]).
+ * Verifies that this component does not enable [TextDecoration.STRIKETHROUGH] on its root style.
  *
- * Both [State.NOT_SET] and [State.FALSE] pass. This differs from
- * [shouldNotHaveDecoration], which requires [State.NOT_SET] only.
+ * This function accepts [State.NOT_SET] and [State.FALSE].
  */
 public fun Component.shouldNotBeStrikethrough(): Component =
     apply {
@@ -147,8 +135,7 @@ public fun Component.shouldNotBeStrikethrough(): Component =
     }
 
 /**
- * Asserts that this component is obfuscated ([TextDecoration.OBFUSCATED] is
- * [State.TRUE]).
+ * Verifies that this component enables [TextDecoration.OBFUSCATED] on its root style.
  */
 public fun Component.shouldBeObfuscated(): Component =
     apply {
@@ -156,11 +143,9 @@ public fun Component.shouldBeObfuscated(): Component =
     }
 
 /**
- * Asserts that this component is not obfuscated ([TextDecoration.OBFUSCATED]
- * is not [State.TRUE]).
+ * Verifies that this component does not enable [TextDecoration.OBFUSCATED] on its root style.
  *
- * Both [State.NOT_SET] and [State.FALSE] pass. This differs from
- * [shouldNotHaveDecoration], which requires [State.NOT_SET] only.
+ * This function accepts [State.NOT_SET] and [State.FALSE].
  */
 public fun Component.shouldNotBeObfuscated(): Component =
     apply {

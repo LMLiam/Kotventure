@@ -4,7 +4,10 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import net.kyori.adventure.text.ComponentLike
 
 /**
- * Scope for configuring how a sequence of components is joined.
+ * Configures separators and wrappers for a component join operation.
+ *
+ * The normal separator applies between adjacent elements. [lastSeparator] replaces it before the final element.
+ * [prefix] and [suffix] also apply to empty and one-element inputs. Each setting is optional and write-once.
  */
 @KotventureDslMarker
 public interface JoinScope {
@@ -26,8 +29,7 @@ public interface JoinScope {
     public fun <T : ComponentLike> separator(component: T)
 
     /**
-     * Sets the component inserted before the final joined component instead of the separator, as a text
-     * component with [value] configured by [init].
+     * Sets the text component used before the final element instead of the normal separator.
      *
      * @throws IllegalStateException when the last separator is already set in this block.
      */
@@ -37,14 +39,14 @@ public interface JoinScope {
     )
 
     /**
-     * Sets the component inserted before the final joined component instead of the separator.
+     * Sets [component] before the final element instead of the normal separator.
      *
      * @throws IllegalStateException when the last separator is already set in this block.
      */
     public fun <T : ComponentLike> lastSeparator(component: T)
 
     /**
-     * Sets the component prepended to the joined result to a text component with [value], configured by [init].
+     * Sets a text component at the start of the result, including an empty result.
      *
      * @throws IllegalStateException when the prefix is already set in this block.
      */
@@ -54,14 +56,14 @@ public interface JoinScope {
     )
 
     /**
-     * Sets the component prepended to the joined result.
+     * Sets [component] at the start of the result, including an empty result.
      *
      * @throws IllegalStateException when the prefix is already set in this block.
      */
     public fun <T : ComponentLike> prefix(component: T)
 
     /**
-     * Sets the component appended to the joined result to a text component with [value], configured by [init].
+     * Sets a text component at the end of the result, including an empty result.
      *
      * @throws IllegalStateException when the suffix is already set in this block.
      */
@@ -71,7 +73,7 @@ public interface JoinScope {
     )
 
     /**
-     * Sets the component appended to the joined result.
+     * Sets [component] at the end of the result, including an empty result.
      *
      * @throws IllegalStateException when the suffix is already set in this block.
      */

@@ -4,7 +4,7 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import net.kyori.adventure.sound.Sound
 
 /**
- * Scope-bound [Sound.Source] vals (`master`, `music`, …) for use inside sound blocks.
+ * Provides scope-bound [Sound.Source] values for sound blocks.
  *
  * These values exist only inside this block. [KotventureDslMarker] prevents nested scopes from seeing them. Use these
  * values instead of importing the Adventure enum to keep call sites self-contained.

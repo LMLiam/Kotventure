@@ -1,6 +1,6 @@
 package io.github.lmliam.kotventure.core.selector
 
-/** The mutable builder behind one `scores { ... }` block, keyed in declaration order. */
+/** Collects one ordered scores block and rejects duplicate objectives. */
 internal class SelectorScoresBuilder : SelectorScoresScope {
     val scores: Map<String, SelectorIntRange>
         field = mutableMapOf()

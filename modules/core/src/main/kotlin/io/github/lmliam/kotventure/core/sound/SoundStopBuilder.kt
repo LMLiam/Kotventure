@@ -28,7 +28,7 @@ internal class SoundStopBuilder : SoundStopScope {
     }
 
     internal fun build(): SoundStop {
-        // once()-delegated slots never smart-cast; locals do.
+        // Local copies keep the factory selection stable.
         val named = named
         val source = source
         return when {

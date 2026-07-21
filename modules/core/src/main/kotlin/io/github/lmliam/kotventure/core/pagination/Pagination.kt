@@ -6,9 +6,9 @@ import io.github.lmliam.kotventure.core.text.join
 import net.kyori.adventure.text.Component
 
 /**
- * A paginated view over pre-rendered items, produced by [paginate].
+ * An immutable paginated view of pre-rendered item components.
  *
- * Pages contain their own navigation. [page] returns a chat-ready [Component] with previous and next buttons. Their
+ * [page] returns a chat-ready [Component] with previous and next buttons. Their
  * server-side click callbacks render the target page and send it to the
  * [audience][net.kyori.adventure.audience.Audience] that selected the button. No platform configuration is necessary.
  *
@@ -28,9 +28,10 @@ public class Pagination internal constructor(
         if (items.isEmpty()) 1 else (items.size + itemsPerPage - 1) / itemsPerPage
 
     /**
-     * Renders [page] as one component. It contains the optional header, one line for each item, and the navigation row.
+     * Creates one component for page number [page]. It contains the optional header, one line per item, and the
+     * navigation row.
      * The first page has no previous button, and the last page has no next button. The row omits the page-position
-     * indicator when it is hidden.
+     * indicator when it is hidden. Each call creates new click callbacks with fresh use and lifetime limits.
      *
      * @throws IllegalArgumentException when [page] is outside `1..pageCount`.
      */

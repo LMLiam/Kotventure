@@ -10,8 +10,7 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 /**
- * Matches an entity selector that renders as [expected] canonical selector source. Combine with
- * `and`/`or` or negate with `shouldNot`.
+ * Returns a matcher that accepts a selector with the canonical source [expected].
  */
 public fun renderAs(expected: String): Matcher<EntitySelector> =
     Matcher { selector ->
@@ -24,7 +23,10 @@ public fun renderAs(expected: String): Matcher<EntitySelector> =
     }
 
 /**
- * Asserts that this selector renders as [expected] canonical selector source.
+ * Verifies that this selector has the canonical source [expected].
+ *
+ * @return this selector, for chained assertions.
+ * @throws AssertionError when the rendered source differs from [expected].
  */
 public infix fun EntitySelector.shouldRenderAs(expected: String): EntitySelector =
     apply {
@@ -32,12 +34,19 @@ public infix fun EntitySelector.shouldRenderAs(expected: String): EntitySelector
     }
 
 /**
- * Asserts that this string parses as an entity selector and renders back to itself unchanged.
+ * Verifies that the receiver is canonical entity-selector source.
+ *
+ * @return the parsed selector.
+ * @throws EntitySelectorParseException when the receiver is not a valid selector.
+ * @throws AssertionError when the parsed selector has different canonical source.
  */
 public fun String.shouldBeCanonicalSelector(): EntitySelector = parseSelector(this) shouldRenderAs this
 
 /**
- * Asserts that parsing this string followed by [remainder] fails exactly at their boundary.
+ * Verifies that parsing the receiver followed by [remainder] fails at their boundary.
+ *
+ * @return the parse exception for additional assertions.
+ * @throws AssertionError when parsing succeeds or fails at a different offset.
  */
 public infix fun String.shouldFailToParseAt(remainder: String): EntitySelectorParseException {
     val parseFailure =

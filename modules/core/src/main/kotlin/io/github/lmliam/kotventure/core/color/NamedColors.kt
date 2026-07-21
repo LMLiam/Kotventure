@@ -83,12 +83,12 @@ public val yellow: NamedTextColor = NamedTextColor.YELLOW
 public val white: NamedTextColor = NamedTextColor.WHITE
 
 /**
- * Finds a standard Adventure named colour by its exact Adventure name, such as `dark_blue`.
+ * Returns the Adventure named colour with exact lowercase [name], or `null` when it does not exist.
  */
 public fun namedColor(name: String): NamedTextColor? = NamedTextColor.NAMES.value(name)
 
 /**
- * Finds a standard Adventure named colour by its exact Adventure name.
+ * Returns the Adventure named colour with exact lowercase [name].
  *
  * @throws NoSuchElementException if [name] is unknown.
  */

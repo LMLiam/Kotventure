@@ -52,5 +52,4 @@ internal fun systemMessageSample() {
     }
 }
 
-/** Stand-in for a platform source such as Paper's chat event or signed-message command argument. */
 private fun signedMessageFromPlatform(): SignedMessage = systemMessage("hi there")

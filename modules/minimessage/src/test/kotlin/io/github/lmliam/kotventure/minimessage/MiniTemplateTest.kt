@@ -20,30 +20,28 @@ import io.kotest.matchers.shouldBe
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 
-// Fixtures declared at file scope so they exercise the object-init path and are shared across tests.
-
 private object WelcomeTemplate : MiniTemplate("<gold>Welcome <player>, <count> new messages</gold>") {
     val player by placeholder<Component>()
     val count by placeholder<Int>()
 }
 
-/** Declares an "unused" placeholder absent from the markup, making the definition invalid. */
+/** Declares an invalid placeholder that the markup does not use. */
 private object SparseTemplate : MiniTemplate("<gold>Hello <name></gold>") {
     val name by placeholder<String>()
     val unused by placeholder<Int>()
 }
 
-/** Declares a "player" placeholder of a different type than [WelcomeTemplate]. */
+/** Declares `player` with a different type from [WelcomeTemplate]. */
 private object AltTemplate : MiniTemplate("<red>Alt <player>") {
     val player by placeholder<String>()
 }
 
-/** Declares a "player" descriptor structurally equal to [WelcomeTemplate]'s, but a distinct object. */
+/** Declares a distinct `player` descriptor with the same type as [WelcomeTemplate]. */
 private object SameTypeAltTemplate : MiniTemplate("<red>Alt <player>") {
     val player by placeholder<Component>()
 }
 
-/** Tag name differs from the property name — explicit-name bridge for legacy/interop markup. */
+/** Uses an explicit tag name that differs from the property name. */
 private object RenamedTagTemplate : MiniTemplate("<gold>Hi <user></gold>") {
     val displayName = placeholder<String>("user")
 }
@@ -206,8 +204,7 @@ class MiniTemplateTest :
                 }
 
                 it("rejects calling placeholder() inside the render lambda") {
-                    // placeholder() is protected, so user code at the render site cannot declare new placeholders
-                    // even though the template type is a context receiver.
+                    // A render block cannot access the protected placeholder factory.
                     assertDoesNotCompile(
                         fileName = "TemplatePlaceholderAtRenderSite.kt",
                         source =

@@ -4,19 +4,24 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import net.kyori.adventure.text.ComponentLike
 
 /**
- * Configures a single-option (radio) dialog input. The label and at least one option are required.
+ * Configures a single-choice dialog input.
+ *
+ * You must set [label] and add at least one option. Option identifiers must be unique, and only one
+ * option can be the default.
  */
 @KotventureDslMarker
 public interface SingleOptionInputScope {
     /**
-     * Builds the required input label — text and visibility — from a [LabelScope] block.
+     * Builds the required input label and configures its visibility.
      *
      * @throws IllegalStateException when the label is already set in this block.
      */
     public fun label(init: LabelScope.() -> Unit): Unit
 
     /**
-     * Sets the required input label. Visibility uses Paper's default. Use the block overload to set visibility.
+     * Sets the required input label.
+     *
+     * Paper uses its default visibility. Use the block overload to set the visibility.
      *
      * @throws IllegalStateException when the label is already set in this block.
      */
@@ -31,10 +36,12 @@ public interface SingleOptionInputScope {
     public fun width(value: Int): Unit
 
     /**
-     * Declares the input's options with [init]. Options accumulate in order.
+     * Adds options configured by [init].
      *
-     * @throws IllegalStateException when no option is declared, an id repeats, or more than one
-     *   option is marked default.
+     * Multiple calls add options in call order. Validation occurs after the input block completes.
+     *
+     * The completed input fails if it has no options, duplicate identifiers, or multiple default
+     * options.
      */
     public fun options(init: OptionsScope.() -> Unit): Unit
 }

@@ -10,9 +10,9 @@ For local development commands, see [CONTRIBUTING.md](../.github/CONTRIBUTING.md
 
 | Workflow | File | Triggers | Purpose |
 |----------|------|----------|---------|
-| **CI** | `ci.yml` | PR, push, `merge_group`, weekly schedule, `workflow_dispatch` | Gate, path filter, parallel lint, build, and analysis; always reports the required status check |
+| **CI** | `ci.yml` | PR, push, `merge_group`, weekly schedule, `workflow_dispatch` | Gate, path filter, parallel lint, build, and analysis. Always reports the required status check |
 | **PR** | `pr.yml` | `pull_request_target` | Title + commit validation, area labels |
-| **Release** | `release.yml` | push `master` | Opens or updates release PRs; creates tags and releases after merge |
+| **Release** | `release.yml` | push `master` | Opens or updates release PRs. Creates tags and releases after merge |
 | **OpenSSF Scorecard** | `scorecard.yml` | weekly schedule, `branch_protection_rule`, `workflow_dispatch` | Supply-chain scorecard + SARIF |
 
 ## CI pipeline tiers
@@ -27,7 +27,7 @@ CI
 ├─ Tier 1: Core (parallel, fast feedback) ─────────────────────────
 │   ├─ Lint              (declaration check + spotlessCheck + ktlintCheck)
 │   └─ Build             (full multi-project build + Dokka + Kover + Build Scan)
-│       └─ PR feedback   (one metrics comment: coverage Δ + JAR sizes; non-gating)
+│       └─ PR feedback   (one non-gating metrics comment: coverage Δ + JAR sizes)
 │
 ├─ Tier 2: Deep Analysis (after Tier 1 passes) ────────────────────
 │   ├─ CodeQL            (actions + java-kotlin matrix)
@@ -159,10 +159,10 @@ For an occasional diagnostic scan, give `build-scan: true` to `gradle-job`. The 
 | Surface | Behaviour |
 |---------|-----------|
 | Default workflow permissions | `contents: read` |
-| Build job | `checks: write` + `contents: read`; cannot write to pull requests; clears `GITHUB_TOKEN` for Gradle |
-| PR feedback job | `actions: read` + `pull-requests: write` + `contents: read`; posts one metrics comment; uses the cache or artefacts before a base JAR-only build; clears `GITHUB_TOKEN` for Gradle |
-| Build scans | Off by default; enable with `build-scan: true` |
-| Dokka preview artefact | Contains untrusted HTML from the pull request; retain for 14 days; do not publish as Pages |
+| Build job | Uses `checks: write` and `contents: read`. Cannot write to pull requests. Clears `GITHUB_TOKEN` for Gradle |
+| PR feedback job | Uses `actions: read`, `pull-requests: write`, and `contents: read`. Posts one metrics comment. Uses the cache or artefacts before a base JAR-only build. Clears `GITHUB_TOKEN` for Gradle |
+| Build scans | Off by default. Enable with `build-scan: true` |
+| Dokka preview artefact | Contains untrusted HTML from the pull request. Retain for 14 days. Do not publish as Pages |
 
 ## PR workflow jobs
 
@@ -179,10 +179,10 @@ The Title and Commits jobs are required status checks.
 
 | Action | Path | Used by |
 |--------|------|---------|
-| **gradle-job** | `.github/actions/gradle-job` | CI (Lint, Build) — JDK/Gradle setup + run tasks + Build Scan + job summary |
-| **setup-jdk-gradle** | `.github/actions/setup-jdk-gradle` | gradle-job, Vanilla, CodeQL, PR feedback fallback — JDK + Gradle caches + scan TOS |
-| **publish-junit-report** | `.github/actions/publish-junit-report` | CI (Build, Vanilla) — JUnit XML → Checks annotations |
-| **pr-metrics-comment** | `.github/actions/pr-metrics-comment` | CI (PR feedback) — single coverage + JAR size comment |
+| **gradle-job** | `.github/actions/gradle-job` | CI (Lint, Build): JDK and Gradle setup, tasks, Build Scan, and job summary |
+| **setup-jdk-gradle** | `.github/actions/setup-jdk-gradle` | gradle-job, Vanilla, CodeQL, PR feedback fallback: JDK, Gradle caches, and scan TOS |
+| **publish-junit-report** | `.github/actions/publish-junit-report` | CI (Build, Vanilla): JUnit XML to Checks annotations |
+| **pr-metrics-comment** | `.github/actions/pr-metrics-comment` | CI (PR feedback): one coverage and JAR size comment |
 
 Before Spotless and ktlint, Lint starts two additional checks. The declaration script permits one top-level type in
 each main-source file. The `pr-metrics-comment` tests use `node --test`.
@@ -210,8 +210,8 @@ new composite actions without a configuration change.
 
 | Ecosystem | Grouping | Open PR limit |
 |-----------|----------|---------------|
-| Gradle (`/`) | Minor + patch grouped (`gradle-minor-patch`); **majors ungrouped** | 10 |
-| GitHub Actions (root + composites) | Minor + patch grouped; majors ungrouped | 10 |
+| Gradle (`/`) | Minor and patch updates grouped (`gradle-minor-patch`). Major updates ungrouped | 10 |
+| GitHub Actions (root + composites) | Minor and patch updates grouped. Major updates ungrouped | 10 |
 
 ## Branch protection (`master`)
 
@@ -234,13 +234,13 @@ Pull requests show many checks. Only the checks in the **Master** ruleset block 
 
 | Check | Merge gate | Notes |
 |-------|:----------:|-------|
-| **Status** | **Required** | Aggregates lint + build + vanilla + deps; green when skipped (docs-only / release-please) |
+| **Status** | **Required** | Aggregates lint, build, vanilla, and dependencies. Green when skipped for docs-only or release-please changes |
 | **Title** | **Required** | Conventional PR title (from `pr.yml`) |
 | **Commits** | **Required** | Conventional commit subjects (from `pr.yml`) |
 | **Dependencies** | **Required** | Dependency review |
 | Lint / Build | No | Under the Status aggregator |
-| PR feedback | No | Metrics comment only; not part of Status |
-| Vanilla conformance | No | Under the Status aggregator; path-filtered |
+| PR feedback | No | Metrics comment only. Not part of Status |
+| Vanilla conformance | No | Under the Status aggregator. Uses a path filter |
 | Qodana / QDJVM | No* | QDJVM code-scanning alerts are ruleset-gated |
 | CodeQL | No | SARIF to code scanning |
 | Scorecard | No | Schedule / dispatch |
@@ -252,20 +252,20 @@ Pull requests show many checks. Only the checks in the **Master** ruleset block 
 
 | Mechanism | Where |
 |-----------|--------|
-| Configuration cache + local build cache | `gradle.properties`; CI restores via `setup-gradle` |
+| Configuration cache + local build cache | Configured in `gradle.properties`. CI restores it with `setup-gradle` |
 | Dependency / wrapper caches | `setup-gradle` defaults in `.github/actions/setup-jdk-gradle` |
-| Minecraft conformance fixtures | `actions/cache`; key derived from `targetMinecraftVersion` and `serverBundleSha1` |
-| PR metrics baselines | `actions/cache` key `ci-baseline-<sha>` on master push; artifact download fallback; jar rebuild last |
+| Minecraft conformance fixtures | Uses `actions/cache`. The key comes from `targetMinecraftVersion` and `serverBundleSha1` |
+| PR metrics baselines | Uses the `actions/cache` key `ci-baseline-<sha>` on a master push. Downloads an artefact as a fallback. Rebuilds the JAR only as the last option |
 
 ### Artefacts (Build job)
 
-| Artifact | When |
+| Artefact | When |
 |----------|------|
 | Test results / HTML test reports | Always (including failed runs) |
-| Kover coverage report | Always (including failed runs); 14-day retention |
-| Module jars (`module-jars`) | Always when present; used as PR head metrics + base download fallback |
-| CI metrics (`ci-metrics`) | On successful builds — test counts + duration for the PR comment |
-| Dokka preview | PRs only (on success) — rendered KDoc HTML, 14-day retention; treat as untrusted HTML |
+| Kover coverage report | Always, including failed runs. Retained for 14 days |
+| Module JARs (`module-jars`) | Always when present. Used for PR head metrics and as the base download fallback |
+| CI metrics (`ci-metrics`) | On successful builds. It contains test counts and duration for the PR comment. |
+| Dokka preview | Successful PRs only. Contains rendered KDoc HTML. Retained for 14 days. Treat as untrusted HTML |
 | Full `build/libs` upload | Only on **job failure**, or on **push to `master`** |
 
 ## Re-running CI

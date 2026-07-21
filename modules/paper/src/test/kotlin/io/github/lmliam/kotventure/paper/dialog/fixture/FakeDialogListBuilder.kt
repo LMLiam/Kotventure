@@ -7,7 +7,6 @@ import io.papermc.paper.registry.data.dialog.ActionButton
 import io.papermc.paper.registry.data.dialog.type.DialogListType
 import io.papermc.paper.registry.set.RegistrySet
 
-/** Recording [DialogListType.Builder] whose [build] returns a mockk stub of the captured values. */
 internal class FakeDialogListBuilder(
     private val dialogs: RegistrySet<Dialog>,
 ) : DialogListType.Builder {

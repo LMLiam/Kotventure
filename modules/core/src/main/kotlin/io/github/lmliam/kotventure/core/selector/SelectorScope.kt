@@ -6,19 +6,19 @@ import io.github.lmliam.kotventure.core.text.TextScope
 import net.kyori.adventure.text.ComponentLike
 
 /**
- * Scope for configuring a selector component with a separator, style, and children.
+ * Configures the separator, style, and children of a selector component.
  */
 @KotventureDslMarker
 public interface SelectorScope : ComponentScope {
     /**
-     * Applies [separator] between selected entity names.
+     * Sets the component that separates selected entity names.
      *
      * @throws IllegalStateException when the separator is already set in this block.
      */
     public fun separator(separator: ComponentLike)
 
     /**
-     * Builds and applies an inline text separator between selected entity names.
+     * Builds an inline text component and sets it as the separator between selected entity names.
      *
      * @throws IllegalStateException when the separator is already set in this block.
      */

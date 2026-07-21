@@ -53,15 +53,15 @@ Each package under `io.github.lmliam.kotventure.core` contains one feature:
 |---------------------------------------------------|------------------------------------------------------------------------------------------------|
 | `component`, `text`                               | `component { }`, `text(...) { }`, `emptyComponent()`, `newlineComponent()`, `join`, traversal  |
 | `style`, `color`                                  | `style { }`, `styled`, named colours, `hex`/`rgb`/`hsv`, gradients                             |
-| `event`                                           | `click { }`, `hover { }` — also available inside any style block                               |
+| `event`                                           | `click { }`, `hover { }`. These functions are also available inside any style block.           |
 | `audience`                                        | `audienceOf`, `message`, `chat`, `title`, `sound`, `bossBar`, `book`, `tabList`, `paginate`, … |
 | `bossbar`, `book`, `sound`                        | `bossBar { }` (+ `bossbar.timed`), `book { }`, `sound(key) { }`                                |
-| `pagination`                                      | `paginate(items) { }` — pages with clickable, self-navigating prev/next                        |
+| `pagination`                                      | `paginate(items) { }` makes pages with clickable, self-navigating previous and next buttons.   |
 | `selector`                                        | `allPlayers { }`, `entities { }`, …, strict `parseSelector(...)` bridge                        |
 | `nbt`, `objectcomponent`                          | `nbt { }`, `nbtPath(...)`, block/entity/storage NBT components, `display(...)`                 |
 | `translatable`, `keybind`, `score`, `key`, `uuid` | the remaining component types and value helpers                                                |
 | `theme`                                           | `Theme` base class with `by style { }` properties, explicit `ThemeRegistry`                    |
-| `time`                                            | `ticks`, `Ticker` — the scheduling seam platform adapters implement                            |
+| `time`                                            | `ticks` and `Ticker`. Platform adapters implement this scheduling interface.                   |
 
 ## Docs
 

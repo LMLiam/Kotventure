@@ -13,7 +13,7 @@ internal class BossBarBuilder(
     BossBarAppearanceScope by appearance {
     private var name: Component? by once()
 
-    // Cannot be named `progress`: BossBarAppearanceScope already has `val progress: Overlay`.
+    // BossBarAppearanceScope already uses `progress` for its overlay value.
     private var progressValue: Float? by once { "'progress' is already set." }
 
     override fun name(init: ComponentScope.() -> Unit): Unit = name(component(init))
@@ -23,8 +23,7 @@ internal class BossBarBuilder(
     }
 
     override fun progress(progress: Float) {
-        // Claim the once-slot before range validation so a second call always throws
-        // IllegalStateException
+        // Claim the slot before range validation. A second call then always throws IllegalStateException.
         progressValue = progress
         progress.requireBossBarProgress()
     }

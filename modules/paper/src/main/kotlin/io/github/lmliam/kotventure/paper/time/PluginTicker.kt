@@ -7,49 +7,46 @@ import org.bukkit.entity.Entity
 import org.bukkit.plugin.Plugin
 
 /**
- * Creates a [Ticker] that runs repeating work in this plugin's global tick context.
+ * Returns a [Ticker] for this plugin's global scheduler.
  *
- * Work runs on [Server.getGlobalRegionScheduler]. This is the main thread on Paper and the global region thread on
- * Folia. Thus, the same code supports both platforms.
+ * The action runs on [Server.getGlobalRegionScheduler]. It runs on the main thread on Paper. It
+ * runs on the global region thread on Folia.
  *
- * Paper schedulers operate only on complete game ticks of 50 ms. The ticker rejects other intervals and does not round
- * them. [Ticker.repeating] throws [IllegalArgumentException]
- * unless the interval is a positive whole number of ticks. Valid examples are `1.seconds`, `500.milliseconds`, and
- * `3.ticks`. `75.milliseconds` is invalid.
+ * Paper schedulers use complete game ticks of 50 milliseconds. [Ticker.repeating] accepts only a
+ * positive duration that is an exact number of ticks. It does not round the duration. For example,
+ * `500.milliseconds` is valid and `75.milliseconds` is not valid.
  *
- * Tasks are not bound to the plugin lifecycle beyond what Paper provides: the server cancels
- * them when the plugin disables.
+ * The first run occurs after one interval. Paper cancels remaining tasks when the plugin disables.
  *
  * @sample io.github.lmliam.kotventure.paper.time.tickerSample
  */
 public fun Plugin.ticker(): Ticker = GlobalRegionTicker(this)
 
 /**
- * Creates a [Ticker] that runs repeating work in the region that owns [entity].
+ * Returns a [Ticker] that follows [entity].
  *
- * Work runs on the entity's scheduler ([Entity.getScheduler]) and follows the entity across
- * regions and worlds, with the same behaviour on plain Paper and Folia. The returned ticker
- * keeps the whole-tick interval contract of [Plugin.ticker]: [Ticker.repeating] throws
- * [IllegalArgumentException] unless the interval is a positive whole number of ticks.
+ * The action runs through [Entity.getScheduler] on the region that owns the entity. The scheduler
+ * follows the entity when it moves between regions or worlds.
  *
- * [Ticker.repeating] throws [IllegalStateException] when [entity] is already removed. When Paper removes the entity
- * while a task is scheduled, it retires that task. The server
- * cancels remaining tasks when the plugin disables.
+ * This ticker has the exact whole-tick interval contract of [Plugin.ticker]. The first run occurs
+ * after one interval. Paper stops the task when it retires the entity. Paper also cancels remaining
+ * tasks when the plugin disables.
+ *
+ * [Ticker.repeating] fails if Paper has already retired the entity scheduler.
  *
  * @sample io.github.lmliam.kotventure.paper.time.entityTickerSample
  */
 public fun Plugin.ticker(entity: Entity): Ticker = EntityTicker(this, entity)
 
 /**
- * Creates a [Ticker] that runs repeating work in the region containing [location].
+ * Returns a [Ticker] for the region that contains [location].
  *
- * Work runs on the region scheduler ([Server.getRegionScheduler]) for [location]'s chunk, with
- * the same behaviour on plain Paper and Folia. The returned ticker keeps the whole-tick interval
- * contract of [Plugin.ticker]: [Ticker.repeating] throws [IllegalArgumentException] unless the
- * interval is a positive whole number of ticks.
+ * Each [Ticker.repeating] call reads the current world and chunk from [location]. The scheduled
+ * action then runs through [Server.getRegionScheduler] for that fixed region. The task does not
+ * follow later changes to the location or movement of an entity.
  *
- * Tasks are not bound to the plugin lifecycle beyond what Paper provides: the server cancels
- * them when the plugin disables.
+ * This ticker has the exact whole-tick interval contract of [Plugin.ticker]. The first run occurs
+ * after one interval. Paper cancels remaining tasks when the plugin disables.
  *
  * @sample io.github.lmliam.kotventure.paper.time.locationTickerSample
  */

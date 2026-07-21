@@ -1,10 +1,10 @@
 package io.github.lmliam.kotventure.core.selector
 
 /**
- * Reports the first failure found while parsing an entity selector with [parseSelector].
+ * Reports the first failure that [parseSelector] finds.
  *
- * @property offset zero-based index into the parsed source string at which the failure was detected
- * @property message actionable explanation of the invalid or unsupported syntax
+ * @property offset The zero-based index in the source at which the parser detected the failure.
+ * @property message An explanation of the invalid or unsupported syntax.
  */
 public class EntitySelectorParseException internal constructor(
     public val offset: Int,

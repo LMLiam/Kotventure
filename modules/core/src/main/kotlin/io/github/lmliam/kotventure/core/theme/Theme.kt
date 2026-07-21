@@ -7,11 +7,11 @@ import kotlin.properties.ReadOnlyProperty
 import io.github.lmliam.kotventure.core.style.style as buildStyle
 
 /**
- * Base class for design-system themes declared as Kotlin objects.
+ * Base class for a design-system theme declared as a Kotlin object.
  *
  * Declare semantic styles as delegated properties. The compiler then checks references such as `Brand.header`. The
  * property names also become keys for dynamic [ThemeProvider.style] lookup. The object records styles in declaration
- * order. Thus, declare palette properties before the styles that use them.
+ * order. Declare a palette property before a style that uses it.
  *
  * @sample io.github.lmliam.kotventure.core.theme.themeSample
  *
@@ -42,6 +42,7 @@ public abstract class Theme(
      * Declares a semantic style property whose name doubles as its dynamic lookup key.
      *
      * @throws IllegalArgumentException when the key is already declared by this theme.
+     * @throws IllegalStateException when [init] assigns the same style attribute or decoration more than once.
      */
     protected fun style(init: StyleScope.() -> Unit): PropertyDelegateProvider<Theme, ReadOnlyProperty<Theme, Style>> =
         PropertyDelegateProvider { theme, property ->

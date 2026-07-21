@@ -5,7 +5,9 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import net.kyori.adventure.text.ComponentLike
 
 /**
- * Configures a Boolean dialog input. The label is required. Each other slot is optional.
+ * Configures a Boolean dialog input.
+ *
+ * You must set [label]. Each other setting is optional and can be set one time.
  */
 @KotventureDslMarker
 public interface BooleanInputScope {
@@ -24,14 +26,18 @@ public interface BooleanInputScope {
     public fun <T : ComponentLike> label(component: T): Unit
 
     /**
-     * Sets the default checked state. Called with no argument, sets it to `true`.
+     * Sets the initial checked state.
+     *
+     * The default argument is `true`.
      *
      * @throws IllegalStateException when this slot is already set in this block.
      */
     public fun default(value: Boolean = true): Unit
 
     /**
-     * Sets the strings substituted into command templates for each state, configured by [init].
+     * Sets the command-template values for the checked and clear states.
+     *
+     * Each state is optional. Paper supplies its default value for a state that [init] does not set.
      *
      * @throws IllegalStateException when the values are already configured in this block.
      */

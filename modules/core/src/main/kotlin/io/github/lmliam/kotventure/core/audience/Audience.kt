@@ -10,7 +10,10 @@ import net.kyori.adventure.audience.Audience
 public fun emptyAudience(): Audience = Audience.empty()
 
 /**
- * Creates a forwarding [Audience] that relays every operation to each of [members].
+ * Creates an [Audience] that forwards each operation to every entry in [members].
+ *
+ * An empty argument list returns an empty audience. The function does not send an operation when it creates the
+ * forwarding audience.
  *
  * @sample io.github.lmliam.kotventure.core.audience.audienceOfSample
  */

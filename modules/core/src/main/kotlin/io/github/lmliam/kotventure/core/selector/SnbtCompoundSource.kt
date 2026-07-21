@@ -4,23 +4,24 @@ import io.github.lmliam.kotventure.core.selector.parsing.SelectorReader
 import io.github.lmliam.kotventure.core.selector.parsing.validateSnbtCompound
 
 /**
- * Validated compound SNBT source.
+ * The source text of one validated SNBT compound.
  *
- * Construct with [parse]. The direct constructor is module-internal: it wraps source a caller has
- * already validated or rendered as one complete compound.
+ * Use [parse] to create a value from external text. The value keeps the original spelling and whitespace. It is
+ * immutable.
  *
- * @property value validated source beginning with `{` and ending with `}`
+ * @property value The validated source, including the opening and closing braces.
  */
 @JvmInline
 public value class SnbtCompoundSource internal constructor(
     public val value: String,
 ) {
-    /** Factory for validated compound SNBT source. */
+    /** Creates validated compound SNBT source. */
     public companion object {
         /**
-         * Validates [source] as one complete SNBT compound.
+         * Validates and returns [source] as one complete SNBT compound.
          *
-         * @throws EntitySelectorParseException if [source] is not a compound or has trailing content
+         * @throws EntitySelectorParseException when [source] is not one complete compound. The exception offset is
+         * the position at which validation failed.
          */
         public fun parse(source: String): SnbtCompoundSource =
             SelectorReader(source).run {
@@ -30,6 +31,6 @@ public value class SnbtCompoundSource internal constructor(
             }
     }
 
-    /** The raw SNBT source text. */
+    /** Returns the original SNBT source text. */
     public override fun toString(): String = value
 }

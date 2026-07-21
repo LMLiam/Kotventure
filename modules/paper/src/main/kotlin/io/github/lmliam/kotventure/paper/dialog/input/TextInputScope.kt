@@ -4,19 +4,23 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import net.kyori.adventure.text.ComponentLike
 
 /**
- * Configures a text dialog input. The label is required. Each other slot is optional.
+ * Configures a text dialog input.
+ *
+ * You must set [label]. Each other setting is optional and can be set one time.
  */
 @KotventureDslMarker
 public interface TextInputScope {
     /**
-     * Builds the required input label — text and visibility — from a [LabelScope] block.
+     * Builds the required input label and configures its visibility.
      *
      * @throws IllegalStateException when the label is already set in this block.
      */
     public fun label(init: LabelScope.() -> Unit): Unit
 
     /**
-     * Sets the required input label. Visibility uses Paper's default. Use the block overload to set visibility.
+     * Sets the required input label.
+     *
+     * Paper uses its default visibility. Use the block overload to set the visibility.
      *
      * @throws IllegalStateException when the label is already set in this block.
      */
@@ -46,7 +50,7 @@ public interface TextInputScope {
     public fun maxLength(value: Int): Unit
 
     /**
-     * Enables multi-line input configured by [init].
+     * Enables multi-line input and configures it with [init].
      *
      * @throws IllegalStateException when multiline is already configured in this block.
      */

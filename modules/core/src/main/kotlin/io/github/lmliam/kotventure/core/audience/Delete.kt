@@ -19,7 +19,9 @@ public fun Audience.delete(signed: SignedMessage) {
 }
 
 /**
- * Requests deletion of the previously sent message with [signature] from this [Audience]'s chat.
+ * Requests deletion of the message identified by [signature] from this [Audience]'s chat.
+ *
+ * This overload does not verify that the audience previously received a message with this signature.
  *
  * @sample io.github.lmliam.kotventure.core.audience.deleteBySignatureSample
  */

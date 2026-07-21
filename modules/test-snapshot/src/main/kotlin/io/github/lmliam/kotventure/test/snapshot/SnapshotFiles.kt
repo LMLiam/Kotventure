@@ -70,7 +70,8 @@ internal fun sourceSnapshotDir(resource: Path): Path? {
     val count = resource.nameCount
     if (count <= BUILD_RESOURCE_SEGMENTS.size) return null
 
-    val start = count - 1 - BUILD_RESOURCE_SEGMENTS.size // index of "build"; the file occupies the last segment
+    // The file occupies the last segment. The build directory starts before the resource segments.
+    val start = count - 1 - BUILD_RESOURCE_SEGMENTS.size
     val actual = BUILD_RESOURCE_SEGMENTS.indices.map { resource.getName(start + it).toString() }
     if (actual != BUILD_RESOURCE_SEGMENTS) return null
 

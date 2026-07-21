@@ -3,6 +3,6 @@ package io.github.lmliam.kotventure.core.event
 import net.kyori.adventure.text.event.DataComponentValue
 
 /**
- * Returns a [DataComponentValue.Removed] marker indicating this data component should be removed.
+ * Returns the Adventure marker that removes a data component from an item hover payload.
  */
 public fun removed(): DataComponentValue.Removed = DataComponentValue.removed()

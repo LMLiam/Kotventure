@@ -20,6 +20,6 @@ Closes #<issue-number>
 
 ## Checklist
 
-- [ ] Linked related issue
-- [ ] Updated README and relevant `/docs` pages
-- [ ] Verified examples build and run
+- [ ] Link the related issue
+- [ ] Update the README and applicable `/docs` pages
+- [ ] Verify that examples build and run

@@ -6,8 +6,7 @@ import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.text.ComponentLike
 
 /**
- * Scope for configuring a screen title shown via [Audience.title]: the main [title] line, an
- * optional [subtitle], and optional fade [times].
+ * Configures the content and display times of a screen title for [Audience.title].
  *
  * At least one of [title] or [subtitle] must be set before the block ends.
  */

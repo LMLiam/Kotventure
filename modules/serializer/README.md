@@ -2,7 +2,7 @@
 
 This module provides extension functions for Adventure serialisers. One call converts a `Component` to or from a wire
 format.
-You do not need a serializer singleton at the call site.
+You do not need a serialiser singleton at the call site.
 
 ## Getting it
 
@@ -35,4 +35,4 @@ val imported = "&6Welcome".asLegacyAmpersandComponent()
 | MiniMessage  | `toMiniMessage()`     | `mini(...)` in [`kotventure-minimessage`](../minimessage/README.md) |
 
 Plain-text conversion works in one direction because it removes formatting. The `minimessage` module contains MiniMessage parsing.
-Thus, this module remains a small serializer adapter.
+Thus, this module remains a small serialiser adapter.

@@ -6,38 +6,53 @@ import io.github.lmliam.kotventure.minimessage.placeholder.MiniMessageResolverSc
 import net.kyori.adventure.text.Component
 
 /**
- * Parses MiniMessage markup into a component with Adventure's default parser.
+ * Deserialises [input] with Adventure's default MiniMessage parser.
+ *
+ * The default parser is lenient and uses the standard Adventure tags. This function creates a component. It does not
+ * send it to an audience. Use [validate] first when the input must have strict tag closure.
  *
  * @sample io.github.lmliam.kotventure.minimessage.miniSample
  *
- * @param input the MiniMessage string to parse.
+ * @param input The MiniMessage markup to deserialise.
+ * @throws net.kyori.adventure.text.minimessage.ParsingException when Adventure cannot deserialise [input].
  */
 public fun mini(input: String): Component = parseMiniMessage(input)
 
 /**
- * Converts MiniMessage [input] into Kotventure component DSL source code. It converts text, structured components, NBT,
- * sprites, and player-head objects. Structured components include translatable, keybind, score, and selector
- * components. The output keeps colours, shadow colours, decorations, fonts, insertions, and click and hover events.
+ * Converts MiniMessage [input] to Kotlin source that uses the Kotventure component DSL.
  *
- * Before conversion, the parser expands `<gradient>` into one coloured child for each character. Therefore, the output
- * contains those children and not a `gradient` call. The rendered result is accurate, but the output does not reproduce
- * the `<gradient>` markup.
+ * The function first deserialises [input] with Adventure's lenient default parser. It then writes one deterministic
+ * `component { }` expression. The output represents text, translatable, keybind, score, selector, NBT, sprite, and
+ * player-head components. It also represents supported style, click-event, hover-event, and child data.
  *
- * The strict `core` parser processes selector patterns. The output uses typed selector factories and canonicalised
- * arguments. An invalid pattern causes an exception that gives the error offset.
+ * Deserialisation expands a gradient to coloured component children. The output therefore represents those children
+ * and does not reconstruct the source `gradient` call. The generated DSL has equivalent component data, but it is not
+ * a lexical round trip of [input]. SNBT compound keys are sorted when the converter emits typed NBT blocks.
  *
- * @throws IllegalArgumentException when [input] resolves to a shape with no DSL surface, such as a player head with no
- * single skin source, profile properties, or unsupported click or data-component payloads.
+ * Selector patterns use the strict core selector parser. The output uses typed selector factories and canonical
+ * arguments.
+ *
+ * @throws IllegalArgumentException when a selector pattern is invalid or the component tree contains data that the DSL
+ * cannot represent without loss. Examples include unsupported click payloads, unsupported data-component payloads,
+ * player-head profile properties, and a player head without exactly one skin source.
+ * @throws net.kyori.adventure.text.minimessage.ParsingException when Adventure cannot deserialise [input].
  */
 public fun miniToDsl(input: String): String = MiniMessageToDslWriter.write(mini(input))
 
 /**
- * Parses MiniMessage markup into a component, resolving custom placeholder tags configured in [init].
+ * Deserialises [input] with the custom placeholder resolvers from [init].
+ *
+ * The parser also supports the standard Adventure tags and remains lenient. Parsed string replacements are
+ * MiniMessage markup. Unparsed strings and typed scalar values are literal text. Component values are inserted as
+ * components.
  *
  * @sample io.github.lmliam.kotventure.minimessage.miniWithPlaceholdersSample
  *
- * @param input the MiniMessage string to parse.
- * @param init registers the placeholder resolvers the markup may reference.
+ * @param input The MiniMessage markup to deserialise.
+ * @param init Declares the placeholder resolvers that the markup can use.
+ * @throws IllegalArgumentException when [init] contains an invalid or duplicate resolver name.
+ * @throws net.kyori.adventure.text.minimessage.ParsingException when Adventure cannot deserialise [input] or a parsed
+ * replacement.
  */
 public fun mini(
     input: String,

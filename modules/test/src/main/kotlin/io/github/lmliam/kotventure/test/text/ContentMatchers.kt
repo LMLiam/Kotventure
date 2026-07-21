@@ -8,21 +8,15 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
 
 /**
- * Matches a component whose flattened text content contains [substring].
+ * Returns a matcher that searches the flattened text content for [substring].
  *
- * Flattened text is the concatenation of every [TextComponent.content] in this tree
- * (self and descendants, depth-first — including non-leaf text nodes that also have
- * children). Non-text nodes (translatable, keybind, score, selector, NBT, object, …)
- * contribute **no** characters — only nested [TextComponent] nodes do. This is
- * intentional structure-aware matching, not a client plain-text render.
+ * Flattened text contains [TextComponent.content] from the root and descendants in depth-first
+ * order. It includes text components that have children. Non-text components do not contribute
+ * text, but their text-component descendants do contribute text.
  *
- * Compare these matchers with Adventure's plain-text serialiser
- * (`net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer`) and
- * and Kotventure's `toPlainText()` wrapper. Those operations use serialisers and can emit keys, scores, or other
- * resolved forms. Use these matchers to examine the DSL or builder payload. Use plain-text serialisation to examine
- * what a player reads after complete serialisation.
- *
- * Combine with `and`/`or` or negate with `shouldNot`.
+ * This matcher examines component structure. It does not use Adventure's plain-text serialiser.
+ * Thus, it does not emit translation keys, score names, or other representations of non-text
+ * components.
  */
 public fun containText(substring: String): Matcher<Component> =
     Matcher { value ->
@@ -35,10 +29,10 @@ public fun containText(substring: String): Matcher<Component> =
     }
 
 /**
- * Matches a component whose flattened text content equals [text] exactly.
+ * Returns a matcher that compares flattened text content with [text].
  *
- * Uses the same flattening rules as [containText]. Each [TextComponent] node supplies its content, not only leaf nodes.
- * This matcher compares the exact concatenated value and not Adventure plain-text serialiser output.
+ * This matcher uses the flattening rules of [containText]. It compares the exact concatenated
+ * value and does not use Adventure's plain-text serialiser.
  */
 public fun haveContent(text: String): Matcher<Component> =
     Matcher { value ->
@@ -51,8 +45,10 @@ public fun haveContent(text: String): Matcher<Component> =
     }
 
 /**
- * Asserts that this component tree contains [expected] in its flattened
- * [TextComponent] content (see [containText]).
+ * Verifies that the flattened text of this component tree contains [expected].
+ *
+ * @return this component, for chained assertions.
+ * @throws AssertionError when the flattened text does not contain [expected].
  */
 public infix fun Component.shouldContainText(expected: String): Component =
     apply {
@@ -60,8 +56,10 @@ public infix fun Component.shouldContainText(expected: String): Component =
     }
 
 /**
- * Asserts that this component tree does NOT contain [expected] in its flattened
- * [TextComponent] content (see [containText]).
+ * Verifies that the flattened text of this component tree does not contain [expected].
+ *
+ * @return this component, for chained assertions.
+ * @throws AssertionError when the flattened text contains [expected].
  */
 public infix fun Component.shouldNotContainText(expected: String): Component =
     apply {
@@ -69,8 +67,10 @@ public infix fun Component.shouldNotContainText(expected: String): Component =
     }
 
 /**
- * Asserts that this component's flattened [TextComponent] content equals
- * [expected] exactly (see [haveContent]).
+ * Verifies that the flattened text of this component tree equals [expected].
+ *
+ * @return this component, for chained assertions.
+ * @throws AssertionError when the flattened text differs from [expected].
  */
 public infix fun Component.shouldHaveContent(expected: String): Component =
     apply {
@@ -78,8 +78,10 @@ public infix fun Component.shouldHaveContent(expected: String): Component =
     }
 
 /**
- * Asserts that this component's flattened [TextComponent] content does NOT
- * equal [expected] (see [haveContent]).
+ * Verifies that the flattened text of this component tree differs from [expected].
+ *
+ * @return this component, for chained assertions.
+ * @throws AssertionError when the flattened text equals [expected].
  */
 public infix fun Component.shouldNotHaveContent(expected: String): Component =
     apply {
@@ -87,8 +89,7 @@ public infix fun Component.shouldNotHaveContent(expected: String): Component =
     }
 
 /**
- * Concatenates [TextComponent.content] for every [TextComponent] in this tree
- * in depth-first order. The function skips non-[TextComponent] nodes and does not serialise them as plain text.
+ * Concatenates the content of all text components in depth-first order.
  */
 private fun Component.flattenedText(): String =
     buildString {

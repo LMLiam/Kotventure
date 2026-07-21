@@ -5,11 +5,13 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.`object`.ObjectContents
 
 /**
- * Builds an object [Component] — an inline rendered object such as a player head or atlas sprite.
+ * Creates an object [Component], such as a player head or an atlas sprite.
+ *
+ * This function only creates the component. It does not render a fallback or send the component to an audience.
  *
  * @sample io.github.lmliam.kotventure.core.objectcomponent.displaySample
  *
- * @param contents what to render, built with the object-contents helpers (`sprite(...)`, `head(...)`).
+ * @param contents the object to render, for example contents from [sprite] or [head].
  * @param init sets a fallback, styles the component, and appends any children.
  */
 public fun display(
@@ -23,9 +25,9 @@ internal fun buildObjectComponent(
 ): Component = ObjectComponentBuilder(contents).apply(init).build()
 
 /**
- * Appends an object child to this scope, for use inside a `component { }` or other component block.
+ * Creates an object component and appends it as the next child of this scope.
  *
- * @param contents what to render, built with the object-contents helpers (`sprite(...)`, `head(...)`).
+ * @param contents the object to render, for example contents from [sprite] or [head].
  * @param init sets a fallback, styles the child, and appends any of its own children.
  */
 public fun ComponentScope.display(

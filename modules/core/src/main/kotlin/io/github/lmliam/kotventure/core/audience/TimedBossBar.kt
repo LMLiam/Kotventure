@@ -8,7 +8,7 @@ import net.kyori.adventure.audience.Audience
 import kotlin.time.Duration
 
 /**
- * Builds a lifecycle-managed [TimedBossBar] that interpolates progress over [over], shows it on
+ * Creates a lifecycle-managed [TimedBossBar] that interpolates progress over [over], shows it on
  * this [Audience], and schedules updates on the contextual [Ticker].
  *
  * Provide a ticker once with `context(ticker) { … }` (platform adapters in production,
@@ -33,8 +33,7 @@ public fun Audience.bossBar(
  * Shows the managed [bar] to this [Audience] and tracks this audience for auto-hide on
  * completion or cancel.
  *
- * Uses the same verb as the static [show] overload. It is equivalent to [TimedBossBar.show], including the no-op after
- * the bar finishes or is cancelled.
+ * This function delegates to [TimedBossBar.show]. It does nothing after the bar finishes or is cancelled.
  *
  * @sample io.github.lmliam.kotventure.core.audience.timedBossBarSample
  */
@@ -43,7 +42,7 @@ public fun Audience.show(bar: TimedBossBar): Unit = bar.show(this)
 /**
  * Hides the managed [bar] from this [Audience] and stops tracking this audience for auto-hide.
  *
- * Uses the same verb as the static [hide] overload. It is equivalent to [TimedBossBar.hide].
+ * This function delegates to [TimedBossBar.hide].
  *
  * @sample io.github.lmliam.kotventure.core.audience.timedBossBarSample
  */

@@ -1,6 +1,6 @@
 package io.github.lmliam.kotventure.core.selector
 
-/** The mutable builder behind one advancement's criterion block, keyed in declaration order. */
+/** Collects one ordered criterion block and rejects duplicate names. */
 internal class AdvancementCriteriaBuilder : AdvancementCriteriaScope {
     val criteria: Map<String, Boolean>
         field = mutableMapOf()

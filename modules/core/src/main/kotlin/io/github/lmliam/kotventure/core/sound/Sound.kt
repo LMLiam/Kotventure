@@ -4,9 +4,9 @@ import net.kyori.adventure.key.Key
 import net.kyori.adventure.sound.Sound
 
 /**
- * Builds an Adventure [Sound] from a [SoundScope] block without playing it.
+ * Creates an Adventure [Sound] from [name] and [init] without playing it.
  *
- * Construction only — no side effects. Use this when a sound value is shared, stored, or passed to
+ * Construction has no audience side effects. Use this when a sound value is shared, stored, or passed to
  * a later playback API.
  *
  * @throws IllegalStateException when any slot is set twice.
