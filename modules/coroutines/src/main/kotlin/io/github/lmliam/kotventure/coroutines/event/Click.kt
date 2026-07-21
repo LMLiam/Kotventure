@@ -3,7 +3,6 @@ package io.github.lmliam.kotventure.coroutines.event
 import io.github.lmliam.kotventure.core.event.ClickOptionsScope
 import io.github.lmliam.kotventure.core.event.ClickScope
 import io.github.lmliam.kotventure.core.event.click
-import io.github.lmliam.kotventure.core.event.clickOptions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import net.kyori.adventure.audience.Audience
@@ -31,7 +30,7 @@ public fun ClickScope.click(
     scope: CoroutineScope,
     options: ClickOptionsScope.() -> Unit = {},
     function: suspend (Audience) -> Unit,
-): Unit = click { callback(clickOptions(options), scope.launching(function)) }
+): Unit = click { callback(options, scope.launching(function)) }
 
 /**
  * Applies a click event that runs a suspending [function] in the [CoroutineScope] from the context.
@@ -51,7 +50,7 @@ context(scope: CoroutineScope)
 public fun ClickScope.click(
     options: ClickOptionsScope.() -> Unit = {},
     function: suspend (Audience) -> Unit,
-): Unit = click { callback(clickOptions(options), scope.launching(function)) }
+): Unit = click { callback(options, scope.launching(function)) }
 
 /**
  * Creates a reusable click event that runs a suspending [function] when a player clicks.
@@ -67,4 +66,4 @@ public fun click(
     scope: CoroutineScope,
     options: ClickOptionsScope.() -> Unit = {},
     function: suspend (Audience) -> Unit,
-): ClickEvent<*> = click { callback(clickOptions(options), scope.launching(function)) }
+): ClickEvent<*> = click { callback(options, scope.launching(function)) }
