@@ -49,6 +49,20 @@ class RewardsPlugin : JavaPlugin(), CoroutineScope {
 }
 ```
 
+A function can also declare the requirement with a context parameter. Callers supply the scope implicitly, or bridge
+with `with(pluginScope) { ... }`:
+
+```kotlin
+context(_: CoroutineScope)
+fun offerReward(audience: Audience) {
+    audience.message {
+        text("Claim reward") {
+            click { clicker -> rewards.claim(clicker) }
+        }
+    }
+}
+```
+
 ## Reusable events
 
 The top-level form creates one suspend click event for many components:

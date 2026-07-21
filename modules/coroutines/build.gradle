@@ -1,9 +1,5 @@
 description = 'Coroutine bridges for suspendable interaction with Adventure audiences.'
 
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
-    compilerOptions.freeCompilerArgs.add('-Xcontext-parameters')
-}
-
 dependencies {
     api project(':core')
     api kotventureDependencies."kotlinx-coroutines-core"

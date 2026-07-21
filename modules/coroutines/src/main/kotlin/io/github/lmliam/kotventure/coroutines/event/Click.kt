@@ -79,7 +79,7 @@ public fun ClickScope.click(function: suspend (Audience) -> Unit): Unit =
  *
  * @throws IllegalStateException when the click event is already set in this block.
  * @throws IllegalArgumentException when Adventure rejects [uses] or [lifetime].
- * @sample io.github.lmliam.kotventure.coroutines.event.contextClickSample
+ * @sample io.github.lmliam.kotventure.coroutines.event.contextClickUsesLifetimeSample
  */
 context(scope: CoroutineScope)
 public fun ClickScope.click(
@@ -96,7 +96,7 @@ public fun ClickScope.click(
  * supplies it automatically. This function has the same launch contracts as [click] with an explicit scope parameter.
  *
  * @throws IllegalStateException when the click event is already set in this block.
- * @sample io.github.lmliam.kotventure.coroutines.event.contextClickSample
+ * @sample io.github.lmliam.kotventure.coroutines.event.contextClickOptionsSample
  */
 context(scope: CoroutineScope)
 public fun ClickScope.click(

@@ -61,13 +61,55 @@ internal fun clickOptionsSample() {
     }
 }
 
-internal fun CoroutineScope.contextClickSample() {
+context(_: CoroutineScope)
+private fun offerReward(
+    audience: Audience,
+    rewards: Rewards,
+) {
+    audience.message {
+        text("Claim reward") {
+            click { clicker -> rewards.claim(clicker) }
+        }
+    }
+}
+
+internal fun contextClickSample() {
+    val audience = emptyAudience()
+    val pluginScope = CoroutineScope(Dispatchers.Default)
+    val rewards = Rewards()
+
+    with(pluginScope) {
+        offerReward(audience, rewards)
+    }
+}
+
+context(_: CoroutineScope)
+internal fun contextClickUsesLifetimeSample() {
     val audience = emptyAudience()
     val rewards = Rewards()
 
     audience.message {
         text("Claim reward") {
-            click { clicker -> rewards.claim(clicker) }
+            click(uses = 1, lifetime = 10.minutes) { clicker ->
+                rewards.claim(clicker)
+            }
+        }
+    }
+}
+
+context(_: CoroutineScope)
+internal fun contextClickOptionsSample() {
+    val audience = emptyAudience()
+    val rewards = Rewards()
+    val options =
+        ClickCallback.Options
+            .builder()
+            .uses(1)
+            .build()
+
+    audience.message {
+        text("Claim reward") {
+            click(options) { clicker -> rewards.claim(clicker) }
         }
     }
 }
