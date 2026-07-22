@@ -26,12 +26,12 @@ internal class RecordingTicker(
         delegate.advance(duration)
     }
 
-    override fun once(
+    override fun after(
         delay: Duration,
         action: () -> Unit,
     ): TickerTask {
         delays += delay
-        val task = delegate.once(delay, action)
+        val task = delegate.after(delay, action)
         return object : TickerTask {
             override fun cancel() {
                 cancelRequests++

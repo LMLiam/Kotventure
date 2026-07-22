@@ -13,8 +13,8 @@ import kotlin.time.Duration.Companion.milliseconds
 /**
  * Runs coroutines on [ticker] and always waits for the next opportunity of the ticker.
  *
- * [immediate] gives the variant that runs the work at once when the caller already owns the
- * ticker's thread. Both variants share this delay implementation.
+ * [immediate] gives the variant that runs the work at once when the caller already runs in the
+ * ticker's context. Both variants share this delay implementation.
  */
 @OptIn(InternalCoroutinesApi::class, ExperimentalCoroutinesApi::class)
 internal class TickerDispatcher(
@@ -27,7 +27,7 @@ internal class TickerDispatcher(
         context: CoroutineContext,
         block: Runnable,
     ) {
-        ticker.once { block.run() }
+        ticker.after { block.run() }
     }
 
     override fun scheduleResumeAfterDelay(
@@ -35,7 +35,7 @@ internal class TickerDispatcher(
         continuation: CancellableContinuation<Unit>,
     ) {
         val task =
-            ticker.once(timeMillis.milliseconds) {
+            ticker.after(timeMillis.milliseconds) {
                 with(continuation) { resumeUndispatched(Unit) }
             }
         continuation.invokeOnCancellation { task.cancel() }
@@ -46,7 +46,7 @@ internal class TickerDispatcher(
         block: Runnable,
         context: CoroutineContext,
     ): DisposableHandle {
-        val task = ticker.once(timeMillis.milliseconds) { block.run() }
+        val task = ticker.after(timeMillis.milliseconds) { block.run() }
         return DisposableHandle { task.cancel() }
     }
 

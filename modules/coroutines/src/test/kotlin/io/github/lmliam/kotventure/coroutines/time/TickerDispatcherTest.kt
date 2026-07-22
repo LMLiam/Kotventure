@@ -168,12 +168,12 @@ class TickerDispatcherTest :
                 log.shouldBeEmpty()
             }
 
-            "an immediate dispatch continues in place when the ticker owns the thread" {
+            "an immediate dispatch continues in place in the ticker's context" {
                 val ticker = ManualTicker()
                 val immediate = ticker.asCoroutineDispatcher().immediate
                 val log = mutableListOf<String>()
 
-                ticker.once {
+                ticker.after {
                     log += "before"
                     CoroutineScope(immediate).launch { log += "inside" }
                     log += "after"
@@ -183,7 +183,7 @@ class TickerDispatcherTest :
                 log shouldBe listOf("before", "inside", "after")
             }
 
-            "an immediate dispatch waits when the ticker does not own the thread" {
+            "an immediate dispatch waits outside the ticker's context" {
                 val ticker = ManualTicker()
                 val log = mutableListOf<String>()
 

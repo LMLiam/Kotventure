@@ -11,16 +11,16 @@ import kotlinx.coroutines.MainCoroutineDispatcher
  * global tick context. An entity ticker or a location ticker gives only the region that it follows.
  *
  * The dispatcher also controls `delay`, `withTimeout`, and `withTimeoutOrNull`. It schedules each
- * of them with [Ticker.once], and it cancels the schedule when the coroutine cancels.
+ * of them with [Ticker.after], and it cancels the schedule when the coroutine cancels.
  *
  * This dispatcher always waits for the next opportunity of the ticker, even when the caller is
- * already on the ticker's thread. Use [MainCoroutineDispatcher.immediate] to remove that wait:
+ * already in the ticker's context. Use [MainCoroutineDispatcher.immediate] to remove that wait:
  *
  * ```kotlin
  * val tick = plugin.ticker().asCoroutineDispatcher()
  *
  * launch(tick) { }                  // always starts on the next tick
- * withContext(tick.immediate) { }   // starts now if the caller owns the ticker's thread
+ * withContext(tick.immediate) { }   // starts now if the caller runs in the ticker's context
  * ```
  *
  * The ticker keeps its own delay contract. A tick-based ticker accepts only an exact number of

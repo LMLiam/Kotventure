@@ -42,7 +42,7 @@ internal fun tickerDispatcherAnimationSample(ticker: Ticker) {
 internal suspend fun immediateTickerDispatcherSample(ticker: Ticker) {
     val player = emptyAudience()
 
-    // A caller that already owns the ticker's thread continues without a wait.
+    // A caller already in the ticker's context continues without a wait.
     withContext(ticker.asCoroutineDispatcher().immediate) {
         player.message { text("Welcome back.") }
     }
