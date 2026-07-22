@@ -6,6 +6,7 @@ import io.github.lmliam.kotventure.core.time.ticks
 import io.github.lmliam.kotventure.test.text.shouldHaveContent
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.Called
 import io.mockk.Runs
 import io.mockk.every
@@ -46,9 +47,22 @@ private fun schedulerReturning(task: ScheduledTask): GlobalRegionScheduler {
     return scheduler
 }
 
+private fun onceSchedulerReturning(task: ScheduledTask): GlobalRegionScheduler {
+    val scheduler = mockk<GlobalRegionScheduler>()
+    every { scheduler.run(any<Plugin>(), any<Consumer<ScheduledTask>>()) } returns task
+    every { scheduler.runDelayed(any<Plugin>(), any<Consumer<ScheduledTask>>(), any<Long>()) } returns task
+    return scheduler
+}
+
 private fun rejects(interval: Duration) {
     shouldThrow<IllegalArgumentException> {
         mockk<Plugin>().ticker().repeating(interval) { }
+    }
+}
+
+private fun rejectsOnce(delay: Duration) {
+    shouldThrow<IllegalArgumentException> {
+        mockk<Plugin>().ticker().once(delay) { }
     }
 }
 
@@ -121,5 +135,67 @@ class GlobalRegionTickerTest :
             "rejects a zero interval" { rejects(Duration.ZERO) }
 
             "rejects a negative interval" { rejects((-1).seconds) }
+
+            "schedules a zero delay on the next global tick" {
+                val scheduler = onceSchedulerReturning(mockk())
+                val plugin = pluginWith(serverWith(scheduler))
+
+                plugin.ticker().once { }
+
+                verify { scheduler.run(plugin, any<Consumer<ScheduledTask>>()) }
+                verify(exactly = 0) {
+                    scheduler.runDelayed(any<Plugin>(), any<Consumer<ScheduledTask>>(), any<Long>())
+                }
+            }
+
+            "schedules a positive delay as global region ticks" {
+                val scheduler = onceSchedulerReturning(mockk())
+                val plugin = pluginWith(serverWith(scheduler))
+
+                plugin.ticker().once(3.ticks) { }
+
+                verify { scheduler.runDelayed(plugin, any<Consumer<ScheduledTask>>(), 3L) }
+                verify(exactly = 0) { scheduler.run(any<Plugin>(), any<Consumer<ScheduledTask>>()) }
+            }
+
+            "a one-shot fire sends through the audience DSL" {
+                val consumer = slot<Consumer<ScheduledTask>>()
+                val scheduler = mockk<GlobalRegionScheduler>()
+                every { scheduler.run(any<Plugin>(), capture(consumer)) } returns mockk()
+                val plugin = pluginWith(serverWith(scheduler))
+                val sent = slot<Component>()
+                val player = mockk<Player>()
+                every { player.sendMessage(capture(sent)) } just Runs
+
+                plugin.ticker().once { player.message { text("Meteor landed") } }
+                consumer.captured.accept(mockk())
+
+                sent.captured shouldHaveContent "Meteor landed"
+            }
+
+            "cancel delegates to the one-shot scheduled task on every call" {
+                val scheduledTask = mockk<ScheduledTask>(relaxed = true)
+                val plugin = pluginWith(serverWith(onceSchedulerReturning(scheduledTask)))
+
+                val task = plugin.ticker().once(1.seconds) { }
+                task.cancel()
+                task.cancel()
+
+                verify(exactly = 2) { scheduledTask.cancel() }
+            }
+
+            "rejects a one-shot delay that is not a whole number of ticks" { rejectsOnce(75.milliseconds) }
+
+            "rejects a negative one-shot delay" { rejectsOnce((-1).seconds) }
+
+            "reads thread ownership from the global tick thread" {
+                val server = mockk<Server>()
+                every { server.isGlobalTickThread } returns true
+                val plugin = pluginWith(server)
+
+                plugin.ticker().ownsCurrentThread shouldBe true
+
+                verify { server.isGlobalTickThread }
+            }
         },
     )

@@ -6,6 +6,7 @@ import io.github.lmliam.kotventure.core.time.ticks
 import io.github.lmliam.kotventure.test.text.shouldHaveContent
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.Called
 import io.mockk.Runs
 import io.mockk.every
@@ -16,6 +17,7 @@ import io.mockk.verify
 import io.papermc.paper.threadedregions.scheduler.EntityScheduler
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask
 import net.kyori.adventure.text.Component
+import org.bukkit.Server
 import org.bukkit.entity.Entity
 import org.bukkit.entity.Player
 import org.bukkit.plugin.Plugin
@@ -40,9 +42,24 @@ private fun schedulerReturning(task: ScheduledTask?): EntityScheduler {
     return scheduler
 }
 
+private fun onceSchedulerReturning(task: ScheduledTask?): EntityScheduler {
+    val scheduler = mockk<EntityScheduler>()
+    every { scheduler.run(any<Plugin>(), any<Consumer<ScheduledTask>>(), isNull()) } returns task
+    every {
+        scheduler.runDelayed(any<Plugin>(), any<Consumer<ScheduledTask>>(), isNull(), any<Long>())
+    } returns task
+    return scheduler
+}
+
 private fun rejects(interval: Duration) {
     shouldThrow<IllegalArgumentException> {
         mockk<Plugin>().ticker(mockk<Entity>()).repeating(interval) { }
+    }
+}
+
+private fun rejectsOnce(delay: Duration) {
+    shouldThrow<IllegalArgumentException> {
+        mockk<Plugin>().ticker(mockk<Entity>()).once(delay) { }
     }
 }
 
@@ -131,6 +148,56 @@ class EntityTickerTest :
                 shouldThrow<IllegalStateException> {
                     plugin.ticker(entity).repeating(1.seconds) { }
                 }
+            }
+
+            "schedules a zero delay on the next tick of the entity region" {
+                val scheduler = onceSchedulerReturning(mockk())
+                val plugin = mockk<Plugin>()
+                val entity = entityWith(scheduler)
+
+                plugin.ticker(entity).once { }
+
+                verify { scheduler.run(plugin, any<Consumer<ScheduledTask>>(), isNull()) }
+                verify(exactly = 0) {
+                    scheduler.runDelayed(any<Plugin>(), any<Consumer<ScheduledTask>>(), isNull(), any<Long>())
+                }
+            }
+
+            "schedules a positive delay as entity region ticks" {
+                val scheduler = onceSchedulerReturning(mockk())
+                val plugin = mockk<Plugin>()
+                val entity = entityWith(scheduler)
+
+                plugin.ticker(entity).once(3.ticks) { }
+
+                verify { scheduler.runDelayed(plugin, any<Consumer<ScheduledTask>>(), isNull(), 3L) }
+                verify(exactly = 0) { scheduler.run(any<Plugin>(), any<Consumer<ScheduledTask>>(), isNull()) }
+            }
+
+            "rejects a one-shot delay that is not a whole number of ticks" { rejectsOnce(75.milliseconds) }
+
+            "rejects a negative one-shot delay" { rejectsOnce((-1).seconds) }
+
+            "fails a one-shot schedule when the entity scheduler rejects a removed entity" {
+                val plugin = mockk<Plugin>()
+                val entity = entityWith(onceSchedulerReturning(null))
+
+                shouldThrow<IllegalStateException> {
+                    plugin.ticker(entity).once { }
+                }
+            }
+
+            "reads thread ownership from the region that owns the entity" {
+                val scheduler = onceSchedulerReturning(mockk())
+                val entity = entityWith(scheduler)
+                val server = mockk<Server>()
+                every { server.isOwnedByCurrentRegion(entity) } returns true
+                val plugin = mockk<Plugin>()
+                every { plugin.server } returns server
+
+                plugin.ticker(entity).ownsCurrentThread shouldBe true
+
+                verify { server.isOwnedByCurrentRegion(entity) }
             }
         },
     )

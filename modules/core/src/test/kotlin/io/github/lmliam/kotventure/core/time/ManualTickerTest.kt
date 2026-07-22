@@ -95,5 +95,104 @@ class ManualTickerTest :
                 ticker.advance(0.seconds)
                 count shouldBe 0
             }
+
+            "fires a one-shot task exactly once after its delay" {
+                val ticker = ManualTicker()
+                var count = 0
+
+                ticker.once(1.seconds) { count++ }
+
+                ticker.advance(500.milliseconds)
+                count shouldBe 0
+
+                ticker.advance(10.seconds)
+                count shouldBe 1
+            }
+
+            "a zero delay is due at the current time and runs on the next advance" {
+                val ticker = ManualTicker()
+                var count = 0
+
+                ticker.once { count++ }
+                count shouldBe 0
+
+                ticker.advance(1.ticks)
+
+                count shouldBe 1
+            }
+
+            "cancel prevents a one-shot run" {
+                val ticker = ManualTicker()
+                var count = 0
+
+                ticker.once(1.seconds) { count++ }.cancel()
+                ticker.advance(5.seconds)
+
+                count shouldBe 0
+            }
+
+            "cancel on a one-shot task is idempotent" {
+                val ticker = ManualTicker()
+                val task = ticker.once(1.seconds) { }
+                task.cancel()
+                task.cancel()
+            }
+
+            "rejects a negative once delay" {
+                val ticker = ManualTicker()
+                shouldThrow<IllegalArgumentException> {
+                    ticker.once((-1).seconds) { }
+                }
+            }
+
+            "runs one-shot and repeating tasks in due-time then registration order" {
+                val ticker = ManualTicker()
+                val order = mutableListOf<String>()
+
+                ticker.repeating(1.seconds) { order += "repeating" }
+                ticker.once(1.seconds) { order += "once at one" }
+                ticker.once(500.milliseconds) { order += "once at half" }
+
+                ticker.advance(2.seconds)
+
+                order shouldBe listOf("once at half", "repeating", "once at one", "repeating")
+            }
+
+            "work scheduled during an advance runs in the same advance when it is due" {
+                val ticker = ManualTicker()
+                val order = mutableListOf<String>()
+
+                ticker.once(1.seconds) {
+                    order += "outer"
+                    ticker.once { order += "inner" }
+                }
+
+                ticker.advance(2.seconds)
+
+                order shouldBe listOf("outer", "inner")
+            }
+
+            "ownsCurrentThread is false outside advance" {
+                ManualTicker().ownsCurrentThread shouldBe false
+            }
+
+            "ownsCurrentThread is true inside a scheduled action" {
+                val ticker = ManualTicker()
+                var owned = false
+
+                ticker.once(1.seconds) { owned = ticker.ownsCurrentThread }
+                ticker.advance(1.seconds)
+
+                owned shouldBe true
+            }
+
+            "ownsCurrentThread returns to false after an action throws" {
+                val ticker = ManualTicker()
+                ticker.once(1.seconds) { error("boom") }
+
+                shouldThrow<IllegalStateException> { ticker.advance(1.seconds) }
+
+                ticker.ownsCurrentThread shouldBe false
+            }
         },
     )

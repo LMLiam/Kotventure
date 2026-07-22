@@ -150,6 +150,8 @@ class TimedBossBarDslTest :
                 val actions = mutableListOf<() -> Unit>()
                 val ticker =
                     object : Ticker {
+                        override val ownsCurrentThread: Boolean = false
+
                         override fun repeating(
                             interval: Duration,
                             action: () -> Unit,
@@ -159,6 +161,11 @@ class TimedBossBarDslTest :
                                 override fun cancel() = Unit
                             }
                         }
+
+                        override fun once(
+                            delay: Duration,
+                            action: () -> Unit,
+                        ): TickerTask = throw UnsupportedOperationException("this ticker records repeating work only.")
                     }
                 val audience = TimedBossBarRecordingAudience()
 

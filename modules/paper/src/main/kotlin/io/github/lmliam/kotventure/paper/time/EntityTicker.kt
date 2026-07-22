@@ -17,11 +17,14 @@ internal class EntityTicker(
     private val plugin: Plugin,
     private val entity: Entity,
 ) : Ticker {
+    override val ownsCurrentThread: Boolean
+        get() = plugin.server.isOwnedByCurrentRegion(entity)
+
     override fun repeating(
         interval: Duration,
         action: () -> Unit,
     ): TickerTask {
-        val ticks = interval.wholeTicks()
+        val ticks = interval.wholeTicks("repeating interval")
         val scheduledTask =
             entity.scheduler.runAtFixedRate(
                 plugin,
@@ -32,6 +35,23 @@ internal class EntityTicker(
             )
         return ScheduledTickerTask(
             checkNotNull(scheduledTask) { "cannot schedule repeating work on removed entity $entity." },
+        )
+    }
+
+    override fun once(
+        delay: Duration,
+        action: () -> Unit,
+    ): TickerTask {
+        val ticks = delay.onceTicks()
+        val scheduler = entity.scheduler
+        val scheduledTask =
+            if (ticks == null) {
+                scheduler.run(plugin, { action() }, null)
+            } else {
+                scheduler.runDelayed(plugin, { action() }, null, ticks)
+            }
+        return ScheduledTickerTask(
+            checkNotNull(scheduledTask) { "cannot schedule one-shot work on removed entity $entity." },
         )
     }
 }

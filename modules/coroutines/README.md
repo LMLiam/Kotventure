@@ -158,6 +158,56 @@ such as `this@ask.viewer`, or read the property into a local value before the bl
 Each member of an audience receives the message. The first member to click claims the answer. This behaviour is correct
 for a "first to click" broadcast. `ask` gives one answer, because a suspending function resumes one time.
 
+## Tick dispatcher
+
+`asCoroutineDispatcher` turns a [`Ticker`](../core/src/main/kotlin/io/github/lmliam/kotventure/core/time/Ticker.kt) into
+a `CoroutineDispatcher`. Each body, each resumption, and each `delay` then runs on the ticker. On Paper, this is the game
+thread. Thus, a body can touch the world and the entities safely.
+
+```kotlin
+val tick = plugin.ticker().asCoroutineDispatcher()
+val pluginScope = CoroutineScope(SupervisorJob() + tick)
+
+pluginScope.launch {
+    repeat(3) { count ->
+        player.actionBar { text("Teleport in ${3 - count}") }
+        delay(20.ticks)
+    }
+    player.message { text("Teleported.") }
+}
+```
+
+The dispatcher also controls `delay`, `withTimeout`, and `withTimeoutOrNull`. It schedules each of them with
+`Ticker.once`, and it cancels the schedule when the coroutine cancels.
+
+### Immediate dispatch
+
+The dispatcher always waits for the next tick, even when the caller is already on the game thread. Use `immediate` to
+remove that wait. It reads `Ticker.ownsCurrentThread` and continues in place when it can.
+
+```kotlin
+launch(tick) { }                  // always starts on the next tick
+withContext(tick.immediate) { }   // starts now if the caller owns the ticker's thread
+```
+
+### Delay granularity
+
+The ticker keeps its own delay contract, and the dispatcher adds no rule of its own. A Paper ticker accepts only an exact
+number of ticks. Write each delay with `ticks`, because a tick duration is always exact. Then no delay can fail.
+
+```kotlin
+delay(1.ticks)           // one tick, the shortest wait a Paper ticker can give
+delay(5.ticks)           // 250 ms
+delay(1.seconds)         // 20 ticks, also exact
+delay(10.milliseconds)   // IllegalArgumentException: not a whole number of ticks
+```
+
+`ticks` comes from [`kotventure-core`](../core/README.md). It is the natural unit for an animation loop, where one
+tick is one frame of the game.
+
+For a deterministic test, use `ManualTicker` from [`kotventure-test`](../test/README.md). Its `advance` is the only thing
+that moves time, so `launch`, `delay`, `withTimeout`, and cancellation all run without a server or a wall clock.
+
 ## Docs
 
 - [Getting Started guide](../../docs/GETTING-STARTED.md)

@@ -51,6 +51,25 @@ It rejects `75.milliseconds`. The entity ticker throws `IllegalStateException` i
 If Paper removes the entity after the call, Paper stops the task. In unit tests, use the deterministic `ManualTicker` from
 [`kotventure-test`](../test/README.md). This test ticker does not need a scheduler or server.
 
+`once` schedules work one time. A positive delay obeys the same whole-tick rule as `repeating`. A delay of zero, which is
+the default, selects the next tick of the target.
+
+```kotlin
+ticker().once(60.ticks) { world.setStorm(true) }   // Server.getGlobalRegionScheduler().runDelayed(…, 60)
+ticker().once { world.setStorm(true) }             // Server.getGlobalRegionScheduler().run(…)
+```
+
+`ownsCurrentThread` shows if the caller is already in the ticker's context. The global ticker reads
+`Server.isGlobalTickThread`. The entity and the location tickers read `Server.isOwnedByCurrentRegion`. Read this property
+to prevent a schedule that you do not need.
+
+```kotlin
+if (ticker().ownsCurrentThread) world.setStorm(true) else ticker().once { world.setStorm(true) }
+```
+
+To run a coroutine on the game thread, give the ticker to
+[`kotventure-coroutines`](../coroutines/README.md#tick-dispatcher).
+
 A plugin must declare `folia-supported: true` in its `plugin.yml` to load on Folia.
 Kotventure does not need more runtime configuration.
 

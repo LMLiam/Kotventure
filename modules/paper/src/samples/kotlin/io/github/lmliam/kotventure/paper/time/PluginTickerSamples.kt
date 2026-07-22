@@ -11,6 +11,11 @@ internal fun tickerSample(plugin: Plugin): TickerTask {
     return ticker.repeating(20.ticks) { plugin.logger.info("one second passed") }
 }
 
+internal fun onceTickerSample(plugin: Plugin): TickerTask {
+    val ticker = plugin.ticker()
+    return ticker.once(60.ticks) { plugin.logger.info("three seconds passed") }
+}
+
 internal fun entityTickerSample(
     plugin: Plugin,
     entity: Entity,
