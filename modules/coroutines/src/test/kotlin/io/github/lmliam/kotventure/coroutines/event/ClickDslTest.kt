@@ -103,8 +103,8 @@ class ClickDslTest :
                         }
                     }
 
-                    RecordingClickCallbackProvider.lastOptions?.uses() shouldBe 3
-                    RecordingClickCallbackProvider.lastOptions?.lifetime() shouldBe JavaDuration.ofMinutes(10)
+                    RecordingClickCallbackProvider.lastOptions.uses() shouldBe 3
+                    RecordingClickCallbackProvider.lastOptions.lifetime() shouldBe JavaDuration.ofMinutes(10)
                 }
             }
 
@@ -115,8 +115,8 @@ class ClickDslTest :
 
                     scope.contextOptionsComponent()
 
-                    RecordingClickCallbackProvider.lastOptions?.uses() shouldBe 3
-                    RecordingClickCallbackProvider.lastOptions?.lifetime() shouldBe JavaDuration.ofMinutes(10)
+                    RecordingClickCallbackProvider.lastOptions.uses() shouldBe 3
+                    RecordingClickCallbackProvider.lastOptions.lifetime() shouldBe JavaDuration.ofMinutes(10)
                 }
             }
 
@@ -152,8 +152,8 @@ class ClickDslTest :
                         },
                     ) { }
 
-                    RecordingClickCallbackProvider.lastOptions?.uses() shouldBe 3
-                    RecordingClickCallbackProvider.lastOptions?.lifetime() shouldBe JavaDuration.ofMinutes(10)
+                    RecordingClickCallbackProvider.lastOptions.uses() shouldBe 3
+                    RecordingClickCallbackProvider.lastOptions.lifetime() shouldBe JavaDuration.ofMinutes(10)
                 }
             }
 

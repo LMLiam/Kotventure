@@ -11,36 +11,49 @@ internal class RecordingClickCallbackProvider : ClickCallback.Provider {
         callback: ClickCallback<Audience>,
         options: ClickCallback.Options,
     ): ClickEvent<*> {
-        val event = ClickEvent.suggestCommand(RECORDED_CALLBACK_COMMAND)
+        val recorded = recordings
+        val event = ClickEvent.suggestCommand("$RECORDED_CALLBACK_COMMAND${recorded.size}")
 
-        lastCallbackHolder.set(callback)
-        lastOptions = options
-        lastEventHolder.set(event)
+        recorded += RecordedClickCallback(event, callback, options)
 
         return event
     }
 
     internal companion object {
-        private val lastEventHolder: ThreadLocal<ClickEvent<*>?> = ThreadLocal()
-        private val lastCallbackHolder: ThreadLocal<ClickCallback<Audience>?> = ThreadLocal()
-        private val lastOptionsHolder: ThreadLocal<ClickCallback.Options?> = ThreadLocal()
+        private val recordingsHolder: ThreadLocal<MutableList<RecordedClickCallback>> =
+            ThreadLocal.withInitial { mutableListOf() }
+
+        private val recordings: MutableList<RecordedClickCallback>
+            get() = recordingsHolder.get()
 
         internal val lastEvent: ClickEvent<*>
-            get() = checkNotNull(lastEventHolder.get()) { "Expected a recorded click event." }
-        internal var lastOptions: ClickCallback.Options?
-            get() = lastOptionsHolder.get()
-            private set(value) {
-                lastOptionsHolder.set(value)
-            }
+            get() = last().event
+
+        internal val lastOptions: ClickCallback.Options
+            get() = last().options
+
+        internal fun eventAt(index: Int): ClickEvent<*> = recordings[index].event
+
+        internal fun optionsAt(index: Int): ClickCallback.Options = recordings[index].options
+
+        internal fun recordedCount(): Int = recordings.size
 
         internal fun reset() {
-            lastEventHolder.remove()
-            lastCallbackHolder.remove()
-            lastOptionsHolder.remove()
+            recordingsHolder.remove()
         }
 
         internal fun fire(audience: Audience) {
-            checkNotNull(lastCallbackHolder.get()) { "Expected a recorded click callback." }.accept(audience)
+            last().callback.accept(audience)
         }
+
+        internal fun fire(
+            index: Int,
+            audience: Audience,
+        ) {
+            recordings[index].callback.accept(audience)
+        }
+
+        private fun last(): RecordedClickCallback =
+            checkNotNull(recordings.lastOrNull()) { "Expected a recorded click callback." }
     }
 }
