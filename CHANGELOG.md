@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any release.
 
+## [0.23.1](https://github.com/LMLiam/Kotventure/compare/0.23.0...0.23.1) (2026-07-22)
+
+
+### 📝 Documentation
+
+* **docs:** refresh roadmap stages and record design decisions ([#325](https://github.com/LMLiam/Kotventure/issues/325)) ([9ceff44](https://github.com/LMLiam/Kotventure/commit/9ceff44d78ec7180d3f68d54f55fc24441ca67b5))
+
 ## [0.23.0](https://github.com/LMLiam/Kotventure/compare/0.22.0...0.23.0) (2026-07-22)
 
 
