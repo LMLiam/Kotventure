@@ -14,8 +14,8 @@ private val defaultLifetime: Duration =
 /**
  * Sends [prompt] to this audience as a system message and awaits an option.
  *
- * The first clicked option resumes the calling coroutine with its value and later clicks do nothing.
- * Cancelling the calling coroutine stops the prompt, and later clicks do nothing.
+ * The first clicked option resumes the calling coroutine with its value. Later clicks do nothing. If the coroutine is
+ * cancelled first, clicks do nothing.
  *
  * Each member of a multi-member audience receives the prompt.
  * The first member to click supplies the answer.
@@ -56,7 +56,9 @@ private suspend fun <T> Audience.awaitPrompt(
     lifetime: Duration,
 ): T =
     suspendCancellableCoroutine { continuation ->
-        sendMessage(promptComponent(build, PendingPrompt(continuation), lifetime))
+        val pending = PendingPrompt(continuation)
+        continuation.invokeOnCancellation { pending.cancel() }
+        sendMessage(promptComponent(build, pending, lifetime))
     }
 
 private fun <T> Audience.promptComponent(

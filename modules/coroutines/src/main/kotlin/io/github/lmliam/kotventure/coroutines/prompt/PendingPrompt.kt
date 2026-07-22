@@ -5,18 +5,21 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.resume
 
 /**
- * Resumes one awaiting prompt one time.
+ * Resumes an active prompt one time.
  *
- * The guard is necessary, because a second resume of a resumed continuation fails. A resume of a cancelled
- * continuation does nothing. Therefore, a cancelled prompt needs no other state.
+ * An answer or cancellation closes the prompt. Later answers do nothing.
  */
 internal class PendingPrompt<T>(
     private val continuation: CancellableContinuation<T>,
 ) {
-    private val answered = AtomicBoolean()
+    private val active = AtomicBoolean(true)
+
+    internal fun cancel() {
+        active.set(false)
+    }
 
     internal fun answer(value: T) {
-        if (answered.compareAndSet(false, true)) {
+        if (active.compareAndSet(true, false)) {
             continuation.resume(value)
         }
     }

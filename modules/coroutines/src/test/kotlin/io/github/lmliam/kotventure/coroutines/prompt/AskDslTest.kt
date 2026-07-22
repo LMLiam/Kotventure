@@ -14,6 +14,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeoutOrNull
@@ -110,6 +111,22 @@ class AskDslTest :
 
                     answer.await() shouldBe null
                     shouldNotThrowAny { RecordingClickCallbackProvider.fire(0, audience) }
+                }
+            }
+
+            "a cancelled pending prompt ignores an answer" {
+                runTest {
+                    val answer =
+                        withTimeoutOrNull(1.minutes) {
+                            suspendCancellableCoroutine<Kit> { continuation ->
+                                PendingPrompt(continuation).apply {
+                                    cancel()
+                                    answer(Kit.ARCHER)
+                                }
+                            }
+                        }
+
+                    answer shouldBe null
                 }
             }
 
