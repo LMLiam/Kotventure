@@ -11,10 +11,10 @@ import kotlin.time.Duration
  * Virtual time changes only when [advance] changes it. Due tasks run in chronological order. Tasks
  * with the same due time run in registration order.
  *
- * A repeating task keeps its original phase. Its next due time is its previous due time plus the
+ * A recurring task keeps its original phase. Its next due time is its previous due time plus the
  * interval. Thus, one large advance runs every missed interval without drift.
  *
- * A task from [once] with a delay of zero is due at the current time. It runs on the next [advance].
+ * A task from [after] with a delay of zero is due at the current time. It runs on the next [advance].
  *
  * This class is not thread-safe.
  */
@@ -32,7 +32,7 @@ public class ManualTicker : Ticker {
      *
      * A scheduled action reads `true` here. Test code outside [advance] reads `false`.
      */
-    override val ownsCurrentThread: Boolean
+    override val isCurrent: Boolean
         get() = isAdvancing
 
     /** Marks the period in which [advance] runs scheduled actions. */
@@ -58,7 +58,7 @@ public class ManualTicker : Ticker {
      * also schedule more work, which runs in the same advance if its due time is in the period.
      *
      * If an action throws an exception, this method propagates it. Virtual time remains at that
-     * action's due time, and the failed repeating task is not scheduled again.
+     * action's due time, and the failed recurring task is not scheduled again.
      *
      * @throws IllegalArgumentException when [duration] is negative.
      * @throws Throwable when a scheduled action throws it.
@@ -92,11 +92,11 @@ public class ManualTicker : Ticker {
      *
      * @throws IllegalArgumentException when [interval] is not positive.
      */
-    override fun repeating(
+    override fun every(
         interval: Duration,
         action: () -> Unit,
     ): TickerTask {
-        require(interval.isPositive()) { "repeating interval must be positive, got $interval." }
+        require(interval.isPositive()) { "every interval must be positive, got $interval." }
         val task = ManualTickerTask(action)
         requeue(task = task, dueAt = currentTime + interval, interval = interval)
         return task
@@ -110,11 +110,11 @@ public class ManualTicker : Ticker {
      *
      * @throws IllegalArgumentException when [delay] is negative.
      */
-    override fun once(
+    override fun after(
         delay: Duration,
         action: () -> Unit,
     ): TickerTask {
-        require(!delay.isNegative()) { "once delay must not be negative, got $delay." }
+        require(!delay.isNegative()) { "after delay must not be negative, got $delay." }
         val task = ManualTickerTask(action)
         requeue(task = task, dueAt = currentTime + delay, interval = null)
         return task

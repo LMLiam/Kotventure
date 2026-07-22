@@ -121,7 +121,7 @@ internal class TimedBossBarRuntime(
 
     private fun startTicking() {
         val generation = tickGeneration
-        task = ticker.repeating(config.every) { onTick(generation) }
+        task = ticker.every(config.every) { onTick(generation) }
     }
 
     private fun detachTask(): TickerTask? {

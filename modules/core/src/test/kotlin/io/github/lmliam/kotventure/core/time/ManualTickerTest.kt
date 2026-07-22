@@ -14,7 +14,7 @@ class ManualTickerTest :
                 val ticker = ManualTicker()
                 var count = 0
 
-                ticker.repeating(100.milliseconds) { count++ }
+                ticker.every(100.milliseconds) { count++ }
 
                 ticker.advance(250.milliseconds)
 
@@ -26,7 +26,7 @@ class ManualTickerTest :
                 val fires = mutableListOf<Int>()
                 var n = 0
 
-                ticker.repeating(1.seconds) {
+                ticker.every(1.seconds) {
                     n++
                     fires += n
                 }
@@ -40,7 +40,7 @@ class ManualTickerTest :
                 val ticker = ManualTicker()
                 var count = 0
 
-                val task = ticker.repeating(1.seconds) { count++ }
+                val task = ticker.every(1.seconds) { count++ }
                 ticker.advance(1.seconds)
                 task.cancel()
                 ticker.advance(5.seconds)
@@ -50,7 +50,7 @@ class ManualTickerTest :
 
             "cancel is idempotent" {
                 val ticker = ManualTicker()
-                val task = ticker.repeating(1.seconds) { }
+                val task = ticker.every(1.seconds) { }
                 task.cancel()
                 task.cancel()
             }
@@ -61,7 +61,7 @@ class ManualTickerTest :
                 lateinit var task: TickerTask
 
                 task =
-                    ticker.repeating(1.seconds) {
+                    ticker.every(1.seconds) {
                         count++
                         task.cancel()
                     }
@@ -74,10 +74,10 @@ class ManualTickerTest :
             "rejects non-positive interval" {
                 val ticker = ManualTicker()
                 shouldThrow<IllegalArgumentException> {
-                    ticker.repeating(0.seconds) { }
+                    ticker.every(0.seconds) { }
                 }
                 shouldThrow<IllegalArgumentException> {
-                    ticker.repeating((-1).seconds) { }
+                    ticker.every((-1).seconds) { }
                 }
             }
 
@@ -91,7 +91,7 @@ class ManualTickerTest :
             "zero advance is a no-op" {
                 val ticker = ManualTicker()
                 var count = 0
-                ticker.repeating(1.seconds) { count++ }
+                ticker.every(1.seconds) { count++ }
                 ticker.advance(0.seconds)
                 count shouldBe 0
             }
@@ -100,7 +100,7 @@ class ManualTickerTest :
                 val ticker = ManualTicker()
                 var count = 0
 
-                ticker.once(1.seconds) { count++ }
+                ticker.after(1.seconds) { count++ }
 
                 ticker.advance(500.milliseconds)
                 count shouldBe 0
@@ -113,7 +113,7 @@ class ManualTickerTest :
                 val ticker = ManualTicker()
                 var count = 0
 
-                ticker.once { count++ }
+                ticker.after { count++ }
                 count shouldBe 0
 
                 ticker.advance(1.ticks)
@@ -125,7 +125,7 @@ class ManualTickerTest :
                 val ticker = ManualTicker()
                 var count = 0
 
-                ticker.once(1.seconds) { count++ }.cancel()
+                ticker.after(1.seconds) { count++ }.cancel()
                 ticker.advance(5.seconds)
 
                 count shouldBe 0
@@ -133,7 +133,7 @@ class ManualTickerTest :
 
             "cancel on a one-shot task is idempotent" {
                 val ticker = ManualTicker()
-                val task = ticker.once(1.seconds) { }
+                val task = ticker.after(1.seconds) { }
                 task.cancel()
                 task.cancel()
             }
@@ -141,7 +141,7 @@ class ManualTickerTest :
             "rejects a negative once delay" {
                 val ticker = ManualTicker()
                 shouldThrow<IllegalArgumentException> {
-                    ticker.once((-1).seconds) { }
+                    ticker.after((-1).seconds) { }
                 }
             }
 
@@ -149,9 +149,9 @@ class ManualTickerTest :
                 val ticker = ManualTicker()
                 val order = mutableListOf<String>()
 
-                ticker.repeating(1.seconds) { order += "repeating" }
-                ticker.once(1.seconds) { order += "once at one" }
-                ticker.once(500.milliseconds) { order += "once at half" }
+                ticker.every(1.seconds) { order += "repeating" }
+                ticker.after(1.seconds) { order += "once at one" }
+                ticker.after(500.milliseconds) { order += "once at half" }
 
                 ticker.advance(2.seconds)
 
@@ -162,9 +162,9 @@ class ManualTickerTest :
                 val ticker = ManualTicker()
                 val order = mutableListOf<String>()
 
-                ticker.once(1.seconds) {
+                ticker.after(1.seconds) {
                     order += "outer"
-                    ticker.once { order += "inner" }
+                    ticker.after { order += "inner" }
                 }
 
                 ticker.advance(2.seconds)
@@ -172,27 +172,27 @@ class ManualTickerTest :
                 order shouldBe listOf("outer", "inner")
             }
 
-            "ownsCurrentThread is false outside advance" {
-                ManualTicker().ownsCurrentThread shouldBe false
+            "isCurrent is false outside advance" {
+                ManualTicker().isCurrent shouldBe false
             }
 
-            "ownsCurrentThread is true inside a scheduled action" {
+            "isCurrent is true inside a scheduled action" {
                 val ticker = ManualTicker()
                 var owned = false
 
-                ticker.once(1.seconds) { owned = ticker.ownsCurrentThread }
+                ticker.after(1.seconds) { owned = ticker.isCurrent }
                 ticker.advance(1.seconds)
 
                 owned shouldBe true
             }
 
-            "ownsCurrentThread returns to false after an action throws" {
+            "isCurrent returns to false after an action throws" {
                 val ticker = ManualTicker()
-                ticker.once(1.seconds) { error("boom") }
+                ticker.after(1.seconds) { error("boom") }
 
                 shouldThrow<IllegalStateException> { ticker.advance(1.seconds) }
 
-                ticker.ownsCurrentThread shouldBe false
+                ticker.isCurrent shouldBe false
             }
         },
     )

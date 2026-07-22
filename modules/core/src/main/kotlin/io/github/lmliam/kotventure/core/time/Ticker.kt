@@ -3,60 +3,45 @@ package io.github.lmliam.kotventure.core.time
 import kotlin.time.Duration
 
 /**
- * Schedules work on a platform clock.
+ * Schedules work for a platform execution context.
  *
- * Core has no default implementation. Platforms provide real tickers, such as a Paper
- * scheduler adapter, and the `test` module ships a deterministic `ManualTicker` for unit tests.
- * Implementations define the execution thread but must preserve the delay and cancellation contracts below.
+ * An implementation can represent a thread, a region, or another platform-defined context.
+ * Implementations define supported delay precision.
  *
  * @see TickerTask
  */
 public interface Ticker {
     /**
-     * Shows if this ticker runs its work on the calling thread.
+     * Shows whether the current execution context can run this ticker's work immediately.
      *
-     * A caller reads this property to prevent an unnecessary delay. If the value is `true`, the
-     * caller is already in the correct context and can do the work immediately.
+     * On a region-based platform, this checks ownership of the ticker's region rather than a fixed thread.
      *
-     * A regional platform such as Folia gives region ownership here. The property does not show one
-     * fixed thread.
-     *
-     * @sample io.github.lmliam.kotventure.core.time.tickerOwnsCurrentThreadSample
+     * @sample io.github.lmliam.kotventure.core.time.tickerIsCurrentSample
      */
-    public val ownsCurrentThread: Boolean
+    public val isCurrent: Boolean
 
     /**
-     * Schedules [action] to run repeatedly every [interval], starting after the first interval
-     * elapses.
+     * Schedules [action] after each [interval].
      *
-     * @param interval positive delay between successive invocations.
-     * @param action work to run on the ticker's thread each interval.
-     * @return a handle that can [TickerTask.cancel] future invocations.
-     * @throws IllegalArgumentException when [interval] is not positive.
+     * The first invocation occurs after one interval.
+     *
+     * @throws IllegalArgumentException when [interval] is not positive or its precision is unsupported.
      */
-    public fun repeating(
+    public fun every(
         interval: Duration,
         action: () -> Unit,
     ): TickerTask
 
     /**
-     * Schedules [action] to run one time after [delay].
+     * Schedules [action] once after [delay].
      *
-     * A [delay] of zero selects the next opportunity. On a tick-based platform, this is the next
-     * tick. The ticker does not run [action] on the calling thread.
+     * A zero delay selects the ticker's next opportunity; the ticker must not invoke [action] inline.
      *
-     * Each implementation defines the delay granularity. A tick-based ticker accepts only an exact
-     * number of ticks.
-     *
-     * @param delay time to wait before the run. Zero selects the next opportunity.
-     * @param action work to run one time on the ticker's thread.
-     * @return a handle that can [TickerTask.cancel] the run before it starts.
-     * @throws IllegalArgumentException when [delay] is negative, or when the implementation cannot
-     *   use the given precision.
-     * @sample io.github.lmliam.kotventure.core.time.tickerOnceSample
+     * @throws IllegalArgumentException when [delay] is negative or its precision is unsupported.
+     * @sample io.github.lmliam.kotventure.core.time.tickerAfterSample
      * @sample io.github.lmliam.kotventure.core.time.tickerNextOpportunitySample
      */
-    public fun once(
+    public fun after(
         delay: Duration = Duration.ZERO,
         action: () -> Unit,
     ): TickerTask
