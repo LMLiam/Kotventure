@@ -61,7 +61,7 @@ Each package under `io.github.lmliam.kotventure.core` contains one feature:
 | `nbt`, `objectcomponent`                          | `nbt { }`, `nbtPath(...)`, block/entity/storage NBT components, `display(...)`                 |
 | `translatable`, `keybind`, `score`, `key`, `uuid` | the remaining component types and value helpers                                                |
 | `theme`                                           | `Theme` base class with `by style { }` properties, explicit `ThemeRegistry`                    |
-| `time`                                            | `ticks` and `Ticker` (`repeating`, `once`, `ownsCurrentThread`). Platforms adapt it.           |
+| `time`                                            | `ticks` and `Ticker` (`every`, `after`, `isCurrent`). Platforms adapt it.               |
 
 ## Docs
 

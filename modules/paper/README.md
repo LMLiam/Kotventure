@@ -44,27 +44,27 @@ The global ticker uses the global tick context. The entity ticker follows the en
 The location ticker selects the region when you schedule a task. It does not follow later location changes. The server
 cancels scheduled tasks when the plugin stops.
 
-Paper schedulers operate only on complete game ticks (50 ms). `repeating` rejects an interval that it cannot honour.
+Paper schedulers operate only on complete game ticks (50 ms). `every` rejects an interval that it cannot honour.
 It throws `IllegalArgumentException` and does not round the interval. It accepts `1.seconds`, `500.milliseconds`, and `3.ticks`.
 
 It rejects `75.milliseconds`. The entity ticker throws `IllegalStateException` if Paper removed the entity before the call.
 If Paper removes the entity after the call, Paper stops the task. In unit tests, use the deterministic `ManualTicker` from
 [`kotventure-test`](../test/README.md). This test ticker does not need a scheduler or server.
 
-`once` schedules work one time. A positive delay obeys the same whole-tick rule as `repeating`. A delay of zero, which is
+`after` schedules work one time. A positive delay obeys the same whole-tick rule as `every`. A delay of zero, which is
 the default, selects the next tick of the target.
 
 ```kotlin
-ticker().once(60.ticks) { world.setStorm(true) }   // Server.getGlobalRegionScheduler().runDelayed(…, 60)
-ticker().once { world.setStorm(true) }             // Server.getGlobalRegionScheduler().run(…)
+ticker().after(60.ticks) { world.setStorm(true) }   // Server.getGlobalRegionScheduler().runDelayed(…, 60)
+ticker().after { world.setStorm(true) }             // Server.getGlobalRegionScheduler().run(…)
 ```
 
-`ownsCurrentThread` shows if the caller is already in the ticker's context. The global ticker reads
+`isCurrent` shows if the caller is already in the ticker's context. The global ticker reads
 `Server.isGlobalTickThread`. The entity and the location tickers read `Server.isOwnedByCurrentRegion`. Read this property
 to prevent a schedule that you do not need.
 
 ```kotlin
-if (ticker().ownsCurrentThread) world.setStorm(true) else ticker().once { world.setStorm(true) }
+if (ticker().isCurrent) world.setStorm(true) else ticker().after { world.setStorm(true) }
 ```
 
 To run a coroutine in the ticker's context, give the ticker to

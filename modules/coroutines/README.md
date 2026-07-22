@@ -179,16 +179,16 @@ pluginScope.launch {
 ```
 
 The dispatcher also controls `delay`, `withTimeout`, and `withTimeoutOrNull`. It schedules each of them with
-`Ticker.once`, and it cancels the schedule when the coroutine cancels.
+`Ticker.after`, and it cancels the schedule when the coroutine cancels.
 
 ### Immediate dispatch
 
-The dispatcher always waits for the next tick, even when the caller is already on the game thread. Use `immediate` to
-remove that wait. It reads `Ticker.ownsCurrentThread` and continues in place when it can.
+The dispatcher always waits for the next tick, even when the caller is already in the ticker's context. Use `immediate` to
+remove that wait. It reads `Ticker.isCurrent` and continues in place when it can.
 
 ```kotlin
 launch(tick) { }                  // always starts on the next tick
-withContext(tick.immediate) { }   // starts now if the caller owns the ticker's thread
+withContext(tick.immediate) { }   // starts now if the caller runs in the ticker's context
 ```
 
 ### Delay granularity
