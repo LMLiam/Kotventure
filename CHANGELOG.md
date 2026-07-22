@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any release.
 
+## [0.23.0](https://github.com/LMLiam/Kotventure/compare/0.22.0...0.23.0) (2026-07-22)
+
+
+### ✨ Features
+
+* **coroutines:** add awaitable ask prompts ([#313](https://github.com/LMLiam/Kotventure/issues/313)) ([dc477f7](https://github.com/LMLiam/Kotventure/commit/dc477f7866b736d4ac6a4722ca34534ece5ce25a))
+
 ## [0.22.0](https://github.com/LMLiam/Kotventure/compare/0.21.1...0.22.0) (2026-07-21)
 
 
