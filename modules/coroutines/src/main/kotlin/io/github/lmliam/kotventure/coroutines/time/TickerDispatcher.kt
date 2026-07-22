@@ -7,18 +7,21 @@ import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.MainCoroutineDispatcher
+import kotlinx.coroutines.Runnable
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
- * Runs coroutines on [ticker] and always waits for the next opportunity of the ticker.
+ * A [MainCoroutineDispatcher] backed by [Ticker].
  *
- * [immediate] gives the variant that runs the work at once when the caller already runs in the
- * ticker's context. Both variants share this delay implementation.
+ * Dispatch always waits for a ticker opportunity, including from the
+ * ticker's context.
+ * Its [immediate] variant runs work in place from that context.
+ * Both variants schedule delays and timeouts through [ticker].
  */
 @OptIn(InternalCoroutinesApi::class, ExperimentalCoroutinesApi::class)
 internal class TickerDispatcher(
-    val ticker: Ticker,
+    internal val ticker: Ticker,
 ) : MainCoroutineDispatcher(),
     Delay {
     override val immediate: MainCoroutineDispatcher = ImmediateTickerDispatcher(this)
@@ -27,7 +30,7 @@ internal class TickerDispatcher(
         context: CoroutineContext,
         block: Runnable,
     ) {
-        ticker.after { block.run() }
+        ticker.after(action = block::run)
     }
 
     override fun scheduleResumeAfterDelay(
@@ -46,7 +49,7 @@ internal class TickerDispatcher(
         block: Runnable,
         context: CoroutineContext,
     ): DisposableHandle {
-        val task = ticker.after(timeMillis.milliseconds) { block.run() }
+        val task = ticker.after(timeMillis.milliseconds, block::run)
         return DisposableHandle { task.cancel() }
     }
 
