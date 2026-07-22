@@ -18,7 +18,7 @@ Three primary features distinguish it from other libraries:
 2. **A component test toolkit** supplies Kotest and JUnit matchers. It also supplies snapshot tests for Adventure
    components.
 3. **Developer tools** render components in a terminal with ANSI. They generate a typed message catalogue from
-   resource files with KSP. They also validate MiniMessage bundles during a Gradle build.
+   resource files with the catalogue compiler. They also validate MiniMessage bundles during a Gradle build.
 
 Kotventure also supports all component types, styles, themes, and audience operations. Audience operations include
 titles, boss bars, books, sounds, and tab lists. The target scope also includes pagination, animation,
@@ -53,20 +53,20 @@ component builder.
 ## 4. Architecture & module map
 
 The architecture uses three mechanisms. An idiomatic DSL supplies most of the API. Small, **explicit registries**
-supply runtime extension points. **KSP** generates code at compile time. The project does not use the previous
+supply runtime extension points. The **catalogue compiler** generates code at build time. The project does not use the previous
 `ServiceLoader` and `@ServiceContract` factory indirection.
 
 | Module                | Depends on                             | Purpose                                                                                                        |
 |-----------------------|----------------------------------------|----------------------------------------------------------------------------------------------------------------|
-| `core`                | `adventure-api`                        | Component/style/colour/gradient DSL, theme engine, the registry, audience‑send DSL, animation **abstractions** |
+| `core`                | `adventure-api`                        | Component/style/colour/gradient DSL, theme engine, the registry, audience‑send DSL, `Ticker` abstraction       |
 | `serializer`          | `adventure-api`, concrete serialisers  | Optional `Component` serialiser extensions such as MiniMessage and plain text                                  |
 | `minimessage`         | `core`, `adventure-text-minimessage`   | Typed tag/placeholder DSL, typed templates, validation, MiniMessage ⇄ DSL converter                            |
 | `i18n`                | `core`, `minimessage`                  | Translation registry + per‑player locale DSL                                                                   |
 | `test`                | `core` (test‑scoped for consumers)     | Kotest/JUnit structural component matchers                                                                     |
 | `test-snapshot`       | `adventure-api`, `serializer`          | Snapshot testing over canonical component JSON                                                                 |
 | `ansi`                | `core`                                 | Render a `Component` to coloured terminal output                                                               |
-| `coroutines`          | `core`, `kotlinx-coroutines`           | suspend click‑callbacks, async sending, animation scheduling                                                   |
-| `annotations` + `ksp` | —                                      | Typed message‑catalogue codegen + compile‑time style validation                                                |
+| `coroutines`          | `core`, `kotlinx-coroutines`           | suspend click‑callbacks, awaited prompts, tick dispatch, animation frame flows                                 |
+| `catalog-compiler`    | `minimessage`                          | Typed message‑catalogue model, validation and codegen; Gradle task and tooling frontends                       |
 | `paper`               | `core` (+ Paper)                       | Scheduler/audience adapter, item creation and **lore**/display‑name builders                                  |
 | `velocity`            | `core` (+ Velocity)                    | Proxy scheduler/audience adapter                                                                               |
 | `fabric`              | `core` (+ `adventure-platform-fabric`) | Fabric adapter                                                                                                 |
@@ -83,14 +83,16 @@ hidden process-wide registry or scan the class path.
 
 - **Theme providers** use a `ThemeRegistry` instance for dynamic lookup and interoperability. Direct Kotlin callers
   use compiler-checked properties such as `Brand.header`.
-- **Custom MiniMessage tags**, **animation drivers**, and **platform adapters** must use the same pattern. The feature
+- **Custom MiniMessage tags** and **platform adapters** must use the same pattern. The feature
   owns an explicit registry. It does not use ambient global state.
 
 This design keeps usual operations direct and permits the replacement of variable parts.
 
-**Animation layers** arrive in Phase 3. The `core` module defines the frame model, ticker, and driver interface.
-Concrete **animation drivers** use the applicable registry. The `coroutines` module and platform schedulers control
-the runtime schedule. The composition flow is **abstractions → registered driver → scheduled frame execution**.
+**Animation** is part of Phase 3. Animation uses flows, not an engine. An effect is a function from components to
+a `Flow<Component>` frame source. A suspending sink sends a frame flow to an audience target. `Ticker`
+implementations and their coroutine mappings control the frame schedule. Structured concurrency controls
+cancellation. A separate driver interface or driver registry is not necessary. The platform `Ticker` registrations
+supply the schedule. The composition flow is **effect → frame flow → paced collection → audience target**.
 
 ## 5. Canonical DSL surface (illustrative)
 
@@ -245,7 +247,7 @@ player.message(
     },
 )
 
-// ── Typed catalog (KSP from messages.yml) ──────────────────────
+// ── Typed catalog (generated from messages.yml) ────────────────
 Messages.welcome(player = name, count = 3)   // generated, validated placeholders
 
 // ── Normalising & traversing ───────────────────────────────────
@@ -306,18 +308,22 @@ arguments. Invalid patterns cause an exception that gives the applicable offset.
 
 - **`ansi`** renders a `Component` as ANSI for tests and logs. It supports colours, decorations, and approximate
   gradients. Developers can examine output without a server.
-- **`ksp`** generates a typed message catalogue from `messages.yml` or property files. The generated accessors have
-  required, validated placeholders. It can also validate styles at compile time.
-- **`gradle-plugin`** stops a build when resource bundles contain malformed MiniMessage or absent placeholders. It can
-  also precompile bundles.
+- **`catalog-compiler`** parses `messages.yml` or property files. It validates markup and placeholders. It generates
+  a typed message catalogue with required, validated placeholders. It is a pure library with no Gradle dependency.
+  Thus, the build, IDE, and CLI frontends share one implementation.
+- **`gradle-plugin`** stops a build when resource bundles contain malformed MiniMessage or absent placeholders. It
+  uses the `catalog-compiler` diagnostics. It can also precompile bundles.
+- A **detekt rule set** identifies illegal style and component constructs that the type system cannot express. KSP is
+  not applicable for these checks. KSP resolves declarations, not the expression bodies in DSL blocks.
 
 ## 9. Platforms
 
 `core` depends only on `adventure-api`. Thus, it works on all Adventure platforms. Small bundles add platform adapters
 and convenience functions:
 
-- **`paper`** supplies an animation scheduler, audience functions, and item lore and name builders.
-- **`velocity`** supplies a proxy scheduler and audience adapter.
+- **`paper`** supplies Paper and Folia tickers, audience functions, dialogs, and item lore and name builders.
+- **`velocity`** supplies a proxy scheduler ticker and lifecycle wiring. Velocity supports Adventure natively.
+  Thus, an audience adapter is not necessary.
 - **`fabric`** uses `adventure-platform-fabric`.
 
 ## 10. Build, publishing & versioning
@@ -333,8 +339,9 @@ and convenience functions:
 - **Publication:** During the pre-alpha and alpha stages, JitPack builds from Git tags. At beta or version `1.0`, Maven
   Central uses the `io.github.lmliam` namespace and GPG signatures.
 - The **BOM** module aligns versions across all artefacts.
-- **Versions:** `0.0.x` is unstable, `0.x` is alpha, and `0.9.x` is beta with a frozen API. Version `1.0.0` starts the
-  semantic-versioning commitment. CI builds, tests, and lints pull requests. Tags start publication.
+- **Versions:** each release before 1.0 is a `0.x` minor version. The Alpha stage continues until the API freeze.
+  The `0.x` releases after the freeze are the Beta stage. Version `1.0.0` starts the semantic-versioning
+  commitment. CI builds, tests, and lints pull requests. Tags start publication.
 
 > **Note:** To add or update a GitHub Actions workflow, use a token with the `workflow` scope. Use
 > `gh auth refresh -s workflow` to add the scope. A separate issue tracks CI on `master`.
@@ -362,14 +369,14 @@ Roadmap issues with 5.x notes are serialisers (#30), click events (#21), rendere
 Each phase is a GitHub **milestone**. Each subissue is a small vertical slice with its own tests. The project can
 release each slice independently.
 
-| Phase | Milestone         | Focus                                                                                                                                                                 |
-|-------|-------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **0** | Pre‑Alpha `0.0.x` | Foundations: drop SPI, restructure, CI, JitPack, BOM stub. **First slice:** `component { text { color/decorate } }` + first matcher + `toMiniMessage()`. Tag `0.0.1`. |
-| **1** | Alpha `0.1–0.3`   | Core DSL: full components, styles, events, gradients, and themes. MiniMessage typed templates, validation, and converter. Serialiser extensions. Test matchers and snapshots.   |
-| **2** | Alpha `0.4–0.6`   | Audience & UX: send DSL (message/actionbar/title/book/sound/tablist), managed boss bars/titles, pagination, GUI/lore builders (Paper), coroutines.                    |
-| **3** | Alpha `0.7–0.8`   | Animation engine + built‑ins, i18n registry + locale DSL, typed message catalogue (KSP), ANSI preview, Gradle build plugin.                                           |
-| **4** | Beta `0.9.x`      | Velocity + Fabric bundles, compile‑time style validation (KSP), API freeze, perf pass, docs/cookbook, integration tests.                                              |
-| **5** | `1.0.0`           | Maven Central signed publishing, semver commitment, sample plugin, migration guide, final docs.                                                                       |
+| Phase | Stage     | Focus                                                                                                                                                                 |
+|-------|-----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **0** | Pre‑Alpha | Foundations: drop SPI, restructure, CI, JitPack, BOM stub. **First slice:** `component { text { color/decorate } }` + first matcher + `toMiniMessage()`.              |
+| **1** | Alpha     | Core DSL: full components, styles, events, gradients, and themes. MiniMessage typed templates, validation, and converter. Serialiser extensions. Test matchers and snapshots.   |
+| **2** | Alpha     | Audience & UX: send DSL (message/actionbar/title/book/sound/tablist), managed boss bars/titles, pagination, GUI/lore builders (Paper), coroutines.                    |
+| **3** | Alpha     | Animation frame flows + built‑ins, MiniMessage environment, i18n registry + locale DSL, typed message catalogue (catalog compiler), ANSI preview, Gradle build plugin, Maven Central, binary‑compatibility dumps. |
+| **4** | Beta      | Velocity + Fabric bundles, static style validation (detekt), compatibility matrix, API freeze, perf pass, docs/cookbook, integration tests.                           |
+| **5** | Release   | Maven Central signed publishing, semver commitment, sample plugin, migration guide, final docs.                                                                       |
 
 ## 12. Feature → phase matrix
 
@@ -397,4 +404,8 @@ release each slice independently.
 - Optional **Sponge** / **BungeeCord** bundles post‑1.0.
 - IDE inspections / detekt rules for the DSL (long‑term tooling).
 - A hosted **playground** / cookbook docs site.
-- Scoreboard and sidebar helpers are not part of Adventure core. Evaluate them as a Paper bundle extra.
+- Scoreboard and sidebar helpers are not part of Adventure. **Decision:** this feature is deferred to a possible
+  `paper-ui` module after the message toolchain is complete. The module would wrap the Bukkit scoreboard API. This
+  is a documented exception to the wrap-`net.kyori.*` rule. The exception stays in its own module, and `core` and
+  `paper` remain pure Adventure. The scope includes only sidebars. Inventory menus, commands, and general server
+  utilities remain out of scope.

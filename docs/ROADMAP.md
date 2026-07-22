@@ -3,10 +3,12 @@
 > **Lifecycle Stages:** Pre‑Alpha → Alpha → Beta → Release
 >
 > This roadmap gives the purpose of each stage. The published version and changelog identify the current version.
+> Stage transitions obey the milestone criteria below, not fixed version numbers. Each release before 1.0 is a
+> `0.x` minor version. The Beta stage starts when the API freeze is complete.
 
 ---
 
-## Alpha (`0.1.x`–`0.8.x`)
+## Alpha (current)
 
 **Focus:**
 
@@ -19,7 +21,7 @@
 
 ---
 
-## Beta (`0.9.x`)
+## Beta (after the API freeze)
 
 **Focus:**
 
@@ -57,9 +59,9 @@
 
 ## 📆 Timeline
 
-| Stage     | Target Range | Key Deliverable                      |
-|-----------|--------------|--------------------------------------|
-| Pre‑Alpha | 0.0.x        | Core DSL spike + snapshot publish    |
-| Alpha     | 0.1.x–0.8.x  | Public API expansion + feedback loop |
-| Beta      | 0.9.x        | API freeze, stability, doc polish    |
-| Release   | 1.0.0        | Production‑ready stable release      |
+| Stage     | Versions                    | Key Deliverable                      |
+|-----------|-----------------------------|--------------------------------------|
+| Pre‑Alpha | `0.0.x`                     | Core DSL spike + snapshot publish    |
+| Alpha     | `0.x` until the API freeze  | Public API expansion + feedback loop |
+| Beta      | `0.x` after the API freeze  | API freeze, stability, doc polish    |
+| Release   | `1.0.0`                     | Production‑ready stable release      |
