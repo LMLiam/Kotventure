@@ -3,8 +3,8 @@
 > **Lifecycle Stages:** Pre‑Alpha → Alpha → Beta → Release
 >
 > This roadmap gives the purpose of each stage. The published version and changelog identify the current version.
-> Stage transitions follow the milestone criteria below, not fixed version numbers: every pre-1.0 release is a
-> `0.x` minor, and the Beta stage begins when the API freeze lands.
+> Stage transitions obey the milestone criteria below, not fixed version numbers. Each release before 1.0 is a
+> `0.x` minor version. The Beta stage starts when the API freeze is complete.
 
 ---
 

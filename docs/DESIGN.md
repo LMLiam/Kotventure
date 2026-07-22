@@ -88,11 +88,11 @@ hidden process-wide registry or scan the class path.
 
 This design keeps usual operations direct and permits the replacement of variable parts.
 
-**Animation** arrives in Phase 3 as flows, not as an engine. Effects are functions from components to
-`Flow<Component>` frame sources. A suspending sink presents a frame flow to an audience target. `Ticker`
-implementations and their coroutine mappings pace the frames, and structured concurrency controls cancellation.
-There is no separate driver interface or driver registry: the platform `Ticker` registrations already fill that
-role. The composition flow is **effect → frame flow → paced collection → audience target**.
+**Animation** is part of Phase 3. Animation uses flows, not an engine. An effect is a function from components to
+a `Flow<Component>` frame source. A suspending sink sends a frame flow to an audience target. `Ticker`
+implementations and their coroutine mappings control the frame schedule. Structured concurrency controls
+cancellation. A separate driver interface or driver registry is not necessary. The platform `Ticker` registrations
+supply the schedule. The composition flow is **effect → frame flow → paced collection → audience target**.
 
 ## 5. Canonical DSL surface (illustrative)
 
@@ -308,13 +308,13 @@ arguments. Invalid patterns cause an exception that gives the applicable offset.
 
 - **`ansi`** renders a `Component` as ANSI for tests and logs. It supports colours, decorations, and approximate
   gradients. Developers can examine output without a server.
-- **`catalog-compiler`** parses `messages.yml` or property files, validates markup and placeholders, and generates a
-  typed message catalogue with required, validated placeholders. It is a pure library with no Gradle dependency, so
-  build, IDE, and CLI frontends share one implementation.
-- **`gradle-plugin`** stops a build when resource bundles contain malformed MiniMessage or absent placeholders, using
-  the `catalog-compiler` diagnostics. It can also precompile bundles.
-- A **detekt rule set** flags illegal style/component constructs that the type system cannot express. KSP is not used
-  for this: it resolves declarations, not the expression bodies inside DSL blocks.
+- **`catalog-compiler`** parses `messages.yml` or property files. It validates markup and placeholders. It generates
+  a typed message catalogue with required, validated placeholders. It is a pure library with no Gradle dependency.
+  Thus, the build, IDE, and CLI frontends share one implementation.
+- **`gradle-plugin`** stops a build when resource bundles contain malformed MiniMessage or absent placeholders. It
+  uses the `catalog-compiler` diagnostics. It can also precompile bundles.
+- A **detekt rule set** identifies illegal style and component constructs that the type system cannot express. KSP is
+  not applicable for these checks. KSP resolves declarations, not the expression bodies in DSL blocks.
 
 ## 9. Platforms
 
@@ -322,8 +322,8 @@ arguments. Invalid patterns cause an exception that gives the applicable offset.
 and convenience functions:
 
 - **`paper`** supplies Paper and Folia tickers, audience functions, dialogs, and item lore and name builders.
-- **`velocity`** supplies a proxy scheduler ticker and lifecycle wiring. Velocity is natively Adventure, so no
-  audience adapter is needed.
+- **`velocity`** supplies a proxy scheduler ticker and lifecycle wiring. Velocity supports Adventure natively.
+  Thus, an audience adapter is not necessary.
 - **`fabric`** uses `adventure-platform-fabric`.
 
 ## 10. Build, publishing & versioning
@@ -339,9 +339,9 @@ and convenience functions:
 - **Publication:** During the pre-alpha and alpha stages, JitPack builds from Git tags. At beta or version `1.0`, Maven
   Central uses the `io.github.lmliam` namespace and GPG signatures.
 - The **BOM** module aligns versions across all artefacts.
-- **Versions:** every pre-1.0 release is a `0.x` minor. Alpha lasts until the API freeze; the `0.x` line after the
-  freeze is beta. Version `1.0.0` starts the semantic-versioning commitment. CI builds, tests, and lints pull
-  requests. Tags start publication.
+- **Versions:** each release before 1.0 is a `0.x` minor version. The Alpha stage continues until the API freeze.
+  The `0.x` releases after the freeze are the Beta stage. Version `1.0.0` starts the semantic-versioning
+  commitment. CI builds, tests, and lints pull requests. Tags start publication.
 
 > **Note:** To add or update a GitHub Actions workflow, use a token with the `workflow` scope. Use
 > `gh auth refresh -s workflow` to add the scope. A separate issue tracks CI on `master`.
@@ -404,7 +404,8 @@ release each slice independently.
 - Optional **Sponge** / **BungeeCord** bundles post‑1.0.
 - IDE inspections / detekt rules for the DSL (long‑term tooling).
 - A hosted **playground** / cookbook docs site.
-- Scoreboard and sidebar helpers are not part of Adventure. **Decision:** deferred to a possible dedicated
-  `paper-ui` module after the message toolchain ships. It would wrap the Bukkit scoreboard API — a documented
-  exception to the wrap-`net.kyori.*` rule, isolated so `core` and `paper` stay pure Adventure. Sidebars only;
-  inventory menus, commands, and generic server utilities stay out of scope.
+- Scoreboard and sidebar helpers are not part of Adventure. **Decision:** this feature is deferred to a possible
+  `paper-ui` module after the message toolchain is complete. The module would wrap the Bukkit scoreboard API. This
+  is a documented exception to the wrap-`net.kyori.*` rule. The exception stays in its own module, and `core` and
+  `paper` remain pure Adventure. The scope includes only sidebars. Inventory menus, commands, and general server
+  utilities remain out of scope.
