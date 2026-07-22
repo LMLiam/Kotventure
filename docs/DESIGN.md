@@ -339,8 +339,9 @@ and convenience functions:
 - **Publication:** During the pre-alpha and alpha stages, JitPack builds from Git tags. At beta or version `1.0`, Maven
   Central uses the `io.github.lmliam` namespace and GPG signatures.
 - The **BOM** module aligns versions across all artefacts.
-- **Versions:** `0.0.x` is unstable, `0.x` is alpha, and `0.9.x` is beta with a frozen API. Version `1.0.0` starts the
-  semantic-versioning commitment. CI builds, tests, and lints pull requests. Tags start publication.
+- **Versions:** every pre-1.0 release is a `0.x` minor. Alpha lasts until the API freeze; the `0.x` line after the
+  freeze is beta. Version `1.0.0` starts the semantic-versioning commitment. CI builds, tests, and lints pull
+  requests. Tags start publication.
 
 > **Note:** To add or update a GitHub Actions workflow, use a token with the `workflow` scope. Use
 > `gh auth refresh -s workflow` to add the scope. A separate issue tracks CI on `master`.
@@ -368,14 +369,14 @@ Roadmap issues with 5.x notes are serialisers (#30), click events (#21), rendere
 Each phase is a GitHub **milestone**. Each subissue is a small vertical slice with its own tests. The project can
 release each slice independently.
 
-| Phase | Milestone         | Focus                                                                                                                                                                 |
-|-------|-------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **0** | Pre‑Alpha `0.0.x` | Foundations: drop SPI, restructure, CI, JitPack, BOM stub. **First slice:** `component { text { color/decorate } }` + first matcher + `toMiniMessage()`. Tag `0.0.1`. |
-| **1** | Alpha `0.1–0.3`   | Core DSL: full components, styles, events, gradients, and themes. MiniMessage typed templates, validation, and converter. Serialiser extensions. Test matchers and snapshots.   |
-| **2** | Alpha `0.4–0.6`   | Audience & UX: send DSL (message/actionbar/title/book/sound/tablist), managed boss bars/titles, pagination, GUI/lore builders (Paper), coroutines.                    |
-| **3** | Alpha `0.7–0.8`   | Animation frame flows + built‑ins, MiniMessage environment, i18n registry + locale DSL, typed message catalogue (catalog compiler), ANSI preview, Gradle build plugin, Maven Central, binary‑compatibility dumps. |
-| **4** | Beta `0.9.x`      | Velocity + Fabric bundles, static style validation (detekt), compatibility matrix, API freeze, perf pass, docs/cookbook, integration tests.                           |
-| **5** | `1.0.0`           | Maven Central signed publishing, semver commitment, sample plugin, migration guide, final docs.                                                                       |
+| Phase | Stage     | Focus                                                                                                                                                                 |
+|-------|-----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **0** | Pre‑Alpha | Foundations: drop SPI, restructure, CI, JitPack, BOM stub. **First slice:** `component { text { color/decorate } }` + first matcher + `toMiniMessage()`.              |
+| **1** | Alpha     | Core DSL: full components, styles, events, gradients, and themes. MiniMessage typed templates, validation, and converter. Serialiser extensions. Test matchers and snapshots.   |
+| **2** | Alpha     | Audience & UX: send DSL (message/actionbar/title/book/sound/tablist), managed boss bars/titles, pagination, GUI/lore builders (Paper), coroutines.                    |
+| **3** | Alpha     | Animation frame flows + built‑ins, MiniMessage environment, i18n registry + locale DSL, typed message catalogue (catalog compiler), ANSI preview, Gradle build plugin, Maven Central, binary‑compatibility dumps. |
+| **4** | Beta      | Velocity + Fabric bundles, static style validation (detekt), compatibility matrix, API freeze, perf pass, docs/cookbook, integration tests.                           |
+| **5** | Release   | Maven Central signed publishing, semver commitment, sample plugin, migration guide, final docs.                                                                       |
 
 ## 12. Feature → phase matrix
 
