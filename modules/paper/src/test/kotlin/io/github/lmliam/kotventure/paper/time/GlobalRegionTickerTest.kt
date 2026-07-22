@@ -56,13 +56,13 @@ private fun onceSchedulerReturning(task: ScheduledTask): GlobalRegionScheduler {
 
 private fun rejects(interval: Duration) {
     shouldThrow<IllegalArgumentException> {
-        mockk<Plugin>().ticker().repeating(interval) { }
+        mockk<Plugin>().ticker().every(interval) { }
     }
 }
 
 private fun rejectsOnce(delay: Duration) {
     shouldThrow<IllegalArgumentException> {
-        mockk<Plugin>().ticker().once(delay) { }
+        mockk<Plugin>().ticker().after(delay) { }
     }
 }
 
@@ -73,7 +73,7 @@ class GlobalRegionTickerTest :
                 val scheduler = schedulerReturning(mockk())
                 val plugin = pluginWith(serverWith(scheduler))
 
-                plugin.ticker().repeating(1.seconds) { }
+                plugin.ticker().every(1.seconds) { }
 
                 verify { scheduler.runAtFixedRate(plugin, any<Consumer<ScheduledTask>>(), 20L, 20L) }
             }
@@ -84,7 +84,7 @@ class GlobalRegionTickerTest :
                 every { server.scheduler } returns bukkitScheduler
                 val plugin = pluginWith(server)
 
-                plugin.ticker().repeating(1.seconds) { }
+                plugin.ticker().every(1.seconds) { }
 
                 verify { bukkitScheduler wasNot Called }
             }
@@ -93,7 +93,7 @@ class GlobalRegionTickerTest :
                 val scheduler = schedulerReturning(mockk())
                 val plugin = pluginWith(serverWith(scheduler))
 
-                plugin.ticker().repeating(3.ticks) { }
+                plugin.ticker().every(3.ticks) { }
 
                 verify { scheduler.runAtFixedRate(plugin, any<Consumer<ScheduledTask>>(), 3L, 3L) }
             }
@@ -109,7 +109,7 @@ class GlobalRegionTickerTest :
                 val player = mockk<Player>()
                 every { player.sendMessage(capture(sent)) } just Runs
 
-                plugin.ticker().repeating(1.seconds) {
+                plugin.ticker().every(1.seconds) {
                     player.message { text("Meteor incoming") }
                 }
                 consumer.captured.accept(mockk())
@@ -121,7 +121,7 @@ class GlobalRegionTickerTest :
                 val scheduledTask = mockk<ScheduledTask>(relaxed = true)
                 val plugin = pluginWith(serverWith(schedulerReturning(scheduledTask)))
 
-                val task = plugin.ticker().repeating(1.seconds) { }
+                val task = plugin.ticker().every(1.seconds) { }
                 task.cancel()
                 task.cancel()
 
@@ -140,7 +140,7 @@ class GlobalRegionTickerTest :
                 val scheduler = onceSchedulerReturning(mockk())
                 val plugin = pluginWith(serverWith(scheduler))
 
-                plugin.ticker().once { }
+                plugin.ticker().after { }
 
                 verify { scheduler.run(plugin, any<Consumer<ScheduledTask>>()) }
                 verify(exactly = 0) {
@@ -152,7 +152,7 @@ class GlobalRegionTickerTest :
                 val scheduler = onceSchedulerReturning(mockk())
                 val plugin = pluginWith(serverWith(scheduler))
 
-                plugin.ticker().once(3.ticks) { }
+                plugin.ticker().after(3.ticks) { }
 
                 verify { scheduler.runDelayed(plugin, any<Consumer<ScheduledTask>>(), 3L) }
                 verify(exactly = 0) { scheduler.run(any<Plugin>(), any<Consumer<ScheduledTask>>()) }
@@ -167,7 +167,7 @@ class GlobalRegionTickerTest :
                 val player = mockk<Player>()
                 every { player.sendMessage(capture(sent)) } just Runs
 
-                plugin.ticker().once { player.message { text("Meteor landed") } }
+                plugin.ticker().after { player.message { text("Meteor landed") } }
                 consumer.captured.accept(mockk())
 
                 sent.captured shouldHaveContent "Meteor landed"
@@ -177,7 +177,7 @@ class GlobalRegionTickerTest :
                 val scheduledTask = mockk<ScheduledTask>(relaxed = true)
                 val plugin = pluginWith(serverWith(onceSchedulerReturning(scheduledTask)))
 
-                val task = plugin.ticker().once(1.seconds) { }
+                val task = plugin.ticker().after(1.seconds) { }
                 task.cancel()
                 task.cancel()
 
@@ -193,7 +193,7 @@ class GlobalRegionTickerTest :
                 every { server.isGlobalTickThread } returns true
                 val plugin = pluginWith(server)
 
-                plugin.ticker().ownsCurrentThread shouldBe true
+                plugin.ticker().isCurrent shouldBe true
 
                 verify { server.isGlobalTickThread }
             }

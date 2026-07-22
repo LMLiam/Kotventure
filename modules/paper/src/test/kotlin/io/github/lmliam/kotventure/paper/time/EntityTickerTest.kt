@@ -53,13 +53,13 @@ private fun onceSchedulerReturning(task: ScheduledTask?): EntityScheduler {
 
 private fun rejects(interval: Duration) {
     shouldThrow<IllegalArgumentException> {
-        mockk<Plugin>().ticker(mockk<Entity>()).repeating(interval) { }
+        mockk<Plugin>().ticker(mockk<Entity>()).every(interval) { }
     }
 }
 
 private fun rejectsOnce(delay: Duration) {
     shouldThrow<IllegalArgumentException> {
-        mockk<Plugin>().ticker(mockk<Entity>()).once(delay) { }
+        mockk<Plugin>().ticker(mockk<Entity>()).after(delay) { }
     }
 }
 
@@ -71,7 +71,7 @@ class EntityTickerTest :
                 val plugin = mockk<Plugin>()
                 val entity = entityWith(scheduler)
 
-                plugin.ticker(entity).repeating(1.seconds) { }
+                plugin.ticker(entity).every(1.seconds) { }
 
                 verify {
                     scheduler.runAtFixedRate(plugin, any<Consumer<ScheduledTask>>(), isNull(), 20L, 20L)
@@ -84,7 +84,7 @@ class EntityTickerTest :
                 every { plugin.server.scheduler } returns bukkitScheduler
                 val entity = entityWith(schedulerReturning(mockk()))
 
-                plugin.ticker(entity).repeating(1.seconds) { }
+                plugin.ticker(entity).every(1.seconds) { }
 
                 verify { bukkitScheduler wasNot Called }
             }
@@ -94,7 +94,7 @@ class EntityTickerTest :
                 val plugin = mockk<Plugin>()
                 val entity = entityWith(scheduler)
 
-                plugin.ticker(entity).repeating(3.ticks) { }
+                plugin.ticker(entity).every(3.ticks) { }
 
                 verify {
                     scheduler.runAtFixedRate(plugin, any<Consumer<ScheduledTask>>(), isNull(), 3L, 3L)
@@ -113,7 +113,7 @@ class EntityTickerTest :
                 val player = mockk<Player>()
                 every { player.sendMessage(capture(sent)) } just Runs
 
-                plugin.ticker(entity).repeating(1.seconds) {
+                plugin.ticker(entity).every(1.seconds) {
                     player.message { text("Meteor incoming") }
                 }
                 consumer.captured.accept(mockk())
@@ -126,7 +126,7 @@ class EntityTickerTest :
                 val plugin = mockk<Plugin>()
                 val entity = entityWith(schedulerReturning(scheduledTask))
 
-                val task = plugin.ticker(entity).repeating(1.seconds) { }
+                val task = plugin.ticker(entity).every(1.seconds) { }
                 task.cancel()
                 task.cancel()
 
@@ -146,7 +146,7 @@ class EntityTickerTest :
                 val entity = entityWith(schedulerReturning(null))
 
                 shouldThrow<IllegalStateException> {
-                    plugin.ticker(entity).repeating(1.seconds) { }
+                    plugin.ticker(entity).every(1.seconds) { }
                 }
             }
 
@@ -155,7 +155,7 @@ class EntityTickerTest :
                 val plugin = mockk<Plugin>()
                 val entity = entityWith(scheduler)
 
-                plugin.ticker(entity).once { }
+                plugin.ticker(entity).after { }
 
                 verify { scheduler.run(plugin, any<Consumer<ScheduledTask>>(), isNull()) }
                 verify(exactly = 0) {
@@ -168,7 +168,7 @@ class EntityTickerTest :
                 val plugin = mockk<Plugin>()
                 val entity = entityWith(scheduler)
 
-                plugin.ticker(entity).once(3.ticks) { }
+                plugin.ticker(entity).after(3.ticks) { }
 
                 verify { scheduler.runDelayed(plugin, any<Consumer<ScheduledTask>>(), isNull(), 3L) }
                 verify(exactly = 0) { scheduler.run(any<Plugin>(), any<Consumer<ScheduledTask>>(), isNull()) }
@@ -183,7 +183,7 @@ class EntityTickerTest :
                 val entity = entityWith(onceSchedulerReturning(null))
 
                 shouldThrow<IllegalStateException> {
-                    plugin.ticker(entity).once { }
+                    plugin.ticker(entity).after { }
                 }
             }
 
@@ -195,7 +195,7 @@ class EntityTickerTest :
                 val plugin = mockk<Plugin>()
                 every { plugin.server } returns server
 
-                plugin.ticker(entity).ownsCurrentThread shouldBe true
+                plugin.ticker(entity).isCurrent shouldBe true
 
                 verify { server.isOwnedByCurrentRegion(entity) }
             }

@@ -22,12 +22,12 @@ internal fun Duration.wholeTicks(name: String): Long {
 }
 
 /**
- * Converts a one-shot delay into scheduler ticks.
+ * Converts a one-time delay into scheduler ticks.
  *
  * @return `null` when the delay is zero, which selects the next tick.
  * @throws IllegalArgumentException when the delay is negative or not an exact number of ticks.
  */
-internal fun Duration.onceTicks(): Long? {
-    require(!isNegative()) { "once delay must not be negative, got $this." }
-    return if (this == Duration.ZERO) null else wholeTicks("once delay")
+internal fun Duration.afterTicks(): Long? {
+    require(!isNegative()) { "after delay must not be negative, got $this." }
+    return if (this == Duration.ZERO) null else wholeTicks("after delay")
 }
