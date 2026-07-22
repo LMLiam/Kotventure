@@ -25,7 +25,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 private fun tickerScope(ticker: Ticker): CoroutineScope =
-        CoroutineScope(SupervisorJob() + ticker.asCoroutineDispatcher())
+    CoroutineScope(SupervisorJob() + ticker.asCoroutineDispatcher())
 
 class TickerDispatcherTest :
     StringSpec(
