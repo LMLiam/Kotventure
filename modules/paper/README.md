@@ -67,7 +67,7 @@ to prevent a schedule that you do not need.
 if (ticker().ownsCurrentThread) world.setStorm(true) else ticker().once { world.setStorm(true) }
 ```
 
-To run a coroutine on the game thread, give the ticker to
+To run a coroutine in the ticker's context, give the ticker to
 [`kotventure-coroutines`](../coroutines/README.md#tick-dispatcher).
 
 A plugin must declare `folia-supported: true` in its `plugin.yml` to load on Folia.

@@ -161,7 +161,7 @@ class TickerDispatcherTest :
                 ticker.advance(1.ticks)
                 job.cancel()
 
-                ticker.cancellations shouldBe 1
+                ticker.cancelRequests shouldBe 1
 
                 ticker.advance(20.seconds)
 

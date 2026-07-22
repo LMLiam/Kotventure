@@ -8,8 +8,9 @@ import kotlin.time.Duration
 /**
  * Records what a dispatcher asks [delegate] to do.
  *
- * This ticker shows each one-shot delay verbatim and counts each cancellation. It does not change
- * the timing.
+ * This ticker shows each one-shot delay verbatim and counts each cancel request. It does not change
+ * the timing, and it does not hide a repeated request. [TickerTask.cancel] permits more than one
+ * call, so a count above one is information and not a failure.
  */
 internal class RecordingTicker(
     private val delegate: ManualTicker,
@@ -17,7 +18,7 @@ internal class RecordingTicker(
     val delays: List<Duration>
         field = mutableListOf<Duration>()
 
-    var cancellations: Int = 0
+    var cancelRequests: Int = 0
         private set
 
     /** Advances the virtual time of [delegate]. */
@@ -33,7 +34,7 @@ internal class RecordingTicker(
         val task = delegate.once(delay, action)
         return object : TickerTask {
             override fun cancel() {
-                cancellations++
+                cancelRequests++
                 task.cancel()
             }
         }

@@ -6,8 +6,9 @@ import kotlinx.coroutines.MainCoroutineDispatcher
 /**
  * Returns a [MainCoroutineDispatcher] that runs coroutines on this ticker.
  *
- * Each coroutine body, each resumption, and each `delay` runs on the ticker. On Paper, this is the
- * game thread. Thus, a body can touch the world and the entities safely.
+ * Each coroutine body, each resumption, and each `delay` runs on the ticker. Thus, a body can do the
+ * operations that the ticker's own context permits, and no more. A global Paper ticker gives the
+ * global tick context. An entity ticker or a location ticker gives only the region that it follows.
  *
  * The dispatcher also controls `delay`, `withTimeout`, and `withTimeoutOrNull`. It schedules each
  * of them with [Ticker.once], and it cancels the schedule when the coroutine cancels.
