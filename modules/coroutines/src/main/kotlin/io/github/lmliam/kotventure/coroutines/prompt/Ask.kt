@@ -40,7 +40,7 @@ public suspend fun <T> Audience.ask(
  *
  * @param lifetime how long option buttons remain clickable.
  * @param build configures the question text and its options.
- * @teturn the value of the first clicked option.
+ * @return the value of the first clicked option.
  * @throws IllegalStateException if [build] declares no options, an option label applies a click event, or
  *         a write-once slot is assigned twice. No message is sent.
  * @throws IllegalArgumentException if [lifetime] is not positive.
