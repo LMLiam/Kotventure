@@ -27,6 +27,8 @@ import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.github.lmliam.kotventure.test.text.shouldHaveArguments
 import io.github.lmliam.kotventure.test.text.shouldHaveChildren
 import io.github.lmliam.kotventure.test.text.shouldHaveContent
+import io.github.lmliam.kotventure.test.text.shouldHaveHoverEntity
+import io.github.lmliam.kotventure.test.text.shouldHaveHoverText
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
@@ -69,10 +71,7 @@ class VirtualRenderingTest :
                 val message =
                     Component.virtual(
                         Viewer::class.java,
-                        object : VirtualComponentRenderer<Viewer> {
-                            override fun apply(context: Viewer): Component = Component.score(context.name, "wins")
-                        },
-                    )
+                    ) { context -> Component.score(context.name, "wins") }
 
                 message.render(Viewer("Alex")) shouldBe Component.score("Alex", "wins")
             }
@@ -141,8 +140,7 @@ class VirtualRenderingTest :
                 val message =
                     Component.virtual(
                         Viewer::class.java,
-                        VirtualComponentRenderer<Viewer> { nested },
-                    )
+                    ) { nested }
 
                 message.render(Viewer("Alex"), Locale.UK) shouldBe renderedText("en")
             }
@@ -152,8 +150,7 @@ class VirtualRenderingTest :
                 message =
                     Component.virtual(
                         Viewer::class.java,
-                        VirtualComponentRenderer<Viewer> { requireNotNull(message) },
-                    )
+                    ) { requireNotNull(message) }
 
                 message.render(Viewer("Alex")) shouldBe message
             }
@@ -162,16 +159,16 @@ class VirtualRenderingTest :
                 val virtualChild = virtual<Viewer> { render { text(context.name) } }
                 val sources =
                     listOf(
-                        text("text") { append(virtualChild) },
-                        translatable("translation.key") { append(virtualChild) },
-                        keybind("key.jump") { append(virtualChild) },
-                        score("Alex", "wins") { append(virtualChild) },
-                        selector(self()) { append(virtualChild) },
-                        blockNbt(blockPos(0, 64, 0), nbtPath("value")) { append(virtualChild) },
-                        entityNbt(self(), nbtPath("value")) { append(virtualChild) },
-                        storageNbt(key("kotventure", "messages"), nbtPath("value")) { append(virtualChild) },
-                        display(sprite(key("minecraft", "block/stone"))) { append(virtualChild) },
-                    )
+                        text("text"),
+                        translatable("translation.key"),
+                        keybind("key.jump"),
+                        score("Alex", "wins"),
+                        selector(self()),
+                        blockNbt(blockPos(0, 64, 0), nbtPath("value")),
+                        entityNbt(self(), nbtPath("value")),
+                        storageNbt(key("kotventure", "messages"), nbtPath("value")),
+                        display(sprite(key("minecraft", "block/stone"))),
+                    ).map { it.append(virtualChild) }
 
                 sources.forEach { source ->
                     val rendered = source.render(Viewer("Alex"))
@@ -199,12 +196,12 @@ class VirtualRenderingTest :
                 val blockNbt = blockNbt(blockPos(0, 64, 0), nbtPath("value")) { separator(separator) }
                 val entityNbt = entityNbt(self(), nbtPath("value")) { separator(separator) }
                 val storageNbt = storageNbt(key("kotventure", "messages"), nbtPath("value")) { separator(separator) }
+                val expectedSeparator = renderedText("Alex")
 
-                selector.render(Viewer("Alex")).shouldBeSelectorComponent().separator() shouldBe renderedText("Alex")
-                blockNbt.render(Viewer("Alex")).shouldBeBlockNbtComponent().separator() shouldBe renderedText("Alex")
-                entityNbt.render(Viewer("Alex")).shouldBeEntityNbtComponent().separator() shouldBe renderedText("Alex")
-                storageNbt.render(Viewer("Alex")).shouldBeStorageNbtComponent().separator() shouldBe
-                        renderedText("Alex")
+                selector.render(Viewer("Alex")).shouldBeSelectorComponent().separator() shouldBe expectedSeparator
+                blockNbt.render(Viewer("Alex")).shouldBeBlockNbtComponent().separator() shouldBe expectedSeparator
+                entityNbt.render(Viewer("Alex")).shouldBeEntityNbtComponent().separator() shouldBe expectedSeparator
+                storageNbt.render(Viewer("Alex")).shouldBeStorageNbtComponent().separator() shouldBe expectedSeparator
             }
 
             "renders virtual hover text and entity names" {
@@ -224,13 +221,18 @@ class VirtualRenderingTest :
                             }
                         }
                     }
+                val expectedName = Component.text().append(renderedText("Alex")).build()
 
-                val renderedHoverText = requireNotNull(hoverText.render(Viewer("Alex")).hoverEvent())
-                renderedHoverText.value() as Component shouldContainText "Alex"
-
-                val renderedHoverEntity = requireNotNull(hoverEntity.render(Viewer("Alex")).hoverEvent())
-                val entity = renderedHoverEntity.value() as? HoverEvent.ShowEntity
-                requireNotNull(requireNotNull(entity).name()) shouldContainText "Alex"
+                hoverText.render(Viewer("Alex")) shouldHaveHoverText expectedName
+                hoverEntity.render(Viewer("Alex")) shouldHaveHoverEntity
+                        HoverEvent.ShowEntity.showEntity(
+                            key(
+                                "minecraft",
+                                "player",
+                            ),
+                            UUID(0, 0),
+                            expectedName,
+                        )
             }
 
             "renders virtual object fallbacks" {
