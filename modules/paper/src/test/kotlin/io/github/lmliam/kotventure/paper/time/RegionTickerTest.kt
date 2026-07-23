@@ -6,6 +6,7 @@ import io.github.lmliam.kotventure.core.time.ticks
 import io.github.lmliam.kotventure.test.text.shouldHaveContent
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.Called
 import io.mockk.Runs
 import io.mockk.every
@@ -53,9 +54,24 @@ private fun schedulerReturning(task: ScheduledTask): RegionScheduler {
     return scheduler
 }
 
+private fun onceSchedulerReturning(task: ScheduledTask): RegionScheduler {
+    val scheduler = mockk<RegionScheduler>()
+    every { scheduler.run(any<Plugin>(), any<Location>(), any<Consumer<ScheduledTask>>()) } returns task
+    every {
+        scheduler.runDelayed(any<Plugin>(), any<Location>(), any<Consumer<ScheduledTask>>(), any<Long>())
+    } returns task
+    return scheduler
+}
+
 private fun rejects(interval: Duration) {
     shouldThrow<IllegalArgumentException> {
-        mockk<Plugin>().ticker(mockk<Location>()).repeating(interval) { }
+        mockk<Plugin>().ticker(mockk<Location>()).every(interval) { }
+    }
+}
+
+private fun rejectsOnce(delay: Duration) {
+    shouldThrow<IllegalArgumentException> {
+        mockk<Plugin>().ticker(mockk<Location>()).after(delay) { }
     }
 }
 
@@ -67,7 +83,7 @@ class RegionTickerTest :
                 val plugin = pluginWith(serverWith(scheduler))
                 val location = mockk<Location>()
 
-                plugin.ticker(location).repeating(1.seconds) { }
+                plugin.ticker(location).every(1.seconds) { }
 
                 verify {
                     scheduler.runAtFixedRate(plugin, location, any<Consumer<ScheduledTask>>(), 20L, 20L)
@@ -80,7 +96,7 @@ class RegionTickerTest :
                 every { server.scheduler } returns bukkitScheduler
                 val plugin = pluginWith(server)
 
-                plugin.ticker(mockk<Location>()).repeating(1.seconds) { }
+                plugin.ticker(mockk<Location>()).every(1.seconds) { }
 
                 verify { bukkitScheduler wasNot Called }
             }
@@ -90,7 +106,7 @@ class RegionTickerTest :
                 val plugin = pluginWith(serverWith(scheduler))
                 val location = mockk<Location>()
 
-                plugin.ticker(location).repeating(3.ticks) { }
+                plugin.ticker(location).every(3.ticks) { }
 
                 verify {
                     scheduler.runAtFixedRate(plugin, location, any<Consumer<ScheduledTask>>(), 3L, 3L)
@@ -115,7 +131,7 @@ class RegionTickerTest :
                 val player = mockk<Player>()
                 every { player.sendMessage(capture(sent)) } just Runs
 
-                plugin.ticker(location).repeating(1.seconds) {
+                plugin.ticker(location).every(1.seconds) {
                     player.message { text("Meteor incoming") }
                 }
                 consumer.captured.accept(mockk())
@@ -128,7 +144,7 @@ class RegionTickerTest :
                 val plugin = pluginWith(serverWith(schedulerReturning(scheduledTask)))
                 val location = mockk<Location>()
 
-                val task = plugin.ticker(location).repeating(1.seconds) { }
+                val task = plugin.ticker(location).every(1.seconds) { }
                 task.cancel()
                 task.cancel()
 
@@ -142,5 +158,46 @@ class RegionTickerTest :
             "rejects a zero interval" { rejects(Duration.ZERO) }
 
             "rejects a negative interval" { rejects((-1).seconds) }
+
+            "schedules a zero delay on the next tick of the region" {
+                val scheduler = onceSchedulerReturning(mockk())
+                val plugin = pluginWith(serverWith(scheduler))
+                val location = mockk<Location>()
+
+                plugin.ticker(location).after { }
+
+                verify { scheduler.run(plugin, location, any<Consumer<ScheduledTask>>()) }
+                verify(exactly = 0) {
+                    scheduler.runDelayed(any<Plugin>(), any<Location>(), any<Consumer<ScheduledTask>>(), any<Long>())
+                }
+            }
+
+            "schedules a positive delay as region ticks" {
+                val scheduler = onceSchedulerReturning(mockk())
+                val plugin = pluginWith(serverWith(scheduler))
+                val location = mockk<Location>()
+
+                plugin.ticker(location).after(3.ticks) { }
+
+                verify { scheduler.runDelayed(plugin, location, any<Consumer<ScheduledTask>>(), 3L) }
+                verify(exactly = 0) {
+                    scheduler.run(any<Plugin>(), any<Location>(), any<Consumer<ScheduledTask>>())
+                }
+            }
+
+            "rejects a one-shot delay that is not a whole number of ticks" { rejectsOnce(75.milliseconds) }
+
+            "rejects a negative one-shot delay" { rejectsOnce((-1).seconds) }
+
+            "reads thread ownership from the region that contains the location" {
+                val location = mockk<Location>()
+                val server = mockk<Server>()
+                every { server.isOwnedByCurrentRegion(location) } returns true
+                val plugin = pluginWith(server)
+
+                plugin.ticker(location).isCurrent shouldBe true
+
+                verify { server.isOwnedByCurrentRegion(location) }
+            }
         },
     )

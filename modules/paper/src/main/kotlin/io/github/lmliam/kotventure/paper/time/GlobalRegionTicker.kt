@@ -14,11 +14,14 @@ import kotlin.time.Duration
 internal class GlobalRegionTicker(
     private val plugin: Plugin,
 ) : Ticker {
-    override fun repeating(
+    override val isCurrent: Boolean
+        get() = plugin.server.isGlobalTickThread
+
+    override fun every(
         interval: Duration,
         action: () -> Unit,
     ): TickerTask {
-        val ticks = interval.wholeTicks()
+        val ticks = interval.wholeTicks("every interval")
         val scheduledTask =
             plugin.server.globalRegionScheduler.runAtFixedRate(
                 plugin,
@@ -26,6 +29,21 @@ internal class GlobalRegionTicker(
                 ticks,
                 ticks,
             )
+        return ScheduledTickerTask(scheduledTask)
+    }
+
+    override fun after(
+        delay: Duration,
+        action: () -> Unit,
+    ): TickerTask {
+        val ticks = delay.afterTicks()
+        val scheduler = plugin.server.globalRegionScheduler
+        val scheduledTask =
+            if (ticks == null) {
+                scheduler.run(plugin) { action() }
+            } else {
+                scheduler.runDelayed(plugin, { action() }, ticks)
+            }
         return ScheduledTickerTask(scheduledTask)
     }
 }

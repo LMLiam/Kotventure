@@ -16,11 +16,14 @@ internal class RegionTicker(
     private val plugin: Plugin,
     private val location: Location,
 ) : Ticker {
-    override fun repeating(
+    override val isCurrent: Boolean
+        get() = plugin.server.isOwnedByCurrentRegion(location)
+
+    override fun every(
         interval: Duration,
         action: () -> Unit,
     ): TickerTask {
-        val ticks = interval.wholeTicks()
+        val ticks = interval.wholeTicks("every interval")
         val scheduledTask =
             plugin.server.regionScheduler.runAtFixedRate(
                 plugin,
@@ -29,6 +32,21 @@ internal class RegionTicker(
                 ticks,
                 ticks,
             )
+        return ScheduledTickerTask(scheduledTask)
+    }
+
+    override fun after(
+        delay: Duration,
+        action: () -> Unit,
+    ): TickerTask {
+        val ticks = delay.afterTicks()
+        val scheduler = plugin.server.regionScheduler
+        val scheduledTask =
+            if (ticks == null) {
+                scheduler.run(plugin, location) { action() }
+            } else {
+                scheduler.runDelayed(plugin, location, { action() }, ticks)
+            }
         return ScheduledTickerTask(scheduledTask)
     }
 }

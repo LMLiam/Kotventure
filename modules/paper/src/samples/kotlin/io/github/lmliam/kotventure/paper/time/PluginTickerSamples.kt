@@ -8,7 +8,12 @@ import org.bukkit.plugin.Plugin
 
 internal fun tickerSample(plugin: Plugin): TickerTask {
     val ticker = plugin.ticker()
-    return ticker.repeating(20.ticks) { plugin.logger.info("one second passed") }
+    return ticker.every(20.ticks) { plugin.logger.info("one second passed") }
+}
+
+internal fun afterTickerSample(plugin: Plugin): TickerTask {
+    val ticker = plugin.ticker()
+    return ticker.after(60.ticks) { plugin.logger.info("three seconds passed") }
 }
 
 internal fun entityTickerSample(
@@ -16,7 +21,7 @@ internal fun entityTickerSample(
     entity: Entity,
 ): TickerTask {
     val ticker = plugin.ticker(entity)
-    return ticker.repeating(20.ticks) { plugin.logger.info("entity tick passed") }
+    return ticker.every(20.ticks) { plugin.logger.info("entity tick passed") }
 }
 
 internal fun locationTickerSample(
@@ -24,5 +29,5 @@ internal fun locationTickerSample(
     location: Location,
 ): TickerTask {
     val ticker = plugin.ticker(location)
-    return ticker.repeating(20.ticks) { plugin.logger.info("region tick passed") }
+    return ticker.every(20.ticks) { plugin.logger.info("region tick passed") }
 }
