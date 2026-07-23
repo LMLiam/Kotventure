@@ -21,10 +21,12 @@ internal object VirtualTreeRenderer : AbstractComponentRenderer<VirtualRenderSta
     override fun render(
         component: Component,
         context: VirtualRenderState,
-    ): Component {
-        if (component !is VirtualComponent) return super.render(component, context)
-        return context.renderOnce(component) { super.render(component, context) }
-    }
+    ): Component =
+        if (component is VirtualComponent) {
+            context.renderOnce(component) { super.render(component, context) }
+        } else {
+            super.render(component, context)
+        }
 
     override fun renderText(
         component: TextComponent,
@@ -34,11 +36,7 @@ internal object VirtualTreeRenderer : AbstractComponentRenderer<VirtualRenderSta
     override fun renderTranslatable(
         component: TranslatableComponent,
         context: VirtualRenderState,
-    ): Component {
-        val renderedArguments = component.arguments().map { renderArgument(it, context) }
-
-        return renderNested(component.arguments(renderedArguments), context)
-    }
+    ): Component = renderNested(component.arguments(component.arguments().map { renderArgument(it, context) }), context)
 
     override fun renderKeybind(
         component: KeybindComponent,
@@ -53,12 +51,11 @@ internal object VirtualTreeRenderer : AbstractComponentRenderer<VirtualRenderSta
     override fun renderSelector(
         component: SelectorComponent,
         context: VirtualRenderState,
-    ): Component {
-        val separator = component.separator()
-        val rendered = if (separator == null) component else component.separator(render(separator, context))
-
-        return renderNested(rendered, context)
-    }
+    ): Component =
+        renderNested(
+            component.withRenderedNested(component.separator(), context, SelectorComponent::separator),
+            context,
+        )
 
     override fun renderBlockNbt(
         component: BlockNBTComponent,
@@ -78,12 +75,8 @@ internal object VirtualTreeRenderer : AbstractComponentRenderer<VirtualRenderSta
     override fun renderObject(
         component: ObjectComponent,
         context: VirtualRenderState,
-    ): Component {
-        val fallback = component.fallback()
-        val rendered = if (fallback == null) component else component.fallback(render(fallback, context))
-
-        return renderNested(rendered, context)
-    }
+    ): Component =
+        renderNested(component.withRenderedNested(component.fallback(), context, ObjectComponent::fallback), context)
 
     override fun renderVirtual(
         component: VirtualComponent,
@@ -106,12 +99,7 @@ internal object VirtualTreeRenderer : AbstractComponentRenderer<VirtualRenderSta
     private fun <C : NBTComponent<C>> renderNbt(
         component: C,
         context: VirtualRenderState,
-    ): Component {
-        val separator = component.separator()
-        val rendered = if (separator == null) component else component.separator(render(separator, context))
-
-        return renderNested(rendered, context)
-    }
+    ): Component = renderNested(component.withRenderedNested(component.separator(), context) { separator(it) }, context)
 
     private fun renderNested(
         component: Component,
@@ -119,7 +107,7 @@ internal object VirtualTreeRenderer : AbstractComponentRenderer<VirtualRenderSta
     ): Component {
         val hoverEvent = component.hoverEvent()
         val withRenderedHover =
-            if (hoverEvent == null) component else component.hoverEvent(hoverEvent.withRenderedValue(this, context))
+            hoverEvent?.let { component.hoverEvent(it.withRenderedValue(this, context)) } ?: component
         val children = withRenderedHover.children()
 
         return if (children.isEmpty()) {
@@ -129,10 +117,15 @@ internal object VirtualTreeRenderer : AbstractComponentRenderer<VirtualRenderSta
         }
     }
 
+    private fun <C : Component> C.withRenderedNested(
+        nested: Component?,
+        context: VirtualRenderState,
+        replace: C.(ComponentLike) -> C,
+    ): C = nested?.let { replace(render(it, context)) } ?: this
+
     @Suppress("UNCHECKED_CAST")
     private fun VirtualComponent.renderWith(context: Any): Component {
         val renderer = renderer() as VirtualComponentRenderer<Any>
-        val result: ComponentLike? = renderer.apply(context)
-        return checkNotNull(result) { "The virtual component renderer returned null." }.asComponent()
+        return checkNotNull(renderer.apply(context)) { "The virtual component renderer returned null." }.asComponent()
     }
 }
