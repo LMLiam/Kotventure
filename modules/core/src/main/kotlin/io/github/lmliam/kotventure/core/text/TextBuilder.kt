@@ -9,8 +9,9 @@ import net.kyori.adventure.text.format.TextColor
 import io.github.lmliam.kotventure.core.color.gradient as colorGradient
 import io.github.lmliam.kotventure.core.color.gradientText as gradientComponent
 
-internal class TextBuilder :
-    ComponentBuilder<TextComponent, TextComponent.Builder>(Component.text()),
+internal class TextBuilder(
+    builder: TextComponent.Builder = Component.text(),
+) : ComponentBuilder<TextComponent, TextComponent.Builder>(builder),
     TextScope {
     private var content: String? by once()
     private var gradient: ColorGradient? by once()
