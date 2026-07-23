@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any release.
 
+## [0.25.0](https://github.com/LMLiam/Kotventure/compare/0.24.0...0.25.0) (2026-07-23)
+
+
+### ✨ Features
+
+* **core:** add the virtual component DSL ([#329](https://github.com/LMLiam/Kotventure/issues/329)) ([d141539](https://github.com/LMLiam/Kotventure/commit/d14153991ad86310e87470c94aa69abdc124a818))
+* **core:** render virtual components against contexts ([#335](https://github.com/LMLiam/Kotventure/issues/335)) ([745f8cf](https://github.com/LMLiam/Kotventure/commit/745f8cf59fa7635febb60f0dc28f6a57cdcd6239))
+* **core:** style the virtual component wrapper ([#334](https://github.com/LMLiam/Kotventure/issues/334)) ([7a782c4](https://github.com/LMLiam/Kotventure/commit/7a782c43fa661b9bb1e4d40c9555edb6f305bcbd))
+
 ## [0.24.0](https://github.com/LMLiam/Kotventure/compare/0.23.1...0.24.0) (2026-07-23)
 
 
