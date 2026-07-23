@@ -7,10 +7,11 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.VirtualComponent
 
 /**
- * Returns a matcher that compares the render context type with [expected].
+ * Returns a matcher that compares the render context type with [C].
  */
-public fun haveContextType(expected: Class<*>): Matcher<VirtualComponent> =
+public inline fun <reified C : Any> haveContextType(): Matcher<VirtualComponent> =
     Matcher { value ->
+        val expected = C::class.java
         val actual = value.contextType()
         MatcherResult(
             actual == expected,
@@ -45,7 +46,7 @@ public fun Component.shouldBeVirtualComponent(): VirtualComponent = asComponentT
  */
 public inline fun <reified C : Any> VirtualComponent.shouldHaveContextType(): VirtualComponent =
     apply {
-        this should haveContextType(C::class.java)
+        this should haveContextType<C>()
     }
 
 /**
