@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any release.
 
+## [0.24.0](https://github.com/LMLiam/Kotventure/compare/0.23.1...0.24.0) (2026-07-23)
+
+
+### ✨ Features
+
+* **coroutines:** map Ticker to a CoroutineDispatcher ([#316](https://github.com/LMLiam/Kotventure/issues/316)) ([9c65515](https://github.com/LMLiam/Kotventure/commit/9c65515eda40cd4ab35f6d1e5409493334cab0b6))
+
 ## [0.23.1](https://github.com/LMLiam/Kotventure/compare/0.23.0...0.23.1) (2026-07-22)
 
 
