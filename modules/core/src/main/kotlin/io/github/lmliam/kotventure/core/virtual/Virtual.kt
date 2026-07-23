@@ -52,7 +52,7 @@ public inline fun <reified C : Any> ComponentScope.virtual(noinline build: Virtu
 public fun Component.render(
     context: Any,
     vararg additionalContexts: Any,
-): Component = VirtualTreeRenderer.render(this, VirtualRenderState(context, additionalContexts))
+): Component = VirtualTreeRenderer.render(this, VirtualRenderState(context, *additionalContexts))
 
 @PublishedApi
 internal fun <C : Any> buildVirtual(

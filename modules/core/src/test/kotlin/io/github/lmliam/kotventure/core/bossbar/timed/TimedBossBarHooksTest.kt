@@ -85,13 +85,13 @@ class TimedBossBarHooksTest :
                 ticker.advance(2.seconds)
 
                 events shouldContainExactly
-                    listOf(
-                        "name:1",
-                        "tick:1",
-                        "name:0",
-                        "tick:0",
-                        "finish",
-                    )
+                        listOf(
+                            "name:1",
+                            "tick:1",
+                            "name:0",
+                            "tick:0",
+                            "finish",
+                        )
                 observedProgress shouldBe listOf(0.5f, 0f)
                 timed.bar shouldHaveProgress BossBar.MIN_PROGRESS
             }

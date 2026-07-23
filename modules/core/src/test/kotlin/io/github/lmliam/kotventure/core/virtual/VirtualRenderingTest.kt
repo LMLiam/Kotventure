@@ -204,7 +204,7 @@ class VirtualRenderingTest :
                 blockNbt.render(Viewer("Alex")).shouldBeBlockNbtComponent().separator() shouldBe renderedText("Alex")
                 entityNbt.render(Viewer("Alex")).shouldBeEntityNbtComponent().separator() shouldBe renderedText("Alex")
                 storageNbt.render(Viewer("Alex")).shouldBeStorageNbtComponent().separator() shouldBe
-                    renderedText("Alex")
+                        renderedText("Alex")
             }
 
             "renders virtual hover text and entity names" {
