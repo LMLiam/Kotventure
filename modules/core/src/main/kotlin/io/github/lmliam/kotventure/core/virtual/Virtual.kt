@@ -1,41 +1,40 @@
 package io.github.lmliam.kotventure.core.virtual
 
 import io.github.lmliam.kotventure.core.component.ComponentScope
-import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.VirtualComponent
 
 /**
  * Creates a [VirtualComponent] that resolves from a render context of type [C].
  *
- * The platform calls [render] at display time with the current context, for example the viewing player. The block can
- * run more than once. The function only creates the component. The `core` module never calls the renderer.
- *
- * A serialiser shows [fallback] when no platform renders the component, for example on a console or in stored data.
+ * The [build] block configures two appearances. A [VirtualScope.render] block builds the content that a platform shows
+ * at display time. A [VirtualScope.fallback] sets the stand-in that a serialiser or a console shows when no platform
+ * renders the component. The function only creates the component. The `core` module never calls the render block.
  *
  * @sample io.github.lmliam.kotventure.core.virtual.virtualSample
  *
  * @param C the render context type.
- * @param fallback the text to show when no platform renders the component.
- * @param render builds the component content from the [VirtualRenderScope.context].
+ * @param build configures the [VirtualScope.fallback] and [VirtualScope.render] slots.
+ * @throws IllegalStateException when [build] sets no render block, or sets a write-once slot more than once.
  */
-public inline fun <reified C : Any> virtual(
-    fallback: String = "",
-    noinline render: VirtualRenderScope<C>.() -> Unit,
-): VirtualComponent = Component.virtual(C::class.java, VirtualScopeRenderer(render, fallback))
+public inline fun <reified C : Any> virtual(noinline build: VirtualScope<C>.() -> Unit): VirtualComponent =
+    buildVirtual(C::class.java, build)
 
 /**
  * Creates a virtual component and appends it as the next child of this scope.
  *
- * The platform calls [render] at display time with the current context of type [C]. A serialiser shows [fallback] when
- * no platform renders the component.
+ * The [build] block configures the same [VirtualScope.render] and [VirtualScope.fallback] slots as the top-level
+ * [virtual] function.
  *
  * @param C the render context type.
- * @param fallback the text to show when no platform renders the component.
- * @param render builds the child content from the [VirtualRenderScope.context].
+ * @param build configures the [VirtualScope.fallback] and [VirtualScope.render] slots.
+ * @throws IllegalStateException when [build] sets no render block, or sets a write-once slot more than once.
  */
-public inline fun <reified C : Any> ComponentScope.virtual(
-    fallback: String = "",
-    noinline render: VirtualRenderScope<C>.() -> Unit,
-) {
-    append(Component.virtual(C::class.java, VirtualScopeRenderer(render, fallback)))
+public inline fun <reified C : Any> ComponentScope.virtual(noinline build: VirtualScope<C>.() -> Unit) {
+    append(buildVirtual(C::class.java, build))
 }
+
+@PublishedApi
+internal fun <C : Any> buildVirtual(
+    contextType: Class<C>,
+    build: VirtualScope<C>.() -> Unit,
+): VirtualComponent = VirtualBuilder(contextType).apply(build).build()
