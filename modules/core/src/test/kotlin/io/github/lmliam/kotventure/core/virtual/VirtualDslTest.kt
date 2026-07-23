@@ -1,6 +1,7 @@
 package io.github.lmliam.kotventure.core.virtual
 
 import io.github.lmliam.kotventure.core.color.gold
+import io.github.lmliam.kotventure.core.color.gray
 import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.test.text.childAt
@@ -45,17 +46,26 @@ class VirtualDslTest :
                         fallback {
                             color(gold)
                             text("player")
+                            text(" (online)") { color(gray) }
                         }
                         render(body)
                     }
                 val raw =
                     Component
                         .virtual(Viewer::class.java, VirtualScopeRenderer(body, ""), Style.style(NamedTextColor.GOLD))
-                        .children(listOf(Component.text("player"))) as VirtualComponent
+                        .children(
+                            listOf(
+                                Component.text("player"),
+                                Component.text(" (online)").color(NamedTextColor.GRAY),
+                            ),
+                        ) as VirtualComponent
 
                 dsl shouldBe raw
                 dsl.shouldHaveColor(NamedTextColor.GOLD)
-                dsl.shouldHaveChildren(Component.text("player"))
+                dsl.shouldHaveChildren(
+                    Component.text("player"),
+                    Component.text(" (online)").color(NamedTextColor.GRAY),
+                )
             }
 
             "defaults the fallback to empty content and no children" {
