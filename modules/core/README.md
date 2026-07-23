@@ -60,6 +60,7 @@ Each package under `io.github.lmliam.kotventure.core` contains one feature:
 | `selector`                                        | `allPlayers { }`, `entities { }`, …, strict `parseSelector(...)` bridge                        |
 | `nbt`, `objectcomponent`                          | `nbt { }`, `nbtPath(...)`, block/entity/storage NBT components, `display(...)`                 |
 | `translatable`, `keybind`, `score`, `key`, `uuid` | the remaining component types and value helpers                                                |
+| `virtual`                                         | `virtual<C> { }` builds a component that a platform resolves from a render context at display time. |
 | `theme`                                           | `Theme` base class with `by style { }` properties, explicit `ThemeRegistry`                    |
 | `time`                                            | `ticks` and `Ticker` (`every`, `after`, `isCurrent`). Platforms adapt it.               |
 
