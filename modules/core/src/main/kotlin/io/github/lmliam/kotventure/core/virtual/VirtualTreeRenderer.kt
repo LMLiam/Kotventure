@@ -121,7 +121,7 @@ internal object VirtualTreeRenderer : AbstractComponentRenderer<VirtualRenderSta
         nested: Component?,
         context: VirtualRenderState,
         replace: C.(ComponentLike) -> C,
-    ): C = nested?.let { replace(render(it, context)) } ?: this
+    ): C = nested?.let { replace(this@VirtualTreeRenderer.render(it, context)) } ?: this
 
     @Suppress("UNCHECKED_CAST")
     private fun VirtualComponent.renderWith(context: Any): Component {
