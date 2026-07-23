@@ -2,6 +2,7 @@ package io.github.lmliam.kotventure.test.text
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.shouldContain
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentLike
@@ -44,6 +45,26 @@ class VirtualMatchersTest :
                         localeComponent().shouldBeVirtualComponent() shouldHaveFallbackString "console"
                     }
                 val expectedMessage = "Expected fallback string <console>, but was <player>."
+
+                failure.message shouldContain expectedMessage
+            }
+
+            "reports a context type that should not be the actual type" {
+                val failure =
+                    shouldThrow<AssertionError> {
+                        localeComponent().shouldBeVirtualComponent() shouldNot haveContextType<Locale>()
+                    }
+                val expectedMessage = "Expected context type not to be <java.util.Locale>."
+
+                failure.message shouldContain expectedMessage
+            }
+
+            "reports a fallback string that should not be the actual value" {
+                val failure =
+                    shouldThrow<AssertionError> {
+                        localeComponent().shouldBeVirtualComponent() shouldNot haveFallbackString("player")
+                    }
+                val expectedMessage = "Expected fallback string not to be <player>."
 
                 failure.message shouldContain expectedMessage
             }
