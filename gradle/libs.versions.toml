@@ -11,7 +11,7 @@ kotlin = "2.4.10"
 kotlinxCoroutines = "1.11.0"
 kover = "0.9.9"
 paperApi = "26.2.build.60-beta"
-spotless = "8.8.0"
+spotless = "8.9.0"
 spotlessKtlint = "1.8.0"
 
 [libraries]
