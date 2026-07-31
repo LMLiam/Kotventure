@@ -4,58 +4,75 @@ import io.github.lmliam.kotventure.minimessage.validate
 import net.kyori.adventure.text.minimessage.ParsingException
 
 /**
- * One diagnostic from [validate].
+ * One diagnostic produced by [validate].
  *
- * The hierarchy is sealed, so a `when` expression can handle every diagnostic type.
+ * The hierarchy is sealed so callers can handle every diagnostic type exhaustively.
  */
 public sealed interface MiniMessageDiagnostic {
     /**
-     * Reports the first tag error from Adventure's strict parser.
+     * Reports the first malformed or unclosed tag found by Adventure's strict parser.
      *
-     * @property message Adventure's description. This value uses [ParsingException.detailMessage] when it is
-     * available, and otherwise uses [ParsingException.message].
-     * @property startIndex The start index in the original input, or [LOCATION_UNKNOWN] when Adventure did not report
-     * it.
-     * @property endIndex The end index in the original input, or [LOCATION_UNKNOWN] when Adventure did not report it.
+     * @property message Adventure's diagnostic description.
+     * @property startIndex the start index in the original input, or [LOCATION_UNKNOWN] when unavailable.
+     * @property endIndex the end index in the original input, or [LOCATION_UNKNOWN] when unavailable.
      */
     public data class MalformedTag(
         public val message: String,
         public val startIndex: Int,
         public val endIndex: Int,
     ) : MiniMessageDiagnostic {
-        /** Provides the sentinel for an unknown source position. */
         public companion object {
             /**
-             * The value that [MalformedTag] uses when Adventure does not report a source position.
+             * The value used when Adventure does not provide a source position.
              */
-            public val LOCATION_UNKNOWN: Int = ParsingException.LOCATION_UNKNOWN
+            public const val LOCATION_UNKNOWN: Int =
+                ParsingException.LOCATION_UNKNOWN
         }
     }
 
     /**
-     * Reports a declared placeholder that has no corresponding tag in the input.
+     * Reports a declared placeholder that does not occur in the input.
      *
-     * @property name The declared placeholder tag name.
+     * @property name the declared placeholder name.
      */
     public data class MissingPlaceholder(
         public val name: String,
     ) : MiniMessageDiagnostic
 
     /**
-     * Reports a custom tag in the input that is not a declared placeholder.
+     * Reports a custom tag in the input that was not declared as a placeholder.
      *
-     * @property name The tag name from the input.
+     * @property name the tag name found in the input.
      */
     public data class ExtraPlaceholder(
         public val name: String,
     ) : MiniMessageDiagnostic
 
     /**
-     * Reports an unexpected failure in a validation pass.
+     * Reports an unexpected failure inside a validation pass.
      *
-     * @property message A description of the unexpected engine failure.
+     * @property message a description of the unexpected failure.
      */
     public data class ValidationEngineFailure(
         public val message: String,
     ) : MiniMessageDiagnostic
 }
+
+internal fun ParsingException.toMalformedTagDiagnostic(): MiniMessageDiagnostic.MalformedTag =
+    MiniMessageDiagnostic.MalformedTag(
+        message =
+            detailMessage().orFallback(
+                message.orFallback("MiniMessage parsing failed."),
+            ),
+        startIndex = startIndex(),
+        endIndex = endIndex(),
+    )
+
+internal fun RuntimeException.toValidationEngineFailure(
+    fallbackMessage: String,
+): MiniMessageDiagnostic.ValidationEngineFailure =
+    MiniMessageDiagnostic.ValidationEngineFailure(
+        message = message.orFallback(fallbackMessage),
+    )
+
+private fun String?.orFallback(fallback: String): String = takeUnless { it.isNullOrBlank() } ?: fallback
