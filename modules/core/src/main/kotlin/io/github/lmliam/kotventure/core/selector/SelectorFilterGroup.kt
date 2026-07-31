@@ -7,7 +7,7 @@ package io.github.lmliam.kotventure.core.selector
  * block returns.
  */
 internal class SelectorFilterGroup<T>(
-    keyword: SelectorArgumentKeyword,
+    keyword: SelectorArgumentKeyword
 ) {
     val argument: String = keyword.sourceName
     private val policy: SelectorFilterPolicy =
@@ -20,7 +20,7 @@ internal class SelectorFilterGroup<T>(
 
     fun add(
         owner: EntitySelectorBuilder,
-        value: T,
+        value: T
     ): SelectorFilterExpression = addEntry(owner, value, SelectorFilterPolarity.POSITIVE)
 
     /**
@@ -30,17 +30,15 @@ internal class SelectorFilterGroup<T>(
     fun addFixed(
         owner: EntitySelectorBuilder,
         value: T,
-        polarity: SelectorFilterPolarity,
+        polarity: SelectorFilterPolarity
     ) {
         addEntry(owner, value, polarity)
     }
 
     fun validate() {
-        if (policy != SelectorFilterPolicy.EXCLUSIVE) return
+        if (!isExclusive) return
 
-        val hasPositive = entries.any { it.polarity == SelectorFilterPolarity.POSITIVE }
-        val hasNegative = entries.any { it.polarity == SelectorFilterPolarity.NEGATIVE }
-        check(!(hasPositive && hasNegative)) {
+        check(entries.distinctBy(SelectorFilterEntry<T>::polarity).size <= 1) {
             "Selector argument '$argument' cannot combine a positive value with exclusions."
         }
     }
@@ -48,15 +46,20 @@ internal class SelectorFilterGroup<T>(
     private fun addEntry(
         owner: EntitySelectorBuilder,
         value: T,
-        polarity: SelectorFilterPolarity,
+        polarity: SelectorFilterPolarity
     ): SelectorFilterEntry<T> {
-        if (policy == SelectorFilterPolicy.EXCLUSIVE) {
-            check(entries.none { it.polarity == SelectorFilterPolarity.POSITIVE }) {
-                "Selector argument '$argument' is already set."
-            }
-        }
+        validateNewEntry()
         return SelectorFilterEntry(owner, argument, value, polarity).also {
             entries += it
         }
     }
+
+    private fun validateNewEntry() {
+        check(!isExclusive || entries.none { it.polarity == SelectorFilterPolarity.POSITIVE }) {
+            "Selector argument '$argument' is already set."
+        }
+    }
+
+    private val isExclusive: Boolean
+        get() = policy == SelectorFilterPolicy.EXCLUSIVE
 }

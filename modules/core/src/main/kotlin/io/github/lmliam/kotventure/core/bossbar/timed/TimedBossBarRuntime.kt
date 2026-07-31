@@ -37,13 +37,13 @@ internal class TimedBossBarRuntime(
     private var tickGeneration: Int = 0
 
     val remaining: Duration
-        get() = lock.withLock { remainingTime }
+        get() = locked { remainingTime }
 
     val isRunning: Boolean
-        get() = lock.withLock { running }
+        get() = locked { running }
 
     val isPaused: Boolean
-        get() = lock.withLock { paused }
+        get() = locked { paused }
 
     fun start(initialViewer: Audience) {
         show(initialViewer)
@@ -52,17 +52,18 @@ internal class TimedBossBarRuntime(
 
     fun pause() {
         val toCancel =
-            lock.withLock {
+            locked {
                 check(running) { "Cannot pause a finished or cancelled TimedBossBar." }
                 check(!paused) { "TimedBossBar is already paused." }
                 detachTask().also { paused = true }
             }
+
         toCancel?.cancel()
     }
 
     fun resume() {
         // Schedule under the lock so that cancellation cannot create a replacement task.
-        lock.withLock {
+        locked {
             check(running) { "Cannot resume a finished or cancelled TimedBossBar." }
             check(paused) { "TimedBossBar is not paused." }
             paused = false
@@ -71,13 +72,13 @@ internal class TimedBossBarRuntime(
     }
 
     fun cancel() {
-        val shutdown = lock.withLock { if (running) markStopped() else null } ?: return
+        val shutdown = locked { if (running) markStopped() else null } ?: return
         finaliseShutdown(shutdown, config.onCancel)
     }
 
     fun show(audience: Audience) {
         val accepted =
-            lock.withLock {
+            locked {
                 if (!running) {
                     false
                 } else {
@@ -85,41 +86,56 @@ internal class TimedBossBarRuntime(
                     true
                 }
             }
+
         if (!accepted) return
 
         audience.showBossBar(bar)
 
         // A concurrent termination can occur after tracking but before the show operation completes.
-        val stillTracked = lock.withLock { running && audience in viewers }
+        val stillTracked = locked { running && audience in viewers }
         if (!stillTracked) {
             audience.hideBossBar(bar)
         }
     }
 
     fun hide(audience: Audience) {
-        lock.withLock { viewers.remove(audience) }
+        locked { viewers.remove(audience) }
         audience.hideBossBar(bar)
     }
 
     /**
      * Cancels the detached task, attempts to hide every snapshotted viewer, and then invokes [hook].
      *
-     * Viewer failures do not stop later hide attempts. The function keeps the first failure and suppresses later
-     * failures. The `finally` block guarantees that the terminal hook runs.
+     * Viewer failures do not stop later hide attempts. Terminal hooks always run. If multiple shutdown steps fail, the
+     * first failure is thrown and later failures are attached as suppressed exceptions.
      */
     private fun finaliseShutdown(
         shutdown: TimedBossBarShutdown,
         hook: (TimedBossBar.() -> Unit)?,
     ) {
-        shutdown.task?.cancel()
-        try {
-            viewers.hideAll(bar, shutdown.viewers)
-        } finally {
-            hook?.invoke(owner)
-        }
+        var failure: Throwable? = null
+
+        failure =
+            failure.collectFailure {
+                shutdown.task?.cancel()
+            }
+        failure =
+            failure.collectFailure {
+                viewers.hideAll(bar, shutdown.viewers)
+            }
+        failure =
+            failure.collectFailure {
+                hook?.invoke(owner)
+            }
+
+        failure?.let { throw it }
     }
 
     private fun startTicking() {
+        check(lock.isHeldByCurrentThread) {
+            "TimedBossBar ticking must start while the runtime lock is held."
+        }
+
         val generation = tickGeneration
         task = ticker.every(config.every) { onTick(generation) }
     }
@@ -131,7 +147,8 @@ internal class TimedBossBarRuntime(
 
     private fun onTick(generation: Int) {
         // Mark natural completion before the hook so concurrent cancellation cannot replace it.
-        val outcome = lock.withLock { advanceOrNull(generation) } ?: return
+        val outcome = locked { advanceOrNull(generation) } ?: return
+
         try {
             config.onTick?.invoke(owner, outcome.remaining)
         } finally {
@@ -147,9 +164,11 @@ internal class TimedBossBarRuntime(
      */
     private fun advanceOrNull(generation: Int): TickOutcome? {
         if (!running || paused || generation != tickGeneration) return null
+
         remainingTime = (remainingTime - config.every).coerceAtLeast(Duration.ZERO)
         bar.progress(config.progress.at(remaining = remainingTime, over = config.over))
         updateNameIfChanged(remainingTime)
+
         val shutdown = if (remainingTime == Duration.ZERO) markStopped() else null
         return TickOutcome(remaining = remainingTime, shutdown = shutdown)
     }
@@ -167,13 +186,25 @@ internal class TimedBossBarRuntime(
     private fun markStopped(): TimedBossBarShutdown {
         running = false
         paused = false
+
         return TimedBossBarShutdown(
             task = detachTask(),
             viewers = viewers.snapshotAndClear(),
         )
     }
 
-    /** Tick state that carries shutdown work only for natural completion. */
+    private inline fun <T> locked(action: () -> T): T = lock.withLock(action)
+
+    private inline fun Throwable?.collectFailure(action: () -> Unit): Throwable? {
+        try {
+            action()
+        } catch (failure: Throwable) {
+            return this?.apply { addSuppressed(failure) } ?: failure
+        }
+
+        return this
+    }
+
     private data class TickOutcome(
         val remaining: Duration,
         val shutdown: TimedBossBarShutdown?,

@@ -11,8 +11,7 @@ import java.util.IdentityHashMap
  * This class is not thread-safe. [TimedBossBarRuntime] serialises access with its state lock.
  */
 internal class TimedBossBarViewers {
-    private val viewers: MutableSet<Audience> =
-        Collections.newSetFromMap(IdentityHashMap())
+    private val viewers = Collections.newSetFromMap<Audience>(IdentityHashMap())
 
     fun add(audience: Audience): Boolean = viewers.add(audience)
 
@@ -37,18 +36,15 @@ internal class TimedBossBarViewers {
         bar: BossBar,
         audiences: List<Audience>,
     ) {
-        var firstError: Throwable? = null
+        var failure: Throwable? = null
         for (audience in audiences) {
             try {
                 audience.hideBossBar(bar)
             } catch (error: Throwable) {
-                if (firstError == null) {
-                    firstError = error
-                } else {
-                    firstError.addSuppressed(error)
-                }
+                failure = failure?.apply { addSuppressed(error) } ?: error
             }
         }
-        firstError?.let { throw it }
+
+        failure?.let { throw it }
     }
 }

@@ -34,6 +34,17 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     val nbtFilters = SelectorFilterGroup<NbtCompound>(SelectorArgumentKeyword.NBT)
     val predicateFilters = SelectorFilterGroup<String>(SelectorArgumentKeyword.PREDICATE)
 
+    private val filterGroups: List<SelectorFilterGroup<*>> =
+        listOf(
+            typeFilters,
+            nameFilters,
+            gamemodeFilters,
+            teamFilters,
+            tagFilters,
+            nbtFilters,
+            predicateFilters,
+        )
+
     val coordinates: Map<SelectorCoordinate, Double>
         field = mutableMapOf()
 
@@ -43,7 +54,8 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     var advancements: Map<Key, AdvancementCondition>? by once()
         private set
 
-    private var isConfiguring = false
+    private var configurationDepth = 0
+    private val isConfiguring: Boolean get() = configurationDepth > 0
 
     override val any: SelectorPresence get() = SelectorPresence.ANY
     override val none: SelectorPresence get() = SelectorPresence.NONE
@@ -59,27 +71,38 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
     override val arbitrary: SelectorSort get() = SelectorSort.ARBITRARY
 
     fun configure(configure: EntitySelectorScope.() -> Unit) {
-        isConfiguring = true
+        configurationDepth++
         try {
             configure()
         } finally {
-            isConfiguring = false
+            configurationDepth--
         }
-        validateFilters()
+
+        if (!isConfiguring) validateFilters()
     }
 
     override fun origin(
         first: OriginCoordinate,
-        vararg rest: OriginCoordinate,
+        vararg rest: OriginCoordinate
     ) {
-        bindCoordinates((listOf(first) + rest).map { it.coordinate to it.value })
+        bindCoordinates(
+            first = first,
+            rest = rest,
+            coordinateOf = OriginCoordinate::coordinate,
+            valueOf = OriginCoordinate::value,
+        )
     }
 
     override fun volume(
         first: VolumeDelta,
-        vararg rest: VolumeDelta,
+        vararg rest: VolumeDelta
     ) {
-        bindCoordinates((listOf(first) + rest).map { it.coordinate to it.value })
+        bindCoordinates(
+            first = first,
+            rest = rest,
+            coordinateOf = VolumeDelta::coordinate,
+            valueOf = VolumeDelta::value,
+        )
     }
 
     override fun distance(range: SelectorRange) {
@@ -165,31 +188,33 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
 
     override fun SelectorFilterExpression.not() {
         check(isConfiguring) {
-            "Selector filter expressions can only be negated while their selector is being configured."
+            "Selector filter expressions can only be negated while their selector is being configured"
         }
         (this as SelectorFilterEntry<*>).negate(this@EntitySelectorBuilder)
     }
 
     private fun validateFilters() {
-        setOf(
-            typeFilters,
-            nameFilters,
-            gamemodeFilters,
-            teamFilters,
-            tagFilters,
-            nbtFilters,
-            predicateFilters,
-        ).forEach { it.validate() }
+        filterGroups.forEach { it.validate() }
     }
 
-    private fun bindCoordinates(bindings: List<Pair<SelectorCoordinate, Double>>) {
+    private inline fun <T> bindCoordinates(
+        first: T,
+        rest: Array<out T>,
+        crossinline coordinateOf: (T) -> SelectorCoordinate,
+        crossinline valueOf: (T) -> Double,
+    ) {
         val staged = mutableMapOf<SelectorCoordinate, Double>()
-        bindings.forEach { (coordinate, value) ->
-            check(coordinate !in coordinates && coordinate !in staged) {
+
+        val bind: (T) -> Unit = {
+            val coordinate = coordinateOf(it)
+            check(coordinate !in coordinates) {
                 "Selector argument '${coordinate.argumentName}' may only appear once."
             }
-            staged[coordinate] = value
+            staged[coordinate] = valueOf(it)
         }
+
+        bind(first)
+        rest.forEach { bind(it) }
         coordinates += staged
     }
 

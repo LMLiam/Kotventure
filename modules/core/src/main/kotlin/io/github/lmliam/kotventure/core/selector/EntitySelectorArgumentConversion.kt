@@ -19,23 +19,29 @@ import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Team
 import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Type
 import java.util.Map.entry
 
+private const val ENTITY_TYPE_TAG_PREFIX: String = "#"
+
 /**
  * Converts validated builder state to typed arguments in canonical order.
  */
 internal fun EntitySelectorBuilder.selectorArguments(): List<EntitySelectorArgument> =
     buildList {
-        addAll(typeFilters.arguments(::typeArgument))
-        addAll(nameFilters.arguments(::Name))
+        addArguments(typeFilters, ::typeArgument)
+        addArguments(nameFilters, ::Name)
+
         SelectorCoordinate.entries.forEach { coordinate ->
             coordinates[coordinate]?.let { add(Coordinate(coordinate, it)) }
         }
+
         distance?.let { add(Range(SelectorRangeArgument.DISTANCE, it)) }
         pitch?.let { add(Range(SelectorRangeArgument.X_ROTATION, it)) }
         yaw?.let { add(Range(SelectorRangeArgument.Y_ROTATION, it)) }
         level?.let { add(Level(it)) }
+
         scores?.let { scores ->
             add(Scores(scores.map { (objective, range) -> SelectorScoreRequirement(objective, range) }))
         }
+
         advancements?.let { advancements ->
             add(
                 Advancements(
@@ -45,24 +51,35 @@ internal fun EntitySelectorBuilder.selectorArguments(): List<EntitySelectorArgum
                 ),
             )
         }
-        addAll(gamemodeFilters.arguments(::GameMode))
-        addAll(teamFilters.arguments(::teamArgument))
+
+        addArguments(gamemodeFilters, ::GameMode)
+        addArguments(teamFilters, ::teamArgument)
+
         limit?.let { add(Limit(it)) }
         sort?.let { add(Sort(it)) }
-        addAll(tagFilters.arguments(::tagArgument))
-        addAll(nbtFilters.arguments(::nbtArgument))
-        addAll(predicateFilters.arguments(::predicateArgument))
+
+        addArguments(tagFilters, ::tagArgument)
+        addArguments(nbtFilters, ::nbtArgument)
+        addArguments(predicateFilters, ::predicateArgument)
     }
 
 /**
- * Converts this filter group with [toArgument] and keeps entry polarity and order.
+ * Converts [filters] with [toArgument] and keeps entry polarity and order.
  */
-private fun <T> SelectorFilterGroup<T>.arguments(
+private inline fun <T> MutableList<EntitySelectorArgument>.addArguments(
+    filters: SelectorFilterGroup<T>,
     toArgument: (value: T, isNegated: Boolean) -> EntitySelectorArgument,
-): List<EntitySelectorArgument> =
-    entries.map {
-        toArgument(it.value, it.polarity == SelectorFilterPolarity.NEGATIVE)
+) {
+    filters.entries.forEach { entry ->
+        add(toArgument(entry.value, entry.isNegated))
     }
+}
+
+/**
+ * Returns whether this filter entry has negative polarity.
+ */
+private val SelectorFilterEntry<*>.isNegated: Boolean
+    get() = polarity == SelectorFilterPolarity.NEGATIVE
 
 /**
  * Converts a type or type-tag string to a [Type] argument.
@@ -72,15 +89,16 @@ private fun <T> SelectorFilterGroup<T>.arguments(
 private fun typeArgument(
     value: String,
     isNegated: Boolean,
-): Type {
-    val target =
-        if (value.isEntityTypeTag()) {
-            SelectorEntityType.Tag(key(value.removePrefix("#")))
+): Type =
+    Type(
+        target =
+            if (value.isEntityTypeTag()) {
+            SelectorEntityType.Tag(key(value.removePrefix(ENTITY_TYPE_TAG_PREFIX)))
         } else {
             SelectorEntityType.Direct(key(value))
-        }
-    return Type(target, isNegated)
-}
+        },
+            isNegated = isNegated,
+    )
 
 /**
  * Converts a predicate ID to a [Predicate] argument.
@@ -131,4 +149,4 @@ private fun AdvancementCondition.progress(): SelectorAdvancementProgress =
 /**
  * Returns whether this string starts with the entity-type-tag prefix.
  */
-private fun String.isEntityTypeTag(): Boolean = startsWith("#")
+private fun String.isEntityTypeTag(): Boolean = startsWith(ENTITY_TYPE_TAG_PREFIX)

@@ -1,6 +1,20 @@
 package io.github.lmliam.kotventure.core.selector
 
 import io.github.lmliam.kotventure.core.nbt.renderValue
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Advancements
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Coordinate
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.GameMode
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Level
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Limit
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Name
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Nbt
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Predicate
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Range
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Scores
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Sort
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Tag
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Team
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Type
 
 /**
  * Renders this argument as canonical `name=value` source text.
@@ -14,32 +28,27 @@ internal fun EntitySelectorArgument.render(): String = "$argumentName=${renderVa
  */
 private fun EntitySelectorArgument.renderValue(): String =
     when (this) {
-        is EntitySelectorArgument.Coordinate -> formatSelectorNumber(value)
-        is EntitySelectorArgument.Range -> range.toString()
-        is EntitySelectorArgument.Limit -> value.toString()
-        is EntitySelectorArgument.Sort -> value.value
-        is EntitySelectorArgument.Level -> range.toString()
-        is EntitySelectorArgument.GameMode -> "$negationPrefix${value.value}"
-        is EntitySelectorArgument.Name -> "$negationPrefix${renderQuotable()}"
-        is EntitySelectorArgument.Type -> "$negationPrefix${target.render()}"
-        is EntitySelectorArgument.Tag -> "$negationPrefix${condition.render()}"
-        is EntitySelectorArgument.Team -> "$negationPrefix${condition.render()}"
-        is EntitySelectorArgument.Nbt -> "$negationPrefix${snbt.value}"
-        is EntitySelectorArgument.Scores ->
-            scores.joinToString(",", "{", "}") { (objective, range) -> "$objective=$range" }
-
-        is EntitySelectorArgument.Predicate -> "$negationPrefix${key.asString()}"
-        is EntitySelectorArgument.Advancements ->
-            advancements.joinToString(",", "{", "}") { (advancement, progress) ->
-                "${advancement.asString()}=${progress.render()}"
-            }
+        is Coordinate -> formatSelectorNumber(value)
+        is Range -> range.toString()
+        is Limit -> value.toString()
+        is Sort -> value.value
+        is Level -> range.toString()
+        is GameMode -> renderNegated(value.value)
+        is Name -> renderNegated(value.renderSelectorName())
+        is Type -> renderNegated(target.render())
+        is Tag -> renderNegated(condition.render())
+        is Team -> renderNegated(condition.render())
+        is Nbt -> renderNegated(snbt.value)
+        is Scores -> scores.render()
+        is Predicate -> renderNegated(key.asString())
+        is Advancements -> advancements.render()
     }
 
 /**
- * Returns `!` when this argument is negated, or an empty string otherwise.
+ * Renders [value] with this argument's leading negation marker when applicable.
  */
-private val EntitySelectorArgument.Negatable.negationPrefix: String
-    get() = if (isNegated) SELECTOR_NEGATION_PREFIX.toString() else ""
+private fun EntitySelectorArgument.Negatable.renderNegated(value: String): String =
+    if (isNegated) "$SELECTOR_NEGATION_PREFIX$value" else value
 
 /**
  * Renders an entity type or entity-type tag.
@@ -55,8 +64,8 @@ private fun SelectorEntityType.render(): String =
 /**
  * Renders a name and quotes it when unquoted selector syntax cannot contain it.
  */
-private fun EntitySelectorArgument.Name.renderQuotable(): String =
-    if (value.all(Char::isAllowedInUnquotedSelectorToken)) value else value.quoteSelectorString()
+private fun String.renderSelectorName(): String =
+    if (isNotEmpty() && all(Char::isAllowedInUnquotedSelectorToken)) this else quoteSelectorString()
 
 /**
  * Quotes a selector string and escapes double quotes and backslashes.
@@ -86,11 +95,30 @@ private fun SelectorStringCondition.render(): String =
     }
 
 /**
+ * Renders scoreboard objective ranges.
+ */
+private fun List<SelectorScoreRequirement>.render(): String =
+    joinToString(",", "{", "}") { (objective, range) -> "$objective=$range" }
+
+/**
+ * Renders advancement requirements.
+ */
+private fun List<SelectorAdvancementRequirement>.render(): String =
+    joinToString(",", "{", "}") { (advancement, progress) ->
+        "${advancement.asString()}=${progress.render()}"
+    }
+
+/**
  * Renders complete-advancement state or a criteria map.
  */
 private fun SelectorAdvancementProgress.render(): String =
     when (this) {
         is SelectorAdvancementProgress.Completion -> completed.toString()
-        is SelectorAdvancementProgress.Criteria ->
-            criteria.joinToString(",", "{", "}") { (name, completed) -> "$name=$completed" }
+        is SelectorAdvancementProgress.Criteria -> criteria.render()
     }
+
+/**
+ * Renders advancement criteria states.
+ */
+private fun List<SelectorAdvancementCriterion>.render(): String =
+    joinToString(",", "{", "}") { (name, completed) -> "$name=$completed" }

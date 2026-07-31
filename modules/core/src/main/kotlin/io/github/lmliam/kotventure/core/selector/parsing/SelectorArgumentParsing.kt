@@ -11,8 +11,8 @@ internal fun SelectorReader.readArgumentValue(
     name: String,
     nameOffset: Int,
 ): EntitySelectorArgument {
-    SelectorCoordinate.entries.find { it.argumentName == name }?.let { return readCoordinateArgument(it) }
-    SelectorRangeArgument.entries.find { it.argumentName == name }?.let { return readRangeArgument(it) }
+    SelectorCoordinate.fromArgumentName(name)?.let { return readCoordinateArgument(it) }
+    SelectorRangeArgument.fromArgumentName(name)?.let { return readRangeArgument(it) }
 
     val keyword =
         SelectorArgumentKeyword.fromSourceName(name)

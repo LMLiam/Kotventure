@@ -17,4 +17,11 @@ public enum class SelectorRangeArgument(
 
     /** Horizontal rotation. Descending wrap-around bounds are valid. */
     Y_ROTATION("y_rotation", hasNonNegativeOrderedBounds = false),
+    ;
+
+    internal companion object {
+        private val byArgumentName = entries.associateBy(SelectorRangeArgument::argumentName)
+
+        fun fromArgumentName(name: String): SelectorRangeArgument? = byArgumentName[name]
+    }
 }

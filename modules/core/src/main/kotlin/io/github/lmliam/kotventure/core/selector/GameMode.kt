@@ -19,4 +19,11 @@ public enum class GameMode(
 
     /** Spectator mode. */
     SPECTATOR("spectator"),
+    ;
+
+    internal companion object {
+        private val byValue = entries.associateBy(GameMode::value)
+
+        fun fromValue(value: String): GameMode? = byValue[value]
+    }
 }

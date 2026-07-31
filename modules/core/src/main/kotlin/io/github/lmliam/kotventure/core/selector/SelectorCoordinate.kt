@@ -25,6 +25,13 @@ public enum class SelectorCoordinate(
 
     /** Bounding-volume Z delta. */
     DZ("dz"),
+    ;
+
+    internal companion object {
+        private val byArgumentName = entries.associateBy(SelectorCoordinate::argumentName)
+
+        fun fromArgumentName(name: String): SelectorCoordinate? = byArgumentName[name]
+    }
 }
 
 internal fun validatedCoordinateValue(
