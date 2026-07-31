@@ -251,6 +251,22 @@ class MiniTemplateTest :
                     }
                 }
 
+                it("rejects placeholder declarations after validation") {
+                    class LateDeclarationTemplate : MiniTemplate("<name>") {
+                        val name by placeholder<String>()
+
+                        fun declareLate(): MiniMessagePlaceholder<Int> = placeholder<Int>("late")
+                    }
+
+                    val template = LateDeclarationTemplate()
+
+                    template.validate()
+
+                    shouldThrow<IllegalStateException> {
+                        template.declareLate()
+                    }
+                }
+
                 it("rejects empty markup at construction") {
                     shouldThrow<IllegalArgumentException> {
                         object : MiniTemplate("") {}

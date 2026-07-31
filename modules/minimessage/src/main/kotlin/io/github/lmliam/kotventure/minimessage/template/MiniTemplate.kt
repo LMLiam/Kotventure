@@ -13,88 +13,117 @@ import io.github.lmliam.kotventure.minimessage.placeholder.placeholder as create
 /**
  * A typed, reusable MiniMessage template with required placeholders.
  *
- * Subclass this type and declare each placeholder during construction. Prefer delegated properties because the Kotlin
- * property name then becomes the MiniMessage tag name. The placeholder type makes each binding type-safe at the call
- * site. Use [invoke] to render a new component.
+ * Subclass this type and declare each placeholder during construction. Prefer delegated properties so the Kotlin
+ * property name becomes the MiniMessage tag name. Each descriptor carries its value type, making template bindings
+ * type-safe at the call site.
+ *
+ * Use [invoke] to render a component.
  *
  * @sample io.github.lmliam.kotventure.minimessage.template.miniTemplateRenderSample
  *
- * Validation is lazy and cached. Do not declare more placeholders after the first call to [invoke] or
- * [validate][io.github.lmliam.kotventure.minimessage.validate]. A fully constructed template supports concurrent
- * validation and rendering. Each render has independent bindings.
+ * Validation is lazy, cached, and thread-safe. The first validation or render freezes the template definition.
+ * Placeholder declarations made after that point are rejected.
  *
- * @param markup The MiniMessage markup that this template renders. It must contain a non-whitespace character.
+ * @param markup the MiniMessage markup rendered by this template.
+ *
  * @throws IllegalArgumentException when [markup] is blank.
  */
 public abstract class MiniTemplate(
     internal val markup: String,
 ) {
     init {
-        require(markup.isNotBlank()) { "MiniMessage template markup must not be blank." }
-    }
-
-    @PublishedApi
-    internal val placeholders: LinkedHashMap<String, MiniMessagePlaceholder<*>> = LinkedHashMap()
-
-    private val miniMessage: MiniMessage = MiniMessage.miniMessage()
-
-    internal val validation: ValidationResult by lazy(LazyThreadSafetyMode.PUBLICATION) {
-        runValidation(markup, placeholders.values.toList())
+        require(markup.isNotBlank()) {
+            "MiniMessage template markup must not be blank."
+        }
     }
 
     /**
-     * Declares a required placeholder whose MiniMessage tag name is this property's name.
+     * The placeholders declared by this template, in declaration order.
      *
-     * Prefer this form so the Kotlin property and markup tag have the same name.
-     *
-     * @throws IllegalArgumentException when [T] is unsupported, or when the property name is invalid or already
-     * declared.
+     * The explicit backing field allows mutation only inside this class while exposing a read-only map elsewhere in
+     * the module.
      */
-    protected inline fun <reified T : Any> placeholder():
-            PropertyDelegateProvider<MiniTemplate, ReadOnlyProperty<MiniTemplate, MiniMessagePlaceholder<T>>> =
+    internal val declaredPlaceholders: Map<String, MiniMessagePlaceholder<*>>
+        field: LinkedHashMap<String, MiniMessagePlaceholder<*>> = linkedMapOf()
+
+    private var declarationsFrozen = false
+
+    private val parser: MiniMessage =
+        MiniMessage.miniMessage()
+
+    internal val validation: ValidationResult by lazy {
+        declarationsFrozen = true
+
+        runValidation(
+            input = markup,
+            placeholders = declaredPlaceholders.values.toList(),
+        )
+    }
+
+    /**
+     * Declares a required placeholder whose tag name is the delegated property's name.
+     *
+     * Prefer this form when the Kotlin property and MiniMessage tag use the same name.
+     *
+     * @throws IllegalArgumentException when [T] is unsupported or the property name is invalid or duplicated.
+     * @throws IllegalStateException when template validation has already started.
+     */
+    protected inline fun <reified T : Any> placeholder(): PropertyDelegateProvider<
+                    MiniTemplate,
+                    ReadOnlyProperty<MiniTemplate, MiniMessagePlaceholder<T>>,
+                    > =
         PropertyDelegateProvider { template, property ->
-            val registered = template.register(createPlaceholder<T>(property.name))
-            ReadOnlyProperty { _, _ -> registered }
+            val descriptor =
+                template.register(
+                    createPlaceholder<T>(property.name),
+                )
+
+            ReadOnlyProperty { _, _ -> descriptor }
         }
 
     /**
      * Declares a required placeholder with an explicit MiniMessage tag [name].
      *
-     * Use this string bridge only for an external or legacy template. The tag can differ from the Kotlin property
-     * name. Otherwise, use [placeholder] with no name.
+     * Use this form when an external or legacy tag name differs from the Kotlin property name. Otherwise, prefer the
+     * delegated [placeholder] form.
      *
-     * @throws IllegalArgumentException when [name] is invalid or already declared, or [T] is unsupported.
+     * @throws IllegalArgumentException when [T] is unsupported or [name] is invalid or duplicated.
+     * @throws IllegalStateException when template validation has already started.
      */
     protected inline fun <reified T : Any> placeholder(name: String): MiniMessagePlaceholder<T> =
-        register(createPlaceholder<T>(name))
+        register(
+            createPlaceholder<T>(name),
+        )
 
     @PublishedApi
     internal fun <T : Any> register(descriptor: MiniMessagePlaceholder<T>): MiniMessagePlaceholder<T> {
-        require(placeholders.put(descriptor.name, descriptor) == null) {
+        check(!declarationsFrozen) {
+            "Cannot declare placeholder '${descriptor.name}' after template validation has started."
+        }
+
+        require(
+            declaredPlaceholders.put(
+                key = descriptor.name,
+                value = descriptor,
+            ) == null,
+        ) {
             "Duplicate placeholder '${descriptor.name}' in template."
         }
+
         return descriptor
     }
 
-    internal fun deserialize(resolver: TagResolver): Component = miniMessage.deserialize(markup, resolver)
-}
+    internal fun requireValidDefinition() {
+        val result = validation
 
-/**
- * Renders a new component after [block] binds every declared placeholder.
- *
- * The function validates the template before it runs [block]. Each placeholder must be bound exactly one time with
- * the descriptor instance that this template declared. Scalar values become literal text. Component values retain
- * their structure. The function does not retain bindings after it returns.
- *
- * @throws IllegalArgumentException when the template definition is invalid, a binding is missing, a descriptor belongs
- * to another template, or a placeholder is bound more than one time.
- */
-public operator fun <T : MiniTemplate> T.invoke(block: context(MiniTemplateBindingScope) T.() -> Unit): Component {
-    require(validation is ValidationResult.Success) { "MiniMessage template is invalid: $validation." }
+        require(result is ValidationResult.Success) {
+            "MiniMessage template is invalid: $result."
+        }
+    }
 
-    val bindings = TemplateBindings(this)
-    context(bindings) { block() }
-    bindings.requireComplete()
-
-    return deserialize(bindings.resolver())
+    internal fun deserialize(resolver: TagResolver): Component =
+        parser.deserialize(
+            markup,
+            resolver,
+        )
 }
