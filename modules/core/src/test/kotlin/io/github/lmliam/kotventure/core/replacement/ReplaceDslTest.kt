@@ -428,6 +428,42 @@ class ReplaceDslTest :
                 }
             }
 
+            "replacement(value) followed by modify throws" {
+                shouldThrow<IllegalStateException> {
+                    Component.text("x").replace("x") {
+                        replacement("y")
+                        modify { }
+                    }
+                }
+            }
+
+            "replacement(component) followed by modify throws" {
+                shouldThrow<IllegalStateException> {
+                    Component.text("x").replace("x") {
+                        replacement(Component.text("y"))
+                        modify { }
+                    }
+                }
+            }
+
+            "replacement(block) followed by modify throws" {
+                shouldThrow<IllegalStateException> {
+                    Component.text("x").replace("x") {
+                        replacement { remove }
+                        modify { }
+                    }
+                }
+            }
+
+            "remove followed by modify throws" {
+                shouldThrow<IllegalStateException> {
+                    Component.text("x").replace("x") {
+                        remove()
+                        modify { }
+                    }
+                }
+            }
+
             "two replacement calls throw" {
                 shouldThrow<IllegalStateException> {
                     Component.text("x").replace("x") {
@@ -446,11 +482,39 @@ class ReplaceDslTest :
                 }
             }
 
+            "remove followed by replacement throws" {
+                shouldThrow<IllegalStateException> {
+                    Component.text("x").replace("x") {
+                        remove()
+                        replacement("y")
+                    }
+                }
+            }
+
+            "two remove calls throw" {
+                shouldThrow<IllegalStateException> {
+                    Component.text("x").replace("x") {
+                        remove()
+                        remove()
+                    }
+                }
+            }
+
             "once followed by times throws" {
                 shouldThrow<IllegalStateException> {
                     Component.text("x").replace("x") {
                         once()
                         times(2)
+                        replacement("y")
+                    }
+                }
+            }
+
+            "times followed by once throws" {
+                shouldThrow<IllegalStateException> {
+                    Component.text("x").replace("x") {
+                        times(2)
+                        once()
                         replacement("y")
                     }
                 }
@@ -466,11 +530,51 @@ class ReplaceDslTest :
                 }
             }
 
+            "condition followed by once throws" {
+                shouldThrow<IllegalStateException> {
+                    Component.text("x").replace("x") {
+                        condition { replace }
+                        once()
+                        replacement("y")
+                    }
+                }
+            }
+
             "times followed by condition throws" {
                 shouldThrow<IllegalStateException> {
                     Component.text("x").replace("x") {
                         times(1)
                         condition { replace }
+                        replacement("y")
+                    }
+                }
+            }
+
+            "condition followed by times throws" {
+                shouldThrow<IllegalStateException> {
+                    Component.text("x").replace("x") {
+                        condition { replace }
+                        times(1)
+                        replacement("y")
+                    }
+                }
+            }
+
+            "two times calls throw" {
+                shouldThrow<IllegalStateException> {
+                    Component.text("x").replace("x") {
+                        times(1)
+                        times(2)
+                        replacement("y")
+                    }
+                }
+            }
+
+            "two condition calls throw" {
+                shouldThrow<IllegalStateException> {
+                    Component.text("x").replace("x") {
+                        condition { replace }
+                        condition { skip }
                         replacement("y")
                     }
                 }
