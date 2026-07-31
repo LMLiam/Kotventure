@@ -6,6 +6,7 @@ import io.github.lmliam.kotventure.core.color.gray
 import io.github.lmliam.kotventure.core.color.red
 import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.text.text
+import io.github.lmliam.kotventure.minimessage.placeholder.MiniMessagePlaceholder
 import io.github.lmliam.kotventure.minimessage.placeholder.placeholder
 import io.github.lmliam.kotventure.test.compilation.assertDoesNotCompile
 import io.github.lmliam.kotventure.test.text.childAt
