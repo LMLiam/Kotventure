@@ -7,19 +7,24 @@ import io.github.lmliam.kotventure.core.text.text
 import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.TextReplacementConfig
-import java.util.function.BiFunction
 import java.util.regex.MatchResult
 import java.util.regex.Pattern
+
+private typealias ReplacementFactory = (MatchResult, TextComponent.Builder) -> ComponentLike?
+
+private typealias ConditionApplier = TextReplacementConfig.Builder.() -> Unit
 
 internal class ReplaceBuilder(
     private val pattern: Pattern,
 ) : ReplaceScope {
     private val namedGroups: Map<String, Int> = pattern.namedGroups()
 
-    private var replacementFactory: ((MatchResult, TextComponent.Builder) -> ComponentLike?)? by
-        once { "The replacement action is already set by 'modify', 'replacement', or 'remove'." }
-    private var conditionApplier: ((TextReplacementConfig.Builder) -> Unit)? by
-        once { "The match condition is already set by 'once', 'times', or 'condition'." }
+    private var replacementFactory: ReplacementFactory? by
+    once { "The replacement action is already set by 'modify', 'replacement', or 'remove'." }
+
+    private var conditionApplier: ConditionApplier? by
+    once { "The match condition is already set by 'once', 'times', or 'condition'." }
+
     private var insideHoverEvents: Boolean? by once { "'insideHoverEvents' is already set." }
 
     override fun replacement(
@@ -29,18 +34,23 @@ internal class ReplaceBuilder(
         replacement(text(value, init))
     }
 
-    override fun <T : ComponentLike> replacement(component: T) {
+    override fun replacement(component: ComponentLike) {
         val prepared = component.asComponent()
         replacementFactory = { _, _ -> prepared }
     }
 
-    override fun replacement(build: ReplacementScope.() -> ComponentLike?) {
-        replacementFactory = { result, _ -> ReplacementState(TextMatch(result, namedGroups)).build() }
+    override fun replacement(init: ReplacementScope.() -> ComponentLike?) {
+        replacementFactory = { result, _ ->
+            ReplacementState(result.snapshot()).init()
+        }
     }
 
-    override fun modify(build: ModifyScope.() -> Unit) {
+    override fun modify(init: ModifyScope.() -> Unit) {
         replacementFactory = { result, builder ->
-            ModifyBuilder(TextBuilder(builder), TextMatch(result, namedGroups)).apply(build).build()
+            ModifyBuilder(
+                text = TextBuilder(builder),
+                match = result.snapshot(),
+            ).apply(init).build()
         }
     }
 
@@ -49,41 +59,49 @@ internal class ReplaceBuilder(
     }
 
     override fun once() {
-        conditionApplier = { it.once() }
+        conditionApplier = { this.once() }
     }
 
     override fun times(count: Int) {
-        require(count > 0) { "'times' must be positive, was $count." }
-        conditionApplier = { it.times(count) }
+        require(count > 0) {
+            "'times' must be positive, was $count."
+        }
+
+        conditionApplier = { this.times(count) }
     }
 
     override fun condition(predicate: ConditionScope.() -> MatchAction) {
-        conditionApplier = { builder ->
-            builder.condition { result, matchCount, replaced ->
-                ConditionState(TextMatch(result, namedGroups), matchCount, replaced).predicate().result
+        conditionApplier = {
+            this.condition { result, matchCount, replacementCount ->
+                ConditionState(
+                    match = result.snapshot(),
+                    matchCount = matchCount,
+                    replacementCount = replacementCount,
+                ).predicate().result
             }
         }
     }
 
-    override fun insideHoverEvents(replace: Boolean) {
-        insideHoverEvents = replace
+    override fun insideHoverEvents(enabled: Boolean) {
+        insideHoverEvents = enabled
     }
 
     fun build(): TextReplacementConfig {
-        val factory =
+        val replacement =
             checkNotNull(replacementFactory) {
                 "A replacement action is required: use 'modify', 'replacement', or 'remove'."
             }
 
         val configBuilder = TextReplacementConfig.builder().match(pattern)
-        val replacementFunction =
-            BiFunction<MatchResult, TextComponent.Builder, ComponentLike?> { result, builder ->
-                factory(result, builder)
-            }
-        configBuilder.replacement(replacementFunction)
+
+        configBuilder.replacement { result, textBuilder ->
+            replacement(result, textBuilder)
+        }
         conditionApplier?.invoke(configBuilder)
         insideHoverEvents?.let(configBuilder::replaceInsideHoverEvents)
 
         return configBuilder.build()
     }
+
+    private fun MatchResult.snapshot(): TextMatch = TextMatch(this, namedGroups)
 }

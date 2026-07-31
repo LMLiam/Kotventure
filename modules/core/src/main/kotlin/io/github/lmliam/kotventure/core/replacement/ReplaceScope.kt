@@ -6,24 +6,26 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.ComponentLike
 
 /**
- * Configures one [Component.replace] call.
+ * Configures one [Component.replace] operation.
  *
- * Choose exactly one replacement action: [modify], one form of [replacement], or [remove]. Choose at most one
- * match limit: [once], [times], or [condition]. [insideHoverEvents] is independent of both. Each slot is
- * write-once.
+ * Set exactly one replacement action: [modify], one form of [replacement], or [remove].
+ * Set at most one match policy: [once], [times], or [condition].
+ * [insideHoverEvents] is independent of those slots.
+ * Every slot is write-once.
  *
  * @sample io.github.lmliam.kotventure.core.replacement.replaceLiteralSample
  */
 @KotventureDslMarker
 public interface ReplaceScope {
     /**
-     * Sets the replacement to a text component with literal [value], configured by [init].
+     * Replaces every accepted match with a text component containing [value] and
+     * configured by [init].
      *
-     * This is the short form for a fixed text replacement. Use [modify] to keep the matched text and only change
-     * its style or children. Use the [replacement] block form to compute a different replacement for each match.
-     * Kotventure builds the replacement one time. It does not rebuild the value for each match.
+     * The replacement is built once.
+     * Use [modify] to retain and edit the matched text, or the receiver-block
+     * form of [replacement] to calculate a different component for each accepted match.
      *
-     * @throws IllegalStateException when a replacement action is already set in this block.
+     * @throws IllegalStateException when this block already contains a replacement action.
      */
     public fun replacement(
         value: String,
@@ -31,80 +33,90 @@ public interface ReplaceScope {
     )
 
     /**
-     * Sets the replacement to [component] for every match.
+     * Replaces every accepted match with [component].
      *
-     * Kotventure stores [component] one time. It does not rebuild the value for each match.
+     * Kotventure converts and stores the component once rather than rebuilding it for
+    each match.
      *
      * @sample io.github.lmliam.kotventure.core.replacement.replaceComponentSample
      *
-     * @throws IllegalStateException when a replacement action is already set in this block.
+     * @throws IllegalStateException when this block already contains a replacement
+    action.
      */
-    public fun <T : ComponentLike> replacement(component: T)
+    public fun replacement(component: ComponentLike)
 
     /**
-     * Sets the replacement to the result of [build], computed for each accepted match.
+     * Replaces each accepted match with the component returned by [init].
      *
-     * [build] receives the snapshotted match through [ReplacementScope.match]. It returns any component, or the
-     * scoped [ReplacementScope.remove] to delete this match.
+     * [init] is evaluated separately for every accepted match. Its receiver exposes the
+    snapshotted match through
+     * [ReplacementScope.match]. Return any [ComponentLike], or return
+    [ReplacementScope.remove] to delete only the
+     * current match.
      *
-     * @throws IllegalStateException when a replacement action is already set in this block.
+     * @throws IllegalStateException when this block already contains a replacement
+    action.
      */
-    public fun replacement(build: ReplacementScope.() -> ComponentLike?)
+    public fun replacement(init: ReplacementScope.() -> ComponentLike?)
 
     /**
-     * Modifies the matched text through [build].
+     * Modifies each accepted match through [init].
      *
-     * [build] starts with a text component that Adventure pre-populates from the match. The block can change the
-     * content, the style, and the children of that component without retyping the matched text. The snapshotted
-     * match is available as [ModifyScope.match].
+     * Adventure supplies a text-component builder pre-populated with the matched text.
+    [init] can change its content,
+     * style, and children without reconstructing the match. The snapshotted match is
+    available through
+     * [ModifyScope.match].
      *
-     * @throws IllegalStateException when a replacement action is already set in this block.
+     * @throws IllegalStateException when this block already contains a replacement
+    action.
      */
-    public fun modify(build: ModifyScope.() -> Unit)
+    public fun modify(init: ModifyScope.() -> Unit)
 
     /**
      * Deletes every accepted match.
      *
-     * @throws IllegalStateException when a replacement action is already set in this block.
+     * @throws IllegalStateException when this block already contains a replacement
+    action.
      */
     public fun remove()
 
     /**
      * Replaces only the first match.
      *
-     * This form and [times] and [condition] share one write-once slot.
+     * This function shares one write-once match-policy slot with [times] and [condition].
      *
-     * @throws IllegalStateException when a match limit is already set in this block.
+     * @throws IllegalStateException when this block already contains a match policy.
      */
     public fun once()
 
     /**
      * Replaces only the first [count] matches.
      *
-     * This form and [once] and [condition] share one write-once slot.
+     * This function shares one write-once match-policy slot with [once] and [condition].
      *
      * @sample io.github.lmliam.kotventure.core.replacement.replaceLimitSample
      *
-     * @throws IllegalArgumentException when [count] is below `1`.
-     * @throws IllegalStateException when a match limit is already set in this block.
+     * @throws IllegalArgumentException when [count] is less than `1`.
+     * @throws IllegalStateException when this block already contains a match policy.
      */
     public fun times(count: Int)
 
     /**
-     * Decides the outcome for each match through [predicate].
+     * Uses [predicate] to decide the outcome of each match.
      *
-     * This form and [once] and [times] share one write-once slot.
+     * This function shares one write-once match-policy slot with [once] and [times].
      *
-     * @throws IllegalStateException when a match limit is already set in this block.
+     * @throws IllegalStateException when this block already contains a match policy.
      */
     public fun condition(predicate: ConditionScope.() -> MatchAction)
 
     /**
-     * Sets whether a replacement also changes text inside hover events.
+     * Sets whether replacement also searches text inside hover events.
      *
-     * Adventure applies this setting with a default of `true`.
+     * Adventure enables this behaviour by default.
      *
-     * @throws IllegalStateException when this slot is already set in this block.
+     * @throws IllegalStateException when this setting is already present in the block.
      */
-    public fun insideHoverEvents(replace: Boolean)
+    public fun insideHoverEvents(enabled: Boolean)
 }
