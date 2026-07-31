@@ -167,7 +167,13 @@ class SnbtToDslTest :
             }
 
             "renders an empty list as list()" {
-                snbtToDslBody("{items:[]}") shouldBe "\"items\" eq list()"
+                snbtToDslBody("{items:[]}") shouldBe
+                        "\"items\" eq list()"
+            }
+
+            "renders an empty nested compound" {
+                snbtToDslBody("{value:{}}") shouldBe
+                        "\"value\" eq { }"
             }
 
             "parses quoted keys" {
@@ -178,6 +184,19 @@ class SnbtToDslTest :
             "parses escaped strings" {
                 snbtToDslBody("{msg:\"say \\\"hello\\\"\"}") shouldBe
                         "\"msg\" eq \"say \\\"hello\\\"\""
+            }
+
+            "escapes compound keys and string values" {
+                snbtToDslBody(
+                    $$"""
+                    {
+                        "quoted\"key": "line\n$value"
+                    }
+                    """.trimIndent(),
+                ) shouldBe
+                        $$"""
+                    "quoted\"key" eq "line\n\$value"
+                    """.trimIndent()
             }
 
             "returns null for trailing garbage" {

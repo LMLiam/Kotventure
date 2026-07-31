@@ -11,55 +11,34 @@ import net.kyori.adventure.text.StorageNBTComponent
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.TranslatableComponent
 
-/** Emits [component], or only its children when it is an empty and unstyled text root. */
+/** Emits [component], or only its children when it is an empty, unstyled text root. */
 internal fun KotlinSourceBuilder.appendRoot(component: Component) {
-    if (component is TextComponent && component.content().isEmpty() && !hasDslOutput(component.style())) {
-        component.children().forEach { appendComponent(it) }
-        return
+    if (component.isEmptyTextRoot()) {
+        component.children().forEach(::appendComponent)
+    } else {
+        appendComponent(component)
     }
-
-    appendComponent(component)
 }
 
+/** Emits the applicable Kotventure DSL representation of [component]. */
 internal fun KotlinSourceBuilder.appendComponent(component: Component) {
-    val emitter =
-        componentEmitters.firstOrNull { it.accepts(component) }
-            ?: conversionError("miniToDsl cannot represent component type ${component::class.qualifiedName}.")
+    when (component) {
+        is TextComponent -> appendText(component)
+        is TranslatableComponent -> appendTranslatable(component)
+        is KeybindComponent -> appendKeybind(component)
+        is ScoreComponent -> appendScore(component)
+        is SelectorComponent -> appendSelector(component)
+        is BlockNBTComponent -> appendBlockNbt(component)
+        is EntityNBTComponent -> appendEntityNbt(component)
+        is StorageNBTComponent -> appendStorageNbt(component)
+        is ObjectComponent -> appendObject(component)
 
-    emitter.emit(this, component)
-}
-
-private val componentEmitters: List<ComponentEmitter> =
-    listOf(
-        componentEmitter<TextComponent> { appendText(it) },
-        componentEmitter<TranslatableComponent> { appendTranslatable(it) },
-        componentEmitter<KeybindComponent> { appendKeybind(it) },
-        componentEmitter<ScoreComponent> { appendScore(it) },
-        componentEmitter<SelectorComponent> { appendSelector(it) },
-        componentEmitter<BlockNBTComponent> { appendBlockNbt(it) },
-        componentEmitter<EntityNBTComponent> { appendEntityNbt(it) },
-        componentEmitter<StorageNBTComponent> { appendStorageNbt(it) },
-        componentEmitter<ObjectComponent> { appendObject(it) },
-    )
-
-private class ComponentEmitter(
-    private val accepts: (Component) -> Boolean,
-    private val emitComponent: KotlinSourceBuilder.(Component) -> Unit,
-) {
-    fun accepts(component: Component): Boolean = accepts.invoke(component)
-
-    fun emit(
-        builder: KotlinSourceBuilder,
-        component: Component,
-    ) {
-        emitComponent.invoke(builder, component)
+        else ->
+            conversionError(
+                "miniToDsl cannot represent component type ${component::class.qualifiedName}.",
+            )
     }
 }
 
-private inline fun <reified T : Component> componentEmitter(
-    noinline emit: KotlinSourceBuilder.(T) -> Unit,
-): ComponentEmitter =
-    ComponentEmitter(
-        accepts = { it is T },
-        emitComponent = { component -> emit(component as T) },
-    )
+private fun Component.isEmptyTextRoot(): Boolean =
+    this is TextComponent && content().isEmpty() && !hasDslOutput(style())

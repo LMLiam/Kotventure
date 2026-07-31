@@ -154,6 +154,19 @@ class MiniMessageToDslSelectorTest :
                         """.trimIndent()
                 }
 
+                test("parenthesises negative-zero coordinates") {
+                    writeSelector("@e[x=-0.0]") shouldBe
+                            """
+                        component {
+                            selector(
+                                entities {
+                                    origin((-0.0).x)
+                                }
+                            )
+                        }
+                        """.trimIndent()
+                }
+
                 test("emits advancement criteria as nested eq blocks") {
                     writeSelector("@a[advancements={my_pack:boss={kill_dragon=true,no_deaths=false}}]") shouldBe
                             """
