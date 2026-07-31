@@ -93,11 +93,11 @@ private fun typeArgument(
     Type(
         target =
             if (value.isEntityTypeTag()) {
-            SelectorEntityType.Tag(key(value.removePrefix(ENTITY_TYPE_TAG_PREFIX)))
-        } else {
-            SelectorEntityType.Direct(key(value))
-        },
-            isNegated = isNegated,
+                SelectorEntityType.Tag(key(value.removePrefix(ENTITY_TYPE_TAG_PREFIX)))
+            } else {
+                SelectorEntityType.Direct(key(value))
+            },
+        isNegated = isNegated,
     )
 
 /**

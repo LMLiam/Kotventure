@@ -65,7 +65,7 @@ private fun SelectorReader.validateSnbtListOrArray() {
     val typedArrayKind =
         SnbtTypedArrayKind
             .fromPrefix(peek())
-        ?.takeIf { peek(1) == ';' }
+            ?.takeIf { peek(1) == ';' }
 
     if (typedArrayKind != null) {
         skip()

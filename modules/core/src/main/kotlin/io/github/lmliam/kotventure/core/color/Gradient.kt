@@ -37,7 +37,7 @@ public class ColorGradient internal constructor(
         val startIndex =
             floor(scaledProgress)
                 .toInt()
-            .coerceAtMost(stops.lastIndex - 1)
+                .coerceAtMost(stops.lastIndex - 1)
         val segmentProgress = scaledProgress - startIndex
 
         return interpolate(

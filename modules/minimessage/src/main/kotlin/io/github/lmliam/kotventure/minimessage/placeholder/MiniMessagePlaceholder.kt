@@ -34,10 +34,10 @@ public class MiniMessagePlaceholder<T : Any> @PublishedApi internal constructor(
     override fun equals(other: Any?): Boolean =
         (this === other) ||
                 (
-                    (other is MiniMessagePlaceholder<*>) &&
-                        (name == other.name) &&
-                        (valueType == other.valueType)
-                )
+                        (other is MiniMessagePlaceholder<*>) &&
+                                (name == other.name) &&
+                                (valueType == other.valueType)
+                        )
 
     /** Returns a hash code for [name] and the runtime value type. */
     override fun hashCode(): Int = 31 * name.hashCode() + valueType.hashCode()

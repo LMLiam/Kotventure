@@ -69,9 +69,9 @@ public abstract class MiniTemplate(
      * @throws IllegalStateException when template validation has already started.
      */
     protected inline fun <reified T : Any> placeholder(): PropertyDelegateProvider<
-                    MiniTemplate,
-                    ReadOnlyProperty<MiniTemplate, MiniMessagePlaceholder<T>>,
-                    > =
+            MiniTemplate,
+            ReadOnlyProperty<MiniTemplate, MiniMessagePlaceholder<T>>,
+            > =
         PropertyDelegateProvider { template, property ->
             val descriptor =
                 template.register(

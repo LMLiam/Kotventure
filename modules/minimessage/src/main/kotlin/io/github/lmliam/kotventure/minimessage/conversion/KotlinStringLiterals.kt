@@ -29,10 +29,10 @@ private fun StringBuilder.appendEscapedKotlinString(value: String) {
                     append("\\u")
                     append(
                         character.code
-                        .toString(16)
-                        .uppercase()
-                        .padStart(4, '0'),
-                            )
+                            .toString(16)
+                            .uppercase()
+                            .padStart(4, '0'),
+                    )
                 } else {
                     append(character)
                 }
