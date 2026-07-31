@@ -21,6 +21,7 @@ public sealed interface MiniMessageDiagnostic {
         public val startIndex: Int,
         public val endIndex: Int,
     ) : MiniMessageDiagnostic {
+        /** Constants used by malformed-tag diagnostics. */
         public companion object {
             /**
              * The value used when Adventure does not provide a source position.

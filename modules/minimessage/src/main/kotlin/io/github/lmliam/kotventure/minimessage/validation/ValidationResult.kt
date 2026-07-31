@@ -39,6 +39,7 @@ public sealed interface ValidationResult {
             }
         }
 
+        /** Creates validated [Failure] instances. */
         public companion object {
             /**
              * Creates a validation failure from [diagnostics].
