@@ -36,8 +36,7 @@ public class ThemeRegistry {
     public fun <T : ThemeProvider> register(
         provider: T,
         default: Boolean = false,
-    ): T =
-        provider.also {
+    ): T {
         val providerName = provider.requireName()
 
         lock.withLock {
@@ -55,6 +54,8 @@ public class ThemeRegistry {
                 defaultProvider = provider
             }
         }
+
+        return provider
     }
 
     /**
@@ -71,8 +72,7 @@ public class ThemeRegistry {
     public fun <T : ThemeProvider> replace(
         provider: T,
         default: Boolean = false,
-    ): T =
-        provider.also {
+    ): T {
         val providerName = provider.requireName()
 
         lock.withLock {
@@ -83,6 +83,8 @@ public class ThemeRegistry {
                 previous === defaultProvider -> defaultProvider = null
             }
         }
+
+        return provider
     }
 
     /**

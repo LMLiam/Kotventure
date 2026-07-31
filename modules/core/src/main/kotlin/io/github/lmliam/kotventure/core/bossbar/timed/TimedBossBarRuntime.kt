@@ -47,7 +47,9 @@ internal class TimedBossBarRuntime(
 
     fun start(initialViewer: Audience) {
         show(initialViewer)
-        locked { startTicking() }
+        locked {
+            if (running) startTicking()
+        }
     }
 
     fun pause() {

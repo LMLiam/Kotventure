@@ -3,6 +3,7 @@ package io.github.lmliam.kotventure.core.selector
 import io.github.lmliam.kotventure.test.selector.shouldBeCanonicalSelector
 import io.github.lmliam.kotventure.test.selector.shouldFailToParseAt
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.string.shouldContain
 
 class SelectorSnbtParsingTest :
     StringSpec(
@@ -47,6 +48,20 @@ class SelectorSnbtParsingTest :
                 "@e[nbt={Data:[I;" shouldFailToParseAt "-2147483649]}]"
                 "@e[nbt={Data:[L;" shouldFailToParseAt "9223372036854775808L]}]"
                 "@e[nbt={Data:[L;" shouldFailToParseAt "-9223372036854775809L]}]"
+            }
+
+            "rejects invalid characters in unquoted SNBT scalars immediately" {
+                val failure =
+                    "@e[nbt={id:minecraft" shouldFailToParseAt ":stone}]"
+
+                failure.message shouldContain "Invalid unquoted SNBT token"
+            }
+
+            "rejects empty unquoted SNBT values" {
+                val failure =
+                    "@e[nbt={value:" shouldFailToParseAt "}]"
+
+                failure.message shouldContain "Expected SNBT value"
             }
         },
     )

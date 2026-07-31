@@ -139,16 +139,16 @@ private fun SelectorReader.skipSnbtWhitespace() {
 private enum class SnbtTypedArrayKind(
     val prefix: Char,
 ) {
-    Byte('B') {
+    BYTE('B') {
         override fun accepts(value: String): Boolean =
             value.endsWith('b', ignoreCase = true) && value.dropLast(1).toByteOrNull() != null
     },
 
-    Int('I') {
+    INT('I') {
         override fun accepts(value: String): Boolean = value.toIntOrNull() != null
     },
 
-    Long('L') {
+    LONG('L') {
         override fun accepts(value: String): Boolean =
             value.endsWith('l', ignoreCase = true) && value.dropLast(1).toLongOrNull() != null
     }, ;
