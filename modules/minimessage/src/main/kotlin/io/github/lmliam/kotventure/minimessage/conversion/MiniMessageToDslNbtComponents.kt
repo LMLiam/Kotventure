@@ -16,19 +16,21 @@ internal fun KotlinSourceBuilder.appendBlockNbt(component: BlockNBTComponent) =
 
 internal fun KotlinSourceBuilder.appendEntityNbt(component: EntityNBTComponent) {
     val selector = parseSelector(component.selector())
+    val interpret = component.interpret()
+    val separator = component.separator()
 
-    appendStructuredArguments(
-        opener = "entityNbt(",
+    appendStructuredCall(
+        function = "entityNbt",
         arguments =
             listOf(
                 { appendEntitySelector(selector) },
                 { line("nbtPath(${quoted(component.nbtPath())})") },
             ),
         component = component,
-        hasExtraBody = component.interpret() || component.separator() != null,
+        hasAdditionalBody = interpret || separator != null,
     ) {
-        if (component.interpret()) line("interpret(true)")
-        component.separator()?.let { appendComponentArgument("separator", it) }
+        if (interpret) line("interpret(true)")
+        separator?.let { appendComponentArgument("separator", it) }
     }
 }
 
@@ -46,13 +48,11 @@ private fun KotlinSourceBuilder.appendNbt(
 ) {
     val interpret = component.interpret()
     val separator = component.separator()
-    val hasExtraBody = interpret || separator != null
-    val nbtPath = quoted(component.nbtPath())
 
     appendStructured(
-        header = "$functionName($sourceExpression, nbtPath($nbtPath))",
+        header = "$functionName($sourceExpression, nbtPath(${quoted(component.nbtPath())}))",
         component = component,
-        hasExtraBody = hasExtraBody,
+        hasAdditionalBody = interpret || separator != null,
     ) {
         if (interpret) line("interpret(true)")
         separator?.let { appendComponentArgument("separator", it) }
@@ -65,7 +65,7 @@ internal fun KotlinSourceBuilder.appendObject(component: ObjectComponent) {
     appendStructured(
         header = "display(${objectContentsLiteral(component.contents())})",
         component = component,
-        hasExtraBody = fallback != null,
+        hasAdditionalBody = fallback != null,
     ) {
         fallback?.let { appendComponentArgument("fallback", it) }
     }

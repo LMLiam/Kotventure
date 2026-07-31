@@ -5,13 +5,13 @@ import net.kyori.adventure.text.TextComponent
 
 internal object MiniMessageToDslWriter {
     fun write(component: Component): String {
-        if (component.isEmptyComponent()) {
-            return "component {}"
-        }
+        if (component.isEmptyComponent()) return "component {}"
 
-        return KotlinSourceBuilder()
-            .apply { block("component") { appendRoot(component) } }
-            .toString()
+        return buildKotlinSource {
+            block("component") {
+                appendRoot(component)
+            }
+        }
     }
 
     private fun Component.isEmptyComponent(): Boolean =

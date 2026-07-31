@@ -28,34 +28,49 @@ private fun ClickEvent<*>.intPayload(): Int = (payload() as ClickEvent.Payload.I
 internal fun KotlinSourceBuilder.appendHoverEvent(event: HoverEvent<*>) {
     block("hover") {
         when (event.action()) {
-            HoverEvent.Action.SHOW_TEXT -> block("text") { appendRoot(event.value() as Component) }
-            HoverEvent.Action.SHOW_ITEM -> appendShowItem(event.value() as HoverEvent.ShowItem)
-            HoverEvent.Action.SHOW_ENTITY -> appendShowEntity(event.value() as HoverEvent.ShowEntity)
-            else -> conversionError("miniToDsl cannot represent the ${event.action().name()} hover action.")
+            HoverEvent.Action.SHOW_TEXT ->
+                block("text") { appendRoot(event.value() as Component) }
+
+            HoverEvent.Action.SHOW_ITEM ->
+                appendShowItem(event.value() as HoverEvent.ShowItem)
+
+            HoverEvent.Action.SHOW_ENTITY ->
+                appendShowEntity(event.value() as HoverEvent.ShowEntity)
+
+            else ->
+                conversionError("miniToDsl cannot represent the ${event.action().name()} hover action.")
         }
     }
 }
 
 private fun KotlinSourceBuilder.appendShowItem(item: HoverEvent.ShowItem) {
     val itemKey = keyLiteral(item.item())
+    val count = item.count()
     val components = item.dataComponents()
-    val arguments =
-        buildList {
-            add { line("key = $itemKey") }
-            if (item.count() != 1) add { line("count = ${item.count()}") }
+
+    if (count == 1) {
+        val header = "item($itemKey)"
+
+        if (components.isEmpty()) {
+            line(header)
+        } else {
+            block(header) { appendDataComponents(components) }
         }
 
-    when {
-        components.isEmpty() && arguments.size == 1 -> line("item($itemKey)")
-        components.isEmpty() -> {
-            openArguments("item(", arguments)
-            line(")")
-        }
+        return
+    }
 
-        arguments.size == 1 -> block("item($itemKey)") { appendDataComponents(components) }
-        else -> {
-            openArguments("item(", arguments)
-            block(")") { appendDataComponents(components) }
+    val arguments: List<KotlinSourceBuilder.() -> Unit> =
+        listOf(
+            { line("key = $itemKey") },
+            { line("count = $count") },
+        )
+
+    if (components.isEmpty()) {
+        call("item", arguments)
+    } else {
+        call("item", arguments) {
+            appendDataComponents(components)
         }
     }
 }
@@ -63,7 +78,9 @@ private fun KotlinSourceBuilder.appendShowItem(item: HoverEvent.ShowItem) {
 private fun KotlinSourceBuilder.appendDataComponents(components: Map<Key, DataComponentValue>) {
     components.entries
         .sortedBy { (key, _) -> key.asString() }
-        .forEach { (key, value) -> appendDataComponent(keyLiteral(key), value) }
+        .forEach { (key, value) ->
+            appendDataComponent(keyLiteral(key), value)
+        }
 }
 
 private fun KotlinSourceBuilder.appendDataComponent(
@@ -71,10 +88,19 @@ private fun KotlinSourceBuilder.appendDataComponent(
     value: DataComponentValue,
 ) {
     when (value) {
-        is DataComponentValue.Removed -> line("removed($keyLiteral)")
-        is BinaryTagHolder -> appendNbtComponent(keyLiteral, value.string())
-        is DataComponentValue.TagSerializable -> appendNbtComponent(keyLiteral, value.asBinaryTag().string())
-        else -> conversionError("miniToDsl cannot represent data component value ${value::class.qualifiedName}.")
+        is DataComponentValue.Removed ->
+            line("removed($keyLiteral)")
+
+        is BinaryTagHolder ->
+            appendNbtComponent(keyLiteral, value.string())
+
+        is DataComponentValue.TagSerializable ->
+            appendNbtComponent(keyLiteral, value.asBinaryTag().string())
+
+        else ->
+            conversionError(
+                "miniToDsl cannot represent data component value ${value::class.qualifiedName}",
+            )
     }
 }
 
@@ -83,25 +109,30 @@ private fun KotlinSourceBuilder.appendNbtComponent(
     snbt: String,
 ) {
     when (val body = snbtToDslBody(snbt)) {
-        null -> line("component($keyLiteral, nbt(\"${escapeKotlinString(snbt)}\"))")
-        "" -> line("component($keyLiteral) { }")
-        else -> line("component($keyLiteral) { $body }")
+        null ->
+            line("component($keyLiteral, nbt(\"${escapeKotlinString(snbt)}\"))")
+
+        "" ->
+            line("component($keyLiteral) { }")
+
+        else ->
+            line("component($keyLiteral) { $body }")
     }
 }
 
 private fun KotlinSourceBuilder.appendShowEntity(entity: HoverEvent.ShowEntity) {
-    val arguments: List<() -> Unit> =
+    val arguments: List<KotlinSourceBuilder.() -> Unit> =
         listOf(
             { line("type = ${keyLiteral(entity.type())}") },
             { line("id = uuid(\"${entity.id()}\")") },
         )
-
-    openArguments("entity(", arguments)
-
     val name = entity.name()
+
     if (name == null) {
-        line(")")
+        call("entity", arguments)
     } else {
-        block(")") { appendRoot(name) }
+        call("entity", arguments) {
+            appendRoot(name)
+        }
     }
 }

@@ -1,59 +1,91 @@
 package io.github.lmliam.kotventure.minimessage.conversion
 
+import jdk.internal.org.jline.reader.LineReader.INDENTATION
+
 /**
- * Collects Kotlin source lines and controls their indentation.
+ * Builds deterministic, indented Kotlin source
  */
 internal class KotlinSourceBuilder {
-    private val lines = mutableListOf<String>()
-    private var depth = 0
+    private val source = StringBuilder()
+    private var indentationDepth = 0
+    private var lineCount = 0
 
-    /** Appends [text] at the current indentation. */
+    /** Appends one source line at the current indentation. */
     fun line(text: String) {
-        lines += INDENT.repeat(depth) + text
+        if (lineCount > 0) source.append('\n')
+        source.append(INDENTATION.repeat(indentationDepth))
+        source.append(text)
+        lineCount++
     }
 
-    /** Emits a block with [header] and an indented [body]. */
+    /** Appends [header] followed by an indented Kotlin block. */
     fun block(
         header: String,
         body: KotlinSourceBuilder.() -> Unit,
-    ) {
-        line("$header {")
-        indented(body)
-        line("}")
-    }
-
-    /** Emits [body] one indentation level deeper. */
-    fun indented(body: KotlinSourceBuilder.() -> Unit) {
-        depth++
-        body()
-        depth--
-    }
+    ) = delimited("$header {", "}", body)
 
     /**
-     * Emits [opener] and the indented [arguments] without a trailing comma.
+     * Appends a multiline function call and an optional trailing-lambda [body].
      *
-     * The caller must emit the closing parenthesis.
+     * Each argument must emit at least one source line.
+     * Commas are placed after the final line emitted by each argument except the last.
      */
-    fun openArguments(
-        opener: String,
-        arguments: List<() -> Unit>,
+    fun call(
+        function: String,
+        arguments: List<KotlinSourceBuilder.() -> Unit>,
+        body: (KotlinSourceBuilder.() -> Unit)? = null,
     ) {
-        line(opener)
-        indented { commaSeparated(arguments) }
+        line("$function(")
+        indented { appendArguments(arguments) }
+
+        if (body == null) {
+            line(")")
+        } else {
+            delimited(") {", "}", body)
+        }
     }
 
-    override fun toString(): String = lines.joinToString(separator = "\n")
+    /** Returns the generated source. */
+    fun build(): String = source.toString()
 
-    private fun commaSeparated(parts: List<() -> Unit>) {
-        parts.forEachIndexed { index, part ->
-            part()
-            if (index != parts.lastIndex) {
-                lines[lines.lastIndex] += ","
+    private fun delimited(
+        opening: String,
+        closing: String,
+        body: KotlinSourceBuilder.() -> Unit,
+    ) {
+        line(opening)
+        indented(body)
+        line(closing)
+    }
+
+    private fun appendArguments(arguments: List<KotlinSourceBuilder.() -> Unit>) {
+        arguments.forEachIndexed { index, argument ->
+            val initialLineCount = lineCount
+            argument(this)
+
+            check(lineCount > initialLineCount) {
+                "A Kotlin source argument must emit at least one line."
+            }
+
+            if (index < arguments.lastIndex) {
+                source.append(',')
             }
         }
     }
 
+    private inline fun indented(body: KotlinSourceBuilder.() -> Unit) {
+        indentationDepth++
+
+        try {
+            body(this)
+        } finally {
+            indentationDepth--
+        }
+    }
+
     private companion object {
-        const val INDENT: String = "    "
+        const val INDENTATION = "    "
     }
 }
+
+internal fun buildKotlinSource(body: KotlinSourceBuilder.() -> Unit): String = KotlinSourceBuilder().apply(body).build()
