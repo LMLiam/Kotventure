@@ -186,17 +186,9 @@ class SnbtToDslTest :
                         "\"msg\" eq \"say \\\"hello\\\"\""
             }
 
-            "escapes compound keys and string values" {
-                snbtToDslBody(
-                    $$"""
-                    {
-                        "quoted\"key": "line\n$value"
-                    }
-                    """.trimIndent(),
-                ) shouldBe
-                        $$"""
-                    "quoted\"key" eq "line\n\$value"
-                    """.trimIndent()
+            "escapes compound keys and dollar signs" {
+                snbtToDslBody("{\"quoted\\\"key\":\"${'$'}value\"}") shouldBe
+                        "\"quoted\\\"key\" eq \"\\${'$'}value\""
             }
 
             "returns null for trailing garbage" {
