@@ -12,7 +12,7 @@ package io.github.lmliam.kotventure.core.selector
  */
 internal enum class SelectorArgumentKeyword(
     val sourceName: String,
-    val isSingleton: Boolean = false
+    val isSingleton: Boolean = false,
 ) {
     LEVEL("level", isSingleton = true),
     LIMIT("limit", isSingleton = true),

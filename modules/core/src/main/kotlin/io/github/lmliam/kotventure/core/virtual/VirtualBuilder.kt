@@ -8,46 +8,47 @@ import net.kyori.adventure.text.VirtualComponent
 import net.kyori.adventure.text.format.Style
 
 /**
- * Builds a [VirtualComponent] from the slots in [VirtualScope].
+ * Collects [VirtualScope] state and builds one [VirtualComponent].
  *
- * A render block is required.
- * The fallback has no content, style, or children when it is not set.
+ * The render block is required.
+ * An omitted fallback produces an empty fallback string with no style or children.
  *
  * @param C the render context type.
- * @property contextType the render context class that the component reports.
+ * @property contextType the context class exposed by the resulting virtual component
  */
 internal class VirtualBuilder<C : Any>(
     private val contextType: Class<C>,
 ) : VirtualScope<C> {
-    private var fallback: Fallback? by once()
-    private var render: (VirtualRenderScope<C>.() -> Unit)? by once()
+    private var fallback: VirtualFallback? by once()
+    private var renderBlock: VirtualRenderBlock<C>? by once { "'render' is already set." }
 
     override fun fallback(text: String) {
-        fallback = Fallback(text)
+        fallback = VirtualFallback(content = text)
     }
 
-    override fun fallback(build: ComponentScope.() -> Unit) {
-        val component = component(build)
-        fallback = Fallback(style = component.style(), children = component.children())
+    override fun fallback(init: ComponentScope.() -> Unit) {
+        fallback = buildVirtualFallback(init)
     }
 
-    override fun render(build: VirtualRenderScope<C>.() -> Unit) {
-        render = build
+    override fun render(init: VirtualRenderScope<C>.() -> Unit) {
+        renderBlock = init
     }
 
-    fun build(): VirtualComponent {
-        val render = checkNotNull(render) { "'render' is required" }
-        val resolvedFallback = fallback ?: Fallback()
-        val renderer = VirtualScopeRenderer(render, resolvedFallback.content)
+    internal fun build(): VirtualComponent {
+        val renderBlock = checkNotNull(renderBlock) { "'render' is not set." }
+        val fallback = fallback ?: VirtualFallback()
+        val renderer =
+            VirtualScopeRenderer(
+                renderBlock = renderBlock,
+                fallbackText = fallback.content,
+            )
 
         return Component
-            .virtual(contextType, renderer, resolvedFallback.style)
-            .children(resolvedFallback.children) as VirtualComponent
+            .virtual(contextType, renderer, fallback.style)
+            .withChildren(fallback.children)
     }
-
-    private data class Fallback(
-        val content: String = "",
-        val style: Style = Style.empty(),
-        val children: List<Component> = emptyList(),
-    )
 }
+
+// Adventure preserves the virtual subtype, but the Java API exposes Component as the return type
+private fun VirtualComponent.withChildren(children: List<Component>): VirtualComponent =
+    if (children.isEmpty()) this else children(children) as VirtualComponent

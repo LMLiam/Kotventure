@@ -97,12 +97,14 @@ private fun SelectorStringCondition.render(): String =
 /**
  * Renders scoreboard objective ranges.
  */
+@JvmName("renderScoreboardObjectiveRanges")
 private fun List<SelectorScoreRequirement>.render(): String =
     joinToString(",", "{", "}") { (objective, range) -> "$objective=$range" }
 
 /**
  * Renders advancement requirements.
  */
+@JvmName("renderAdvancementRequirements")
 private fun List<SelectorAdvancementRequirement>.render(): String =
     joinToString(",", "{", "}") { (advancement, progress) ->
         "${advancement.asString()}=${progress.render()}"
@@ -120,5 +122,6 @@ private fun SelectorAdvancementProgress.render(): String =
 /**
  * Renders advancement criteria states.
  */
+@JvmName("renderAdvancementCriteriaStates")
 private fun List<SelectorAdvancementCriterion>.render(): String =
     joinToString(",", "{", "}") { (name, completed) -> "$name=$completed" }

@@ -83,7 +83,7 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
 
     override fun origin(
         first: OriginCoordinate,
-        vararg rest: OriginCoordinate
+        vararg rest: OriginCoordinate,
     ) {
         bindCoordinates(
             first = first,
@@ -95,7 +95,7 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
 
     override fun volume(
         first: VolumeDelta,
-        vararg rest: VolumeDelta
+        vararg rest: VolumeDelta,
     ) {
         bindCoordinates(
             first = first,
@@ -207,14 +207,16 @@ internal class EntitySelectorBuilder : EntitySelectorScope {
 
         val bind: (T) -> Unit = {
             val coordinate = coordinateOf(it)
-            check(coordinate !in coordinates) {
+
+            check(coordinate !in coordinates && coordinate !in staged) {
                 "Selector argument '${coordinate.argumentName}' may only appear once."
             }
+
             staged[coordinate] = valueOf(it)
         }
 
         bind(first)
-        rest.forEach { bind(it) }
+        rest.forEach(bind)
         coordinates += staged
     }
 

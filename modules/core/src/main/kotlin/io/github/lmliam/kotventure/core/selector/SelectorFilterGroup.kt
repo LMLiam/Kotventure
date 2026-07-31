@@ -7,7 +7,7 @@ package io.github.lmliam.kotventure.core.selector
  * block returns.
  */
 internal class SelectorFilterGroup<T>(
-    keyword: SelectorArgumentKeyword
+    keyword: SelectorArgumentKeyword,
 ) {
     val argument: String = keyword.sourceName
     private val policy: SelectorFilterPolicy =
@@ -20,7 +20,7 @@ internal class SelectorFilterGroup<T>(
 
     fun add(
         owner: EntitySelectorBuilder,
-        value: T
+        value: T,
     ): SelectorFilterExpression = addEntry(owner, value, SelectorFilterPolarity.POSITIVE)
 
     /**
@@ -30,7 +30,7 @@ internal class SelectorFilterGroup<T>(
     fun addFixed(
         owner: EntitySelectorBuilder,
         value: T,
-        polarity: SelectorFilterPolarity
+        polarity: SelectorFilterPolarity,
     ) {
         addEntry(owner, value, polarity)
     }
@@ -46,7 +46,7 @@ internal class SelectorFilterGroup<T>(
     private fun addEntry(
         owner: EntitySelectorBuilder,
         value: T,
-        polarity: SelectorFilterPolarity
+        polarity: SelectorFilterPolarity,
     ): SelectorFilterEntry<T> {
         validateNewEntry()
         return SelectorFilterEntry(owner, argument, value, polarity).also {

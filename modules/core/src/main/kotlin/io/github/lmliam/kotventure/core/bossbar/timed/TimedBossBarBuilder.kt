@@ -33,7 +33,7 @@ internal class TimedBossBarBuilder(
 
     // The appearance scope owns `progress` as an overlay name, so this slot uses the endpoint name.
     private var progressEndpoints: TimedBossBarProgress? by once { "'progress' is already set." }
-    private var every: Duration? by once().positive()
+    private var every: Duration? by once()
     private var onTick: TickHandler? by once()
     private var onFinish: LifecycleHandler? by once()
     private var onCancel: LifecycleHandler? by once()
@@ -56,6 +56,7 @@ internal class TimedBossBarBuilder(
     }
 
     override fun every(interval: Duration) {
+        require(interval.isPositive()) { "'every' must be positive, was $interval" }
         every = interval
     }
 

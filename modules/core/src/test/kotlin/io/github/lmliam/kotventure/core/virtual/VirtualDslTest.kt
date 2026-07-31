@@ -33,7 +33,11 @@ class VirtualDslTest :
                         fallback("player")
                         render(body)
                     }
-                val raw = Component.virtual(Viewer::class.java, VirtualScopeRenderer(body, "player"))
+                val raw =
+                    Component.virtual(
+                        Viewer::class.java,
+                        VirtualScopeRenderer(renderBlock = body, fallbackText = "player"),
+                    )
 
                 dsl shouldBe raw
             }
@@ -52,8 +56,11 @@ class VirtualDslTest :
                     }
                 val raw =
                     Component
-                        .virtual(Viewer::class.java, VirtualScopeRenderer(body, ""), Style.style(NamedTextColor.GOLD))
-                        .children(
+                        .virtual(
+                            Viewer::class.java,
+                            VirtualScopeRenderer(renderBlock = body, fallbackText = ""),
+                            Style.style(NamedTextColor.GOLD),
+                        ).children(
                             listOf(
                                 Component.text("player"),
                                 Component.text(" (online)").color(NamedTextColor.GRAY),
