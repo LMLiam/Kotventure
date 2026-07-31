@@ -72,3 +72,52 @@ internal class SelectorRangeBounds<T : Comparable<T>> private constructor(
             )
     }
 }
+
+internal fun <T : Comparable<T>> SelectorReader.readRangeBounds(
+    readBound: SelectorReader.() -> T?,
+): SelectorRangeBounds<T> {
+    val minimumOffset = offset
+    val minimum = readBound()
+
+    if (!consume(RANGE_SEPARATOR)) {
+        return SelectorRangeBounds.exact(
+            reader = this,
+            value = minimum ?: failAt(minimumOffset, "Expected a range"),
+            offset = minimumOffset,
+        )
+    }
+
+    if (peek() == '.') {
+        fail("Range contains more than one '$RANGE_SEPARATOR' separator")
+    }
+
+    val maximumOffset = offset
+    val maximum = readBound()
+
+    if (minimum == null && maximum == null) {
+        failAt(minimumOffset, "Range must contain at least one bound")
+    }
+
+    return SelectorRangeBounds.ranged(
+        reader = this,
+        minimum = minimum,
+        minimumOffset = minimumOffset,
+        maximum = maximum,
+        maximumOffset = maximumOffset,
+    )
+}
+
+/** Reads a bound token up to a value delimiter or [RANGE_SEPARATOR]. */
+internal fun SelectorReader.readRangeBoundToken(): String {
+    val start = offset
+
+    while (true) {
+        when (peek()) {
+            null, ',', ']', '}' -> break
+            '.' -> if (peek(1) == '.') break else skip()
+            else -> skip()
+        }
+    }
+
+    return substringFrom(start)
+}
