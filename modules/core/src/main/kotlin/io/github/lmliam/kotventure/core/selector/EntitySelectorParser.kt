@@ -2,7 +2,6 @@ package io.github.lmliam.kotventure.core.selector
 
 import io.github.lmliam.kotventure.core.selector.parsing.SelectorReader
 import io.github.lmliam.kotventure.core.selector.parsing.readArgumentValue
-import io.github.lmliam.kotventure.core.selector.readSelectorArgument
 
 /**
  * Parses one complete Java Edition entity selector.
@@ -32,8 +31,7 @@ private fun SelectorReader.readSelectorHead(): EntitySelectorHead {
     expect('@', "Expected '@' to begin an entity selector")
     val tokenOffset = offset
     val token = "@${readWhile { it != '[' }}"
-    return EntitySelectorHead.entries.firstOrNull { it.token == token }
-        ?: failAt(tokenOffset, "Unsupported selector head")
+    return EntitySelectorHead.fromToken(token) ?: failAt(tokenOffset, "Unsupported selector head")
 }
 
 private fun SelectorReader.readSelectorArguments(head: EntitySelectorHead): List<EntitySelectorArgument> {
@@ -57,11 +55,17 @@ private fun SelectorReader.readSelectorArgument(
     occurrences: SelectorArgumentOccurrences,
 ): EntitySelectorArgument {
     val nameOffset = offset
-    val name = readWhile { it !in "=,]" }
-    if (name.isEmpty()) failAt(nameOffset, "Expected selector argument")
+    val name = readSelectorArgumentName(nameOffset)
+
     occurrences.recordName(name)?.let { failAt(nameOffset, it) }
     expect('=', "Expected '=' after selector argument '$name'")
-    val argument = readArgumentValue(head, name, nameOffset)
-    occurrences.recordFilter(argument)?.let { failAt(nameOffset, it) }
-    return argument
+
+    return readArgumentValue(head, name, nameOffset).also { argument ->
+        occurrences.recordFilter(argument)?.let { failAt(nameOffset, it) }
+    }
 }
+
+private fun SelectorReader.readSelectorArgumentName(nameOffset: Int): String =
+    readWhile { it !in "=,]" }.ifEmpty {
+        failAt(nameOffset, "Expected selector argument")
+    }

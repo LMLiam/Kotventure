@@ -1,9 +1,14 @@
 package io.github.lmliam.kotventure.core.selector.parsing
 
 import io.github.lmliam.kotventure.core.selector.isAllowedInUnquotedSelectorToken
+import io.github.lmliam.kotventure.core.selector.parsing.readQuotedStringEscape
+
+private const val VALUE_DELIMITERS = ",]}"
+private const val QUOTE_CHARACTERS = "'\""
+private const val QUOTED_STRING_ESCAPES = "\"'\\"
 
 /** Reads until the next selector value delimiter (`,`, `]`, or `}`). */
-internal fun SelectorReader.readValueToken(): String = readWhile { it !in ",]}" }
+internal fun SelectorReader.readValueToken(): String = readWhile { it !in VALUE_DELIMITERS }
 
 /**
  * Validates an unquoted selector token.
@@ -36,18 +41,29 @@ internal fun SelectorReader.validateUnquotedToken(
  */
 internal fun SelectorReader.readQuotedString(): String {
     val quoteOffset = offset
-    val quote = peek()?.takeIf { it in "'\"" } ?: error("readQuotedString requires the cursor to be on a quote")
+    val quote =
+        peek()?.takeIf(Char::isSelectorQuote)
+            ?: error("readQuotedString requires the cursor to be on a quote")
     skip()
 
     return buildString {
         while (true) {
             val characterOffset = offset
-            val character = peek() ?: failAt(quoteOffset, "Unterminated quoted string")
-            skip()
-            when (character) {
-                quote -> return@buildString
-                '\\' -> append(handleEscape(quoteOffset, characterOffset))
-                else -> append(character)
+            when (val character = peek() ?: failAt(quoteOffset, "Unterminated quoted string")) {
+                quote -> {
+                    skip()
+                    return@buildString
+                }
+
+                '\\' -> {
+                    skip()
+                    append(readQuotedStringEscape(quoteOffset, characterOffset))
+                }
+
+                else -> {
+                    skip()
+                    append(character)
+                }
             }
         }
     }
@@ -56,12 +72,17 @@ internal fun SelectorReader.readQuotedString(): String {
 /**
  * Reads one quoted-string escape and reports an error at the opening quote or backslash.
  */
-private fun SelectorReader.handleEscape(
+private fun SelectorReader.readQuotedStringEscape(
     quoteOffset: Int,
     escapeOffset: Int,
 ): Char {
     val escaped = peek() ?: failAt(quoteOffset, "Unterminated quoted string")
-    if (escaped !in "\"'\\") failAt(escapeOffset, "Invalid quoted-string escape")
+    if (!escaped.isQuotedStringEscape()) failAt(escapeOffset, "Invalid quoted-string escape")
+
     skip()
     return escaped
 }
+
+private fun Char.isSelectorQuote(): Boolean = this in QUOTE_CHARACTERS
+
+private fun Char.isQuotedStringEscape(): Boolean = this in QUOTED_STRING_ESCAPES

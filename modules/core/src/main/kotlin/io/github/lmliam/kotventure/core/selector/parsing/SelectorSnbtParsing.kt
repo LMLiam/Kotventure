@@ -28,12 +28,16 @@ private inline fun SelectorReader.readSnbtElements(
 ) {
     skipSnbtWhitespace()
     if (consume(closingDelimiter)) return
+
     while (true) {
         readElement()
         skipSnbtWhitespace()
+
         if (consume(closingDelimiter)) return
+
         expect(',')
         skipSnbtWhitespace()
+
         if (consume(closingDelimiter)) return
     }
 }
@@ -57,40 +61,32 @@ private fun SelectorReader.validateSnbtValue() {
 private fun SelectorReader.validateSnbtListOrArray() {
     expect('[')
     skipSnbtWhitespace()
-    val arrayType = peek()
-    if (arrayType != null && arrayType in SNBT_TYPED_ARRAY_PREFIXES && peek(1) == ';') {
+
+    val typedArrayKind =
+        SnbtTypedArrayKind
+            .fromPrefix(peek())
+            ?.takeIf { peek(1) == ';' }
+
+    if (typedArrayKind != null) {
         skip()
         skip()
-        readSnbtElements(']') { validateSnbtTypedArrayValue(arrayType) }
-        return
+        readSnbtElements(']') { validateSnbtTypedArrayValue(typedArrayKind) }
+    } else {
+        readSnbtElements(']') { validateSnbtValue() }
     }
-    readSnbtElements(']') { validateSnbtValue() }
 }
 
 /**
  * Validates one typed-array element at its source offset.
  */
-private fun SelectorReader.validateSnbtTypedArrayValue(arrayType: Char) {
+private fun SelectorReader.validateSnbtTypedArrayValue(kind: SnbtTypedArrayKind) {
     val valueOffset = offset
     val value = readSnbtUnquotedScalar()
-    if (!isValidSnbtTypedArrayValue(value, arrayType)) {
-        failAt(valueOffset, "Invalid $arrayType array value '$value'")
+
+    if (!kind.accepts(value)) {
+        failAt(valueOffset, "Invalid ${kind.prefix} array value '$value'")
     }
 }
-
-/**
- * Checks the suffix and numeric range of one typed-array element.
- */
-private fun isValidSnbtTypedArrayValue(
-    value: String,
-    arrayType: Char,
-): Boolean =
-    when (arrayType) {
-        'B' -> value.endsWith('b', ignoreCase = true) && value.dropLast(1).toByteOrNull() != null
-        'I' -> value.toIntOrNull() != null
-        'L' -> value.endsWith('l', ignoreCase = true) && value.dropLast(1).toLongOrNull() != null
-        else -> false
-    }
 
 /**
  * Validates one quoted or unquoted compound key.
@@ -101,7 +97,7 @@ private fun SelectorReader.validateSnbtCompoundKey() {
         null -> fail("Expected SNBT compound key")
         else ->
             readWhile(Char::isAllowedInUnquotedSelectorToken)
-                .let { if (it.isEmpty()) fail("Expected SNBT compound key") }
+                .ifEmpty { fail("Expected SNBT compound key") }
     }
 }
 
@@ -114,15 +110,18 @@ private fun SelectorReader.validateSnbtCompoundKey() {
  */
 private fun SelectorReader.readSnbtUnquotedScalar(): String {
     val start = offset
-    while (peek()?.let { !it.isSnbtScalarTerminator() && it.isAllowedInUnquotedSelectorToken() } == true) {
-        skip()
+
+    while (true) {
+        val character = peek() ?: break
+
+        when {
+            character.isSnbtScalarTerminator() -> break
+            character.isAllowedInUnquotedSelectorToken() -> skip()
+            else -> fail("Invalid unquoted SNBT token")
+        }
     }
-    if (peek()?.let { !it.isSnbtScalarTerminator() } == true) {
-        fail("Invalid unquoted SNBT token")
-    }
-    return substringFrom(start).also {
-        if (it.isEmpty()) fail("Expected SNBT value")
-    }
+
+    return substringFrom(start).ifEmpty { fail("Expected SNBT value") }
 }
 
 /**
@@ -137,4 +136,26 @@ private fun SelectorReader.skipSnbtWhitespace() {
     while (peek()?.isWhitespace() == true) skip()
 }
 
-private val SNBT_TYPED_ARRAY_PREFIXES: Set<Char> = setOf('B', 'I', 'L')
+private enum class SnbtTypedArrayKind(
+    val prefix: Char,
+) {
+    BYTE('B') {
+        override fun accepts(value: String): Boolean =
+            value.endsWith('b', ignoreCase = true) && value.dropLast(1).toByteOrNull() != null
+    },
+
+    INT('I') {
+        override fun accepts(value: String): Boolean = value.toIntOrNull() != null
+    },
+
+    LONG('L') {
+        override fun accepts(value: String): Boolean =
+            value.endsWith('l', ignoreCase = true) && value.dropLast(1).toLongOrNull() != null
+    }, ;
+
+    abstract fun accepts(value: String): Boolean
+
+    companion object {
+        fun fromPrefix(prefix: Char?): SnbtTypedArrayKind? = entries.firstOrNull { it.prefix == prefix }
+    }
+}

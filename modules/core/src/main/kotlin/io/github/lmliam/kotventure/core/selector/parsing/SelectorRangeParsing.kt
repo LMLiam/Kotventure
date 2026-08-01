@@ -7,10 +7,12 @@ import io.github.lmliam.kotventure.core.selector.SelectorRangeArgument
 /** Reads and validates a floating-point range for [argument]. */
 internal fun SelectorReader.readDoubleRange(argument: SelectorRangeArgument): SelectorRange {
     val bounds = readRangeBounds { readDoubleBound() }
+
     if (argument.hasNonNegativeOrderedBounds) {
         bounds.requireNonNegative(argument.argumentName, zero = 0.0)
         bounds.requireOrdered(argument.argumentName)
     }
+
     return SelectorRange(bounds.minimum, bounds.maximum)
 }
 
@@ -25,7 +27,11 @@ internal fun SelectorReader.readIntRange(
     nonNegative: Boolean,
 ): SelectorIntRange {
     val bounds = readRangeBounds { readIntBound() }
-    if (nonNegative) bounds.requireNonNegative(argumentName, zero = 0)
+
+    if (nonNegative) {
+        bounds.requireNonNegative(argumentName, zero = 0)
+    }
+
     bounds.requireOrdered(argumentName)
     return SelectorIntRange(bounds.minimum, bounds.maximum)
 }
@@ -35,8 +41,9 @@ internal fun SelectorReader.readIntRange(
  */
 private inline fun <T> SelectorReader.readBound(parser: (String, Int) -> T?): T? {
     val start = offset
-    val token = readRangeBoundToken()
-    return if (token.isEmpty()) null else parser(token, start)
+    return readRangeBoundToken()
+        .takeUnless(String::isEmpty)
+        ?.let { parser(it, start) }
 }
 
 private fun SelectorReader.readIntBound(): Int? = readBound(::parseSelectorInt)
