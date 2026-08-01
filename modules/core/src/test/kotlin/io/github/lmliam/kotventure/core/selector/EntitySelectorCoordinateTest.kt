@@ -55,6 +55,12 @@ class EntitySelectorCoordinateTest :
                         origin(1.x, 2.x)
                     }
                 }
+
+                shouldThrow<IllegalStateException> {
+                    entities {
+                        volume(1.dx, 2.dx)
+                    }
+                }
             }
 
             "finite coordinates render without unsupported exponent notation" {
