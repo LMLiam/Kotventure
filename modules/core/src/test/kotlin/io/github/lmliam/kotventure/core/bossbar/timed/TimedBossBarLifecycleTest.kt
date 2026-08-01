@@ -228,6 +228,64 @@ class TimedBossBarLifecycleTest :
                 secondViewer.hideCalls shouldBe 1
                 timed.isRunning shouldBe false
             }
+
+            "natural completion runs every shutdown step and preserves the first failure" {
+                val cancellationFailure = IllegalStateException("cancel")
+                val firstViewerFailure = IllegalStateException("first hide")
+                val secondViewerFailure = IllegalStateException("second hide")
+                val finishFailure = IllegalStateException("finish")
+                val hideOrder = mutableListOf<Throwable>()
+                val firstViewer = FailingHideAudience(firstViewerFailure) { hideOrder += firstViewerFailure }
+                val secondViewer = FailingHideAudience(secondViewerFailure) { hideOrder += secondViewerFailure }
+                var finishCalls = 0
+                var cancelCalls = 0
+                val ticker = CancellationFailingTicker(cancellationFailure)
+
+                val timed =
+                    timedBossBar(
+                        ticker,
+                        firstViewer,
+                        1.seconds,
+                    ) {
+                        name { text("Natural failure") }
+                        every(1.seconds)
+                        onFinish {
+                            finishCalls++
+                            throw finishFailure
+                        }
+                        onCancel { cancelCalls++ }
+                    }
+                timed.show(secondViewer)
+
+                val thrown = shouldThrow<IllegalStateException> { ticker.run() }
+
+                thrown shouldBe cancellationFailure
+                hideOrder.size shouldBe 2
+                hideOrder.toSet() shouldBe setOf(firstViewerFailure, secondViewerFailure)
+                val firstHideFailure = hideOrder[0]
+                val secondHideFailure = hideOrder[1]
+                thrown.suppressed.toList() shouldBe listOf(firstHideFailure, finishFailure)
+                firstHideFailure.suppressed.toList() shouldBe listOf(secondHideFailure)
+                secondHideFailure.suppressed.toList() shouldBe emptyList()
+                finishFailure.suppressed.toList() shouldBe emptyList()
+                ticker.cancelCalls shouldBe 1
+                cancelCalls shouldBe 0
+                finishCalls shouldBe 1
+                firstViewer.hideCalls shouldBe 1
+                secondViewer.hideCalls shouldBe 1
+                timed.isRunning shouldBe false
+                timed.isPaused shouldBe false
+                timed.remaining shouldBe Duration.ZERO
+
+                ticker.run()
+                timed.cancel()
+
+                ticker.cancelCalls shouldBe 1
+                cancelCalls shouldBe 0
+                finishCalls shouldBe 1
+                firstViewer.hideCalls shouldBe 1
+                secondViewer.hideCalls shouldBe 1
+            }
         },
     )
 
@@ -235,14 +293,26 @@ private class CancellationFailingTicker(
     private val failure: Throwable,
 ) : Ticker {
     override val isCurrent: Boolean = true
+    private var scheduledAction: (() -> Unit)? = null
+    var cancelCalls: Int = 0
+        private set
 
     override fun every(
         interval: Duration,
         action: () -> Unit,
-    ): TickerTask =
-        object : TickerTask {
-            override fun cancel(): Unit = throw failure
+    ): TickerTask {
+        scheduledAction = action
+        return object : TickerTask {
+            override fun cancel() {
+                cancelCalls++
+                throw failure
+            }
         }
+    }
+
+    fun run() {
+        checkNotNull(scheduledAction) { "The test ticker has no scheduled action." }.invoke()
+    }
 
     override fun after(
         delay: Duration,
@@ -252,6 +322,7 @@ private class CancellationFailingTicker(
 
 private class FailingHideAudience(
     private val failure: Throwable,
+    private val onHide: () -> Unit = {},
 ) : Audience {
     var hideCalls: Int = 0
 
@@ -259,6 +330,7 @@ private class FailingHideAudience(
 
     override fun hideBossBar(bar: BossBar) {
         hideCalls++
+        onHide()
         throw failure
     }
 }
