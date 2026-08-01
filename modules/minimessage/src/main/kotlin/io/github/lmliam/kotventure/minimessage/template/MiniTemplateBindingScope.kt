@@ -4,18 +4,18 @@ import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
 import io.github.lmliam.kotventure.minimessage.placeholder.MiniMessagePlaceholder
 
 /**
- * Binds values for one template render.
+ * Receives values for one template render.
  *
- * The placeholder type constrains the value type at compile time. A binding fails immediately if its placeholder
- * belongs to another template or already has a value. The render fails after the block if any required placeholder has
- * no value.
+ * A placeholder's type constrains its value at compile time. Each descriptor must belong to the template being
+ * rendered and may be bound exactly once. Rendering fails after the binding block when any required placeholder
+ * remains unbound.
  */
 @KotventureDslMarker
 public interface MiniTemplateBindingScope {
     /**
-     * Records [value] for [placeholder] in this render.
+     * Binds [value] to [placeholder] for the current render.
      *
-     * @throws IllegalArgumentException when [placeholder] belongs to another template or already has a value.
+     * @throws IllegalArgumentException when [placeholder] belongs to another template or is already bound.
      */
     public fun <T : Any> bind(
         placeholder: MiniMessagePlaceholder<T>,
@@ -24,10 +24,14 @@ public interface MiniTemplateBindingScope {
 }
 
 /**
- * Binds [value] to this placeholder for the current render.
+ * Binds [value] to this placeholder for the current template render.
  *
- * @throws IllegalArgumentException when this descriptor is not the instance that the current template declared, or
- * when it already has a value in this render.
+ * @throws IllegalArgumentException when this descriptor was not declared by the current template or has already been
+ * bound during this render.
  */
-context(scope: MiniTemplateBindingScope)
-public infix fun <T : Any> MiniMessagePlaceholder<T>.bind(value: T): Unit = scope.bind(this, value)
+context(bindings: MiniTemplateBindingScope)
+public infix fun <T : Any> MiniMessagePlaceholder<T>.bind(value: T): Unit =
+    bindings.bind(
+        placeholder = this,
+        value = value,
+    )
