@@ -26,6 +26,7 @@ import io.github.lmliam.kotventure.test.text.shouldBeVirtualComponent
 import io.github.lmliam.kotventure.test.text.shouldContainText
 import io.github.lmliam.kotventure.test.text.shouldHaveArguments
 import io.github.lmliam.kotventure.test.text.shouldHaveChildren
+import io.github.lmliam.kotventure.test.text.shouldHaveColor
 import io.github.lmliam.kotventure.test.text.shouldHaveContent
 import io.github.lmliam.kotventure.test.text.shouldHaveHoverEntity
 import io.github.lmliam.kotventure.test.text.shouldHaveHoverText
@@ -100,6 +101,24 @@ class VirtualRenderingTest :
                 val unmatched = message.render(Locale.UK)
 
                 unmatched.shouldBeVirtualComponent()
+                unmatched.render(Viewer("Alex")) shouldBe renderedText("Alex")
+            }
+
+            "keeps styled fallback children when the context is unmatched" {
+                val message =
+                    virtual<Viewer> {
+                        fallback {
+                            color(red)
+                            text("fallback")
+                            text(" child")
+                        }
+                        render { text(context.name) }
+                    }
+
+                val unmatched = message.render(Locale.UK).shouldBeVirtualComponent()
+
+                unmatched shouldHaveColor red
+                unmatched.shouldHaveChildren(Component.text("fallback"), Component.text(" child"))
                 unmatched.render(Viewer("Alex")) shouldBe renderedText("Alex")
             }
 
