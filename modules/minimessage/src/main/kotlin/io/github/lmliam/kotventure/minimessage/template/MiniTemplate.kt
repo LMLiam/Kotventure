@@ -46,6 +46,7 @@ public abstract class MiniTemplate(
     internal val declaredPlaceholders: Map<String, MiniMessagePlaceholder<*>>
         field: LinkedHashMap<String, MiniMessagePlaceholder<*>> = linkedMapOf()
 
+    @Volatile
     private var declarationsFrozen = false
 
     private val parser: MiniMessage =

@@ -1,7 +1,5 @@
 package io.github.lmliam.kotventure.minimessage.conversion
 
-import jdk.internal.org.jline.reader.LineReader.INDENTATION
-
 /**
  * Builds deterministic, indented Kotlin source
  */
@@ -13,7 +11,7 @@ internal class KotlinSourceBuilder {
     /** Appends one source line at the current indentation. */
     fun line(text: String) {
         if (lineCount > 0) source.append('\n')
-        source.append(INDENTATION.repeat(indentationDepth))
+        source.append(INDENTATION_UNIT.repeat(indentationDepth))
         source.append(text)
         lineCount++
     }
@@ -84,7 +82,7 @@ internal class KotlinSourceBuilder {
     }
 
     private companion object {
-        const val INDENTATION = "    "
+        const val INDENTATION_UNIT = "    "
     }
 }
 

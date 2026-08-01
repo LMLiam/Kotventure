@@ -25,7 +25,7 @@ private fun StringBuilder.appendEscapedKotlinString(value: String) {
             '$' -> append('\\').append('$')
 
             else ->
-                if (character.isISOControl()) {
+                if (character.isISOControl() || character in '\uD800'..'\uDFFF') {
                     append("\\u")
                     append(
                         character.code

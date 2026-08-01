@@ -279,14 +279,14 @@ private fun SelectorRange.toDslArgument(): String =
     rangeDslArgument(
         minimum = minimum,
         maximum = maximum,
-        render = Double::toString,
+        render = ::kotlinDoubleLiteral,
     )
 
 private fun SelectorIntRange.toDslArgument(): String =
     rangeDslArgument(
         minimum = minimum,
         maximum = maximum,
-        render = Int::toString,
+        render = ::kotlinIntLiteral,
     )
 
 private fun <T : Any> rangeDslArgument(
