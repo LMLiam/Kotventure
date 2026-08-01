@@ -3,28 +3,36 @@ name: Maintainer approval
 on:
   issue_comment:
     types: [created]
+  pull_request_review:
+    types: [submitted]
 
 permissions: {}
 
 jobs:
   approve:
-    name: Approve maintainer command
+    name: Record maintainer approval
     if: >-
-      github.event.issue.pull_request
+      (github.event_name == 'issue_comment'
+      && github.event.issue.pull_request
       && github.event.comment.user.login == 'LMLiam'
-      && github.event.comment.body == '/approve'
+      && github.event.comment.body == '/approve')
+      || (github.event_name == 'pull_request_review'
+      && github.event.review.user.login == 'LMLiam'
+      && github.event.review.state == 'approved')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
-      pull-requests: write
+      pull-requests: read
+      statuses: write
     steps:
-      - name: Approve pull request
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+      - name: Record maintainer approval status
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f710d8da1b3 # v9.0.0
         with:
           github-token: ${{ github.token }}
           script: |
             const { owner, repo } = context.repo;
-            const pullNumber = context.issue.number;
+            const pullNumber = context.payload.pull_request?.number
+              ?? context.payload.issue?.number;
             const { data: pullRequest } = await github.rest.pulls.get({
               owner,
               repo,
@@ -36,10 +44,25 @@ jobs:
               return;
             }
 
-            await github.rest.pulls.createReview({
+            const headSha = context.eventName === 'pull_request_review'
+              ? context.payload.pull_request.head.sha
+              : pullRequest.head.sha;
+
+            if (!headSha) {
+              core.setFailed(`Pull request #${pullNumber} has no head commit.`);
+              return;
+            }
+
+            const approvalSource = context.eventName === 'pull_request_review'
+              ? 'manual pull request review'
+              : '/approve command';
+
+            await github.rest.repos.createCommitStatus({
               owner,
               repo,
-              pull_number: pullNumber,
-              event: 'APPROVE',
-              body: 'Approved by the maintainer slash command.',
+              sha: headSha,
+              state: 'success',
+              context: 'Maintainer approval',
+              description: `Approved by LMLiam via ${approvalSource}.`,
+              target_url: pullRequest.html_url,
             });
