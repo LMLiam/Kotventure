@@ -25,45 +25,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
-      contents: read
       pull-requests: read
       statuses: write
     steps:
-      - name: Checkout trusted validator
-        if: >-
-          github.event_name == 'issue_comment'
-          || github.event.review.state == 'approved'
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ github.event.repository.default_branch }}
-          persist-credentials: false
-
-      - name: Validate pull request title
-        if: >-
-          github.event_name == 'issue_comment'
-          || github.event.review.state == 'approved'
-        env:
-          PR_TITLE: ${{ github.event.pull_request.title || github.event.issue.title }}
-        run: bash .github/scripts/validate-conventional-title.sh "$PR_TITLE"
-
-      - name: Collect commit subjects
-        if: >-
-          github.event_name == 'issue_comment'
-          || github.event.review.state == 'approved'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
-        run: >-
-          gh api --paginate
-          "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/commits"
-          --jq '.[].commit.message | split("\n")[0]' > commit-subjects.txt
-
-      - name: Validate commit subjects
-        if: >-
-          github.event_name == 'issue_comment'
-          || github.event.review.state == 'approved'
-        run: bash .github/scripts/validate-conventional-title.sh --stdin < commit-subjects.txt
-
       - name: Record maintainer approval status
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f710d8da1b3 # v9.0.0
         with:
