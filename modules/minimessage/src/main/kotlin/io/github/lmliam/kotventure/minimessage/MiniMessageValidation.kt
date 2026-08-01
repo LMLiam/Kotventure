@@ -8,22 +8,25 @@ import io.github.lmliam.kotventure.minimessage.validation.runValidation
 /**
  * Validates [input] against the declared [placeholders].
  *
- * Validation uses Adventure's strict parser to find a malformed or unclosed tag. A separate lenient pass compares
- * declared placeholder names with custom tags in the input. The function returns diagnostics and does not throw for a
- * normal validation failure.
+ * Validation uses Adventure's strict parser to detect malformed or unclosed tags. A separate lenient pass compares
+ * declared placeholder names with custom tags found in [input].
  *
- * The function takes a snapshot of [placeholders]. Missing-placeholder diagnostics follow declaration order. Extra
- * placeholders follow their first occurrence in [input].
+ * The placeholder collection is snapshotted before validation. Missing-placeholder diagnostics follow declaration
+ * order, while extra-placeholder diagnostics follow their first occurrence in [input].
  */
 public fun validate(
     input: String,
     placeholders: Iterable<MiniMessagePlaceholder<*>>,
-): ValidationResult = runValidation(input, placeholders.toList())
+): ValidationResult =
+    runValidation(
+        input = input,
+        placeholders = placeholders.toList(),
+    )
 
 /**
- * Returns the cached validation result for this template's markup and declared placeholders.
+ * Returns the cached validation result for this template.
  *
- * The first call performs validation. Concurrent calls can perform the first validation more than one time, but all
- * successful computations have the same result.
+ * The first caller performs validation. Concurrent callers wait for that computation and receive the same cached
+ * result.
  */
 public fun MiniTemplate.validate(): ValidationResult = validation

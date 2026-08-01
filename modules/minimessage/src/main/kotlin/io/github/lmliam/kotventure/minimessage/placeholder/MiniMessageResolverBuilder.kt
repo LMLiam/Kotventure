@@ -7,63 +7,57 @@ import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 
 internal class MiniMessageResolverBuilder : MiniMessageResolverScope {
-    private val resolvers: MutableList<TagResolver> = mutableListOf()
-    private val names: MutableSet<String> = mutableSetOf()
+    private val resolversByName =
+        linkedMapOf<String, TagResolver>()
 
     override fun parsed(
         name: String,
         value: String,
-    ) {
-        requireUniqueName(name)
-        resolvers += Placeholder.parsed(name, value)
+    ) = addResolver(name) {
+        Placeholder.parsed(name, value)
     }
 
     override fun unparsed(
         name: String,
         value: String,
-    ) {
-        requireUniqueName(name)
-        resolvers += Placeholder.unparsed(name, value)
+    ) = addResolver(name) {
+        Placeholder.unparsed(name, value)
     }
 
     override fun component(
         name: String,
         value: ComponentLike,
-    ) {
-        requireUniqueName(name)
-        resolvers += Placeholder.component(name, value)
+    ) = addResolver(name) {
+        Placeholder.component(name, value)
     }
 
     override fun component(
         name: String,
         init: ComponentScope.() -> Unit,
-    ) {
-        component(name, component(init))
-    }
+    ) = component(
+        name = name,
+        value = component(init),
+    )
 
     override fun <T : Any> resolve(
         placeholder: MiniMessagePlaceholder<T>,
         value: T,
-    ) {
-        when (placeholder.strategy) {
-            MiniMessagePlaceholderStrategy.COMPONENT -> {
-                val componentValue =
-                    value as? ComponentLike
-                        ?: throw IllegalArgumentException(
-                            "Placeholder '${placeholder.name}' expects a ComponentLike value.",
-                        )
-
-                component(placeholder.name, componentValue)
-            }
-
-            MiniMessagePlaceholderStrategy.LITERAL -> unparsed(placeholder.name, value.toString())
-        }
+    ) = addResolver(placeholder.name) {
+        placeholder.toTagResolver(value)
     }
 
-    internal fun build(): TagResolver = TagResolver.resolver(resolvers)
+    internal fun build(): TagResolver = TagResolver.resolver(resolversByName.values)
 
-    private fun requireUniqueName(name: String) {
-        requireValidMiniMessageTagName(name)
-        require(names.add(name)) { "MiniMessage resolver '$name' is already defined." }
+    private inline fun addResolver(
+        name: String,
+        createResolver: () -> TagResolver,
+    ) {
+        name.requireValidMiniMessageTagName()
+
+        require(name !in resolversByName) {
+            "MiniMessage resolver '$name' is already defined."
+        }
+
+        resolversByName[name] = createResolver()
     }
 }
