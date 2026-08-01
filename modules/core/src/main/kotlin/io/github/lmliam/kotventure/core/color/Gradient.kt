@@ -5,6 +5,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.TextColor
 import kotlin.math.floor
 import kotlin.math.min
+import kotlin.streams.asSequence
 
 /**
  * An immutable colour gradient with an ordered list of two or more [TextColor] stops.
@@ -18,12 +19,7 @@ public class ColorGradient internal constructor(
     stops: Iterable<TextColor>,
 ) {
     /** An immutable copy of the colour stops in interpolation order. */
-    public val stops: List<TextColor> =
-        stops.toList().also { copiedStops ->
-            require(copiedStops.size >= 2) {
-                "A color gradient requires at least 2 stops."
-            }
-        }
+    public val stops: List<TextColor> = stops.toGradientStops()
 
     /**
      * Returns the interpolated colour at [progress].
@@ -36,11 +32,19 @@ public class ColorGradient internal constructor(
         require(progress.isFinite()) {
             "Gradient progress must be finite, but was <$progress>."
         }
-        val clampedProgress = progress.coerceIn(0f, 1f)
-        val scaledProgress = clampedProgress * (stops.size - 1)
-        val segmentIndex = min(floor(scaledProgress).toInt(), stops.lastIndex - 1)
-        val segmentProgress = scaledProgress - segmentIndex
-        return interpolate(segmentProgress, stops[segmentIndex], stops[segmentIndex + 1])
+
+        val scaledProgress = progress.coerceIn(0f, 1f) * stops.lastIndex
+        val startIndex =
+            floor(scaledProgress)
+                .toInt()
+                .coerceAtMost(stops.lastIndex - 1)
+        val segmentProgress = scaledProgress - startIndex
+
+        return interpolate(
+            progress = segmentProgress,
+            start = stops[startIndex],
+            end = stops[startIndex + 1],
+        )
     }
 }
 
@@ -90,28 +94,29 @@ public fun gradientText(
     value: String,
     gradient: ColorGradient,
 ): Component {
-    val children = gradientTextChildren(value, gradient)
-    if (children.isEmpty()) {
-        return emptyComponent()
+    if (value.isEmpty()) return emptyComponent()
+
+    val codePoints = value.toCodePointStrings()
+    val lastIndex = codePoints.lastIndex.toFloat()
+    val builder = Component.text()
+
+    codePoints.forEachIndexed { index, text ->
+        val progress = if (codePoints.size == 1) 0f else index / lastIndex
+        builder.append(Component.text(text).color(gradient.colorAt(progress)))
     }
 
-    val builder = Component.text()
-    children.forEach { child -> builder.append(child) }
     return builder.build()
 }
 
-private fun gradientTextChildren(
-    value: String,
-    gradient: ColorGradient,
-): List<Component> {
-    val codePoints = value.toCodePointStrings()
-    return codePoints.mapIndexed { index, text ->
-        val progress = if (codePoints.size == 1) 0f else index.toFloat() / codePoints.lastIndex.toFloat()
-        Component.text(text).color(gradient.colorAt(progress))
+private fun Iterable<TextColor>.toGradientStops(): List<TextColor> =
+    toList().also { stops ->
+        require(stops.size >= 2) {
+            "A color gradient requires at least 2 stops."
+        }
     }
-}
 
 private fun String.toCodePointStrings(): List<String> =
     codePoints()
-        .toArray()
+        .asSequence()
         .map { codePoint -> String(Character.toChars(codePoint)) }
+        .toList()

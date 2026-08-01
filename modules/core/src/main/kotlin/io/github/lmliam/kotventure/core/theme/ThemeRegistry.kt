@@ -17,12 +17,19 @@ import kotlin.concurrent.withLock
  */
 public class ThemeRegistry {
     private val lock = ReentrantLock()
-    private val providers: MutableMap<String, ThemeProvider> = mutableMapOf()
+    private val providers = mutableMapOf<String, ThemeProvider>()
     private var defaultProvider: ThemeProvider? = null
+
+    /**
+     * This registry's default theme provider, or `null` when none exists.
+     */
+    public val defaultTheme: ThemeProvider?
+        get() = lock.withLock { defaultProvider }
 
     /**
      * Registers [provider], optionally marking it as this registry's default theme.
      *
+     * @return [provider]
      * @throws IllegalArgumentException when the provider name is blank, already registered, or
      * when [default] is true and this registry already has a default theme.
      */
@@ -30,19 +37,24 @@ public class ThemeRegistry {
         provider: T,
         default: Boolean = false,
     ): T {
-        val providerName = requireProviderName(provider)
+        val providerName = provider.requireName()
+
         lock.withLock {
             require(providerName !in providers) {
                 "Theme provider '$providerName' is already registered."
             }
-            require(!default || defaultProvider == null) {
-                "Default theme provider '${checkNotNull(defaultProvider).name}' is already registered."
+
+            val currentDefault = defaultProvider
+            require(!default || currentDefault == null) {
+                "Default theme provider '${currentDefault?.name}' is already registered."
             }
+
             providers[providerName] = provider
             if (default) {
                 defaultProvider = provider
             }
         }
+
         return provider
     }
 
@@ -50,9 +62,9 @@ public class ThemeRegistry {
      * Registers [provider], replacing any existing provider with the same name.
      *
      * Use this for hot-reload: a second registration of the same name is intentional. When
-     * [default] is `true`, [provider] becomes the sole default (any previous default is cleared).
-     * When [default] is `false`, replacement of the current default with the same name clears the default. A different
-     * theme that is already the default does not change.
+     * [default] is `true`, [provider] becomes the sole default. When [default] is `false`,
+     * replacement of the current default clears the default. A different theme that is already
+     * the default does not change.
      *
      * @return [provider]
      * @throws IllegalArgumentException when the provider name is blank.
@@ -61,14 +73,17 @@ public class ThemeRegistry {
         provider: T,
         default: Boolean = false,
     ): T {
-        val providerName = requireProviderName(provider)
+        val providerName = provider.requireName()
+
         lock.withLock {
             val previous = providers.put(providerName, provider)
+
             when {
                 default -> defaultProvider = provider
-                previous != null && defaultProvider === previous -> defaultProvider = null
+                previous === defaultProvider -> defaultProvider = null
             }
         }
+
         return provider
     }
 
@@ -84,12 +99,9 @@ public class ThemeRegistry {
      */
     public fun <T : ThemeProvider> unregister(provider: T): T? =
         lock.withLock {
-            val current = providers[provider.name]
-            if (current !== provider) {
-                return@withLock null
-            }
-            removeRegistered(provider.name, provider)
             provider
+                .takeIf { providers[provider.name] === provider }
+                ?.also { removeRegistered(provider.name) }
         }
 
     /**
@@ -104,41 +116,36 @@ public class ThemeRegistry {
      */
     public fun unregister(name: String): ThemeProvider? =
         lock.withLock {
-            val removed = providers[name] ?: return@withLock null
-            removeRegistered(name, removed)
-            removed
+            removeRegistered(name)
         }
 
     /**
      * Returns the theme provider registered as [name], or `null` when none exists.
      */
-    public fun theme(name: String): ThemeProvider? =
+    public operator fun get(name: String): ThemeProvider? =
         lock.withLock {
             providers[name]
         }
 
     /**
-     * Returns this registry's default theme provider, or `null` when none
-     * exists.
+     * Returns the theme provider registered as [name], or `null` when none exists.
      */
-    public fun defaultTheme(): ThemeProvider? =
-        lock.withLock {
-            defaultProvider
+    public fun theme(name: String): ThemeProvider? = get(name)
+
+    /**
+     * Returns this registry's default theme provider, or `null` when none exists.
+     */
+    public fun defaultTheme(): ThemeProvider? = defaultTheme
+
+    private fun removeRegistered(name: String): ThemeProvider? =
+        providers.remove(name)?.also { removed ->
+            if (defaultProvider === removed) {
+                defaultProvider = null
+            }
         }
 
-    private fun removeRegistered(
-        name: String,
-        removed: ThemeProvider,
-    ) {
-        providers.remove(name)
-        if (defaultProvider === removed) {
-            defaultProvider = null
+    private fun ThemeProvider.requireName(): String =
+        name.also {
+            require(it.isNotBlank()) { "Theme provider name must not be blank." }
         }
-    }
-
-    private fun requireProviderName(provider: ThemeProvider): String {
-        val providerName = provider.name
-        require(providerName.isNotBlank()) { "Theme provider name must not be blank." }
-        return providerName
-    }
 }

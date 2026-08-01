@@ -4,7 +4,14 @@ import net.kyori.adventure.text.format.TextColor
 import net.kyori.adventure.util.HSVLike
 import org.jetbrains.annotations.Range
 
-private val hexColorPattern: Regex = Regex("#[0-9A-Fa-f]{6}")
+private const val MIN_COLOR_CHANNEL: Int = 0
+private const val MAX_COLOR_CHANNEL: Int = 255
+private const val MIN_UNIT_FLOAT: Float = 0f
+private const val MAX_UNIT_FLOAT: Float = 1f
+
+private val ColorChannelRange: IntRange = MIN_COLOR_CHANNEL..MAX_COLOR_CHANNEL
+private val UnitFloatRange: ClosedFloatingPointRange<Float> = MIN_UNIT_FLOAT..MAX_UNIT_FLOAT
+private val HexColorPattern: Regex = Regex("#[0-9a-f]{6}", RegexOption.IGNORE_CASE)
 
 /**
  * Creates a [TextColor] from an exact `#RRGGBB` hex string.
@@ -15,12 +22,12 @@ private val hexColorPattern: Regex = Regex("#[0-9A-Fa-f]{6}")
  * @throws IllegalArgumentException when [value] is not exactly `#RRGGBB`.
  */
 public fun hex(value: String): TextColor {
-    require(hexColorPattern.matches(value)) {
+    require(HexColorPattern.matches(value)) {
         "Hex colors must use the exact #RRGGBB format, but was <$value>."
     }
-    return requireNotNull(TextColor.fromHexString(value)) {
-        "Adventure could not create a TextColor from <$value>."
-    }
+
+    return TextColor.fromHexString(value)
+        ?: error("Adventure could not create a TextColor from validated hex color <$value>.")
 }
 
 /**
@@ -39,6 +46,7 @@ public fun rgb(
     requireColorChannel("red", red)
     requireColorChannel("green", green)
     requireColorChannel("blue", blue)
+
     return TextColor.color(red, green, blue)
 }
 
@@ -48,16 +56,17 @@ public fun rgb(
  * @param hue the hue, `0f..1f`.
  * @param saturation the saturation, `0f..1f`.
  * @param value the brightness value, `0f..1f`.
- * @throws IllegalArgumentException when any component is outside `0f..1f`.
+ * @throws IllegalArgumentException when any component is not finite or is outside `0f..1f`.
  */
 public fun hsv(
     hue: Float,
     saturation: Float,
     value: Float,
 ): TextColor {
-    requireHsvComponent("hue", hue)
-    requireHsvComponent("saturation", saturation)
-    requireHsvComponent("value", value)
+    requireFiniteUnitFloat("hue", hue)
+    requireFiniteUnitFloat("saturation", saturation)
+    requireFiniteUnitFloat("value", value)
+
     return TextColor.color(HSVLike.hsvLike(hue, saturation, value))
 }
 
@@ -78,6 +87,7 @@ public fun interpolate(
     require(progress.isFinite()) {
         "progress must be finite, but was <$progress>."
     }
+
     return TextColor.lerp(progress, start, end)
 }
 
@@ -85,16 +95,19 @@ private fun requireColorChannel(
     name: String,
     value: Int,
 ) {
-    require(value in 0..255) {
-        "$name must be in the 0..255 range, but was <$value>."
+    require(value in ColorChannelRange) {
+        "$name must be in the $MIN_COLOR_CHANNEL..$MAX_COLOR_CHANNEL range, but was <$value>."
     }
 }
 
-private fun requireHsvComponent(
+private fun requireFiniteUnitFloat(
     name: String,
     value: Float,
 ) {
-    require(value in 0f..1f) {
-        "$name must be in the 0f..1f range, but was <$value>."
+    require(value.isFinite()) {
+        "$name must be finite, but was <$value>."
+    }
+    require(value in UnitFloatRange) {
+        "$name must be in the ${MIN_UNIT_FLOAT}..${MAX_UNIT_FLOAT} range, but was <$value>."
     }
 }

@@ -52,6 +52,23 @@ class ColorDslTest :
                 }
             }
 
+            "rejects non-finite HSV components and interpolation progress" {
+                listOf(Float.NaN, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY).forEach { value ->
+                    shouldThrow<IllegalArgumentException> {
+                        hsv(value, 0f, 0f)
+                    }
+                    shouldThrow<IllegalArgumentException> {
+                        hsv(0f, value, 0f)
+                    }
+                    shouldThrow<IllegalArgumentException> {
+                        hsv(0f, 0f, value)
+                    }
+                    shouldThrow<IllegalArgumentException> {
+                        interpolate(value, NamedTextColor.BLACK, NamedTextColor.WHITE)
+                    }
+                }
+            }
+
             "delegates interpolation to Adventure TextColor lerp behavior" {
                 interpolate(0f, NamedTextColor.BLACK, NamedTextColor.WHITE) shouldBe NamedTextColor.BLACK
                 interpolate(0.5f, NamedTextColor.BLACK, NamedTextColor.WHITE).asHexString() shouldBe "#808080"
