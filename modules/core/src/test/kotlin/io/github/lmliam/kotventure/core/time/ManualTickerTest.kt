@@ -21,6 +21,41 @@ class ManualTickerTest :
                 count shouldBe 2
             }
 
+            "returns an every task before its first action" {
+                val ticker = ManualTicker()
+                val events = mutableListOf<String>()
+
+                events += "before"
+                val task =
+                    ticker.every(1.seconds) {
+                        events += "callback"
+                    }
+                events += "after"
+
+                events shouldBe listOf("before", "after")
+
+                ticker.advance(999.milliseconds)
+                events shouldBe listOf("before", "after")
+
+                ticker.advance(1.milliseconds)
+                events shouldBe listOf("before", "after", "callback")
+
+                ticker.advance(1.seconds)
+                events shouldBe listOf("before", "after", "callback", "callback")
+
+                task.cancel()
+            }
+
+            "cancelling an every task before its first interval prevents its action" {
+                val ticker = ManualTicker()
+                var count = 0
+
+                ticker.every(1.seconds) { count++ }.cancel()
+                ticker.advance(1.seconds)
+
+                count shouldBe 0
+            }
+
             "preserves phase when advancing past multiple intervals" {
                 val ticker = ManualTicker()
                 val fires = mutableListOf<Int>()

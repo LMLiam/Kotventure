@@ -29,4 +29,9 @@ internal data class TimedBossBarProgress(
         val elapsedFraction = 1.0 - (remaining / over)
         return from + ((to - from) * elapsedFraction).toFloat()
     }
+
+    companion object {
+        val Countdown: TimedBossBarProgress =
+            TimedBossBarProgress(from = BossBar.MAX_PROGRESS, to = BossBar.MIN_PROGRESS)
+    }
 }

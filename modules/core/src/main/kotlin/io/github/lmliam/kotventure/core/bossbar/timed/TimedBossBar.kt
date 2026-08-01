@@ -75,6 +75,3 @@ public class TimedBossBar internal constructor(
      */
     public fun hide(audience: Audience): Unit = runtime.hide(audience)
 }
-
-private fun TimedBossBarConfig.buildInitialBar(): BossBar =
-    BossBar.bossBar(name(over), progress.from, appearance.color, appearance.overlay, appearance.flags)

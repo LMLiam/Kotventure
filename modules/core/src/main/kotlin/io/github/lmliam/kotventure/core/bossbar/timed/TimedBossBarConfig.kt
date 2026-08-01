@@ -1,6 +1,7 @@
 package io.github.lmliam.kotventure.core.bossbar.timed
 
 import io.github.lmliam.kotventure.core.bossbar.BossBarAppearance
+import net.kyori.adventure.bossbar.BossBar
 import net.kyori.adventure.text.Component
 import kotlin.time.Duration
 
@@ -19,4 +20,7 @@ internal data class TimedBossBarConfig(
     val onTick: (TimedBossBar.(Duration) -> Unit)?,
     val onFinish: (TimedBossBar.() -> Unit)?,
     val onCancel: (TimedBossBar.() -> Unit)?,
-)
+) {
+    fun buildInitialBar(): BossBar =
+        BossBar.bossBar(name(over), progress.from, appearance.color, appearance.overlay, appearance.flags)
+}
