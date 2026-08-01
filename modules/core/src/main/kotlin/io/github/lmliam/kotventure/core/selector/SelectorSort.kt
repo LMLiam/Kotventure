@@ -19,4 +19,11 @@ public enum class SelectorSort(
 
     /** Does not request a defined result order. */
     ARBITRARY("arbitrary"),
+    ;
+
+    internal companion object {
+        private val byValue = entries.associateBy(SelectorSort::value)
+
+        fun fromValue(value: String): SelectorSort? = byValue[value]
+    }
 }
