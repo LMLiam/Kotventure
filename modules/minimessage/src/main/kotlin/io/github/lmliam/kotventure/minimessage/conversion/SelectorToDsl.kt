@@ -309,7 +309,11 @@ private fun <T : Any> rangeDslArgument(
     }
 
 private fun Double.toCoordinateLiteral(): String {
-    val literal = toString()
+    if (!isFinite()) {
+        conversionError("miniToDsl cannot represent non-finite selector coordinate $this")
+    }
+
+    val literal = kotlinDoubleLiteral(this)
     val requiresParentheses =
         literal.startsWith('-') || 'E' in literal
 

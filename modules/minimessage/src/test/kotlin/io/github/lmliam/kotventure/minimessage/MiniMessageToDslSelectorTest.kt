@@ -1,6 +1,8 @@
 package io.github.lmliam.kotventure.minimessage
 
+import io.github.lmliam.kotventure.core.selector.EntitySelectorParseException
 import io.github.lmliam.kotventure.minimessage.conversion.MiniMessageToDslWriter
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import net.kyori.adventure.text.Component
@@ -238,6 +240,72 @@ class MiniMessageToDslSelectorTest :
                             selector(
                                 entities {
                                     origin((-0.0).x)
+                                }
+                            )
+                        }
+                        """.trimIndent()
+                }
+
+                test("parenthesises coordinates rendered with exponent notation") {
+                    writeSelector("@e[x=100000000000000000000]") shouldBe
+                            """
+                        component {
+                            selector(
+                                entities {
+                                    origin((1.0E20).x)
+                                }
+                            )
+                        }
+                        """.trimIndent()
+
+                    writeSelector("@e[x=-0.00000000000000000001]") shouldBe
+                            """
+                        component {
+                            selector(
+                                entities {
+                                    origin((-1.0E-20).x)
+                                }
+                            )
+                        }
+                        """.trimIndent()
+                }
+
+                test("rejects non-finite coordinates") {
+                    shouldThrow<EntitySelectorParseException> {
+                        writeSelector("@e[x=NaN]")
+                    }
+
+                    shouldThrow<EntitySelectorParseException> {
+                        writeSelector("@e[x=Infinity]")
+                    }
+                }
+
+                test("groups interleaved coordinates at each group's first position") {
+                    writeSelector("@e[x=1,limit=5,dx=2,y=3,sort=nearest,dy=4,z=5,dz=6]") shouldBe
+                            """
+                        component {
+                            selector(
+                                entities {
+                                    origin(1.0.x, 3.0.y, 5.0.z)
+                                    limit(5)
+                                    volume(2.0.dx, 4.0.dy, 6.0.dz)
+                                    sort(nearest)
+                                }
+                            )
+                        }
+                        """.trimIndent()
+                }
+
+                test("emits a volume group before an origin group when volume appears first") {
+                    writeSelector("@e[dx=2,limit=5,x=1,dy=4,sort=nearest,y=3,dz=6,z=5]") shouldBe
+                            """
+                        component {
+                            selector(
+                                entities {
+                                    volume(2.0.dx, 4.0.dy, 6.0.dz)
+                                    limit(5)
+                                    origin(1.0.x, 3.0.y, 5.0.z)
+                                    sort(nearest)
                                 }
                             )
                         }
