@@ -78,6 +78,18 @@ class MiniMessageToDslTextRenderingTest :
                     """.trimIndent()
                 }
 
+                test("escapes unpaired UTF-16 surrogates in generated source") {
+                    val value = "\uD800x\uDFFF"
+                    val escaped = "\\uD800x\\uDFFF"
+
+                    MiniMessageToDslWriter.write(Component.text(value)) shouldBe
+                            """
+                        component {
+                            text("$escaped")
+                        }
+                        """.trimIndent()
+                }
+
                 test("emits all standard text decorations") {
                     val input = "<bold><italic><underlined><strikethrough><obfuscated>styled"
 
