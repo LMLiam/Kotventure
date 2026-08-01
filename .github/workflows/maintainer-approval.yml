@@ -15,8 +15,7 @@ jobs:
       (github.event_name == 'issue_comment'
       && github.event.issue.pull_request
       && github.event.comment.user.login == 'LMLiam'
-      && (github.event.comment.body == '/approve'
-      || startsWith(github.event.comment.body, '/approve ')))
+      && github.event.comment.body == '/approve')
       || (github.event_name == 'pull_request_review'
       && github.event.review.user.login == 'LMLiam'
       && (github.event.review.state == 'approved'
@@ -35,18 +34,6 @@ jobs:
           github-token: ${{ github.token }}
           script: |
             const { owner, repo } = context.repo;
-            const approvalCommand = context.eventName === 'issue_comment'
-              ? context.payload.comment.body.trim()
-              : undefined;
-            const approvalMatch = approvalCommand?.match(
-              /^\/approve[ \t]+([0-9a-f]{40})$/i,
-            );
-
-            if (context.eventName === 'issue_comment' && !approvalMatch) {
-              core.setFailed('Use /approve followed by the full current head SHA.');
-              return;
-            }
-
             const pullNumber = context.payload.pull_request?.number
               ?? context.payload.issue?.number;
             const { data: pullRequest } = await github.rest.pulls.get({
@@ -69,21 +56,10 @@ jobs:
             const reviewState = context.eventName === 'pull_request_review'
               ? context.payload.review.state
               : 'approved';
-            const approvalSha = approvalMatch?.[1]?.toLowerCase();
-            if (
-              context.eventName === 'issue_comment'
-              && approvalSha !== currentHeadSha.toLowerCase()
-            ) {
-              core.setFailed(
-                `The approved SHA is stale. Use the current head SHA ${currentHeadSha}.`,
-              );
-              return;
-            }
-
             const headSha = context.eventName === 'pull_request_review'
               ? (context.payload.review.commit_id
                 ?? currentHeadSha)
-              : approvalSha;
+              : currentHeadSha;
 
             if (!headSha) {
               core.setFailed(`Pull request #${pullNumber} has no head commit.`);
