@@ -2,6 +2,8 @@ package io.github.lmliam.kotventure.core.bossbar.timed
 
 import io.github.lmliam.kotventure.core.text.text
 import io.github.lmliam.kotventure.core.time.StaleCallbackTicker
+import io.github.lmliam.kotventure.core.time.Ticker
+import io.github.lmliam.kotventure.core.time.TickerTask
 import io.github.lmliam.kotventure.test.bossbar.shouldHaveProgress
 import io.github.lmliam.kotventure.test.time.ManualTicker
 import io.kotest.assertions.throwables.shouldThrow
@@ -9,6 +11,7 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.floats.plusOrMinus
 import io.kotest.matchers.shouldBe
+import net.kyori.adventure.audience.Audience
 import net.kyori.adventure.bossbar.BossBar
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -192,5 +195,70 @@ class TimedBossBarLifecycleTest :
 
                 shouldThrow<IllegalStateException> { timed.pause() }
             }
+
+            "runs every shutdown step and preserves the first failure" {
+                val cancellationFailure = IllegalStateException("cancel")
+                val firstHideFailure = IllegalStateException("first hide")
+                val secondHideFailure = IllegalStateException("second hide")
+                val hookFailure = IllegalStateException("hook")
+                val firstViewer = FailingHideAudience(firstHideFailure)
+                val secondViewer = FailingHideAudience(secondHideFailure)
+
+                val timed =
+                    timedBossBar(
+                        CancellationFailingTicker(cancellationFailure),
+                        firstViewer,
+                        1.seconds,
+                    ) {
+                        name { text("Failure") }
+                        onCancel { throw hookFailure }
+                    }
+                timed.show(secondViewer)
+
+                val thrown = shouldThrow<IllegalStateException> { timed.cancel() }
+
+                thrown shouldBe cancellationFailure
+                val hideFailures = setOf(firstHideFailure, secondHideFailure)
+                val topLevelHideFailures = thrown.suppressed.filter { it in hideFailures }
+                topLevelHideFailures.size shouldBe 1
+                val topLevelHideFailure = topLevelHideFailures.single()
+                topLevelHideFailure.suppressed.toSet() shouldBe hideFailures - setOf(topLevelHideFailure)
+                thrown.suppressed.filter { it !== topLevelHideFailure }.toSet() shouldBe setOf(hookFailure)
+                firstViewer.hideCalls shouldBe 1
+                secondViewer.hideCalls shouldBe 1
+                timed.isRunning shouldBe false
+            }
         },
     )
+
+private class CancellationFailingTicker(
+    private val failure: Throwable,
+) : Ticker {
+    override val isCurrent: Boolean = true
+
+    override fun every(
+        interval: Duration,
+        action: () -> Unit,
+    ): TickerTask =
+        object : TickerTask {
+            override fun cancel(): Unit = throw failure
+        }
+
+    override fun after(
+        delay: Duration,
+        action: () -> Unit,
+    ): TickerTask = error("The test ticker does not support one-time tasks.")
+}
+
+private class FailingHideAudience(
+    private val failure: Throwable,
+) : Audience {
+    var hideCalls: Int = 0
+
+    override fun showBossBar(bar: BossBar) = Unit
+
+    override fun hideBossBar(bar: BossBar) {
+        hideCalls++
+        throw failure
+    }
+}
