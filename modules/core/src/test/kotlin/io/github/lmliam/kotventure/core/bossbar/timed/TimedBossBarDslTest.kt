@@ -46,6 +46,23 @@ class TimedBossBarDslTest :
                 }
             }
 
+            "rejects infinite durations" {
+                val ticker = ManualTicker()
+                val audience = TimedBossBarRecordingAudience()
+
+                shouldThrow<IllegalArgumentException> {
+                    timedBossBar(ticker, audience, Duration.INFINITE) {
+                        name { text("Bad") }
+                    }
+                }
+                shouldThrow<IllegalArgumentException> {
+                    timedBossBar(ticker, audience, Duration.INFINITE) {
+                        name { text("Bad") }
+                        every(Duration.INFINITE)
+                    }
+                }
+            }
+
             "rejects out-of-range progress endpoints" {
                 val ticker = ManualTicker()
                 val audience = TimedBossBarRecordingAudience()

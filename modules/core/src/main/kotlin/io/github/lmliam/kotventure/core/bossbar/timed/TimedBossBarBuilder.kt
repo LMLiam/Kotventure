@@ -56,6 +56,7 @@ internal class TimedBossBarBuilder(
     }
 
     override fun every(interval: Duration) {
+        require(interval.isFinite()) { "'every' must be finite, was $interval" }
         require(interval.isPositive()) { "'every' must be positive, was $interval" }
         every = interval
     }
@@ -79,7 +80,11 @@ internal class TimedBossBarBuilder(
     ): TimedBossBar = TimedBossBar(ticker, over.toConfig(), initialViewer)
 
     private fun Duration.toConfig(): TimedBossBarConfig {
-        val lifetime = also { require(isPositive()) { "'over' must be positive, was $this" } }
+        val lifetime =
+            also {
+                require(isFinite()) { "'over' must be finite, was $this" }
+                require(isPositive()) { "'over' must be positive, was $this" }
+            }
         val interval = every ?: DefaultTickInterval
 
         // A cadence longer than the lifetime would make the first update late.
