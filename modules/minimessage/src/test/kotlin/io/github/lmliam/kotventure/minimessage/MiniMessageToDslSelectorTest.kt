@@ -124,6 +124,83 @@ class MiniMessageToDslSelectorTest :
                         """.trimIndent()
                 }
 
+                test("emits Kotlin-safe constants for selector integer boundaries") {
+                    val pattern = "@e[scores={kills=-2147483648}]"
+
+                    assertGoldenRoundTrip(
+                        input = "<selector:'$pattern'>",
+                        expectedSource =
+                            """
+                        component {
+                            selector(
+                                entities {
+                                    scores {
+                                        "kills" eq exactly(Int.MIN_VALUE)
+                                    }
+                                }
+                            )
+                        }
+                        """.trimIndent(),
+                        expectedComponent = Component.selector(pattern),
+                    )
+                }
+
+                test("quotes empty and escaped selector names") {
+                    writeSelector("""@e[name=""]""") shouldBe
+                            """
+                        component {
+                            selector(
+                                entities {
+                                    name("")
+                                }
+                            )
+                        }
+                        """.trimIndent()
+
+                    writeSelector("""@e[name="A\"B\\C"]""") shouldBe
+                            """
+                        component {
+                            selector(
+                                entities {
+                                    name("A\"B\\C")
+                                }
+                            )
+                        }
+                        """.trimIndent()
+                }
+
+                test("preserves the order of multiple scoreboard objectives") {
+                    writeSelector("@e[scores={z=0..,a=1..2,m=..3}]") shouldBe
+                            """
+                        component {
+                            selector(
+                                entities {
+                                    scores {
+                                        "z" eq atLeast(0)
+                                        "a" eq 1..2
+                                        "m" eq atMost(3)
+                                    }
+                                }
+                            )
+                        }
+                        """.trimIndent()
+                }
+
+                test("emits explicit advancement completion states") {
+                    writeSelector("@e[advancements={minecraft:story/root=false}]") shouldBe
+                            """
+                        component {
+                            selector(
+                                entities {
+                                    advancements {
+                                        key("minecraft", "story/root") eq false
+                                    }
+                                }
+                            )
+                        }
+                        """.trimIndent()
+                }
+
                 test("emits empty compound maps and empty SNBT containers") {
                     writeSelector("@e[nbt={},scores={},advancements={minecraft:story/root={}}]") shouldBe
                             """
