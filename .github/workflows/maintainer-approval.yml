@@ -1,0 +1,45 @@
+name: Maintainer approval
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions: {}
+
+jobs:
+  approve:
+    name: Approve maintainer command
+    if: >-
+      github.event.issue.pull_request
+      && github.event.comment.user.login == 'LMLiam'
+      && github.event.comment.body == '/approve'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Approve pull request
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const { owner, repo } = context.repo;
+            const pullNumber = context.issue.number;
+            const { data: pullRequest } = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number: pullNumber,
+            });
+
+            if (pullRequest.state !== 'open') {
+              core.setFailed(`Pull request #${pullNumber} is not open.`);
+              return;
+            }
+
+            await github.rest.pulls.createReview({
+              owner,
+              repo,
+              pull_number: pullNumber,
+              event: 'APPROVE',
+              body: 'Approved by the maintainer slash command.',
+            });
