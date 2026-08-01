@@ -38,7 +38,7 @@ public class ThemeRegistry {
         provider: T,
         default: Boolean = false,
     ): T {
-        val providerName = provider.requireName()
+        val providerName = requireThemeName(provider.name)
 
         lock.withLock {
             require(providerName !in providers) {
@@ -74,7 +74,7 @@ public class ThemeRegistry {
         provider: T,
         default: Boolean = false,
     ): T {
-        val providerName = provider.requireName()
+        val providerName = requireThemeName(provider.name)
 
         lock.withLock {
             val previous = providers.put(providerName, provider)
@@ -100,7 +100,7 @@ public class ThemeRegistry {
      * @throws IllegalArgumentException when the provider name is blank.
      */
     public fun <T : ThemeProvider> unregister(provider: T): T? {
-        val providerName = provider.requireName()
+        val providerName = requireThemeName(provider.name)
 
         return lock.withLock {
             provider
@@ -121,7 +121,7 @@ public class ThemeRegistry {
      * @throws IllegalArgumentException when [name] is blank.
      */
     public fun unregister(name: String): ThemeProvider? {
-        val themeName = name.requireName()
+        val themeName = requireThemeName(name)
 
         return lock.withLock {
             removeRegistered(themeName)
@@ -134,7 +134,7 @@ public class ThemeRegistry {
      * @throws IllegalArgumentException when [name] is blank.
      */
     public operator fun get(name: String): ThemeProvider? {
-        val themeName = name.requireName()
+        val themeName = requireThemeName(name)
 
         return lock.withLock {
             providers[themeName]
@@ -160,10 +160,8 @@ public class ThemeRegistry {
             }
         }
 
-    private fun ThemeProvider.requireName(): String = name.requireName()
-
-    private fun String.requireName(): String =
-        also {
-            require(it.isNotBlank()) { "Theme provider name must not be blank." }
+    private fun requireThemeName(name: String): String =
+        name.also {
+            require(it.isNotBlank()) { "Theme name must not be blank." }
         }
 }

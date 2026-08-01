@@ -1,6 +1,8 @@
 package io.github.lmliam.kotventure.core.color
 
+import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.component.emptyComponent
+import io.github.lmliam.kotventure.core.text.text
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.TextColor
 import kotlin.math.floor
@@ -19,7 +21,7 @@ public class ColorGradient internal constructor(
     stops: Iterable<TextColor>,
 ) {
     /** An immutable copy of the colour stops in interpolation order. */
-    public val stops: List<TextColor> = stops.toGradientStops()
+    public val stops: List<TextColor> = copyAndValidateStops(stops)
 
     /**
      * Returns the interpolated colour at [progress].
@@ -98,19 +100,19 @@ public fun gradientText(
 
     val codePoints = value.toCodePointStrings()
     val lastIndex = codePoints.lastIndex.toFloat()
-    val builder = Component.text()
-
-    codePoints.forEachIndexed { index, text ->
-        val progress = if (codePoints.size == 1) 0f else index / lastIndex
-        builder.append(Component.text(text).color(gradient.colorAt(progress)))
+    return component {
+        codePoints.forEachIndexed { index, codePoint ->
+            val progress = if (codePoints.size == 1) 0f else index / lastIndex
+            text(codePoint) {
+                color(gradient.colorAt(progress))
+            }
+        }
     }
-
-    return builder.build()
 }
 
-private fun Iterable<TextColor>.toGradientStops(): List<TextColor> =
-    toList().also { stops ->
-        require(stops.size >= 2) {
+private fun copyAndValidateStops(stops: Iterable<TextColor>): List<TextColor> =
+    stops.toList().also { copiedStops ->
+        require(copiedStops.size >= 2) {
             "A color gradient requires at least 2 stops."
         }
     }

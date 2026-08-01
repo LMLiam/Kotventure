@@ -10,7 +10,7 @@ private const val MIN_UNIT_FLOAT: Float = 0f
 private const val MAX_UNIT_FLOAT: Float = 1f
 
 private val ColorChannelRange: IntRange = MIN_COLOR_CHANNEL..MAX_COLOR_CHANNEL
-private val UnitFloatRange: ClosedFloatingPointRange<Float> = MIN_UNIT_FLOAT..MAX_UNIT_FLOAT
+private val ZeroToOneRange: ClosedFloatingPointRange<Float> = MIN_UNIT_FLOAT..MAX_UNIT_FLOAT
 private val HexColorPattern: Regex = Regex("#[0-9a-f]{6}", RegexOption.IGNORE_CASE)
 
 /**
@@ -63,9 +63,9 @@ public fun hsv(
     saturation: Float,
     value: Float,
 ): TextColor {
-    requireFiniteUnitFloat("hue", hue)
-    requireFiniteUnitFloat("saturation", saturation)
-    requireFiniteUnitFloat("value", value)
+    requireNormalisedHsvComponent(hue)
+    requireNormalisedHsvComponent(saturation)
+    requireNormalisedHsvComponent(value)
 
     return TextColor.color(HSVLike.hsvLike(hue, saturation, value))
 }
@@ -100,14 +100,11 @@ private fun requireColorChannel(
     }
 }
 
-private fun requireFiniteUnitFloat(
-    name: String,
-    value: Float,
-) {
+private fun requireNormalisedHsvComponent(value: Float) {
     require(value.isFinite()) {
-        "$name must be finite, but was <$value>."
+        "HSV component must be finite, but was <$value>."
     }
-    require(value in UnitFloatRange) {
-        "$name must be in the ${MIN_UNIT_FLOAT}..${MAX_UNIT_FLOAT} range, but was <$value>."
+    require(value in ZeroToOneRange) {
+        "HSV component must be in the ${MIN_UNIT_FLOAT}..${MAX_UNIT_FLOAT} range, but was <$value>."
     }
 }
