@@ -22,6 +22,69 @@ class SelectorScalarArgumentParsingTest :
                         )
             }
 
+            "parses decimal points as part of floating-point range bounds" {
+                val parsed =
+                    parseSelector("@e[distance=1.5,x_rotation=1.5..2.5,y_rotation=..2.5]")
+                val ranges = parsed.arguments.filterIsInstance<EntitySelectorArgument.Range>()
+
+                ranges.size shouldBe 3
+                ranges[0].range.minimum shouldBe 1.5
+                ranges[0].range.maximum shouldBe 1.5
+                ranges[1].range.minimum shouldBe 1.5
+                ranges[1].range.maximum shouldBe 2.5
+                ranges[2].range.minimum shouldBe null
+                ranges[2].range.maximum shouldBe 2.5
+            }
+
+            "parses open-ended and negative decimal floating-point bounds" {
+                val openAbove =
+                    parseSelector("@e[distance=1.5..]")
+                        .arguments
+                        .filterIsInstance<EntitySelectorArgument.Range>()
+                        .single()
+                        .range
+                val negative =
+                    parseSelector("@e[x_rotation=-1.5..-0.25]")
+                        .arguments
+                        .filterIsInstance<EntitySelectorArgument.Range>()
+                        .single()
+                        .range
+
+                openAbove.minimum shouldBe 1.5
+                openAbove.maximum shouldBe null
+                negative.minimum shouldBe -1.5
+                negative.maximum shouldBe -0.25
+            }
+
+            "parses integer range separators independently from decimal bounds" {
+                val parsed = parseSelector("@e[level=1..2,scores={kills=-1..}]")
+                val level =
+                    parsed.arguments
+                        .filterIsInstance<EntitySelectorArgument.Level>()
+                        .single()
+                        .range
+                val score =
+                    parsed.arguments
+                        .filterIsInstance<EntitySelectorArgument.Scores>()
+                        .single()
+                        .scores
+                        .single()
+                        .range
+
+                level.minimum shouldBe 1
+                level.maximum shouldBe 2
+                score.minimum shouldBe -1
+                score.maximum shouldBe null
+            }
+
+            "rejects repeated range separators instead of accepting a valid prefix" {
+                "@e[distance=1.." shouldFailToParseAt ".2]"
+                "@e[distance=1.." shouldFailToParseAt "..2]"
+                "@e[distance=1..2" shouldFailToParseAt "..3]"
+                "@e[distance=..1" shouldFailToParseAt "..2]"
+                "@e[distance=" shouldFailToParseAt "1.2.3]"
+            }
+
             "rejects malformed coordinate values" {
                 "@e[x=" shouldFailToParseAt "NaN]"
                 "@e[x=" shouldFailToParseAt "1..2]"
