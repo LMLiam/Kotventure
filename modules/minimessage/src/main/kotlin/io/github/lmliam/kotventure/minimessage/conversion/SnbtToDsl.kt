@@ -15,70 +15,123 @@ import net.kyori.adventure.nbt.ShortBinaryTag
 import net.kyori.adventure.nbt.StringBinaryTag
 import net.kyori.adventure.nbt.TagStringIO
 
-private val tagStringIO = TagStringIO.tagStringIO()
+private val snbtReader = TagStringIO.tagStringIO()
 
 /**
- * Converts an SNBT compound to the body of a Kotventure NBT block.
+ * Converts an SNBT compound into the body of a Kotventure NBT block.
  *
- * The result contains the `"key" eq value` calls. An empty compound returns an empty string.
+ * The result contains the `"key" eq value` expressions. Compound keys are sorted alphabetically because NBT compounds
+ * do not define an iteration order. An empty compound produces an empty string.
  *
- * Keys use alphabetical order so output is deterministic. NBT compounds do not define key order.
- *
- * @return The DSL body, or null when the source is malformed, has trailing content, or contains an unsupported tag
- * type.
+ * @return the generated DSL body, or `null` when [snbt] is malformed, contains trailing input, or contains an
+ * unsupported tag type.
  */
 internal fun snbtToDslBody(snbt: String): String? {
     val compound =
         try {
-            tagStringIO.asCompound(snbt)
+            snbtReader.asCompound(snbt)
         } catch (_: Exception) {
-            return null
+            null
         }
-    return renderCompoundBody(compound)
+
+    return compound?.toDslBody()
 }
 
-private fun renderCompoundBody(compound: CompoundBinaryTag): String? =
-    compound
-        .keySet()
-        .sorted()
-        .map { key ->
-            val tag = compound.get(key) ?: return null
-            val value = renderTag(tag) ?: return null
-            "\"${escapeKotlinString(key)}\" eq $value"
-        }.joinToString("; ")
+private fun CompoundBinaryTag.toDslBody(): String? {
+    val entries = ArrayList<String>(keySet().size)
 
-private fun renderTag(tag: BinaryTag): String? =
-    when (tag) {
-        is ByteBinaryTag -> kotlinByteLiteral(tag.value())
-        is ShortBinaryTag -> kotlinShortLiteral(tag.value())
-        is IntBinaryTag -> kotlinIntLiteral(tag.value())
-        is LongBinaryTag -> kotlinLongLiteral(tag.value())
-        is FloatBinaryTag -> kotlinFloatLiteral(tag.value())
-        is DoubleBinaryTag -> kotlinDoubleLiteral(tag.value())
-        is StringBinaryTag -> "\"${escapeKotlinString(tag.value())}\""
-        is ByteArrayBinaryTag ->
-            tag.value().joinToString(", ", prefix = "byteArrayOf(", postfix = ")")
+    for (key in keySet().sorted()) {
+        val tag = get(key) ?: return null
+        val value = tag.toDslLiteral() ?: return null
 
-        is IntArrayBinaryTag ->
-            tag.value().joinToString(", ", prefix = "intArrayOf(", postfix = ")") { kotlinIntLiteral(it) }
-
-        is LongArrayBinaryTag ->
-            tag.value().joinToString(", ", prefix = "longArrayOf(", postfix = ")") { kotlinLongLiteral(it) }
-
-        is CompoundBinaryTag ->
-            renderCompoundBody(tag)?.toCompoundLiteral()
-
-        is ListBinaryTag ->
-            renderListLiteral(tag)
-
-        else -> null
+        entries += "${quoted(key)} eq $value"
     }
 
-private fun renderListLiteral(list: ListBinaryTag): String? {
-    if (list.size() == 0) return "list()"
-
-    val elements = list.map { renderTag(it) ?: return null }
-    return elements.joinToString(", ", prefix = "list(", postfix = ")")
+    return entries.joinToString(separator = "; ")
 }
 
-private fun String.toCompoundLiteral(): String = if (isEmpty()) "{ }" else "{ $this }"
+private fun BinaryTag.toDslLiteral(): String? =
+    when (this) {
+        is ByteBinaryTag ->
+            kotlinByteLiteral(value())
+
+        is ShortBinaryTag ->
+            kotlinShortLiteral(value())
+
+        is IntBinaryTag ->
+            kotlinIntLiteral(value())
+
+        is LongBinaryTag ->
+            kotlinLongLiteral(value())
+
+        is FloatBinaryTag ->
+            kotlinFloatLiteral(value())
+
+        is DoubleBinaryTag ->
+            kotlinDoubleLiteral(value())
+
+        is StringBinaryTag ->
+            quoted(value())
+
+        is ByteArrayBinaryTag ->
+            value().toDslLiteral()
+
+        is IntArrayBinaryTag ->
+            value().toDslLiteral()
+
+        is LongArrayBinaryTag ->
+            value().toDslLiteral()
+
+        is CompoundBinaryTag ->
+            toDslBody()?.toCompoundLiteral()
+
+        is ListBinaryTag ->
+            toDslLiteral()
+
+        else ->
+            null
+    }
+
+private fun ListBinaryTag.toDslLiteral(): String? {
+    val elements = ArrayList<String>(size())
+
+    for (element in this) {
+        elements += element.toDslLiteral() ?: return null
+    }
+
+    return elements.joinToString(
+        separator = ", ",
+        prefix = "list(",
+        postfix = ")",
+    )
+}
+
+private fun ByteArray.toDslLiteral(): String =
+    joinToString(
+        separator = ", ",
+        prefix = "byteArrayOf(",
+        postfix = ")",
+    )
+
+private fun IntArray.toDslLiteral(): String =
+    joinToString(
+        separator = ", ",
+        prefix = "intArrayOf(",
+        postfix = ")",
+        transform = ::kotlinIntLiteral,
+    )
+
+private fun LongArray.toDslLiteral(): String =
+    joinToString(
+        separator = ", ",
+        prefix = "longArrayOf(",
+        postfix = ")",
+        transform = ::kotlinLongLiteral,
+    )
+
+private fun String.toCompoundLiteral(): String =
+    if (isEmpty()) {
+        "{ }"
+    } else {
+        "{ $this }"
+    }
