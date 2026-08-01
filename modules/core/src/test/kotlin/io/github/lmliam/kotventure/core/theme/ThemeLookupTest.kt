@@ -22,13 +22,26 @@ class ThemeLookupTest :
                 ThemeRegistry().theme("missing").shouldBeNull()
             }
 
+            "resolves registered themes through operator lookup" {
+                val registry = ThemeRegistry()
+                val provider = TestThemeProvider("brand")
+
+                registry.register(provider)
+
+                registry["brand"] shouldBe provider
+            }
+
+            "returns null for unknown names through operator lookup" {
+                ThemeRegistry()["missing"].shouldBeNull()
+            }
+
             "resolves the registered default theme" {
                 val registry = ThemeRegistry()
                 val provider = TestThemeProvider("server")
 
                 registry.register(provider, default = true)
 
-                registry.defaultTheme shouldBe provider
+                registry.defaultTheme() shouldBe provider
             }
 
             "returns null when no default theme is registered" {
@@ -60,8 +73,31 @@ class ThemeLookupTest :
 
                 registry.register(TestThemeProvider("brand"), default = true)
 
-                shouldThrow<IllegalArgumentException> {
+                shouldThrow<IllegalStateException> {
                     registry.register(TestThemeProvider("server"), default = true)
+                }
+            }
+
+            "rejects blank provider names when unregistering by object" {
+                shouldThrow<IllegalArgumentException> {
+                    ThemeRegistry().unregister(TestThemeProvider(" "))
+                }
+            }
+
+            "rejects blank theme names when unregistering by name" {
+                shouldThrow<IllegalArgumentException> {
+                    ThemeRegistry().unregister(" ")
+                }
+            }
+
+            "rejects blank theme names through lookup accessors" {
+                val registry = ThemeRegistry()
+
+                shouldThrow<IllegalArgumentException> {
+                    registry[" "]
+                }
+                shouldThrow<IllegalArgumentException> {
+                    registry.theme(" ")
                 }
             }
 

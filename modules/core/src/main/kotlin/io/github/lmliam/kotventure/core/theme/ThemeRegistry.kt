@@ -30,8 +30,9 @@ public class ThemeRegistry {
      * Registers [provider], optionally marking it as this registry's default theme.
      *
      * @return [provider]
-     * @throws IllegalArgumentException when the provider name is blank, already registered, or
-     * when [default] is true and this registry already has a default theme.
+     * @throws IllegalArgumentException when the provider name is blank or already registered.
+     * @throws IllegalStateException when [default] is true and this registry already has a default
+     * theme.
      */
     public fun <T : ThemeProvider> register(
         provider: T,
@@ -45,7 +46,7 @@ public class ThemeRegistry {
             }
 
             val currentDefault = defaultProvider
-            require(!default || currentDefault == null) {
+            check(!default || currentDefault == null) {
                 "Default theme provider '${currentDefault?.name}' is already registered."
             }
 
@@ -96,13 +97,17 @@ public class ThemeRegistry {
      * When the removed provider was the default theme, the default is cleared.
      *
      * @return [provider] when it was removed, or null when it is not the registered instance.
+     * @throws IllegalArgumentException when the provider name is blank.
      */
-    public fun <T : ThemeProvider> unregister(provider: T): T? =
-        lock.withLock {
+    public fun <T : ThemeProvider> unregister(provider: T): T? {
+        val providerName = provider.requireName()
+
+        return lock.withLock {
             provider
-                .takeIf { providers[provider.name] === provider }
-                ?.also { removeRegistered(provider.name) }
+                .takeIf { providers[providerName] === provider }
+                ?.also { removeRegistered(providerName) }
         }
+    }
 
     /**
      * Removes the theme registered as [name].
@@ -113,22 +118,33 @@ public class ThemeRegistry {
      * When the removed provider was the default theme, the default is cleared.
      *
      * @return the removed provider, or null when [name] was not registered.
+     * @throws IllegalArgumentException when [name] is blank.
      */
-    public fun unregister(name: String): ThemeProvider? =
-        lock.withLock {
-            removeRegistered(name)
+    public fun unregister(name: String): ThemeProvider? {
+        val themeName = name.requireName()
+
+        return lock.withLock {
+            removeRegistered(themeName)
         }
+    }
 
     /**
      * Returns the theme provider registered as [name], or `null` when none exists.
+     *
+     * @throws IllegalArgumentException when [name] is blank.
      */
-    public operator fun get(name: String): ThemeProvider? =
-        lock.withLock {
-            providers[name]
+    public operator fun get(name: String): ThemeProvider? {
+        val themeName = name.requireName()
+
+        return lock.withLock {
+            providers[themeName]
         }
+    }
 
     /**
      * Returns the theme provider registered as [name], or `null` when none exists.
+     *
+     * @throws IllegalArgumentException when [name] is blank.
      */
     public fun theme(name: String): ThemeProvider? = get(name)
 
@@ -144,8 +160,10 @@ public class ThemeRegistry {
             }
         }
 
-    private fun ThemeProvider.requireName(): String =
-        name.also {
+    private fun ThemeProvider.requireName(): String = name.requireName()
+
+    private fun String.requireName(): String =
+        also {
             require(it.isNotBlank()) { "Theme provider name must not be blank." }
         }
 }
