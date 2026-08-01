@@ -6,6 +6,8 @@ import io.github.lmliam.kotventure.minimessage.validation.runValidation
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 import kotlin.properties.PropertyDelegateProvider
 import kotlin.properties.ReadOnlyProperty
 import io.github.lmliam.kotventure.minimessage.placeholder.placeholder as createPlaceholder
@@ -46,18 +48,23 @@ public abstract class MiniTemplate(
     internal val declaredPlaceholders: Map<String, MiniMessagePlaceholder<*>>
         field: LinkedHashMap<String, MiniMessagePlaceholder<*>> = linkedMapOf()
 
-    @Volatile
+    private val declarationsLock = ReentrantLock()
+
     private var declarationsFrozen = false
 
     private val parser: MiniMessage =
         MiniMessage.miniMessage()
 
     internal val validation: ValidationResult by lazy {
-        declarationsFrozen = true
+        val placeholders =
+            declarationsLock.withLock {
+                declarationsFrozen = true
+                declaredPlaceholders.values.toList()
+            }
 
         runValidation(
             input = markup,
-            placeholders = declaredPlaceholders.values.toList(),
+            placeholders = placeholders,
         )
     }
 
@@ -97,22 +104,23 @@ public abstract class MiniTemplate(
         )
 
     @PublishedApi
-    internal fun <T : Any> register(descriptor: MiniMessagePlaceholder<T>): MiniMessagePlaceholder<T> {
-        check(!declarationsFrozen) {
-            "Cannot declare placeholder '${descriptor.name}' after template validation has started."
-        }
+    internal fun <T : Any> register(descriptor: MiniMessagePlaceholder<T>): MiniMessagePlaceholder<T> =
+        declarationsLock.withLock {
+            check(!declarationsFrozen) {
+                "Cannot declare placeholder '${descriptor.name}' after template validation has started."
+            }
 
-        require(
-            declaredPlaceholders.put(
-                key = descriptor.name,
-                value = descriptor,
-            ) == null,
-        ) {
-            "Duplicate placeholder '${descriptor.name}' in template."
-        }
+            require(
+                declaredPlaceholders.put(
+                    key = descriptor.name,
+                    value = descriptor,
+                ) == null,
+            ) {
+                "Duplicate placeholder '${descriptor.name}' in template."
+            }
 
-        return descriptor
-    }
+            descriptor
+        }
 
     internal fun requireValidDefinition() {
         val result = validation
