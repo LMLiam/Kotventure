@@ -31,10 +31,10 @@ internal fun snbtToDslBody(snbt: String): String? {
         try {
             snbtReader.asCompound(snbt)
         } catch (_: Exception) {
-            return null
+            null
         }
 
-    return compound.toDslBody()
+    return compound?.toDslBody()
 }
 
 private fun CompoundBinaryTag.toDslBody(): String? {

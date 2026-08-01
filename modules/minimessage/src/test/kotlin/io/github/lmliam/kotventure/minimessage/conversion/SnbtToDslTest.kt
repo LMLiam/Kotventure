@@ -187,8 +187,8 @@ class SnbtToDslTest :
             }
 
             "escapes compound keys and dollar signs" {
-                snbtToDslBody("{\"quoted\\\"key\":\"${'$'}value\"}") shouldBe
-                        "\"quoted\\\"key\" eq \"\\${'$'}value\""
+                snbtToDslBody($$"{\"quoted\\\"key\":\"$value\"}") shouldBe
+                        $$"\"quoted\\\"key\" eq \"\\$value\""
             }
 
             "returns null for trailing garbage" {
