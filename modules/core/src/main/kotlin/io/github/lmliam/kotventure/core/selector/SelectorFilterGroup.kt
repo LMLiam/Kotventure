@@ -36,11 +36,9 @@ internal class SelectorFilterGroup<T>(
     }
 
     fun validate() {
-        if (policy != SelectorFilterPolicy.EXCLUSIVE) return
+        if (!isExclusive) return
 
-        val hasPositive = entries.any { it.polarity == SelectorFilterPolarity.POSITIVE }
-        val hasNegative = entries.any { it.polarity == SelectorFilterPolarity.NEGATIVE }
-        check(!(hasPositive && hasNegative)) {
+        check(entries.distinctBy(SelectorFilterEntry<T>::polarity).size <= 1) {
             "Selector argument '$argument' cannot combine a positive value with exclusions."
         }
     }
@@ -50,13 +48,18 @@ internal class SelectorFilterGroup<T>(
         value: T,
         polarity: SelectorFilterPolarity,
     ): SelectorFilterEntry<T> {
-        if (policy == SelectorFilterPolicy.EXCLUSIVE) {
-            check(entries.none { it.polarity == SelectorFilterPolarity.POSITIVE }) {
-                "Selector argument '$argument' is already set."
-            }
-        }
+        validateNewEntry()
         return SelectorFilterEntry(owner, argument, value, polarity).also {
             entries += it
         }
     }
+
+    private fun validateNewEntry() {
+        check(!isExclusive || entries.none { it.polarity == SelectorFilterPolarity.POSITIVE }) {
+            "Selector argument '$argument' is already set."
+        }
+    }
+
+    private val isExclusive: Boolean
+        get() = policy == SelectorFilterPolicy.EXCLUSIVE
 }

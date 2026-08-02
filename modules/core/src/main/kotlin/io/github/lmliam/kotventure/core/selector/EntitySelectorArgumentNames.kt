@@ -1,24 +1,39 @@
 package io.github.lmliam.kotventure.core.selector
 
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Advancements
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Coordinate
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.GameMode
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Level
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Limit
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Name
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Nbt
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Predicate
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Range
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Scores
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Sort
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Tag
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Team
+import io.github.lmliam.kotventure.core.selector.EntitySelectorArgument.Type
+
 /**
  * Returns the keyword of this argument, or null when its argument type owns the name.
  */
 internal val EntitySelectorArgument.keyword: SelectorArgumentKeyword?
     get() =
         when (this) {
-            is EntitySelectorArgument.Coordinate, is EntitySelectorArgument.Range -> null
-            is EntitySelectorArgument.Level -> SelectorArgumentKeyword.LEVEL
-            is EntitySelectorArgument.Limit -> SelectorArgumentKeyword.LIMIT
-            is EntitySelectorArgument.Sort -> SelectorArgumentKeyword.SORT
-            is EntitySelectorArgument.GameMode -> SelectorArgumentKeyword.GAMEMODE
-            is EntitySelectorArgument.Name -> SelectorArgumentKeyword.NAME
-            is EntitySelectorArgument.Type -> SelectorArgumentKeyword.TYPE
-            is EntitySelectorArgument.Tag -> SelectorArgumentKeyword.TAG
-            is EntitySelectorArgument.Team -> SelectorArgumentKeyword.TEAM
-            is EntitySelectorArgument.Nbt -> SelectorArgumentKeyword.NBT
-            is EntitySelectorArgument.Scores -> SelectorArgumentKeyword.SCORES
-            is EntitySelectorArgument.Predicate -> SelectorArgumentKeyword.PREDICATE
-            is EntitySelectorArgument.Advancements -> SelectorArgumentKeyword.ADVANCEMENTS
+            is Coordinate, is Range -> null
+            is Level -> SelectorArgumentKeyword.LEVEL
+            is Limit -> SelectorArgumentKeyword.LIMIT
+            is Sort -> SelectorArgumentKeyword.SORT
+            is GameMode -> SelectorArgumentKeyword.GAMEMODE
+            is Name -> SelectorArgumentKeyword.NAME
+            is Type -> SelectorArgumentKeyword.TYPE
+            is Tag -> SelectorArgumentKeyword.TAG
+            is Team -> SelectorArgumentKeyword.TEAM
+            is Nbt -> SelectorArgumentKeyword.NBT
+            is Scores -> SelectorArgumentKeyword.SCORES
+            is Predicate -> SelectorArgumentKeyword.PREDICATE
+            is Advancements -> SelectorArgumentKeyword.ADVANCEMENTS
         }
 
 /**
@@ -29,9 +44,9 @@ internal val EntitySelectorArgument.keyword: SelectorArgumentKeyword?
 internal val EntitySelectorArgument.argumentName: String
     get() =
         when (this) {
-            is EntitySelectorArgument.Coordinate -> coordinate.argumentName
-            is EntitySelectorArgument.Range -> argument.argumentName
-            else -> checkNotNull(keyword) { "Keyword arguments always declare a keyword" }.sourceName
+            is Coordinate -> coordinate.argumentName
+            is Range -> argument.argumentName
+            else -> keyword?.sourceName ?: error("Keyword arguments always declare a keyword")
         }
 
 /**
@@ -39,11 +54,11 @@ internal val EntitySelectorArgument.argumentName: String
  */
 internal val singletonSelectorArgumentNames: Set<String> =
     buildSet {
-        addAll(SelectorCoordinate.entries.map { it.argumentName })
-        addAll(SelectorRangeArgument.entries.map { it.argumentName })
-        add(SelectorArgumentKeyword.LIMIT.sourceName)
-        add(SelectorArgumentKeyword.SORT.sourceName)
-        add(SelectorArgumentKeyword.LEVEL.sourceName)
-        add(SelectorArgumentKeyword.SCORES.sourceName)
-        add(SelectorArgumentKeyword.ADVANCEMENTS.sourceName)
+        addAll(SelectorCoordinate.entries.map(SelectorCoordinate::argumentName))
+        addAll(SelectorRangeArgument.entries.map(SelectorRangeArgument::argumentName))
+        addAll(
+            SelectorArgumentKeyword.entries
+                .filter(SelectorArgumentKeyword::isSingleton)
+                .map(SelectorArgumentKeyword::sourceName),
+        )
     }

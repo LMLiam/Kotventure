@@ -32,6 +32,12 @@ public enum class EntitySelectorHead(
     NEAREST_ENTITY("@n"),
     ;
 
+    internal companion object {
+        private val byToken = entries.associateBy(EntitySelectorHead::token)
+
+        fun fromToken(token: String): EntitySelectorHead? = byToken[token]
+    }
+
     internal fun supports(keyword: SelectorArgumentKeyword): Boolean =
         when (keyword) {
             SelectorArgumentKeyword.TYPE -> supportsTypeFilters
