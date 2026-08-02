@@ -3,6 +3,7 @@ name: CI
 on:
   pull_request:
     branches: [master]
+    types: [opened, edited, synchronize, reopened]
   push:
     branches: [master]
   merge_group:
@@ -49,11 +50,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
+      actions: read
       contents: read
       pull-requests: read
     outputs:
       run: ${{ steps.decide.outputs.run }}
       release_only: ${{ steps.decide.outputs.release_only }}
+      release_candidate: ${{ steps.decide.outputs.release_candidate }}
     steps:
       - name: Decide whether heavy CI should run
         id: decide
@@ -63,6 +66,13 @@ jobs:
             const ALWAYS = () => {
               core.setOutput('run', 'true');
               core.setOutput('release_only', 'false');
+              core.setOutput('release_candidate', 'false');
+            };
+
+            const FORCE_FULL = () => {
+              core.setOutput('run', 'true');
+              core.setOutput('release_only', 'false');
+              core.setOutput('release_candidate', 'true');
             };
 
             const releaseOnlyFiles = new Set([
@@ -72,25 +82,6 @@ jobs:
             ]);
 
             if (context.eventName === 'push') {
-              const commitMsg = context.payload.head_commit?.message || '';
-              if (/^chore\(master\): release\b/.test(commitMsg)) {
-                const comparison = await github.rest.repos.compareCommits({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  base: context.payload.before,
-                  head: context.payload.after,
-                });
-                const unexpected = comparison.data.files
-                  .flatMap(f => [f.filename, f.previous_filename].filter(Boolean))
-                  .filter(name => !releaseOnlyFiles.has(name));
-                if (unexpected.length === 0) {
-                  core.info('Release-please merge commit (release files only); skip heavy CI.');
-                  core.setOutput('run', 'false');
-                  core.setOutput('release_only', 'false');
-                  return;
-                }
-                core.info(`Release commit has non-release changes; run heavy CI: ${unexpected.join(', ')}`);
-              }
               ALWAYS();
               return;
             }
@@ -101,33 +92,123 @@ jobs:
               return;
             }
 
-            const headRef = context.payload.pull_request.head.ref;
-            if (!headRef.startsWith('release-please--')) {
-              core.info(`Branch ${headRef}: not a release-please PR; run heavy CI.`);
+            const pullRequest = context.payload.pull_request;
+            const repository = `${context.repo.owner}/${context.repo.repo}`;
+            let files;
+            try {
+              files = await github.paginate(github.rest.pulls.listFiles, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pullRequest.number,
+                per_page: 100,
+              });
+            } catch (error) {
+              const message = error instanceof Error ? error.message : String(error);
+              core.warning(`Could not read pull-request files; run full CI: ${message}`);
+              FORCE_FULL();
+              return;
+            }
+
+            const unexpected = [...new Set(files
+              .flatMap((file) => [file.filename, file.previous_filename].filter(Boolean))
+              .filter((name) => !releaseOnlyFiles.has(name)))].sort();
+            const pureRelease = unexpected.length === 0;
+            const releaseCandidate = pullRequest.head?.ref?.startsWith('release-please--') || pureRelease;
+
+            if (!releaseCandidate) {
               ALWAYS();
               return;
             }
 
-            const files = await github.paginate(github.rest.pulls.listFiles, {
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number,
-              per_page: 100,
-            });
+            const trustedMetadata =
+              context.payload.repository?.full_name === repository
+              && pullRequest.base.repo?.full_name === repository
+              && pullRequest.base.ref === 'master'
+              && pullRequest.head.repo?.full_name === repository
+              && pullRequest.head.ref === 'release-please--branches--master'
+              && pullRequest.user.login === 'release-please-kotventure[bot]'
+              && pullRequest.user.type === 'Bot'
+              && context.payload.sender?.login === 'release-please-kotventure[bot]'
+              && context.payload.sender?.type === 'Bot';
 
-            const unexpected = files
-              .flatMap((file) => [file.filename, file.previous_filename].filter(Boolean))
-              .filter((name) => !releaseOnlyFiles.has(name));
-
-            if (unexpected.length === 0) {
-              core.info('Pure release-please PR; skip heavy CI.');
-              core.setOutput('run', 'false');
-              core.setOutput('release_only', 'true');
+            if (!trustedMetadata || !pureRelease) {
+              if (unexpected.length > 0) {
+                core.info(`Release candidate has non-release changes; run full CI: ${unexpected.join(', ')}`);
+              } else {
+                core.info('Release candidate lacks trusted App provenance; run full CI.');
+              }
+              FORCE_FULL();
               return;
             }
 
-            core.info(`Release-please PR has non-release changes; run heavy CI: ${unexpected.join(', ')}`);
-            ALWAYS();
+            const findProvenanceRun = async () => {
+              const runs = await github.paginate(github.rest.actions.listWorkflowRuns, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: 'release-provenance.yml',
+                event: 'pull_request_target',
+                per_page: 100,
+              });
+
+              return runs
+                .filter((run) => {
+                  const matchingPullRequest = (run.pull_requests || [])
+                    .find((candidate) => candidate.number === pullRequest.number);
+                  return matchingPullRequest
+                    && (matchingPullRequest.head?.sha === pullRequest.head.sha
+                      || run.head_sha === pullRequest.head.sha);
+                })
+                .sort((left, right) => new Date(right.created_at) - new Date(left.created_at))[0];
+            };
+
+            let provenanceRun;
+            try {
+              for (let attempt = 0; attempt < 6; attempt += 1) {
+                provenanceRun = await findProvenanceRun();
+                if (provenanceRun?.status === 'completed' || attempt === 5) {
+                  break;
+                }
+                await new Promise((resolve) => setTimeout(resolve, 10_000));
+              }
+            } catch (error) {
+              const message = error instanceof Error ? error.message : String(error);
+              core.warning(`Could not read trusted Release Please provenance; run full CI: ${message}`);
+              FORCE_FULL();
+              return;
+            }
+
+            if (!provenanceRun || provenanceRun.status !== 'completed') {
+              core.info('Trusted Release Please provenance is missing or incomplete; run full CI.');
+              FORCE_FULL();
+              return;
+            }
+
+            let jobs;
+            try {
+              jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: provenanceRun.id,
+                per_page: 100,
+              });
+            } catch (error) {
+              const message = error instanceof Error ? error.message : String(error);
+              core.warning(`Could not read the provenance job result; run full CI: ${message}`);
+              FORCE_FULL();
+              return;
+            }
+            const trustedJob = jobs.find((job) => job.name === 'Trusted release provenance');
+
+            if (trustedJob?.status === 'completed' && trustedJob.conclusion === 'success') {
+              core.info('Trusted Release Please provenance verified; skip heavy CI.');
+              core.setOutput('run', 'false');
+              core.setOutput('release_only', 'true');
+              core.setOutput('release_candidate', 'true');
+              return;
+            }
+
+            core.info('Trusted Release Please provenance did not succeed; run full CI.');
+            FORCE_FULL();
 
   changes:
     name: Detect changes
@@ -185,9 +266,13 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           FILTER_CODE: ${{ steps.filter.outputs.code }}
           FILTER_VANILLA: ${{ steps.filter.outputs.vanilla }}
+          RELEASE_CANDIDATE: ${{ needs.gate.outputs.release_candidate }}
         run: |
           set -euo pipefail
-          if [[ "$EVENT_NAME" == "pull_request" || "$EVENT_NAME" == "push" ]]; then
+          if [[ "$EVENT_NAME" == "pull_request" && "$RELEASE_CANDIDATE" == "true" ]]; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            echo "vanilla=true" >> "$GITHUB_OUTPUT"
+          elif [[ "$EVENT_NAME" == "pull_request" || "$EVENT_NAME" == "push" ]]; then
             echo "code=${FILTER_CODE}" >> "$GITHUB_OUTPUT"
             echo "vanilla=${FILTER_VANILLA}" >> "$GITHUB_OUTPUT"
           else
@@ -750,11 +835,7 @@ jobs:
           fi
 
           if [[ "$run" != "true" ]]; then
-            if [[ "$EVENT_NAME" == "push" ]]; then
-              echo "::notice::Skipped (release-please merge commit)."
-            else
-              echo "::notice::Skipped (pure release-please PR)."
-            fi
+            echo "::notice::Skipped (trusted pure Release Please PR)."
             exit 0
           fi
 
