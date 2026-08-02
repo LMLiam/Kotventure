@@ -152,11 +152,14 @@ jobs:
 
               return runs
                 .filter((run) => {
-                  const matchingPullRequest = (run.pull_requests || [])
-                    .find((candidate) => candidate.number === pullRequest.number);
-                  return matchingPullRequest
-                    && (matchingPullRequest.head?.sha === pullRequest.head.sha
-                      || run.head_sha === pullRequest.head.sha);
+                  const associatedPullRequests = run.pull_requests || [];
+                  return run.event === 'pull_request_target'
+                    && run.head_sha === pullRequest.head.sha
+                    && run.head_branch === pullRequest.head.ref
+                    && (associatedPullRequests.length === 0
+                      || associatedPullRequests.some(
+                        (candidate) => candidate.number === pullRequest.number,
+                      ));
                 })
                 .sort((left, right) => new Date(right.created_at) - new Date(left.created_at))[0];
             };
