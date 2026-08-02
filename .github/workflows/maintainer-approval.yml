@@ -14,28 +14,30 @@ jobs:
     if: >-
       (github.event_name == 'issue_comment'
       && github.event.issue.pull_request
-      && github.event.comment.user.login == 'LMLiam'
       && github.event.comment.body == '/approve')
       || (github.event_name == 'pull_request_review'
-      && github.event.review.user.login == 'LMLiam'
       && (github.event.review.state == 'approved'
       || github.event.review.state == 'changes_requested'
-      || github.event.review.state == 'commented'
       || github.event.review.state == 'dismissed'))
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
-      pull-requests: read
+      contents: read
+      issues: write
+      pull-requests: write
       statuses: write
     steps:
-      - name: Record maintainer approval status
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f710d8da1b3 # v9.0.0
+      - name: Read approval event
+        id: event
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           github-token: ${{ github.token }}
           script: |
             const { owner, repo } = context.repo;
-            const pullNumber = context.payload.pull_request?.number
-              ?? context.payload.issue?.number;
+            const isCommand = context.eventName === 'issue_comment';
+            const pullNumber = isCommand
+              ? context.issue.number
+              : context.payload.pull_request.number;
             const { data: pullRequest } = await github.rest.pulls.get({
               owner,
               repo,
@@ -47,38 +49,160 @@ jobs:
               return;
             }
 
-            const currentHeadSha = pullRequest.head.sha;
-            if (!currentHeadSha) {
-              core.setFailed(`Pull request #${pullNumber} has no head commit.`);
-              return;
+            core.setOutput('actor', isCommand
+              ? context.payload.comment.user.login
+              : context.payload.review.user.login);
+            core.setOutput('default_branch', context.payload.repository.default_branch);
+            core.setOutput('head_sha', pullRequest.head.sha);
+            core.setOutput('is_command', isCommand);
+            core.setOutput('pull_number', pullNumber);
+            core.setOutput('pull_url', pullRequest.html_url);
+            core.setOutput('review_state', isCommand
+              ? 'approved'
+              : context.payload.review.state.toLowerCase());
+            if (isCommand) {
+              core.setOutput('comment_id', context.payload.comment.id);
+              core.setOutput('comment_node_id', context.payload.comment.node_id);
             }
 
-            const reviewState = context.eventName === 'pull_request_review'
-              ? context.payload.review.state
-              : 'approved';
-            const headSha = context.eventName === 'pull_request_review'
-              ? (context.payload.review.commit_id
-                ?? currentHeadSha)
-              : currentHeadSha;
-
-            if (!headSha) {
-              core.setFailed(`Pull request #${pullNumber} has no head commit.`);
-              return;
-            }
-
-            const approvalSource = context.eventName === 'pull_request_review'
-              ? 'manual pull request review'
-              : '/approve command';
-            const approved = reviewState === 'approved';
-
-            await github.rest.repos.createCommitStatus({
+      - name: Authorise CODEOWNER
+        id: authorise
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        env:
+          ACTOR: ${{ steps.event.outputs.actor }}
+          DEFAULT_BRANCH: ${{ steps.event.outputs.default_branch }}
+          REVIEW_STATE: ${{ steps.event.outputs.review_state }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const { owner, repo } = context.repo;
+            const { data: codeOwnersFile } = await github.rest.repos.getContent({
               owner,
               repo,
-              sha: headSha,
+              path: '.github/CODEOWNERS',
+              ref: process.env.DEFAULT_BRANCH,
+            });
+            if (Array.isArray(codeOwnersFile) || codeOwnersFile.type !== 'file') {
+              core.setFailed('The default branch CODEOWNERS file is not a file.');
+              return;
+            }
+
+            const codeOwners = new Set(
+              Buffer.from(codeOwnersFile.content, 'base64')
+                .toString('utf8')
+                .split(/\r?\n/)
+                .map((line) => line.trim())
+                .filter((line) => line && !line.startsWith('#'))
+                .flatMap((line) => line.split(/\s+/).slice(1))
+                .filter((entry) => /^@[A-Za-z0-9-]+$/.test(entry))
+                .map((entry) => entry.slice(1).toLowerCase()),
+            );
+            const authorised = codeOwners.has(process.env.ACTOR.toLowerCase());
+            core.setOutput('approved', process.env.REVIEW_STATE === 'approved');
+            core.setOutput('authorised', authorised);
+            if (!authorised) {
+              core.info(`Ignored approval from ${process.env.ACTOR}; they are not an individual CODEOWNER.`);
+            }
+
+      - name: Approve pull request
+        if: >-
+          steps.authorise.outputs.authorised == 'true'
+          && steps.authorise.outputs.approved == 'true'
+          && steps.event.outputs.is_command == 'true'
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        env:
+          HEAD_SHA: ${{ steps.event.outputs.head_sha }}
+          PULL_NUMBER: ${{ steps.event.outputs.pull_number }}
+          ACTOR: ${{ steps.event.outputs.actor }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const { owner, repo } = context.repo;
+            const pullNumber = Number(process.env.PULL_NUMBER);
+            const { data: reviews } = await github.rest.pulls.listReviews({
+              owner,
+              repo,
+              pull_number: pullNumber,
+            });
+            const hasBotApproval = reviews.some(
+              (review) =>
+                review.user?.login === 'github-actions[bot]'
+                && review.state === 'APPROVED'
+                && review.commit_id === process.env.HEAD_SHA,
+            );
+            if (!hasBotApproval) {
+              await github.rest.pulls.createReview({
+                owner,
+                repo,
+                pull_number: pullNumber,
+                commit_id: process.env.HEAD_SHA,
+                event: 'APPROVE',
+              });
+            }
+
+      - name: Record approval status
+        if: steps.authorise.outputs.authorised == 'true'
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        env:
+          ACTOR: ${{ steps.event.outputs.actor }}
+          APPROVED: ${{ steps.authorise.outputs.approved }}
+          HEAD_SHA: ${{ steps.event.outputs.head_sha }}
+          PULL_URL: ${{ steps.event.outputs.pull_url }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const approved = process.env.APPROVED === 'true';
+            await github.rest.repos.createCommitStatus({
+              ...context.repo,
+              sha: process.env.HEAD_SHA,
               state: approved ? 'success' : 'failure',
               context: 'Maintainer approval',
               description: approved
-                ? `Approved by LMLiam via ${approvalSource}.`
-                : `Maintainer approval revoked by a ${reviewState} review.`,
-              target_url: pullRequest.html_url,
+                ? `Approved by ${process.env.ACTOR}.`
+                : `Approval revoked by ${process.env.ACTOR}.`,
+              target_url: process.env.PULL_URL,
             });
+
+      - name: React to approval command
+        if: >-
+          steps.authorise.outputs.authorised == 'true'
+          && steps.authorise.outputs.approved == 'true'
+          && steps.event.outputs.is_command == 'true'
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        env:
+          COMMENT_ID: ${{ steps.event.outputs.comment_id }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            await github.rest.reactions.createForIssueComment({
+              ...context.repo,
+              comment_id: Number(process.env.COMMENT_ID),
+              content: '+1',
+            });
+
+      - name: Resolve approval command
+        if: >-
+          steps.authorise.outputs.authorised == 'true'
+          && steps.authorise.outputs.approved == 'true'
+          && steps.event.outputs.is_command == 'true'
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        env:
+          COMMENT_NODE_ID: ${{ steps.event.outputs.comment_node_id }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            await github.graphql(
+              `mutation MinimizeApprovalCommand($subjectId: ID!) {
+                minimizeComment(input: {
+                  subjectId: $subjectId,
+                  classifier: RESOLVED
+                }) {
+                  minimizedComment {
+                    isMinimized
+                  }
+                }
+              }`,
+              {
+                subjectId: process.env.COMMENT_NODE_ID,
+              },
+            );
