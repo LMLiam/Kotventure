@@ -34,7 +34,7 @@ permissions:
 # ║  Tier 0 ─ Triage        Gate → Changes (fast, always runs)                ║
 # ║  Tier 1 ─ Core          Lint ┤ Build (parallel, first feedback)            ║
 # ║  Tier 2 ─ Analysis      CodeQL │ Qodana │ Vanilla (after T1 passes)        ║
-# ║  Policy ─ Independent   Dependencies │ Commits                             ║
+# ║  Policy ─ Independent   Dependencies │ Commits │ Release attestation       ║
 # ║  Status ─ Aggregator    Required check (merge gate + merge queue)          ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
@@ -53,6 +53,7 @@ jobs:
       pull-requests: read
     outputs:
       run: ${{ steps.decide.outputs.run }}
+      release_only: ${{ steps.decide.outputs.release_only }}
     steps:
       - name: Decide whether heavy CI should run
         id: decide
@@ -61,6 +62,7 @@ jobs:
           script: |
             const ALWAYS = () => {
               core.setOutput('run', 'true');
+              core.setOutput('release_only', 'false');
             };
 
             const releaseOnlyFiles = new Set([
@@ -79,11 +81,12 @@ jobs:
                   head: context.payload.after,
                 });
                 const unexpected = comparison.data.files
-                  .map(f => f.filename)
+                  .flatMap(f => [f.filename, f.previous_filename].filter(Boolean))
                   .filter(name => !releaseOnlyFiles.has(name));
                 if (unexpected.length === 0) {
                   core.info('Release-please merge commit (release files only); skip heavy CI.');
                   core.setOutput('run', 'false');
+                  core.setOutput('release_only', 'false');
                   return;
                 }
                 core.info(`Release commit has non-release changes; run heavy CI: ${unexpected.join(', ')}`);
@@ -113,12 +116,13 @@ jobs:
             });
 
             const unexpected = files
-              .map((file) => file.filename)
+              .flatMap((file) => [file.filename, file.previous_filename].filter(Boolean))
               .filter((name) => !releaseOnlyFiles.has(name));
 
             if (unexpected.length === 0) {
               core.info('Pure release-please PR; skip heavy CI.');
               core.setOutput('run', 'false');
+              core.setOutput('release_only', 'true');
               return;
             }
 
@@ -556,6 +560,49 @@ jobs:
         uses: github/codeql-action/upload-sarif@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4
         with:
           sarif_file: ${{ runner.temp }}/qodana/results/qodana.sarif.json
+
+  release_qodana:
+    name: QDJVM (release attestation)
+    needs: gate
+    if: github.event_name == 'pull_request' && needs.gate.result == 'success' && needs.gate.outputs.release_only == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Create release attestation
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        with:
+          script: |
+            const fs = require('node:fs');
+            const sha = context.payload.pull_request.head.sha;
+            const sarif = {
+              $schema: 'https://json.schemastore.org/sarif-2.1.0.json',
+              version: '2.1.0',
+              runs: [{
+                tool: {
+                  driver: {
+                    name: 'QDJVM',
+                    version: 'release-allowlist-attestation',
+                  },
+                },
+                automationDetails: {
+                  id: `release-please/${sha}`,
+                },
+                results: [],
+              }],
+            };
+            fs.writeFileSync('release-qodana.sarif', JSON.stringify(sarif));
+            core.info(`Created the release attestation for ${sha}.`);
+
+      - name: Upload QDJVM release attestation
+        uses: github/codeql-action/upload-sarif@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4
+        with:
+          sarif_file: release-qodana.sarif
+          ref: refs/pull/${{ github.event.pull_request.number }}/head
+          sha: ${{ github.event.pull_request.head.sha }}
+          category: release-please
 
   vanilla:
     name: Vanilla conformance

@@ -36,7 +36,8 @@ CI
 │
 ├─ Policy (independent of tiers) ──────────────────────────────────
 │   ├─ Dependencies      (dependency-review-action, PRs only)
-│   └─ Commits           (push-to-master subject validation)
+│   ├─ Commits           (push-to-master subject validation)
+│   └─ Release attestation (pure release-please PRs)
 │
 └─ Status (required merge-gate check) ─────────────────────────────
     └─ Aggregates Tier 1 + Vanilla + Dependencies
@@ -66,6 +67,7 @@ The `changes` job in `ci.yml` defines these code paths:
 |-------|:-----------:|:----------:|:------:|:------:|
 | PR (code paths) | ✓ | ✓ | ✓ | ✓ |
 | PR (docs/process only) | ✓ | — | — | — |
+| PR (release-please files only) | ✓ | — | QDJVM attestation | — |
 | Push to `master` (code paths) | ✓ | ✓ | ✓ | ✓ |
 | Push to `master` (docs only) | ✓ | — | — | — |
 | `merge_group` | ✓ | ✓ (path filter skipped) | ✓ | ✓ |
@@ -95,6 +97,10 @@ The gate skips resource-intensive jobs in these conditions:
 The release files are `CHANGELOG.md`, `.release-please-manifest.json`, and `gradle/libs.versions.toml`.
 
 When you add release-please `extra-files`, update the gate allowlist in `ci.yml`.
+
+For a pure release-please PR, the gate also starts the `QDJVM (release attestation)` job. The job uploads a zero-result
+SARIF record with the `QDJVM` tool name. It does not run Qodana. The gate starts this job only when the release branch
+and the complete changed-file allowlist match. If any other file changes, the gate starts the normal CI jobs instead.
 
 ### Full builds
 
@@ -219,7 +225,8 @@ The **Master** repository ruleset protects the default branch. The rulesets API 
 - Require one approval and a code-owner review. Dismiss stale reviews and resolve conversations. Permit only squash
   merges.
 - Require **Status**, **Title**, **Commits**, and **Dependencies**. Require them to be current with the base branch.
-- Block Qodana (`QDJVM`) alerts that have medium or higher security severity, or error severity.
+- Block Qodana (`QDJVM`) alerts that have medium or higher security severity, or error severity. A pure release PR uses
+  the release attestation after the gate verifies that no source files changed.
 - Permit maintainers to bypass the rules in an emergency.
 
 [CODEOWNERS](../.github/CODEOWNERS) assigns `@LMLiam` as the default owner. It also assigns this owner to
