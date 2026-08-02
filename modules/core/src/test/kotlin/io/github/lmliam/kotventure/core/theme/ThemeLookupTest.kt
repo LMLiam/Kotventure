@@ -22,6 +22,19 @@ class ThemeLookupTest :
                 ThemeRegistry().theme("missing").shouldBeNull()
             }
 
+            "resolves registered themes through operator lookup" {
+                val registry = ThemeRegistry()
+                val provider = TestThemeProvider("brand")
+
+                registry.register(provider)
+
+                registry["brand"] shouldBe provider
+            }
+
+            "returns null for unknown names through operator lookup" {
+                ThemeRegistry()["missing"].shouldBeNull()
+            }
+
             "resolves the registered default theme" {
                 val registry = ThemeRegistry()
                 val provider = TestThemeProvider("server")
@@ -36,7 +49,7 @@ class ThemeLookupTest :
 
                 registry.register(TestThemeProvider("brand"))
 
-                registry.defaultTheme().shouldBeNull()
+                registry.defaultTheme.shouldBeNull()
             }
 
             "rejects blank provider names" {
@@ -60,8 +73,31 @@ class ThemeLookupTest :
 
                 registry.register(TestThemeProvider("brand"), default = true)
 
-                shouldThrow<IllegalArgumentException> {
+                shouldThrow<IllegalStateException> {
                     registry.register(TestThemeProvider("server"), default = true)
+                }
+            }
+
+            "rejects blank provider names when unregistering by object" {
+                shouldThrow<IllegalArgumentException> {
+                    ThemeRegistry().unregister(TestThemeProvider(" "))
+                }
+            }
+
+            "rejects blank theme names when unregistering by name" {
+                shouldThrow<IllegalArgumentException> {
+                    ThemeRegistry().unregister(" ")
+                }
+            }
+
+            "rejects blank theme names through lookup accessors" {
+                val registry = ThemeRegistry()
+
+                shouldThrow<IllegalArgumentException> {
+                    registry[" "]
+                }
+                shouldThrow<IllegalArgumentException> {
+                    registry.theme(" ")
                 }
             }
 
@@ -112,7 +148,7 @@ class ThemeLookupTest :
                 registry.register(provider, default = true)
 
                 registry.unregister(provider) shouldBe provider
-                registry.defaultTheme().shouldBeNull()
+                registry.defaultTheme.shouldBeNull()
             }
 
             "unregister by name clears the default when the default theme is removed" {
@@ -122,7 +158,7 @@ class ThemeLookupTest :
                 registry.register(provider, default = true)
 
                 registry.unregister("brand") shouldBe provider
-                registry.defaultTheme().shouldBeNull()
+                registry.defaultTheme.shouldBeNull()
             }
 
             "unregister leaves another default intact when removing a non-default theme" {
@@ -134,7 +170,7 @@ class ThemeLookupTest :
                 registry.register(server)
 
                 registry.unregister(server) shouldBe server
-                registry.defaultTheme() shouldBe brand
+                registry.defaultTheme shouldBe brand
             }
 
             "replace swaps a theme under the same name" {
@@ -165,7 +201,7 @@ class ThemeLookupTest :
                 registry.register(brand, default = true)
                 registry.replace(server, default = true)
 
-                registry.defaultTheme() shouldBe server
+                registry.defaultTheme shouldBe server
                 registry.theme("brand") shouldBe brand
             }
 
@@ -178,7 +214,7 @@ class ThemeLookupTest :
                 registry.replace(reloaded)
 
                 registry.theme("brand") shouldBe reloaded
-                registry.defaultTheme().shouldBeNull()
+                registry.defaultTheme.shouldBeNull()
             }
 
             "replace without default leaves a different default theme intact" {
@@ -192,7 +228,7 @@ class ThemeLookupTest :
                 registry.replace(serverReload)
 
                 registry.theme("server") shouldBe serverReload
-                registry.defaultTheme() shouldBe brand
+                registry.defaultTheme shouldBe brand
             }
 
             "replace rejects blank provider names" {
@@ -210,7 +246,7 @@ class ThemeLookupTest :
                 registry.replace(reloaded, default = true)
 
                 registry.theme("brand") shouldBe reloaded
-                registry.defaultTheme() shouldBe reloaded
+                registry.defaultTheme shouldBe reloaded
             }
         },
     )

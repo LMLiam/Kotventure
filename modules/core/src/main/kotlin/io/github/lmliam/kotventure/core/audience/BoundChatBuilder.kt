@@ -28,8 +28,9 @@ internal open class BoundChatBuilder : BoundChatScope {
         target = component.asComponent()
     }
 
-    internal fun buildBound(): ChatType.Bound {
-        val name = checkNotNull(name) { "'name' is not set." }
-        return (type ?: ChatType.CHAT).bind(name, target)
-    }
+    internal fun buildBound(): ChatType.Bound =
+        (type ?: ChatType.CHAT).bind(
+            checkNotNull(name) { "'name' is not set." },
+            target,
+        )
 }
