@@ -61,9 +61,19 @@ class SnbtToDslTest :
                         "\"speed\" eq 1.5f"
             }
 
+            "parenthesises negative zero float" {
+                snbtToDslBody("{speed:-0.0f}") shouldBe
+                        "\"speed\" eq (-0.0f)"
+            }
+
             "parses a single double entry with suffix" {
                 snbtToDslBody("{health:20.0d}") shouldBe
                         "\"health\" eq 20.0"
+            }
+
+            "parenthesises negative zero double" {
+                snbtToDslBody("{health:-0.0d}") shouldBe
+                        "\"health\" eq (-0.0)"
             }
 
             "parses a bare decimal as double" {
