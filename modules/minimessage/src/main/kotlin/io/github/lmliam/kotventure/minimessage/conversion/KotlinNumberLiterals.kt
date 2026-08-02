@@ -36,7 +36,10 @@ internal fun kotlinFloatLiteral(value: Float): String =
         value.isNaN() -> "Float.NaN"
         value == Float.POSITIVE_INFINITY -> "Float.POSITIVE_INFINITY"
         value == Float.NEGATIVE_INFINITY -> "Float.NEGATIVE_INFINITY"
-        else -> "${value}f"
+        else -> {
+            val literal = "${value}f"
+            if (value.toRawBits() == (-0.0f).toRawBits()) "($literal)" else literal
+        }
     }
 
 /** Returns a [Double] literal, including non-finite constants. */
@@ -45,7 +48,10 @@ internal fun kotlinDoubleLiteral(value: Double): String =
         value.isNaN() -> "Double.NaN"
         value == Double.POSITIVE_INFINITY -> "Double.POSITIVE_INFINITY"
         value == Double.NEGATIVE_INFINITY -> "Double.NEGATIVE_INFINITY"
-        else -> value.toString()
+        else -> {
+            val literal = value.toString()
+            if (value.toRawBits() == (-0.0).toRawBits()) "($literal)" else literal
+        }
     }
 
 /** Returns [value] as the applicable Kotlin numeric literal. */
