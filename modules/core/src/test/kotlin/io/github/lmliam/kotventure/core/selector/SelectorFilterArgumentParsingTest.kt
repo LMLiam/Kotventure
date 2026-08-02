@@ -79,9 +79,9 @@ class SelectorFilterArgumentParsingTest :
                             isNegated = false,
                         )
                 parsed.arguments.filterIsInstance<EntitySelectorArgument.Tag>().single() shouldBe
-                        EntitySelectorArgument.Tag(SelectorStringCondition.Named("visible", isNegated = false))
+                        EntitySelectorArgument.Tag(SelectorStringCondition.Named("visible"))
                 parsed.arguments.filterIsInstance<EntitySelectorArgument.Team>().single() shouldBe
-                        EntitySelectorArgument.Team(SelectorStringCondition.Named("red", isNegated = false))
+                        EntitySelectorArgument.Team(SelectorStringCondition.Named("red"))
                 parsed.arguments.filterIsInstance<EntitySelectorArgument.Predicate>().single() shouldBe
                         EntitySelectorArgument.Predicate(key("my_pack", "hidden"), isNegated = false)
 
