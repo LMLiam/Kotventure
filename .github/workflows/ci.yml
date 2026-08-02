@@ -66,6 +66,7 @@ jobs:
             const releaseOnlyFiles = new Set([
               'CHANGELOG.md',
               '.release-please-manifest.json',
+              'gradle/libs.versions.toml',
             ]);
 
             if (context.eventName === 'push') {
@@ -81,7 +82,7 @@ jobs:
                   .map(f => f.filename)
                   .filter(name => !releaseOnlyFiles.has(name));
                 if (unexpected.length === 0) {
-                  core.info('Release-please merge commit (changelog/manifest only); skip heavy CI.');
+                  core.info('Release-please merge commit (release files only); skip heavy CI.');
                   core.setOutput('run', 'false');
                   return;
                 }
