@@ -9,51 +9,88 @@ import net.kyori.adventure.text.format.TextDecoration.STRIKETHROUGH
 import net.kyori.adventure.text.format.TextDecoration.State
 import net.kyori.adventure.text.format.TextDecoration.UNDERLINED
 
-private val DECORATIONS: List<TextDecoration> = listOf(BOLD, ITALIC, UNDERLINED, STRIKETHROUGH, OBFUSCATED)
+private val standardDecorations: List<TextDecoration> =
+    listOf(
+        BOLD,
+        ITALIC,
+        UNDERLINED,
+        STRIKETHROUGH,
+        OBFUSCATED,
+    )
 
-private fun TextDecoration.dslFunction(): String = name.lowercase()
+private val TextDecoration.dslFunctionName: String
+    get() = name.lowercase()
 
+/** Returns whether [style] requires any generated DSL output. */
 internal fun hasDslOutput(style: Style): Boolean =
     style.color() != null ||
+            style.shadowColor() != null ||
             style.font() != null ||
             style.insertion() != null ||
-            style.shadowColor() != null ||
             style.clickEvent() != null ||
             style.hoverEvent() != null ||
-            DECORATIONS.any { decoration -> style.decoration(decoration) != State.NOT_SET }
+            style.hasExplicitDecorationState()
 
+/** Emits the complete Kotventure DSL representation of [style]. */
 internal fun KotlinSourceBuilder.appendStyle(style: Style) {
-    style.color()?.let { color -> line("color(${colorLiteral(color)})") }
-    style.shadowColor()?.let { shadow -> line("shadow(${shadowColorLiteral(shadow)})") }
-
-    DECORATIONS.forEach { decoration ->
-        if (style.decoration(decoration) == State.TRUE) {
-            line("${decoration.dslFunction()}()")
-        }
+    style.color()?.let {
+        line("color(${colorLiteral(it)})")
     }
 
-    appendStyleBlock(style)
+    style.shadowColor()?.let {
+        line("shadow(${shadowColorLiteral(it)})")
+    }
 
-    style.clickEvent()?.let { event -> appendClickEvent(event) }
-    style.hoverEvent()?.let { event -> appendHoverEvent(event) }
+    style.decorationsIn(State.TRUE).forEach {
+        line("${it.dslFunctionName}()")
+    }
+
+    appendStyleOverrides(style)
+
+    style.clickEvent()?.let {
+        appendClickEvent(it)
+    }
+
+    style.hoverEvent()?.let {
+        appendHoverEvent(it)
+    }
 }
 
 /**
- * Emits a style block for font, insertion, and disabled decorations.
+ * Emits properties that must appear inside the explicit `style` block.
+ *
+ * This includes font, insertion, and decoration states set explicitly to `false`.
  */
-private fun KotlinSourceBuilder.appendStyleBlock(style: Style) {
+private fun KotlinSourceBuilder.appendStyleOverrides(style: Style) {
     val font = style.font()
     val insertion = style.insertion()
-    val disabledDecorations =
-        DECORATIONS.filter { decoration -> style.decoration(decoration) == State.FALSE }
+    val disabledDecorations = style.decorationsIn(State.FALSE)
 
     if (font == null && insertion == null && disabledDecorations.isEmpty()) {
         return
     }
 
     block("style") {
-        font?.let { line("font(${keyLiteral(it)})") }
-        insertion?.let { line("insertion(\"${escapeKotlinString(it)}\")") }
-        disabledDecorations.forEach { decoration -> line("${decoration.dslFunction()}(false)") }
+        font?.let {
+            line("font(${keyLiteral(it)})")
+        }
+
+        insertion?.let {
+            line("insertion(${quoted(it)})")
+        }
+
+        disabledDecorations.forEach {
+            line("${it.dslFunctionName}(false)")
+        }
     }
 }
+
+private fun Style.hasExplicitDecorationState(): Boolean =
+    standardDecorations.any {
+        decoration(it) != State.NOT_SET
+    }
+
+private fun Style.decorationsIn(state: State): List<TextDecoration> =
+    standardDecorations.filter {
+        decoration(it) == state
+    }
