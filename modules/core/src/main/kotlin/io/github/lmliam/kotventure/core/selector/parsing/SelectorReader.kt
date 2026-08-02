@@ -15,11 +15,10 @@ internal class SelectorReader(
     var offset: Int = 0
         private set
 
-    fun isAtEnd(): Boolean = offset == source.length
+    fun isAtEnd(): Boolean = offset >= source.length
 
     /** Returns the character [distance] positions ahead without consuming it. */
-    @Suppress("NOTHING_TO_INLINE")
-    inline fun peek(distance: Int = 0): Char? = source.getOrNull(offset + distance)
+    fun peek(distance: Int = 0): Char? = source.getOrNull(offset + distance)
 
     fun skip() {
         offset++
@@ -30,22 +29,32 @@ internal class SelectorReader(
      *
      * Returns `true` when the character was present.
      */
-    fun consume(expected: Char): Boolean = (peek() == expected).also { if (it) offset++ }
+    fun consume(expected: Char): Boolean {
+        if (peek() != expected) return false
+
+        offset++
+        return true
+    }
 
     /**
      * Consumes [expected] if it is the next token.
      *
      * Returns `true` when the token was present.
      */
-    fun consume(expected: String): Boolean =
-        source.startsWith(expected, offset).also { if (it) offset += expected.length }
+    fun consume(expected: String): Boolean {
+        if (!source.startsWith(expected, offset)) return false
+
+        offset += expected.length
+        return true
+    }
 
     fun expect(
         expected: Char,
         message: String = "Expected '$expected'",
     ) {
-        if (peek() != expected) fail(message)
-        offset++
+        if (!consume(expected)) {
+            fail(message)
+        }
     }
 
     /**
@@ -53,7 +62,11 @@ internal class SelectorReader(
      */
     inline fun readWhile(predicate: (Char) -> Boolean): String {
         val start = offset
-        while (peek()?.let(predicate) == true) offset++
+
+        while (peek()?.let(predicate) == true) {
+            offset++
+        }
+
         return substringFrom(start)
     }
 

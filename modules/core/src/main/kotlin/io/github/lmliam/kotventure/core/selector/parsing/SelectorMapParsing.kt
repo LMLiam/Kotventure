@@ -45,11 +45,8 @@ private fun <T> SelectorReader.readSelectorMap(
 
     return buildList {
         while (true) {
-            val keyOffset = offset
-            val key = readWhile { it != '=' && it != ',' && it != '}' }
-            if (key.isEmpty()) failAt(keyOffset, "Expected $entryName")
-            expect('=')
-            add(readEntry(key, keyOffset))
+            val entry = readSelectorMapEntry(entryName)
+            add(readEntry(entry.key, entry.offset))
 
             when {
                 consume('}') -> break
@@ -59,3 +56,20 @@ private fun <T> SelectorReader.readSelectorMap(
         }
     }
 }
+
+private fun SelectorReader.readSelectorMapEntry(entryName: String): SelectorMapEntry {
+    val offset = offset
+    val key = readWhile { it !in "=,}" }
+
+    if (key.isEmpty()) {
+        failAt(offset, "Expected $entryName")
+    }
+
+    expect('=')
+    return SelectorMapEntry(key, offset)
+}
+
+private data class SelectorMapEntry(
+    val key: String,
+    val offset: Int,
+)
