@@ -56,10 +56,6 @@ Human edits, human commits, fork pull requests, copied titles, copied labels,
 and release-like branches run normal CI. Titles and labels are not
 authentication data.
 
-PR #343 is human-authored. Do not merge or close it in this phase. It runs full
-CI. A later App-created Release Please PR is required for the release-only
-optimisation.
-
 ## App setup and key rotation
 
 If the App does not exist, register `release-please-kotventure` in GitHub.
