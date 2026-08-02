@@ -1,96 +1,27 @@
 package io.github.lmliam.kotventure.minimessage.validation
 
-import io.github.lmliam.kotventure.core.component.emptyComponent
 import io.github.lmliam.kotventure.minimessage.placeholder.MiniMessagePlaceholder
-import net.kyori.adventure.text.minimessage.MiniMessage
-import net.kyori.adventure.text.minimessage.ParsingException
-import net.kyori.adventure.text.minimessage.tag.Tag
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
-
-private val STRICT_MINI_MESSAGE: MiniMessage = MiniMessage.builder().strict(true).build()
-private val LENIENT_MINI_MESSAGE: MiniMessage = MiniMessage.miniMessage()
 
 /**
- * Runs strict tag validation and lenient placeholder detection for [input].
+ * Runs all MiniMessage validation passes for [input].
  *
- * The result puts a malformed-tag diagnostic first. Missing and extra placeholder diagnostics follow. If a pass fails
- * unexpectedly, it returns one [MiniMessageDiagnostic.ValidationEngineFailure] for that pass.
+ * Strict-parser diagnostics are emitted first. Missing placeholders then follow declaration order, and extra
+ * placeholders follow their first occurrence in [input].
  */
 internal fun runValidation(
     input: String,
     placeholders: List<MiniMessagePlaceholder<*>>,
-): ValidationResult {
-    val malformed = detectMalformedTags(input, placeholders)
-    val mismatches = detectPlaceholderMismatches(input, placeholders)
-    val diagnostics = malformed + mismatches
-    return if (diagnostics.isEmpty()) ValidationResult.Success else ValidationResult.Failure(diagnostics)
-}
+): ValidationResult =
+    buildList {
+        validateStrictMarkup(
+            input = input,
+            placeholders = placeholders,
+        )?.let { add(it) }
 
-/** Uses Adventure strict mode to detect the first malformed or unclosed tag. */
-private fun detectMalformedTags(
-    input: String,
-    placeholders: List<MiniMessagePlaceholder<*>>,
-): List<MiniMessageDiagnostic> {
-    val placeholderResolver = buildPlaceholderNameResolver(placeholders)
-    val combined = TagResolver.resolver(TagResolver.standard(), placeholderResolver)
-    return try {
-        STRICT_MINI_MESSAGE.deserialize(input, combined)
-        emptyList()
-    } catch (e: ParsingException) {
-        listOf(
-            MiniMessageDiagnostic.MalformedTag(
-                message = e.detailMessage() ?: e.message ?: "",
-                startIndex = e.startIndex(),
-                endIndex = e.endIndex(),
+        addAll(
+            validatePlaceholderUsage(
+                input = input,
+                placeholders = placeholders,
             ),
         )
-    } catch (e: RuntimeException) {
-        listOf(MiniMessageDiagnostic.ValidationEngineFailure(e.message ?: "MiniMessage validation failed."))
-    }
-}
-
-/**
- * Uses a recording lenient parse to detect missing and extra placeholders.
- *
- * A declared name that matches a standard Adventure tag is still recorded.
- */
-private fun detectPlaceholderMismatches(
-    input: String,
-    placeholders: List<MiniMessagePlaceholder<*>>,
-): List<MiniMessageDiagnostic> {
-    val specNames = placeholders.map { it.name }.toSet()
-    val recorder = RecordingTagResolver(specNames)
-    val combined = TagResolver.resolver(TagResolver.standard(), recorder)
-    return try {
-        LENIENT_MINI_MESSAGE.deserialize(input, combined)
-        buildPlaceholderMismatchDiagnostics(placeholders, specNames, recorder.encounteredNames)
-    } catch (e: RuntimeException) {
-        listOf(MiniMessageDiagnostic.ValidationEngineFailure(e.message ?: "MiniMessage validation failed."))
-    }
-}
-
-private fun buildPlaceholderMismatchDiagnostics(
-    placeholders: List<MiniMessagePlaceholder<*>>,
-    specNames: Set<String>,
-    tagsInInput: Collection<String>,
-): List<MiniMessageDiagnostic> {
-    val missing =
-        placeholders
-            .filter { it.name !in tagsInInput }
-            .map { MiniMessageDiagnostic.MissingPlaceholder(it.name) }
-
-    val extra =
-        tagsInInput
-            .filter { it !in specNames }
-            .map { MiniMessageDiagnostic.ExtraPlaceholder(it) }
-
-    return missing + extra
-}
-
-/** Resolves declared placeholder names as self-closing tags during strict validation. */
-private fun buildPlaceholderNameResolver(placeholders: List<MiniMessagePlaceholder<*>>): TagResolver {
-    if (placeholders.isEmpty()) return TagResolver.empty()
-    val selfClosingTag = Tag.selfClosingInserting(emptyComponent())
-    val resolvers = placeholders.map { TagResolver.resolver(it.name, selfClosingTag) }
-    return TagResolver.resolver(*resolvers.toTypedArray())
-}
+    }.toValidationResult()

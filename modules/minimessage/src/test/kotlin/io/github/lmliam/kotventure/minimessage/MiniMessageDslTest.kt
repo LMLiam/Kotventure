@@ -6,6 +6,7 @@ import io.github.lmliam.kotventure.core.color.gray
 import io.github.lmliam.kotventure.core.color.red
 import io.github.lmliam.kotventure.core.component.component
 import io.github.lmliam.kotventure.core.text.text
+import io.github.lmliam.kotventure.minimessage.placeholder.MiniMessagePlaceholder
 import io.github.lmliam.kotventure.minimessage.placeholder.placeholder
 import io.github.lmliam.kotventure.test.compilation.assertDoesNotCompile
 import io.github.lmliam.kotventure.test.text.childAt
@@ -20,6 +21,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.format.NamedTextColor
 
 class MiniMessageDslTest :
@@ -70,6 +72,17 @@ class MiniMessageDslTest :
                     mini("<name>") {
                         unparsed("name", "Alex")
                         parsed("name", "<gold>Sam</gold>")
+                    }
+                }
+            }
+
+            "rejects duplicate names across typed and unparsed resolvers" {
+                val name = placeholder<String>("name")
+
+                shouldThrow<IllegalArgumentException> {
+                    mini("<name>") {
+                        resolve(name, "Alex")
+                        unparsed("name", "Sam")
                     }
                 }
             }
@@ -147,6 +160,21 @@ class MiniMessageDslTest :
                     }
 
                 parsed shouldContainText "3 / 1.5 / true"
+            }
+
+            "resolves ComponentLike and Float typed placeholders" {
+                val badge = placeholder<ComponentLike>("badge")
+                val ratio = placeholder<Float>("ratio")
+                val badgeComponent = text("VIP") { color(aqua) }
+
+                val parsed =
+                    mini("<badge> <ratio>") {
+                        resolve(badge, badgeComponent)
+                        resolve(ratio, 1.25f)
+                    }
+
+                parsed shouldContainComponent badgeComponent
+                parsed shouldContainText "VIP 1.25"
             }
 
             "resolves mixed typed placeholders in one message" {
