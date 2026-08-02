@@ -2,14 +2,15 @@ package io.github.lmliam.kotventure.core.virtual
 
 import io.github.lmliam.kotventure.core.component.ComponentScope
 import io.github.lmliam.kotventure.core.dsl.KotventureDslMarker
+import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.VirtualComponent
 
 /**
- * Configures the two appearances of a [VirtualComponent].
+ * Configures the fallback and rendered appearances of a [VirtualComponent].
  *
- * A virtual component has two forms. The [render] block builds the content that a platform shows at display time. The
- * [fallback] is the stand-in that a serialiser or a console shows when no platform renders the component. Set a style
- * or add children on the [fallback] block, not on this scope. This scope only holds the [fallback] and [render] slots.
+ * The [render] block builds dynamic content from a render context. The [fallback] is the static representation used
+ * before a renderer resolves the component, such as during serialisation or console output. Static style and children
+ * belong in the fallback block; this scope itself exposes only the two appearance slots.
  *
  * @sample io.github.lmliam.kotventure.core.virtual.virtualSample
  *
@@ -18,36 +19,36 @@ import net.kyori.adventure.text.VirtualComponent
 @KotventureDslMarker
 public interface VirtualScope<C : Any> {
     /**
-     * Sets the plain-text stand-in shown when no platform renders the component.
+     * Sets the plain-text fallback used before the component is rendered.
      *
-     * This form and the [fallback] block form share one write-once slot.
+     * This form and the block form of [fallback] share one write-once slot.
      *
-     * @param text the stand-in text.
-     * @throws IllegalStateException when a fallback is already set in this block.
+     * @param text the fallback text.
+     * @throws IllegalStateException when this block already set a fallback.
      */
     public fun fallback(text: String)
 
     /**
-     * Builds a styled stand-in shown when no platform renders the component.
+     * Builds the styled fallback used before the component is rendered.
      *
-     * The [build] block sets the style and children of the stand-in. This form and the [fallback] text form share one
-     * write-once slot.
+     * The block configures the fallback's static style and children. This form and the text form of [fallback] share
+     * one write-once slot.
      *
      * @sample io.github.lmliam.kotventure.core.virtual.virtualStyledFallbackSample
      *
-     * @param build styles the stand-in and appends any children.
-     * @throws IllegalStateException when a fallback is already set in this block.
+     * @param init styles the fallback and appends its children.
+     * @throws IllegalStateException when this block already set a fallback.
      */
-    public fun fallback(build: ComponentScope.() -> Unit)
+    public fun fallback(init: ComponentScope.() -> Unit)
 
     /**
-     * Sets the block that builds the rendered content from the render context.
+     * Sets the block that builds content from the current render context.
      *
-     * The platform calls [build] at display time with the current context, for example the viewing player. The block
-     * can run more than once. The `core` module never calls it.
+     * Adventure or [Component.render] invokes [init] when it resolves the component. The block can run more
+     * than once and receives a new [VirtualRenderScope] for each invocation.
      *
-     * @param build builds the rendered content from the [VirtualRenderScope.context].
-     * @throws IllegalStateException when a render block is already set in this block.
+     * @param init builds content from [VirtualRenderScope.context].
+     * @throws IllegalStateException when this block already set the render block.
      */
-    public fun render(build: VirtualRenderScope<C>.() -> Unit)
+    public fun render(init: VirtualRenderScope<C>.() -> Unit)
 }
