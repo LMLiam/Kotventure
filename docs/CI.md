@@ -108,6 +108,20 @@ The trusted decision requires all of these conditions:
 The release files are `CHANGELOG.md`, `.release-please-manifest.json`, and
 `gradle/libs.versions.toml`.
 
+The `release-provenance.yml` workflow is the canonical authority for the
+release-only result. The `ci.yml` gate repeats the current-event identity and
+file checks before it accepts that result. Keep these values aligned:
+
+- The workflow identifier is `release-provenance.yml`.
+- The trusted job name is `Trusted release provenance`.
+- The repository, base branch, head branch, bot login, GitHub types, and event
+  sender must match the policy above.
+- The current and previous file names must match the release-file allowlist.
+
+Do not move this contract into a local script or composite action used by the
+`pull_request` workflow. That code can come from the pull request. If the two
+checks differ, the gate runs full CI.
+
 Titles, labels, commit messages, branch prefixes, and file lists do not prove
 Release Please identity. A release-like branch or a pure release-file change
 that does not pass the provenance check forces the normal CI path. This also

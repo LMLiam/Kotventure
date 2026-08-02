@@ -1,6 +1,8 @@
 name: Release provenance
 
 on:
+  # Security boundary for pull_request_target: do not check out PR code or use repository secrets.
+  # Keep contents and pull-requests permissions read-only.
   pull_request_target:
     branches: [master]
     types: [opened, edited, synchronize, reopened]
