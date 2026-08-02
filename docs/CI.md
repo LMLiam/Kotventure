@@ -92,9 +92,7 @@ The gate skips resource-intensive jobs in these conditions:
 - **PR:** The head branch starts with `release-please--`, and only release files changed.
 - **Push:** The commit message matches `chore(master): release`, and only release files changed.
 
-The release files are `CHANGELOG.md` and `.release-please-manifest.json`.
-
-The gate does **not** skip `gradle/libs.versions.toml`. A version catalogue change always starts the full CI pipeline.
+The release files are `CHANGELOG.md`, `.release-please-manifest.json`, and `gradle/libs.versions.toml`.
 
 When you add release-please `extra-files`, update the gate allowlist in `ci.yml`.
 
