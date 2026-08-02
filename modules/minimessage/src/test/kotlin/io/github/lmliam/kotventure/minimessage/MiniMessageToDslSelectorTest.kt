@@ -1,6 +1,8 @@
 package io.github.lmliam.kotventure.minimessage
 
+import io.github.lmliam.kotventure.core.selector.EntitySelectorParseException
 import io.github.lmliam.kotventure.minimessage.conversion.MiniMessageToDslWriter
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import net.kyori.adventure.text.Component
@@ -124,6 +126,83 @@ class MiniMessageToDslSelectorTest :
                         """.trimIndent()
                 }
 
+                test("emits Kotlin-safe constants for selector integer boundaries") {
+                    val pattern = "@e[scores={kills=-2147483648}]"
+
+                    assertGoldenRoundTrip(
+                        input = "<selector:'$pattern'>",
+                        expectedSource =
+                            """
+                        component {
+                            selector(
+                                entities {
+                                    scores {
+                                        "kills" eq exactly(Int.MIN_VALUE)
+                                    }
+                                }
+                            )
+                        }
+                        """.trimIndent(),
+                        expectedComponent = Component.selector(pattern),
+                    )
+                }
+
+                test("quotes empty and escaped selector names") {
+                    writeSelector("""@e[name=""]""") shouldBe
+                            """
+                        component {
+                            selector(
+                                entities {
+                                    name("")
+                                }
+                            )
+                        }
+                        """.trimIndent()
+
+                    writeSelector("""@e[name="A\"B\\C"]""") shouldBe
+                            """
+                        component {
+                            selector(
+                                entities {
+                                    name("A\"B\\C")
+                                }
+                            )
+                        }
+                        """.trimIndent()
+                }
+
+                test("preserves the order of multiple scoreboard objectives") {
+                    writeSelector("@e[scores={z=0..,a=1..2,m=..3}]") shouldBe
+                            """
+                        component {
+                            selector(
+                                entities {
+                                    scores {
+                                        "z" eq atLeast(0)
+                                        "a" eq 1..2
+                                        "m" eq atMost(3)
+                                    }
+                                }
+                            )
+                        }
+                        """.trimIndent()
+                }
+
+                test("emits explicit advancement completion states") {
+                    writeSelector("@e[advancements={minecraft:story/root=false}]") shouldBe
+                            """
+                        component {
+                            selector(
+                                entities {
+                                    advancements {
+                                        key("minecraft", "story/root") eq false
+                                    }
+                                }
+                            )
+                        }
+                        """.trimIndent()
+                }
+
                 test("emits empty compound maps and empty SNBT containers") {
                     writeSelector("@e[nbt={},scores={},advancements={minecraft:story/root={}}]") shouldBe
                             """
@@ -148,6 +227,85 @@ class MiniMessageToDslSelectorTest :
                             selector(
                                 entities {
                                     nbt { "Items" eq list() }
+                                }
+                            )
+                        }
+                        """.trimIndent()
+                }
+
+                test("parenthesises negative-zero coordinates") {
+                    writeSelector("@e[x=-0.0]") shouldBe
+                            """
+                        component {
+                            selector(
+                                entities {
+                                    origin((-0.0).x)
+                                }
+                            )
+                        }
+                        """.trimIndent()
+                }
+
+                test("parenthesises coordinates rendered with exponent notation") {
+                    writeSelector("@e[x=100000000000000000000]") shouldBe
+                            """
+                        component {
+                            selector(
+                                entities {
+                                    origin((1.0E20).x)
+                                }
+                            )
+                        }
+                        """.trimIndent()
+
+                    writeSelector("@e[x=-0.00000000000000000001]") shouldBe
+                            """
+                        component {
+                            selector(
+                                entities {
+                                    origin((-1.0E-20).x)
+                                }
+                            )
+                        }
+                        """.trimIndent()
+                }
+
+                test("rejects non-finite coordinates") {
+                    shouldThrow<EntitySelectorParseException> {
+                        writeSelector("@e[x=NaN]")
+                    }
+
+                    shouldThrow<EntitySelectorParseException> {
+                        writeSelector("@e[x=Infinity]")
+                    }
+                }
+
+                test("groups interleaved coordinates at each group's first position") {
+                    writeSelector("@e[x=1,limit=5,dx=2,y=3,sort=nearest,dy=4,z=5,dz=6]") shouldBe
+                            """
+                        component {
+                            selector(
+                                entities {
+                                    origin(1.0.x, 3.0.y, 5.0.z)
+                                    limit(5)
+                                    volume(2.0.dx, 4.0.dy, 6.0.dz)
+                                    sort(nearest)
+                                }
+                            )
+                        }
+                        """.trimIndent()
+                }
+
+                test("emits a volume group before an origin group when volume appears first") {
+                    writeSelector("@e[dx=2,limit=5,x=1,dy=4,sort=nearest,y=3,dz=6,z=5]") shouldBe
+                            """
+                        component {
+                            selector(
+                                entities {
+                                    volume(2.0.dx, 4.0.dy, 6.0.dz)
+                                    limit(5)
+                                    origin(1.0.x, 3.0.y, 5.0.z)
+                                    sort(nearest)
                                 }
                             )
                         }
