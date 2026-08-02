@@ -57,6 +57,16 @@ class GradientDslTest :
                     TextColor.lerp(0.5f, NamedTextColor.RED, NamedTextColor.GREEN)
                 gradient.colorAt(1f) shouldBe NamedTextColor.BLUE
                 gradient.colorAt(2f) shouldBe NamedTextColor.BLUE
+
+                shouldThrow<IllegalArgumentException> {
+                    gradient.colorAt(Float.NaN)
+                }
+                shouldThrow<IllegalArgumentException> {
+                    gradient.colorAt(Float.POSITIVE_INFINITY)
+                }
+                shouldThrow<IllegalArgumentException> {
+                    gradient.colorAt(Float.NEGATIVE_INFINITY)
+                }
             }
 
             "handles empty single character and supplementary code point text deterministically" {
