@@ -21,9 +21,18 @@ public interface Ticker {
     public val isCurrent: Boolean
 
     /**
-     * Schedules [action] after each [interval].
+     * Schedules [action] at each [interval].
      *
-     * The first invocation occurs after one interval.
+     * The first invocation occurs after one complete [interval].
+     * This function returns before it invokes [action].
+     * An implementation must not invoke [action] during this function call.
+     *
+     * The returned task controls the scheduled invocations.
+     * Cancellation prevents future invocations.
+     * Cancellation does not have to interrupt an invocation that is already running.
+     *
+     * [interval] must be positive.
+     * An implementation must reject [interval] when its precision is unsupported.
      *
      * @throws IllegalArgumentException when [interval] is not positive or its precision is unsupported.
      */
