@@ -1,0 +1,1 @@
+Temporary validation file. Remove this file after the CI run.
