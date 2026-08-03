@@ -32,31 +32,55 @@ CI
 │
 ├─ Tier 2: Deep Analysis (after Tier 1 passes) ────────────────────
 │   ├─ CodeQL            (actions + java-kotlin matrix)
-│   ├─ Qodana            (static analysis + SARIF)
+│   ├─ Qodana            (static analysis or documentation attestation + SARIF)
 │   └─ Vanilla conformance  (MC-backed selector tests, path-filtered)
 │
 ├─ Policy (independent of tiers) ──────────────────────────────────
 │   ├─ Dependencies      (dependency-review-action, PRs only)
 │   ├─ Commits           (push-to-master subject validation)
 │   ├─ Release provenance (default-branch metadata check)
-│   ├─ QDJVM non-code attestation (docs/process-only PRs)
 │   └─ Release attestation (trusted release-please PRs)
 │
 └─ Status (required merge-gate check) ─────────────────────────────
     └─ Aggregates Tier 1 + Vanilla + Dependencies
 ```
 
-Tier 2 starts only after Tier 1 passes. This sequence prevents unnecessary analysis of code that does not compile or
-pass lint. The Status job always starts. It reports one required check that controls merges.
+For code changes, Tier 2 starts only after Tier 1 passes. A documentation-only pull request can run the Qodana
+documentation attestation when Lint and Build are skipped. The attestation does not check out or analyse code. This
+sequence prevents unnecessary analysis of code that does not compile or pass lint. The Status job always starts. It
+reports one required check that controls merges.
 
 The workflow listens for `merge_group` events. Merge groups, schedules, and manual dispatches do not use the path
 filter. They always start the full pipeline: Build, Vanilla, Qodana, and CodeQL.
 
 ## When workflows run
 
-### Code paths
+### Path classification
 
-The `changes` job in `ci.yml` defines these code paths:
+The `gate` job classifies every current and previous pull-request file name. It
+uses the documentation-only allowlist below. A pull request qualifies for the
+documentation path only when it has at least one file and every file name
+matches one of these patterns:
+
+- `README.md`, `LICENSE.md`, or `AGENTS.md` at the repository root.
+- Any file under `docs/`.
+- `.github/CONTRIBUTING.md`, `.github/SUPPORT.md`, or
+  `.github/pull_request_template.md`.
+- Any file under `.github/PULL_REQUEST_TEMPLATE/` or
+  `.github/ISSUE_TEMPLATE/`.
+- `modules/<module>/README.md`.
+- An `svg`, `png`, `jpg`, `jpeg`, `gif`, or `webp` file under `assets/`,
+  including subdirectories.
+
+The classifier checks both names for a rename. It sends an empty or incomplete
+file list, an API error, an unknown path, and a rename with an unknown old or
+new path to the full CI path. This rule is fail closed.
+
+All other paths use the full CI path. This includes source files, module build
+files, Gradle files, Qodana configuration, workflows, actions, scripts,
+ownership files, dependency files, release files, and unknown paths.
+
+The full CI path includes these code paths:
 
 - `modules/**`, `gradle/**`, `buildSrc/**`
 - `build.gradle`, `settings.gradle`, `gradle.properties`, `gradlew`, `gradlew.bat`
@@ -69,7 +93,7 @@ The `changes` job in `ci.yml` defines these code paths:
 | Event | CI workflow | Heavy jobs | Qodana | CodeQL |
 |-------|:-----------:|:----------:|:------:|:------:|
 | PR (code paths) | ✓ | ✓ | ✓ | ✓ |
-| PR (docs/process only) | ✓ | — | non-code attestation | — |
+| PR (approved docs-only paths) | ✓ | — | QDJVM documentation attestation | — |
 | PR (trusted Release Please files only) | ✓ | — | QDJVM attestation | — |
 | PR (untrusted release candidate) | ✓ | ✓ | ✓ | ✓ |
 | Push to `master` (code paths) | ✓ | ✓ | ✓ | ✓ |
@@ -143,17 +167,25 @@ attestation)` job. The job uploads a zero-result SARIF record with the `QDJVM`
 tool name under the existing `Kotventure/qodana` configuration. It does not
 run Qodana. An untrusted release candidate runs normal CI instead.
 
-For a normal documentation-only pull request with no code paths, CI starts the
-`QDJVM (non-code attestation)` job. The job uploads a zero-result SARIF record
-with the `QDJVM` tool name under the existing `Kotventure/qodana`
-configuration. This records the path-filter decision. It does not claim that
-Qodana scanned code. The result is tied to the pull-request head commit.
-Code-path pull requests use the normal Qodana job instead. Release candidates
-do not use this attestation.
+For a normal documentation-only pull request, the `Qodana` job uses its
+documentation-only path. It does not check out pull-request code or run
+Qodana. It uploads a zero-result SARIF record with the `QDJVM` tool name under
+the existing `Kotventure/qodana` configuration. This records the path
+classification. It does not claim that Qodana scanned code. The result is tied
+to the pull-request head commit.
+
+Code-path pull requests use the same `Qodana` job for the real Qodana scan.
+The job keeps the existing Qodana permissions because the combined design uses
+the real scan as its permission baseline. The documentation path does not use
+the extra capabilities to check out or execute pull-request code. Release
+candidates do not use this attestation.
+
 The `Master` ruleset requires the applicable QDJVM result for each pull
-request: non-code pull requests use this attestation, code pull requests use
-the normal Qodana result, and trusted Release Please pull requests use the
-release attestation.
+request: documentation-only pull requests use this attestation, code pull
+requests use the real Qodana result, and trusted Release Please pull requests
+use the release attestation. Both paths use the stable
+`.github/workflows/ci.yml:qodana` analysis key and `Kotventure/qodana`
+category.
 The attestation SARIF declares one rule and reports zero alerts. This lets
 GitHub treat the tool as configured.
 
@@ -220,7 +252,7 @@ For an occasional diagnostic scan, give `build-scan: true` to `gradle-job`. The 
 | Default workflow permissions | Set the repository default to `contents: read` |
 | Release provenance workflow | Uses `contents: read` and `pull-requests: read`. Does not check out pull-request code |
 | CI gate | Uses `actions: read`, `contents: read`, and `pull-requests: read` |
-| Non-code QDJVM attestation | Uses `contents: read` and `security-events: write`. Does not check out pull-request code |
+| Qodana and documentation attestation | Uses the existing `checks: write`, `contents: read`, `pull-requests: write`, and `security-events: write` permissions. The documentation path does not check out pull-request code |
 | Release workflow | Uses an installation token from `release-please-kotventure`. Its `GITHUB_TOKEN` has no permissions |
 | Build job | Uses `checks: write` and `contents: read`. Cannot write to pull requests. Clears `GITHUB_TOKEN` for Gradle |
 | PR feedback job | Uses `actions: read`, `pull-requests: write`, and `contents: read`. Posts one metrics comment. Uses the cache or artefacts before a base JAR-only build. Clears `GITHUB_TOKEN` for Gradle |

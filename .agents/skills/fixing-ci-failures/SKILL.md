@@ -61,4 +61,5 @@ fixtures. The cache uses the server bundle SHA-1. You can start the check again 
   `:<module>:build` plus root verification: kover/BOM/release/Dokka reports) inputs. Manual, scheduled, and merge-queue
   runs do not use path filters. The default pull-request and push Build uses the full multiproject task set.
 - A documentation-only pull request correctly skips resource-intensive jobs. A green Status check with skipped jobs is
-  correct. Markdown under `modules/**` counts as code.
+  correct. Markdown under `modules/**` uses the documentation path only when the file is the module root
+  `README.md`; other module paths count as code.
