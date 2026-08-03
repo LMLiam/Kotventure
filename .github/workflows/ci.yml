@@ -697,11 +697,13 @@ jobs:
 
       - name: Upload QDJVM release attestation
         uses: github/codeql-action/upload-sarif@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4
+        env:
+          CODEQL_ACTION_ANALYSIS_KEY: .github/workflows/ci.yml:qodana
         with:
           sarif_file: release-qodana.sarif
           ref: refs/pull/${{ github.event.pull_request.number }}/head
           sha: ${{ github.event.pull_request.head.sha }}
-          category: release-please
+          category: Kotventure/qodana
 
   non_code_qodana:
     name: QDJVM (non-code attestation)
@@ -757,11 +759,13 @@ jobs:
 
       - name: Upload QDJVM non-code attestation
         uses: github/codeql-action/upload-sarif@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4
+        env:
+          CODEQL_ACTION_ANALYSIS_KEY: .github/workflows/ci.yml:qodana
         with:
           sarif_file: non-code-qodana.sarif
           ref: refs/pull/${{ github.event.pull_request.number }}/head
           sha: ${{ github.event.pull_request.head.sha }}
-          category: non-code
+          category: Kotventure/qodana
 
   vanilla:
     name: Vanilla conformance
