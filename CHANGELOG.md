@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any release.
 
+## [0.26.1](https://github.com/LMLiam/Kotventure/compare/0.26.0...0.26.1) (2026-08-03)
+
+
+### 📝 Documentation
+
+* **ci:** clarify Release Please verification ([#361](https://github.com/LMLiam/Kotventure/issues/361)) ([54ace74](https://github.com/LMLiam/Kotventure/commit/54ace7435d2093d67e17b1fe64fd5a74b3a41c5b))
+* **ci:** describe documentation-only checks ([#365](https://github.com/LMLiam/Kotventure/issues/365)) ([f01d468](https://github.com/LMLiam/Kotventure/commit/f01d46817e2715b3eaa6b57cf504dfeb7d9e59f8))
+* **ci:** explain attestation rule ([#364](https://github.com/LMLiam/Kotventure/issues/364)) ([481e64b](https://github.com/LMLiam/Kotventure/commit/481e64b7807de77b42930f49c2d3b71d698e1c9c))
+* **ci:** explain non-code QDJVM requirement ([#363](https://github.com/LMLiam/Kotventure/issues/363)) ([f45351b](https://github.com/LMLiam/Kotventure/commit/f45351b7807eb564e105978f4f7ed43716b43810))
+* **ci:** tie attestation to pull request head ([#366](https://github.com/LMLiam/Kotventure/issues/366)) ([d159a22](https://github.com/LMLiam/Kotventure/commit/d159a226ec00cb470d86a838b0ace3ddc53178a1))
+
 ## [0.26.0](https://github.com/LMLiam/Kotventure/compare/0.25.0...0.26.0) (2026-08-03)
 
 
