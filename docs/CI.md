@@ -143,10 +143,11 @@ attestation)` job. The job uploads a zero-result SARIF record with the `QDJVM`
 tool name under the existing `Kotventure/qodana` configuration. It does not
 run Qodana. An untrusted release candidate runs normal CI instead.
 
-For a normal pull request with no code paths, CI starts the `QDJVM (non-code
-attestation)` job. The job uploads a zero-result SARIF record with the `QDJVM`
-tool name under the existing `Kotventure/qodana` configuration. This records
-the path-filter decision. It does not claim that Qodana scanned code.
+For a normal documentation-only pull request with no code paths, CI starts the
+`QDJVM (non-code attestation)` job. The job uploads a zero-result SARIF record
+with the `QDJVM` tool name under the existing `Kotventure/qodana`
+configuration. This records the path-filter decision. It does not claim that
+Qodana scanned code.
 Code-path pull requests use the normal Qodana job instead. Release candidates
 do not use this attestation.
 The `Master` ruleset requires the applicable QDJVM result for each pull
