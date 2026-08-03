@@ -39,6 +39,7 @@ CI
 │   ├─ Dependencies      (dependency-review-action, PRs only)
 │   ├─ Commits           (push-to-master subject validation)
 │   ├─ Release provenance (default-branch metadata check)
+│   ├─ QDJVM non-code attestation (docs/process-only PRs)
 │   └─ Release attestation (trusted release-please PRs)
 │
 └─ Status (required merge-gate check) ─────────────────────────────
@@ -68,7 +69,7 @@ The `changes` job in `ci.yml` defines these code paths:
 | Event | CI workflow | Heavy jobs | Qodana | CodeQL |
 |-------|:-----------:|:----------:|:------:|:------:|
 | PR (code paths) | ✓ | ✓ | ✓ | ✓ |
-| PR (docs/process only) | ✓ | — | — | — |
+| PR (docs/process only) | ✓ | — | non-code attestation | — |
 | PR (trusted Release Please files only) | ✓ | — | QDJVM attestation | — |
 | PR (untrusted release candidate) | ✓ | ✓ | ✓ | ✓ |
 | Push to `master` (code paths) | ✓ | ✓ | ✓ | ✓ |
@@ -130,6 +131,10 @@ forces full path-filtered CI for a human or fork lookalike.
 The gate no longer skips CI for a push to `master` based on a commit message.
 Every push uses the normal CI path.
 
+When a later release-worthy change creates a Release Please pull request, verify
+that the pull request is authored by `release-please-kotventure[bot]` before
+relying on the release-only CI path.
+
 When you add Release Please `extra-files`, update the allowlist in both
 `ci.yml` and `release-provenance.yml`.
 
@@ -137,6 +142,12 @@ For a trusted pure Release Please PR, the gate starts the `QDJVM (release
 attestation)` job. The job uploads a zero-result SARIF record with the `QDJVM`
 tool name. It does not run Qodana. An untrusted release candidate runs normal
 CI instead.
+
+For a normal pull request with no code paths, CI starts the `QDJVM (non-code
+attestation)` job. The job uploads a zero-result SARIF record with the `QDJVM`
+tool name and the `non-code` category. This records the path-filter decision.
+It does not claim that Qodana scanned code. Code-path pull requests use the
+normal Qodana job instead. Release candidates do not use this attestation.
 
 ### Full builds
 
@@ -201,6 +212,7 @@ For an occasional diagnostic scan, give `build-scan: true` to `gradle-job`. The 
 | Default workflow permissions | Set the repository default to `contents: read` |
 | Release provenance workflow | Uses `contents: read` and `pull-requests: read`. Does not check out pull-request code |
 | CI gate | Uses `actions: read`, `contents: read`, and `pull-requests: read` |
+| Non-code QDJVM attestation | Uses `contents: read` and `security-events: write`. Does not check out pull-request code |
 | Release workflow | Uses an installation token from `release-please-kotventure`. Its `GITHUB_TOKEN` has no permissions |
 | Build job | Uses `checks: write` and `contents: read`. Cannot write to pull requests. Clears `GITHUB_TOKEN` for Gradle |
 | PR feedback job | Uses `actions: read`, `pull-requests: write`, and `contents: read`. Posts one metrics comment. Uses the cache or artefacts before a base JAR-only build. Clears `GITHUB_TOKEN` for Gradle |
