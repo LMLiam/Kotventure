@@ -6,6 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any release.
 
+## [0.26.0](https://github.com/LMLiam/Kotventure/compare/0.25.0...0.26.0) (2026-08-03)
+
+
+### ✨ Features
+
+* **core:** add the text replacement DSL ([#338](https://github.com/LMLiam/Kotventure/issues/338)) ([57675aa](https://github.com/LMLiam/Kotventure/commit/57675aa393af20250ee280e13ecffdd489d8fbc5))
+
+
+### 🐛 Fixes
+
+* **bossbar:** harden timed lifecycle shutdown ([#347](https://github.com/LMLiam/Kotventure/issues/347)) ([52c74e9](https://github.com/LMLiam/Kotventure/commit/52c74e98865c9afc9eb54c82fa76ed9008e2cbfe))
+* **ci:** attest release PRs for QDJVM ([#359](https://github.com/LMLiam/Kotventure/issues/359)) ([6d9e409](https://github.com/LMLiam/Kotventure/commit/6d9e409e1dadc73942925c634bb2974664475b43))
+* **ci:** skip heavy CI for release PRs ([#358](https://github.com/LMLiam/Kotventure/issues/358)) ([7c06b57](https://github.com/LMLiam/Kotventure/commit/7c06b57e0748103826424cf016451ff7a7f6d4a5))
+* **ci:** use resolvable github-script pin ([61458c1](https://github.com/LMLiam/Kotventure/commit/61458c1325efbf3f4553da4dcc19398bc98c073e))
+* **minimessage:** harden placeholder validation and resolution ([#353](https://github.com/LMLiam/Kotventure/issues/353)) ([b89a928](https://github.com/LMLiam/Kotventure/commit/b89a928b77ff047a0c23c6de081606e840d9bcb3))
+* **minimessage:** protect template declaration state ([#354](https://github.com/LMLiam/Kotventure/issues/354)) ([f9a2370](https://github.com/LMLiam/Kotventure/commit/f9a2370277282f9f16917c6c000861db3793d489))
+* **selector:** harden parser edge cases ([#349](https://github.com/LMLiam/Kotventure/issues/349)) ([6900e4b](https://github.com/LMLiam/Kotventure/commit/6900e4b476fef5d7dc97e70454dff522709e4fca))
+
+
+### 🔧 Refactors
+
+* **core:** simplify utility APIs and theme lookup ([#345](https://github.com/LMLiam/Kotventure/issues/345)) ([8d662cc](https://github.com/LMLiam/Kotventure/commit/8d662cc9e63577d94c41ca43ace027a478f8dc16))
+* **minimessage:** simplify component dispatch and style emission ([#351](https://github.com/LMLiam/Kotventure/issues/351)) ([6f372e4](https://github.com/LMLiam/Kotventure/commit/6f372e451e3525b9768d10b4a7dee5796e0c2158))
+* **minimessage:** simplify selector and SNBT conversion ([#352](https://github.com/LMLiam/Kotventure/issues/352)) ([7597637](https://github.com/LMLiam/Kotventure/commit/7597637056efe647adb66ce6d0ec70a99be6644f))
+* **minimessage:** split source emission helpers ([#350](https://github.com/LMLiam/Kotventure/issues/350)) ([edbe40b](https://github.com/LMLiam/Kotventure/commit/edbe40bcfde8e794437bde33b7f1761ee3fe3b55))
+* **selector:** simplify model and builder state ([#348](https://github.com/LMLiam/Kotventure/issues/348)) ([b1938b2](https://github.com/LMLiam/Kotventure/commit/b1938b2d7ba918f2633e7a682692f52785929784))
+* **virtual:** simplify virtual rendering scopes ([#346](https://github.com/LMLiam/Kotventure/issues/346)) ([91b710b](https://github.com/LMLiam/Kotventure/commit/91b710be7b4831568fdd7896d5b8693c307eae63))
+
 ## [0.25.0](https://github.com/LMLiam/Kotventure/compare/0.24.0...0.25.0) (2026-07-23)
 
 
