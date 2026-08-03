@@ -152,6 +152,8 @@ The `Master` ruleset requires the applicable QDJVM result for each pull
 request: non-code pull requests use this attestation, code pull requests use
 the normal Qodana result, and trusted Release Please pull requests use the
 release attestation.
+The attestation SARIF declares one rule and reports zero alerts. This lets
+GitHub treat the tool as configured.
 
 ### Full builds
 
