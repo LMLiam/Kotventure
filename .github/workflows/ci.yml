@@ -673,6 +673,17 @@ jobs:
                   driver: {
                     name: 'QDJVM',
                     version: 'release-allowlist-attestation',
+                    rules: [{
+                      id: 'attestation/release-please-files',
+                      name: 'Release Please file allowlist',
+                      shortDescription: {
+                        text: 'Release Please changed only the approved release files.',
+                      },
+                      fullDescription: {
+                        text: 'The trusted Release Please provenance check approved the release file allowlist.',
+                      },
+                      defaultConfiguration: { level: 'note' },
+                    }],
                   },
                 },
                 automationDetails: {
@@ -722,6 +733,17 @@ jobs:
                   driver: {
                     name: 'QDJVM',
                     version: 'non-code-path-attestation',
+                    rules: [{
+                      id: 'attestation/no-code-paths',
+                      name: 'No code paths changed',
+                      shortDescription: {
+                        text: 'The pull request changed no code paths.',
+                      },
+                      fullDescription: {
+                        text: 'The CI path filter found no files that require a code scan.',
+                      },
+                      defaultConfiguration: { level: 'note' },
+                    }],
                   },
                 },
                 automationDetails: {

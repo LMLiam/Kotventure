@@ -148,6 +148,10 @@ attestation)` job. The job uploads a zero-result SARIF record with the `QDJVM`
 tool name and the `non-code` category. This records the path-filter decision.
 It does not claim that Qodana scanned code. Code-path pull requests use the
 normal Qodana job instead. Release candidates do not use this attestation.
+The `Master` ruleset requires the applicable QDJVM result for each pull
+request: non-code pull requests use this attestation, code pull requests use
+the normal Qodana result, and trusted Release Please pull requests use the
+release attestation.
 
 ### Full builds
 
