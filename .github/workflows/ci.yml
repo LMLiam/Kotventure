@@ -686,9 +686,6 @@ jobs:
                     }],
                   },
                 },
-                automationDetails: {
-                  id: `release-please/${sha}`,
-                },
                 results: [],
               }],
             };
@@ -747,9 +744,6 @@ jobs:
                       defaultConfiguration: { level: 'note' },
                     }],
                   },
-                },
-                automationDetails: {
-                  id: `non-code/${sha}`,
                 },
                 results: [],
               }],
