@@ -147,7 +147,7 @@ For a normal documentation-only pull request with no code paths, CI starts the
 `QDJVM (non-code attestation)` job. The job uploads a zero-result SARIF record
 with the `QDJVM` tool name under the existing `Kotventure/qodana`
 configuration. This records the path-filter decision. It does not claim that
-Qodana scanned code.
+Qodana scanned code. The result is tied to the pull-request head commit.
 Code-path pull requests use the normal Qodana job instead. Release candidates
 do not use this attestation.
 The `Master` ruleset requires the applicable QDJVM result for each pull
