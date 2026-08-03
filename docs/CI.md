@@ -130,6 +130,10 @@ forces full path-filtered CI for a human or fork lookalike.
 The gate no longer skips CI for a push to `master` based on a commit message.
 Every push uses the normal CI path.
 
+When a later release-worthy change creates a Release Please pull request, verify
+that the pull request is authored by `release-please-kotventure[bot]` before
+relying on the release-only CI path.
+
 When you add Release Please `extra-files`, update the allowlist in both
 `ci.yml` and `release-provenance.yml`.
 
