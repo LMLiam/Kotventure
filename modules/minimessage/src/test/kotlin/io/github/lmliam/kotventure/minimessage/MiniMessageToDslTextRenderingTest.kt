@@ -1,5 +1,7 @@
 package io.github.lmliam.kotventure.minimessage
 
+// Temporary validation marker.
+
 import io.github.lmliam.kotventure.core.color.aqua
 import io.github.lmliam.kotventure.core.color.gold
 import io.github.lmliam.kotventure.core.color.gray
