@@ -45,8 +45,10 @@ CI
     └─ Aggregates Tier 1 + Vanilla + Dependencies
 ```
 
-Tier 2 starts only after Tier 1 passes. This sequence prevents unnecessary analysis of code that does not compile or
-pass lint. The Status job always starts. It reports one required check that controls merges.
+For code changes, Tier 2 starts only after Tier 1 passes. A documentation-only pull request can run the Qodana
+documentation attestation when Lint and Build are skipped. The attestation does not check out or analyse code. This
+sequence prevents unnecessary analysis of code that does not compile or pass lint. The Status job always starts. It
+reports one required check that controls merges.
 
 The workflow listens for `merge_group` events. Merge groups, schedules, and manual dispatches do not use the path
 filter. They always start the full pipeline: Build, Vanilla, Qodana, and CodeQL.
