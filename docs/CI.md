@@ -12,6 +12,7 @@ For local development commands, see [CONTRIBUTING.md](../.github/CONTRIBUTING.md
 |----------|------|----------|---------|
 | **CI** | `ci.yml` | PR, push, `merge_group`, weekly schedule, `workflow_dispatch` | Gate, path filter, parallel lint, build, and analysis. Always reports the required status check |
 | **PR** | `pr.yml` | `pull_request_target` | Title + commit validation, area labels |
+| **Release provenance** | `release-provenance.yml` | `pull_request_target` | Verifies Release Please identity and release files from the default branch |
 | **Release** | `release.yml` | push `master` | Opens or updates release PRs. Creates tags and releases after merge |
 | **OpenSSF Scorecard** | `scorecard.yml` | weekly schedule, `branch_protection_rule`, `workflow_dispatch` | Supply-chain scorecard + SARIF |
 
@@ -21,7 +22,7 @@ For local development commands, see [CONTRIBUTING.md](../.github/CONTRIBUTING.md
 CI
 │
 ├─ Tier 0: Triage ─────────────────────────────────────────────────
-│   ├─ Gate              (skip release-please PRs + merge commits)
+│   ├─ Gate              (verify provenance before a release-only skip)
 │   └─ Detect changes    (path filter → code, vanilla)
 │
 ├─ Tier 1: Core (parallel, fast feedback) ─────────────────────────
@@ -37,7 +38,8 @@ CI
 ├─ Policy (independent of tiers) ──────────────────────────────────
 │   ├─ Dependencies      (dependency-review-action, PRs only)
 │   ├─ Commits           (push-to-master subject validation)
-│   └─ Release attestation (pure release-please PRs)
+│   ├─ Release provenance (default-branch metadata check)
+│   └─ Release attestation (trusted release-please PRs)
 │
 └─ Status (required merge-gate check) ─────────────────────────────
     └─ Aggregates Tier 1 + Vanilla + Dependencies
@@ -67,7 +69,8 @@ The `changes` job in `ci.yml` defines these code paths:
 |-------|:-----------:|:----------:|:------:|:------:|
 | PR (code paths) | ✓ | ✓ | ✓ | ✓ |
 | PR (docs/process only) | ✓ | — | — | — |
-| PR (release-please files only) | ✓ | — | QDJVM attestation | — |
+| PR (trusted Release Please files only) | ✓ | — | QDJVM attestation | — |
+| PR (untrusted release candidate) | ✓ | ✓ | ✓ | ✓ |
 | Push to `master` (code paths) | ✓ | ✓ | ✓ | ✓ |
 | Push to `master` (docs only) | ✓ | — | — | — |
 | `merge_group` | ✓ | ✓ (path filter skipped) | ✓ | ✓ |
@@ -85,22 +88,55 @@ Select Actions → **CI** → **Run workflow**. A manual workflow always starts 
 
 Module names must match `[A-Za-z0-9_-]+`.
 
-### Heavy CI gate (release-please)
+### Heavy CI gate (Release Please)
 
-The CI workflow contains this gate in its `gate` job. The gate handles pull requests and merge commits on `master`.
+The `gate` job skips resource-intensive jobs only for a trusted Release Please
+pull request. The `release-provenance.yml` workflow supplies the independent
+check from the default branch. It does not check out the pull request.
 
-The gate skips resource-intensive jobs in these conditions:
+The trusted decision requires all of these conditions:
 
-- **PR:** The head branch starts with `release-please--`, and only release files changed.
-- **Push:** The commit message matches `chore(master): release`, and only release files changed.
+- The event is a pull-request event for `LMLiam/Kotventure`.
+- The base branch is `master`.
+- The head repository is `LMLiam/Kotventure`.
+- The head branch is exactly `release-please--branches--master`.
+- The author is `release-please-kotventure[bot]` with GitHub type `Bot`.
+- The event sender is `release-please-kotventure[bot]` with GitHub type `Bot`.
+- Current and previous file names are in the release-file allowlist.
+- The trusted provenance job for the current head SHA completed successfully.
 
-The release files are `CHANGELOG.md`, `.release-please-manifest.json`, and `gradle/libs.versions.toml`.
+The release files are `CHANGELOG.md`, `.release-please-manifest.json`, and
+`gradle/libs.versions.toml`.
 
-When you add release-please `extra-files`, update the gate allowlist in `ci.yml`.
+The `release-provenance.yml` workflow is the canonical authority for the
+release-only result. The `ci.yml` gate repeats the current-event identity and
+file checks before it accepts that result. Keep these values aligned:
 
-For a pure release-please PR, the gate also starts the `QDJVM (release attestation)` job. The job uploads a zero-result
-SARIF record with the `QDJVM` tool name. It does not run Qodana. The gate starts this job only when the release branch
-and the complete changed-file allowlist match. If any other file changes, the gate starts the normal CI jobs instead.
+- The workflow identifier is `release-provenance.yml`.
+- The trusted job name is `Trusted release provenance`.
+- The repository, base branch, head branch, bot login, GitHub types, and event
+  sender must match the policy above.
+- The current and previous file names must match the release-file allowlist.
+
+Do not move this contract into a local script or composite action used by the
+`pull_request` workflow. That code can come from the pull request. If the two
+checks differ, the gate runs full CI.
+
+Titles, labels, commit messages, branch prefixes, and file lists do not prove
+Release Please identity. A release-like branch or a pure release-file change
+that does not pass the provenance check forces the normal CI path. This also
+forces full path-filtered CI for a human or fork lookalike.
+
+The gate no longer skips CI for a push to `master` based on a commit message.
+Every push uses the normal CI path.
+
+When you add Release Please `extra-files`, update the allowlist in both
+`ci.yml` and `release-provenance.yml`.
+
+For a trusted pure Release Please PR, the gate starts the `QDJVM (release
+attestation)` job. The job uploads a zero-result SARIF record with the `QDJVM`
+tool name. It does not run Qodana. An untrusted release candidate runs normal
+CI instead.
 
 ### Full builds
 
@@ -162,7 +198,10 @@ For an occasional diagnostic scan, give `build-scan: true` to `gradle-job`. The 
 
 | Surface | Behaviour |
 |---------|-----------|
-| Default workflow permissions | `contents: read` |
+| Default workflow permissions | Set the repository default to `contents: read` |
+| Release provenance workflow | Uses `contents: read` and `pull-requests: read`. Does not check out pull-request code |
+| CI gate | Uses `actions: read`, `contents: read`, and `pull-requests: read` |
+| Release workflow | Uses an installation token from `release-please-kotventure`. Its `GITHUB_TOKEN` has no permissions |
 | Build job | Uses `checks: write` and `contents: read`. Cannot write to pull requests. Clears `GITHUB_TOKEN` for Gradle |
 | PR feedback job | Uses `actions: read`, `pull-requests: write`, and `contents: read`. Posts one metrics comment. Uses the cache or artefacts before a base JAR-only build. Clears `GITHUB_TOKEN` for Gradle |
 | Build scans | Off by default. Enable with `build-scan: true` |
@@ -232,6 +271,27 @@ The **Master** repository ruleset protects the default branch. The rulesets API 
 [CODEOWNERS](../.github/CODEOWNERS) assigns `@LMLiam` as the default owner. It also assigns this owner to
 `.github/workflows/`, `.github/actions/`, `.github/scripts/`, and related CI configuration. Thus, code-owner review
 applies to automation changes.
+
+## Release branch protection
+
+Configure an active `Protect Release Please branches` ruleset for
+`refs/heads/release-please--branches--*`. It must block branch creation,
+updates, deletion, and non-fast-forward updates.
+
+The ruleset must have one bypass actor. The actor is the
+`release-please-kotventure` GitHub App Integration. Administrators, repository
+roles, teams, users, `github-actions[bot]`, and unrelated Apps must not bypass
+this ruleset.
+
+Treat this ruleset as a deployment prerequisite for the release-only CI skip.
+Do not merge or enable the workflow changes until GitHub confirms the active
+ruleset, its ref pattern, and its sole App Integration bypass. Keep full CI
+enabled until this verification is complete.
+
+Install the App only on `LMLiam/Kotventure`. Give it Metadata read, Contents
+read/write, Issues read/write, and Pull requests read/write. Store the App ID
+in `RELEASE_PLEASE_APP_ID`. Store the private key in
+`RELEASE_PLEASE_APP_PRIVATE_KEY`. Do not store a private key in the repository.
 
 ## Required vs optional checks
 
