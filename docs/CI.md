@@ -11,6 +11,7 @@ For local development commands, see [CONTRIBUTING.md](../.github/CONTRIBUTING.md
 | Workflow | File | Triggers | Purpose |
 |----------|------|----------|---------|
 | **CI** | `ci.yml` | PR, push, `merge_group`, weekly schedule, `workflow_dispatch` | Gate, path filter, parallel lint, build, and analysis. Always reports the required status check |
+| **PR metrics publication** | `pr-metrics-publish.yml` | `workflow_run` after CI | Validates the CI result and publishes one metrics comment with default-branch code |
 | **PR** | `pr.yml` | `pull_request_target` | Title + commit validation, area labels |
 | **Release provenance** | `release-provenance.yml` | `pull_request_target` | Verifies Release Please identity and release files from the default branch |
 | **Release** | `release.yml` | push `master` | Opens or updates release PRs. Creates tags and releases after merge |
@@ -28,7 +29,7 @@ CI
 ├─ Tier 1: Core (parallel, fast feedback) ─────────────────────────
 │   ├─ Lint              (declaration check + spotlessCheck + ktlintCheck)
 │   └─ Build             (full multi-project build + Dokka + Kover + Build Scan)
-│       └─ PR feedback   (one non-gating metrics comment: coverage Δ + JAR sizes)
+│       └─ PR feedback   (read-only metrics computation and result artefact)
 │
 ├─ Tier 2: Deep Analysis (after Tier 1 passes) ────────────────────
 │   ├─ CodeQL            (actions + java-kotlin matrix)
@@ -43,6 +44,10 @@ CI
 │
 └─ Status (required merge-gate check) ─────────────────────────────
     └─ Aggregates Tier 1 + Vanilla + Dependencies
+
+PR metrics publication (workflow_run)
+└─ Validates the completed CI run, result artefact, and current PR
+   └─ Publishes one non-gating metrics comment with default-branch code
 ```
 
 For code changes, Tier 2 starts only after Tier 1 passes. A documentation-only pull request can run the Qodana
@@ -208,19 +213,22 @@ When the account supports the feature, enable the queue in the **Master** rulese
 
 ### PR metrics (coverage, patch coverage, sizes, API, tests)
 
-After Build, the **PR feedback** job posts **one** bot comment (`<!-- pr-metrics -->`). The comment contains:
+After Build, the **PR feedback** job computes one bounded JSON result. The separate **PR metrics publication** workflow
+validates that result and posts **one** bot comment (`<!-- pr-metrics -->`) with code from the default branch. The
+publication workflow does not execute pull-request code.
+
+The comment contains:
 
 - A visible **verdict line** with total coverage, gate margin, patch coverage, aggregate JAR change, test count change,
   and public API change.
-- **Patch coverage** from the pull-request diff and the Kover line data. It identifies uncovered added lines with
-  ranges such as `file.kt:12–15`.
+- **Patch coverage** from the pull-request diff and the Kover line data. The result contains aggregate counts only.
 - Mermaid bar charts that show the changes in coverage and JAR size. The bars use the absolute change for their order.
   Collapsed tables contain the absolute values and `.class` entry counts.
 - A **public API change** count for added and removed `public` declarations. A grep heuristic supplies this value until
   an apiDump baseline exists. A collapsed diff block shows the declarations.
 - Collapsed **build statistics** with test counts, skipped-test counts, and approximate build time.
 - Warnings for JAR growth greater than 10 percent, a coverage decrease of at least 0.5 percentage points, and coverage
-  within 0.5 percentage points of the Kover gate. The job reads the threshold from `gradle/coverage.gradle`.
+  within 0.5 percentage points of the Kover gate. The publisher reads the gate from the default branch.
 - Links to the workflow run, `dokka-preview` artefact, and `gradle-test-results` artefact.
 - Only the verdict line and "No metric changes" when no metric changed.
 
@@ -231,9 +239,13 @@ The job searches for a baseline in this order:
 2. The `coverage-report`, `module-jars`, and `ci-metrics` **artefacts** from a successful CI run for the base commit.
 3. A JAR-only Gradle build of the base SHA. If no base report is available, the coverage value stays absolute.
 
-The `.github/actions/pr-metrics-comment` action builds the comment. Its `action.yml` file calls plain Node modules in
-`lib/`. These modules parse patches, coverage, JARs, and ZIP files. Renderers are in `lib/sections/`. Tests in `test/`
-use `node:test`. The Lint job starts these tests.
+The `.github/actions/pr-metrics-comment` action computes the result. Its `action.yml` file calls plain Node modules in
+`lib/`. These modules parse patches, coverage, JARs, and ZIP files. The result contract has separate contract,
+validation, serialisation, and deserialisation modules. The publisher validates source identity, run attempt, current
+PR head and base, exact artefact identity, file shape, size, and result provenance. It downloads the ZIP archive with
+trusted code and checks the central directory before it extracts the result. It rejects missing, duplicate, expired,
+stale, oversized, malformed, or unexpected data. Renderers are in `lib/sections/`. Tests in `test/` and
+`.github/scripts/pr-metrics-publisher.test.js` use `node:test`. The Lint job starts these tests.
 
 ### Build Scans
 
@@ -255,7 +267,8 @@ For an occasional diagnostic scan, give `build-scan: true` to `gradle-job`. The 
 | Qodana and documentation attestation | Uses the existing `checks: write`, `contents: read`, `pull-requests: write`, and `security-events: write` permissions. The documentation path does not check out pull-request code |
 | Release workflow | Uses an installation token from `release-please-kotventure`. Its `GITHUB_TOKEN` has no permissions |
 | Build job | Uses `checks: write` and `contents: read`. Cannot write to pull requests. Clears `GITHUB_TOKEN` for Gradle |
-| PR feedback job | Uses `actions: read`, `pull-requests: write`, and `contents: read`. Posts one metrics comment. Uses the cache or artefacts before a base JAR-only build. Clears `GITHUB_TOKEN` for Gradle |
+| PR feedback job | Uses `actions: read`, `pull-requests: read`, and `contents: read`. Computes a bounded result artefact and cannot write to pull requests. Uses the cache or artefacts before a base JAR-only build. Clears `GITHUB_TOKEN` for Gradle |
+| PR metrics publication | Runs default-branch code after CI. Uses `actions: read`, `contents: read`, and `pull-requests: write`. Validates the source workflow, run attempt, current PR head and base, exact artefact, and result provenance before it posts |
 | Build scans | Off by default. Enable with `build-scan: true` |
 | Dokka preview artefact | Contains untrusted HTML from the pull request. Retain for 14 days. Do not publish as Pages |
 
@@ -277,7 +290,7 @@ The Title and Commits jobs are required status checks.
 | **gradle-job** | `.github/actions/gradle-job` | CI (Lint, Build): JDK and Gradle setup, tasks, Build Scan, and job summary |
 | **setup-jdk-gradle** | `.github/actions/setup-jdk-gradle` | gradle-job, Vanilla, CodeQL, PR feedback fallback: JDK, Gradle caches, and scan TOS |
 | **publish-junit-report** | `.github/actions/publish-junit-report` | CI (Build, Vanilla): JUnit XML to Checks annotations |
-| **pr-metrics-comment** | `.github/actions/pr-metrics-comment` | CI (PR feedback): one coverage and JAR size comment |
+| **pr-metrics-comment** | `.github/actions/pr-metrics-comment` | CI (PR feedback): computes one bounded metrics result artefact |
 
 Before Spotless and ktlint, Lint starts two additional checks. The declaration script permits one top-level type in
 each main-source file. The `pr-metrics-comment` tests use `node --test`.
@@ -296,6 +309,7 @@ PR feedback does not control a merge because it uses `continue-on-error`. A fail
 | `download-base-metrics.sh` | PR feedback: fetch base coverage/jars/metrics from the base commit's CI run |
 | `build-base-jars.sh` | PR feedback: last-resort jar-only Gradle build of the base SHA |
 | `collect-ci-metrics.sh` | Build: test/skipped counts + build duration → `ci-metrics.json` |
+| `pr-metrics-publisher.js` | Trusted workflow_run publisher: validates the source run and renders the metrics comment |
 
 ## Action pins and Dependabot
 
@@ -382,6 +396,7 @@ Pull requests show many checks. Only the checks in the **Master** ruleset block 
 | Kover coverage report | Always, including failed runs. Retained for 14 days |
 | Module JARs (`module-jars`) | Always when present. Used for PR head metrics and as the base download fallback |
 | CI metrics (`ci-metrics`) | On successful builds. It contains test counts and duration for the PR comment. |
+| PR metrics result (`pr-metrics-result-<run-id>-<run-attempt>`) | Successful PR feedback computation. Contains only bounded, typed metric data. Retained for one day |
 | Dokka preview | Successful PRs only. Contains rendered KDoc HTML. Retained for 14 days. Treat as untrusted HTML |
 | Full `build/libs` upload | Only on **job failure**, or on **push to `master`** |
 

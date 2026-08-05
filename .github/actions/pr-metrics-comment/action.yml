@@ -1,5 +1,5 @@
-name: PR Metrics Comment
-description: Post one PR comment with Mermaid charts for coverage and JAR size deltas.
+name: PR Metrics Result
+description: Compute a bounded PR metrics result for trusted publication.
 
 inputs:
   head-coverage-path:
@@ -26,23 +26,14 @@ inputs:
     description: Path to base ci-metrics.json.
     required: false
     default: 'base-metrics/ci-metrics.json'
-  coverage-gate-file:
-    description: Gradle script declaring coverageLineThreshold, for gate-headroom reporting.
-    required: false
-    default: 'gradle/coverage.gradle'
-  threshold:
-    description: JAR size growth warning threshold percent.
-    required: false
-    default: '10'
-  base-label:
-    description: Label for the base side in the comment footer.
-    required: false
-    default: 'PR base'
+  result-path:
+    description: Path for the bounded metrics result JSON file.
+    required: true
 
 runs:
   using: composite
   steps:
-    - name: Build metrics comment
+    - name: Compute metrics result
       uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
       env:
         ACTION_PATH: ${{ github.action_path }}
@@ -52,11 +43,9 @@ runs:
         BASE_LIBS_DIR: ${{ inputs.base-libs-dir }}
         HEAD_METRICS_PATH: ${{ inputs.head-metrics-path }}
         BASE_METRICS_PATH: ${{ inputs.base-metrics-path }}
-        GATE_FILE: ${{ inputs.coverage-gate-file }}
-        THRESHOLD: ${{ inputs.threshold }}
-        BASE_LABEL: ${{ inputs.base-label }}
         RUN_ID: ${{ github.run_id }}
-        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        RUN_ATTEMPT: ${{ github.run_attempt }}
+        OUTPUT_PATH: ${{ inputs.result-path }}
       with:
         script: |
           const run = require(`${process.env.ACTION_PATH}/lib/main.js`);
