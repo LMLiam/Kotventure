@@ -29,7 +29,7 @@ jobs:
     steps:
       - name: Read approval event
         id: event
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           github-token: ${{ github.token }}
           script: |
@@ -67,7 +67,7 @@ jobs:
 
       - name: Authorise CODEOWNER
         id: authorise
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           ACTOR: ${{ steps.event.outputs.actor }}
           DEFAULT_BRANCH: ${{ steps.event.outputs.default_branch }}
@@ -109,7 +109,7 @@ jobs:
           steps.authorise.outputs.authorised == 'true'
           && steps.authorise.outputs.approved == 'true'
           && steps.event.outputs.is_command == 'true'
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           HEAD_SHA: ${{ steps.event.outputs.head_sha }}
           PULL_NUMBER: ${{ steps.event.outputs.pull_number }}
@@ -142,7 +142,7 @@ jobs:
 
       - name: Record approval status
         if: steps.authorise.outputs.authorised == 'true'
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           ACTOR: ${{ steps.event.outputs.actor }}
           APPROVED: ${{ steps.authorise.outputs.approved }}
@@ -168,7 +168,7 @@ jobs:
           steps.authorise.outputs.authorised == 'true'
           && steps.authorise.outputs.approved == 'true'
           && steps.event.outputs.is_command == 'true'
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           COMMENT_ID: ${{ steps.event.outputs.comment_id }}
         with:
@@ -185,7 +185,7 @@ jobs:
           steps.authorise.outputs.authorised == 'true'
           && steps.authorise.outputs.approved == 'true'
           && steps.event.outputs.is_command == 'true'
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           COMMENT_NODE_ID: ${{ steps.event.outputs.comment_node_id }}
         with:
