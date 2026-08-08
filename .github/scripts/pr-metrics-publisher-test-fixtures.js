@@ -14,16 +14,16 @@ const {
 const BASE_SHA = 'a'.repeat(40);
 const HEAD_SHA = 'b'.repeat(40);
 
-const REPOSITORY = {
+const REPOSITORY = Object.freeze({
     full_name: 'LMLiam/Kotventure',
     id: 1,
     default_branch: 'master',
-};
+});
 
-const HEAD_REPOSITORY = {
+const HEAD_REPOSITORY = Object.freeze({
     full_name: 'LMLiam/Kotventure-fix',
     id: 2,
-};
+});
 
 function makeInputs() {
     return {

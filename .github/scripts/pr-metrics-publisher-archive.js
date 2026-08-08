@@ -3,7 +3,7 @@
 const zlib = require('node:zlib');
 const { MAX_RESULT_BYTES } = require('../actions/pr-metrics-comment/lib/metrics-result-contract.js');
 const {
-    MAX_ARTFACT_BYTES,
+    MAX_ARTIFACT_BYTES,
     RESULT_FILE_NAME,
 } = require('./pr-metrics-publisher-contract.js');
 
@@ -237,7 +237,7 @@ function decompressEntry(compressedData, entry) {
 function extractMetricsResultArchive(archive) {
     if (!Buffer.isBuffer(archive)
         || archive.length < END_OF_CENTRAL_DIRECTORY_LENGTH
-        || archive.length > MAX_ARTFACT_BYTES) {
+        || archive.length > MAX_ARTIFACT_BYTES) {
         rejectArchive('is not a ZIP archive');
     }
 

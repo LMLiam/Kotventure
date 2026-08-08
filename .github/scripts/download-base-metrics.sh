@@ -133,11 +133,11 @@ restore_jars() {
 }
 
 if (( need_coverage )); then
-    restore_file_artfact coverage-report report.xml "$COVERAGE_FILE" || true
+    restore_file_artifact coverage-report report.xml "$COVERAGE_FILE" || true
 fi
 
 if (( need_metrics )); then
-    restore_file_artfact ci-metrics ci-metrics.json "$METRICS_FILE" || true
+    restore_file_artifact ci-metrics ci-metrics.json "$METRICS_FILE" || true
 fi
 
 if (( need_jars )); then

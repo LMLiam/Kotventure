@@ -66,7 +66,7 @@ verb(area): something
 ```
 
 - Use lower-case letters for `verb` and `area`. Include the **required** `(area)`, `:`, a space, and a summary.
-- Pattern: `^[a-z]+\([a-z0-9][a-z0-9-]*\): [^[:space:]].*$`
+- Pattern: `^[a-z]+\([a-z0-9]+(-[a-z0-9]+)*\): [^[:space:]].*$`
 - The **PR** workflow validates PR titles and commit subjects. The **CI** workflow validates commits pushed to `master`.
   Both workflows run `.github/scripts/validate-conventional-title.sh`.
 

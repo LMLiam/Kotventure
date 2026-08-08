@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { describe, test } = require('node:test');
+const { MAX_RESULT_BYTES } = require('../actions/pr-metrics-comment/lib/metrics-result.js');
 const { extractMetricsResultArchive } = require('./pr-metrics-publisher-archive.js');
 const {
     MAX_ARTIFACT_BYTES,
@@ -38,6 +39,34 @@ const {
 
 function assertRejected(callback) {
     assert.throws(callback, PublicationRejectedError);
+}
+
+function makeReadableBody(chunks) {
+    let index = 0;
+    let cancelled = false;
+
+    return {
+        body: {
+            getReader() {
+                return {
+                    read: async () => {
+                        if (index >= chunks.length) {
+                            return { done: true };
+                        }
+
+                        return {
+                            done: false,
+                            value: chunks[index++],
+                        };
+                    },
+                    cancel: async () => {
+                        cancelled = true;
+                    },
+                };
+            },
+        },
+        wasCancelled: () => cancelled,
+    };
 }
 
 describe('workflow source validation', () => {
@@ -231,7 +260,7 @@ describe('metrics archive extraction', () => {
 
     test('rejects an entry that expands beyond the result limit', () => {
         const archive = makeZip(
-                Buffer.alloc(64 * 1024 + 1, 0x78),
+                Buffer.alloc(MAX_RESULT_BYTES + 1, 0x78),
         );
 
         assert.ok(archive.length < MAX_ARTIFACT_BYTES);
@@ -239,6 +268,15 @@ describe('metrics archive extraction', () => {
         assert.throws(
                 () => extractMetricsResultArchive(archive),
                 /outside the size limit/,
+        );
+    });
+
+    test('rejects an archive larger than the artifact limit before parsing', () => {
+        assert.throws(
+                () => extractMetricsResultArchive(
+                        Buffer.alloc(MAX_ARTIFACT_BYTES + 1),
+                ),
+                /is not a ZIP archive/,
         );
     });
 });
@@ -312,6 +350,144 @@ describe('metrics artifact storage', () => {
         );
     });
 
+    test('downloads through a bounded streaming response', async (t) => {
+        const directory = makeTempDirectory(
+                t,
+                'pr-metrics-stream-',
+        );
+
+        const archive = makeZip(
+                Buffer.from(
+                        JSON.stringify(makeResult()),
+                        'utf8',
+                ),
+        );
+        const readable = makeReadableBody([
+            archive.subarray(0, 1),
+            archive.subarray(1),
+        ]);
+        const apiUrl = 'https://api.github.test';
+        const downloadUrl = `${apiUrl}/repos/LMLiam/Kotventure/actions/artifacts/700/zip`;
+
+        await downloadMetricsArtifact({
+            owner: 'LMLiam',
+            repo: 'Kotventure',
+            artifactId: 700,
+            outputDirectory: directory,
+            apiUrl,
+            token: 'test-token',
+            fetchImpl: async (location) => {
+                if (location === downloadUrl) {
+                    return {
+                        status: 302,
+                        headers: {
+                            location: 'https://artifact.example/result.zip',
+                        },
+                    };
+                }
+
+                assert.equal(
+                        location,
+                        'https://artifact.example/result.zip',
+                );
+
+                return {
+                    ok: true,
+                    headers: {},
+                    body: readable.body,
+                };
+            },
+        });
+
+        assert.equal(
+                readMetricsArtifact(directory).metrics.headJars[0].module,
+                'core',
+        );
+        assert.equal(readable.wasCancelled(), false);
+    });
+
+    test('cancels an oversized streaming response', async (t) => {
+        const directory = makeTempDirectory(
+                t,
+                'pr-metrics-oversized-stream-',
+        );
+        const readable = makeReadableBody([
+            Buffer.alloc(MAX_ARTIFACT_BYTES + 1),
+        ]);
+        const apiUrl = 'https://api.github.test';
+        const downloadUrl = `${apiUrl}/repos/LMLiam/Kotventure/actions/artifacts/700/zip`;
+
+        await assert.rejects(
+                () => downloadMetricsArtifact({
+                    owner: 'LMLiam',
+                    repo: 'Kotventure',
+                    artifactId: 700,
+                    outputDirectory: directory,
+                    apiUrl,
+                    token: 'test-token',
+                    fetchImpl: async (location) => {
+                        if (location === downloadUrl) {
+                            return {
+                                status: 302,
+                                headers: {
+                                    location: 'https://artifact.example/result.zip',
+                                },
+                            };
+                        }
+
+                        return {
+                            ok: true,
+                            headers: {},
+                            body: readable.body,
+                        };
+                    },
+                }),
+                new RegExp(`exceeds ${MAX_ARTIFACT_BYTES} bytes`),
+        );
+
+        assert.equal(readable.wasCancelled(), true);
+    });
+
+    test('cancels when a streaming response returns an invalid chunk', async (t) => {
+        const directory = makeTempDirectory(
+                t,
+                'pr-metrics-invalid-stream-',
+        );
+        const readable = makeReadableBody([null]);
+        const apiUrl = 'https://api.github.test';
+        const downloadUrl = `${apiUrl}/repos/LMLiam/Kotventure/actions/artifacts/700/zip`;
+
+        await assert.rejects(
+                () => downloadMetricsArtifact({
+                    owner: 'LMLiam',
+                    repo: 'Kotventure',
+                    artifactId: 700,
+                    outputDirectory: directory,
+                    apiUrl,
+                    token: 'test-token',
+                    fetchImpl: async (location) => {
+                        if (location === downloadUrl) {
+                            return {
+                                status: 302,
+                                headers: {
+                                    location: 'https://artifact.example/result.zip',
+                                },
+                            };
+                        }
+
+                        return {
+                            ok: true,
+                            headers: {},
+                            body: readable.body,
+                        };
+                    },
+                }),
+                /returned an invalid body/,
+        );
+
+        assert.equal(readable.wasCancelled(), true);
+    });
+
     test('reads one regular, bounded, valid result file', (t) => {
         const directory = makeTempDirectory(
                 t,
@@ -358,7 +534,7 @@ describe('metrics artifact storage', () => {
                 (directory) => {
                     fs.writeFileSync(
                             path.join(directory, RESULT_FILE_NAME),
-                            'x'.repeat(64 * 1024 + 1),
+                            'x'.repeat(MAX_RESULT_BYTES + 1),
                     );
                 },
             ],
@@ -484,6 +660,62 @@ describe('publisher orchestration', () => {
         assert.match(
                 warnings[0],
                 /Metrics publication skipped/,
+        );
+    });
+
+    test('publishes a valid metrics result as a pull-request comment', async (t) => {
+        const inputs = makeInputs();
+        const source = makeSource(inputs);
+        const directory = makeTempDirectory(
+                t,
+                'pr-metrics-publish-',
+        );
+        const publishedComments = [];
+
+        fs.writeFileSync(
+                path.join(directory, RESULT_FILE_NAME),
+                JSON.stringify(makeResult()),
+        );
+
+        const github = makeGithub({
+            run: inputs.run,
+            pullRequest: inputs.pullRequest,
+            artifacts: [
+                makeArtifact(source),
+            ],
+        });
+        const listComments = () => {};
+        const paginate = github.paginate;
+
+        github.rest.issues = {
+            createComment: async (parameters) => {
+                publishedComments.push(parameters);
+            },
+            listComments,
+        };
+        github.paginate = async (method, parameters) => {
+            if (method === listComments) {
+                return [];
+            }
+
+            return paginate(method, parameters);
+        };
+
+        await publishMetrics({
+            github,
+            context: makeWorkflowRunContext(inputs.run),
+            core: {
+                warning: () => {},
+                info: () => {},
+            },
+            artifactDirectory: directory,
+        });
+
+        assert.equal(publishedComments.length, 1);
+        assert.equal(publishedComments[0].issue_number, 42);
+        assert.match(
+                publishedComments[0].body,
+                /^<!-- pr-metrics -->\n## CI metrics/,
         );
     });
 });
