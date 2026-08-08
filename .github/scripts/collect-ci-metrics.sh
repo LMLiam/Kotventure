@@ -1,24 +1,40 @@
 #!/usr/bin/env bash
+
+# Collect CI test and build-duration metrics.
+
 set -euo pipefail
+shopt -s nullglob
 
-sum_attr() {
-  local attr="$1" total=0 value file
-  for file in modules/*/build/test-results/test/TEST-*.xml; do
-    [[ -f "$file" ]] || continue
-    value=$(grep -o "${attr}=\"[0-9]*\"" "$file" | head -1 | grep -o '[0-9]*' || true)
-    total=$((total + ${value:-0}))
-  done
-  echo "$total"
-}
+repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+cd -- "$repo_root"
 
-tests=$(sum_attr tests)
-skipped=$(sum_attr skipped)
+readonly METRICS_FILE='ci-metrics.json'
+readonly DURATION_FILE='gradle-duration.txt'
+
+tests=0
+skipped=0
+
+for file in modules/*/build/test-results/test/TEST-*.xml; do
+    xml=$(<"$file")
+
+    if [[ $xml =~ tests=\"([0-9]+)\" ]]; then
+        tests=$((tests + 10#${BASH_REMATCH[1]}))
+    fi
+
+    if [[ $xml =~ skipped=\"([0-9]+)\" ]]; then
+        skipped=$((skipped + 10#${BASH_REMATCH[1]}))
+    fi
+done
+
 duration=null
-if [[ -f gradle-duration.txt ]]; then
-  duration=$(grep -o '^[0-9]*' gradle-duration.txt || echo null)
-  [[ -n "$duration" ]] || duration=null
+
+if [[ -f $DURATION_FILE ]]; then
+    read -r duration < "$DURATION_FILE"
+
+    [[ $duration =~ ^[0-9]+$ ]] || duration=null
 fi
 
-printf '{"tests": %s, "skipped": %s, "durationSeconds": %s}\n' \
-  "$tests" "$skipped" "$duration" > ci-metrics.json
-echo "Collected CI metrics: $(cat ci-metrics.json)"
+printf '{"tests": %d, "skipped": %d, "durationSeconds": %s}\n' "$tests" "$skipped" "$duration" > "$METRICS_FILE"
+
+printf 'Collected CI metrics: '
+cat "$METRICS_FILE"
