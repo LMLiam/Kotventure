@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-# Collect CI test and build-duration metrics.
-
 set -euo pipefail
 shopt -s nullglob
 

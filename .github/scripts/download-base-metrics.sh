@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-# Restore coverage, metrics, and module JARs from a successful base CI run.
-
 set -euo pipefail
 shopt -s globstar nullglob
 

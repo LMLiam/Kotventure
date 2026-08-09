@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-# Normalize zero-based Qodana SARIF region coordinates for GitHub code scanning.
-
 set -euo pipefail
 
 readonly DEFAULT_SARIF_FILE="${RUNNER_TEMP:-/tmp}/qodana/results/qodana.sarif.json"

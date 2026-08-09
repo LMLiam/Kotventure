@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-# Check that production Kotlin source files contain at most one top-level type declaration.
-
 set -euo pipefail
 
 readonly declaration_pattern="^([[:alpha:]_][[:alnum:]_]*[[:space:]]+)*(class|interface|object)[[:space:]]+([[:alpha:]_][[:alnum:]_]*|\`[^\`]+\`)"
