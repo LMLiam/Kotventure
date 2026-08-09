@@ -1,47 +1,50 @@
 #!/usr/bin/env bash
-# Normalize Qodana SARIF region coordinates so GitHub code scanning accepts them.
-# Some Qodana exports use startLine/startColumn of 0; GitHub expects 1-based values ≥ 1.
+
 set -euo pipefail
 
-sarif_file="${1:-${RUNNER_TEMP:-/tmp}/qodana/results/qodana.sarif.json}"
-tmp_file="${sarif_file}.tmp"
+readonly DEFAULT_SARIF_FILE="${RUNNER_TEMP:-/tmp}/qodana/results/qodana.sarif.json"
 
-if [[ ! -f "$sarif_file" ]]; then
-  echo "Qodana SARIF not found at $sarif_file; skipping normalization."
-  exit 0
+if (( $# > 1 )); then
+    printf 'Usage: %s [sarif-file]\n' "${0##*/}" >&2
+    exit 2
 fi
 
-if ! command -v jq >/dev/null 2>&1; then
-  echo "jq is required to normalize Qodana SARIF." >&2
-  exit 1
+sarif_file=${1:-$DEFAULT_SARIF_FILE}
+
+if [[ ! -f $sarif_file ]]; then
+    printf 'Qodana SARIF not found at %s; skipping normalization.\n' "$sarif_file"
+    exit 0
 fi
+
+command -v jq >/dev/null 2>&1 || {
+    printf 'Error: jq is required to normalize Qodana SARIF.\n' >&2
+    exit 1
+}
+
+tmp_file=$(mktemp "${sarif_file}.tmp.XXXXXX")
 
 cleanup() {
-  rm -f "$tmp_file"
+    rm -f -- "$tmp_file"
 }
+
 trap cleanup EXIT
 
 jq '
-  def normalize_region:
-    if type == "object" then
-      (
-        if has("startLine") and (.startLine | type == "number") and .startLine < 1 then
-          .startLine = 1
+    def normalize_region:
+        if type != "object" then
+            .
         else
-          .
-        end
-      )
-      | (
-        if has("startColumn") and (.startColumn | type == "number") and .startColumn < 1 then
-          .startColumn = 1
-        else
-          .
-        end
-      )
-    else
-      .
-    end;
+            (if (.startLine? | type) == "number" and .startLine < 1 then .startLine = 1 else . end)
+            | (if (.startColumn? | type) == "number" and .startColumn < 1 then .startColumn = 1 else . end)
+        end;
 
-  walk(if type == "object" and has("region") then .region |= normalize_region else . end)
+    walk(
+        if type == "object" and (.region? | type) == "object" then
+            .region |= normalize_region
+        else
+            .
+        end
+    )
 ' "$sarif_file" > "$tmp_file"
-mv "$tmp_file" "$sarif_file"
+
+mv -- "$tmp_file" "$sarif_file"
