@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any release.
 
+## [0.26.2](https://github.com/LMLiam/Kotventure/compare/0.26.1...0.26.2) (2026-08-09)
+
+
+### 🐛 Fixes
+
+* **ci:** expose workflow-run checks ([#500](https://github.com/LMLiam/Kotventure/issues/500)) ([1bd4e51](https://github.com/LMLiam/Kotventure/commit/1bd4e51c6a196e63977de7bd82d41a46129143e9))
+* **ci:** isolate metrics publication from pull-request code ([4ef3d86](https://github.com/LMLiam/Kotventure/commit/4ef3d86a567df527039e401e288154c3cfaa4501))
+* **ci:** isolate Qodana from pull-request code ([9b8a7e7](https://github.com/LMLiam/Kotventure/commit/9b8a7e745ed420ad8692b25084c860c224ef1447))
+
+
+### 🔧 Refactors
+
+* **ci:** improve CI scripts ([#499](https://github.com/LMLiam/Kotventure/issues/499)) ([3adc170](https://github.com/LMLiam/Kotventure/commit/3adc170dec742673948b372a66eb6e241c0901e6))
+
 ## [0.26.1](https://github.com/LMLiam/Kotventure/compare/0.26.0...0.26.1) (2026-08-03)
 
 
