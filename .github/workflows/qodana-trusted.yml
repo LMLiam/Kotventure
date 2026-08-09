@@ -131,7 +131,7 @@ jobs:
   report:
     name: Report trusted Qodana check
     needs: [register, analyse]
-    if: always() && needs.register.result == 'success'
+    if: always() && needs.register.outputs.check_run_id != ''
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -151,18 +151,22 @@ jobs:
           CHECK_EXTERNAL_ID: ${{ needs.register.outputs.check_external_id }}
           CHECK_RUN_ID: ${{ needs.register.outputs.check_run_id }}
           HEAD_SHA: ${{ needs.register.outputs.head_sha }}
+          REGISTER_RESULT: ${{ needs.register.result }}
         with:
           script: |
             const {
               completeWorkflowCheck,
               workflowResultConclusion,
             } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/workflow-run-check.js`);
-            const conclusion = workflowResultConclusion(process.env.ANALYSE_RESULT);
+            const result = process.env.REGISTER_RESULT === 'success'
+              ? process.env.ANALYSE_RESULT
+              : process.env.REGISTER_RESULT;
+            const conclusion = workflowResultConclusion(result);
             const summaries = {
               success: 'Qodana analysed and published the validated trusted source.',
               failure: 'Qodana analysis or publication failed.',
-              cancelled: 'The trusted Qodana analysis was cancelled.',
-              skipped: 'The trusted Qodana analysis was skipped.',
+              cancelled: 'The trusted Qodana workflow was cancelled.',
+              skipped: 'The trusted Qodana workflow was skipped.',
             };
             await completeWorkflowCheck({
               github,

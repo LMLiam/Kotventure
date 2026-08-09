@@ -93,6 +93,67 @@ test('creates an in-progress check against the validated source SHA', async () =
   assert.doesNotThrow(() => new Date(parameters.started_at).toISOString());
 });
 
+test('rejects a created check from a foreign application', async () => {
+  const fixture = makeGithub();
+  fixture.check.app.slug = 'other-app';
+  await assert.rejects(
+    () => createWorkflowCheck({
+      github: fixture.github,
+      context: CONTEXT,
+      name: fixture.check.name,
+      headSha: HEAD_SHA,
+      externalId: fixture.check.external_id,
+      summary: 'Qodana is analysing the validated trusted source.',
+    }),
+    /created check application does not match/,
+  );
+});
+
+test('rejects a created check bound to a foreign external id', async () => {
+  const fixture = makeGithub();
+  const externalId = fixture.check.external_id;
+  fixture.check.external_id = `workflow-run-check:qodana-trusted:1:1:${'b'.repeat(40)}`;
+  await assert.rejects(
+    () => createWorkflowCheck({
+      github: fixture.github,
+      context: CONTEXT,
+      name: fixture.check.name,
+      headSha: HEAD_SHA,
+      externalId,
+      summary: 'Qodana is analysing the validated trusted source.',
+    }),
+    /created check external id does not match/,
+  );
+});
+
+test('rejects a created check bound to a foreign source SHA', async () => {
+  const fixture = makeGithub();
+  fixture.check.head_sha = 'b'.repeat(40);
+  await assert.rejects(
+    () => createWorkflowCheck({
+      github: fixture.github,
+      context: CONTEXT,
+      name: fixture.check.name,
+      headSha: HEAD_SHA,
+      externalId: fixture.check.external_id,
+      summary: 'Qodana is analysing the validated trusted source.',
+    }),
+    /created check head SHA does not match/,
+  );
+});
+
+test('rejects an invalid check kind', () => {
+  assert.throws(
+    () => buildCheckExternalId({
+      kind: 'Qodana PR',
+      runId: 1,
+      runAttempt: 1,
+      headSha: HEAD_SHA,
+    }),
+    /check kind is invalid/,
+  );
+});
+
 test('validates and completes the registered check', async () => {
   const fixture = makeGithub();
   await completeWorkflowCheck({

@@ -13,10 +13,13 @@ function readRepositoryFile(relativePath) {
 
 function readJob(workflow, name, nextName) {
   const start = workflow.indexOf(`  ${name}:\n`);
-  const end = nextName == null ? workflow.length : workflow.indexOf(`  ${nextName}:\n`, start);
   assert.notEqual(start, -1, `job ${name} is missing`);
+  const end = nextName == null ? workflow.length : workflow.indexOf(`  ${nextName}:\n`, start);
   assert.notEqual(end, -1, `job ${nextName} is missing`);
-  return workflow.slice(start, end);
+  assert.ok(end > start, `job ${name} must precede job ${nextName}`);
+  const section = workflow.slice(start, end);
+  assert.ok(section.trim().length > 0, `job ${name} is empty`);
+  return section;
 }
 
 test('the pull-request CI workflow does not run or publish Qodana results', () => {
@@ -37,8 +40,14 @@ test('the Qodana scan workflow is read-only and disables GitHub side effects', (
   assert.doesNotMatch(workflow, /QODANA_TOKEN/);
   assert.match(register, /checks:\s*write/);
   assert.doesNotMatch(analyse, /(?:actions|checks|contents|pull-requests|security-events):\s*write/);
-  assert.match(register, /registerQodanaCheck/);
+  assert.match(register, /createQodanaCheck/);
+  assert.ok(
+    register.indexOf("core.setOutput('check_run_id'")
+      < register.indexOf('const registration = writeQodanaCheckRegistration'),
+    'the workflow must export the check identity before registration persistence',
+  );
   assert.match(register, /Upload the Qodana check registration/);
+  assert.match(register, /path: \$\{\{ steps\.source\.outputs\.check_file_path \}\}/);
   assert.match(registrationFailure, /needs\.register\.result != 'success'/);
   assert.match(registrationFailure, /Complete the failed Qodana registration check/);
   assert.match(workflow, /upload-result:\s*false/);
@@ -81,6 +90,8 @@ test('trusted Qodana runs are limited to trusted CI events', () => {
   assert.match(register, /checks:\s*write/);
   assert.doesNotMatch(analyse, /checks:\s*write/);
   assert.match(report, /checks:\s*write/);
+  assert.match(report, /needs\.register\.outputs\.check_run_id != ''/);
+  assert.match(report, /REGISTER_RESULT: \$\{\{ needs\.register\.result \}\}/);
   assert.doesNotMatch(workflow, /QODANA_TOKEN/);
   assert.match(workflow, /resolveTrustedCiRun/);
   assert.match(workflow, /ref:\s*\$\{\{ needs\.register\.outputs\.head_sha \}\}/);

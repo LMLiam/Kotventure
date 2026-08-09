@@ -3,6 +3,7 @@
 const { resolveCiRun, QodanaSourceRejectedError } = require('./qodana-source.js');
 const {
   QodanaPublicationRejectedError,
+  recoverQodanaCheckDescriptor,
   selectQodanaCheckArtifact,
   selectQodanaRunArtifact,
   validateQodanaArtifactSource,
@@ -16,6 +17,15 @@ function requireObject(value, label) {
     throw new QodanaPublicationRejectedError(`${label} is missing`);
   }
   return value;
+}
+
+function qodanaConclusionSummary(conclusion) {
+  const summaries = {
+    failure: 'Qodana analysis failed.',
+    cancelled: 'The Qodana analysis was cancelled.',
+    timed_out: 'Qodana analysis timed out.',
+  };
+  return summaries[conclusion] || null;
 }
 
 async function resolvePublication({ github, context }) {
@@ -55,8 +65,21 @@ async function resolvePublication({ github, context }) {
   if (!Array.isArray(artifacts)) {
     throw new QodanaPublicationRejectedError('Qodana workflow artifacts are missing');
   }
-  const checkSelection = selectQodanaCheckArtifact({ artifacts, qodanaRun, repository });
-  const { descriptor: checkDescriptor } = checkSelection;
+  let checkArtifactRejection = null;
+  let checkDescriptor;
+  try {
+    const selection = selectQodanaCheckArtifact({ artifacts, qodanaRun, repository });
+    checkDescriptor = selection.descriptor;
+  } catch (error) {
+    if (!(error instanceof QodanaPublicationRejectedError)) {
+      throw error;
+    }
+    checkDescriptor = recoverQodanaCheckDescriptor({ artifacts, qodanaRun });
+    if (!checkDescriptor) {
+      throw error;
+    }
+    checkArtifactRejection = error;
+  }
 
   let source;
   try {
@@ -82,6 +105,9 @@ async function resolvePublication({ github, context }) {
           headSha: checkDescriptor.headSha,
         }),
         checkRunId: checkDescriptor.checkRunId,
+        checkSummary: error.stale
+          ? 'Qodana publication stopped because the pull request changed.'
+          : 'Qodana source validation failed.',
         headSha: checkDescriptor.headSha,
         pullNumber: null,
         publish: false,
@@ -107,10 +133,21 @@ async function resolvePublication({ github, context }) {
       headSha: source.headSha,
     }),
     checkRunId: checkDescriptor.checkRunId,
+    checkSummary: qodanaConclusionSummary(trustedRun.conclusion),
     headSha: source.headSha,
     pullNumber: source.pullRequest,
     sourceKind: source.sourceKind,
   };
+  if (checkArtifactRejection) {
+    return {
+      ...common,
+      artifactId: null,
+      checkConclusion: 'failure',
+      checkSummary: 'Qodana check registration validation failed.',
+      publish: false,
+      rejection: checkArtifactRejection,
+    };
+  }
   if (trustedRun.conclusion !== 'success') {
     return {
       ...common,
@@ -141,6 +178,7 @@ async function resolvePublication({ github, context }) {
         ...common,
         artifactId: null,
         checkConclusion: 'failure',
+        checkSummary: 'Qodana result validation failed.',
         publish: false,
         rejection: error,
       };
@@ -170,6 +208,7 @@ async function writePublicationOutputs({ github, context, core }) {
     core.setOutput('check_run_id', String(publication.checkRunId));
     core.setOutput('check_external_id', publication.checkExternalId);
     core.setOutput('check_conclusion', publication.checkConclusion || '');
+    core.setOutput('check_summary', publication.checkSummary || '');
     if (publication.rejection) {
       core.setFailed(`Qodana publication rejected: ${publication.rejection.message}`);
     }

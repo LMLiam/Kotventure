@@ -13,13 +13,12 @@ const {
 
 const QODANA_PR_CHECK_NAME = 'Qodana / pull request';
 
-async function registerQodanaCheck({
+async function createQodanaCheck({
   github,
   context,
   source,
   qodanaRunId,
   qodanaRunAttempt,
-  outputDirectory,
 }) {
   const externalId = buildCheckExternalId({
     kind: 'qodana-pr',
@@ -27,7 +26,7 @@ async function registerQodanaCheck({
     runAttempt: qodanaRunAttempt,
     headSha: source.headSha,
   });
-  const check = await createWorkflowCheck({
+  return createWorkflowCheck({
     github,
     context,
     name: QODANA_PR_CHECK_NAME,
@@ -35,6 +34,15 @@ async function registerQodanaCheck({
     externalId,
     summary: 'Qodana is analysing the validated pull-request source.',
   });
+}
+
+function writeQodanaCheckRegistration({
+  check,
+  source,
+  qodanaRunId,
+  qodanaRunAttempt,
+  outputDirectory,
+}) {
   const artifactName = buildCheckArtifactName({
     sourceKind: source.sourceKind,
     runId: source.runId,
@@ -46,8 +54,9 @@ async function registerQodanaCheck({
     baseSha: source.baseSha,
   });
   fs.mkdirSync(outputDirectory, { recursive: true });
+  const filePath = path.join(outputDirectory, QODANA_CHECK_FILE_NAME);
   fs.writeFileSync(
-    path.join(outputDirectory, QODANA_CHECK_FILE_NAME),
+    filePath,
     `${JSON.stringify({
       version: 1,
       artifactName,
@@ -56,10 +65,11 @@ async function registerQodanaCheck({
     })}\n`,
     { mode: 0o600 },
   );
-  return { artifactName, check };
+  return { artifactName, filePath };
 }
 
 module.exports = {
   QODANA_PR_CHECK_NAME,
-  registerQodanaCheck,
+  createQodanaCheck,
+  writeQodanaCheckRegistration,
 };

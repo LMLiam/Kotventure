@@ -51,7 +51,10 @@ jobs:
         with:
           script: |
             const { resolveSource } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/qodana-source.js`);
-            const { registerQodanaCheck } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/qodana-check-registration.js`);
+            const {
+              createQodanaCheck,
+              writeQodanaCheckRegistration,
+            } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/qodana-check-registration.js`);
             const source = await resolveSource({
               github,
               context,
@@ -64,23 +67,30 @@ jobs:
             core.setOutput('head_sha', source.headSha);
             core.setOutput('base_ref', source.baseRef);
             core.setOutput('merge_base_sha', source.mergeBaseSha || '');
-            const registration = await registerQodanaCheck({
+            const check = await createQodanaCheck({
               github,
               context,
+              source,
+              qodanaRunId: Number(process.env.QODANA_RUN_ID),
+              qodanaRunAttempt: Number(process.env.QODANA_RUN_ATTEMPT),
+            });
+            core.setOutput('check_run_id', String(check.id));
+            core.setOutput('check_external_id', check.externalId);
+            const registration = writeQodanaCheckRegistration({
+              check,
               source,
               qodanaRunId: Number(process.env.QODANA_RUN_ID),
               qodanaRunAttempt: Number(process.env.QODANA_RUN_ATTEMPT),
               outputDirectory: process.env.OUTPUT_DIRECTORY,
             });
             core.setOutput('check_artifact_name', registration.artifactName);
-            core.setOutput('check_run_id', String(registration.check.id));
-            core.setOutput('check_external_id', registration.check.externalId);
+            core.setOutput('check_file_path', registration.filePath);
 
       - name: Upload the Qodana check registration
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ steps.source.outputs.check_artifact_name }}
-          path: ${{ runner.temp }}/qodana-check/qodana-check.json
+          path: ${{ steps.source.outputs.check_file_path }}
           if-no-files-found: error
           retention-days: 7
 
