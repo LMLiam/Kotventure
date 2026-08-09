@@ -172,6 +172,7 @@ function setSourceOutputs(core, source) {
     core.setOutput('run_attempt', String(source.runAttempt));
     core.setOutput('pull_number', String(source.pullRequest));
     core.setOutput('artifact_id', String(source.artifactId));
+    core.setOutput('head_sha', source.headSha);
 }
 
 async function validateSource({
@@ -241,7 +242,7 @@ async function publishMetrics({
     });
 
     if (!source) {
-        return;
+        return false;
     }
 
     const result = validateResultProvenance(
@@ -278,6 +279,7 @@ async function publishMetrics({
     });
 
     core.info(`Published CI metrics for PR #${source.pullRequest}`);
+    return true;
 }
 
 module.exports = {

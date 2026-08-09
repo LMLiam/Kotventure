@@ -14,11 +14,12 @@ concurrency:
 jobs:
   publish:
     name: Publish Qodana result
-    if: github.event.workflow_run.conclusion == 'success'
+    if: github.event.workflow_run.conclusion != 'skipped'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
       actions: read
+      checks: write
       contents: read
       pull-requests: read
       security-events: write
@@ -64,6 +65,22 @@ jobs:
           SARIF_PATH: ${{ steps.download.outputs.path }}
         run: bash .github/scripts/normalize-qodana-sarif.sh "$SARIF_PATH"
 
+      - name: Verify the SARIF upload root is not a Git worktree
+        if: steps.publication.outputs.publish == 'true'
+        shell: bash
+        env:
+          UPLOAD_ROOT: ${{ runner.temp }}/qodana-publication
+        run: |
+          set -euo pipefail
+          if [[ ! -d $UPLOAD_ROOT ]]; then
+            printf 'SARIF upload root does not exist: %s\n' "$UPLOAD_ROOT" >&2
+            exit 1
+          fi
+          if git -C "$UPLOAD_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+            printf 'SARIF upload root must not be in a Git worktree: %s\n' "$UPLOAD_ROOT" >&2
+            exit 1
+          fi
+
       - name: Upload Qodana results to code scanning
         if: steps.publication.outputs.publish == 'true'
         uses: github/codeql-action/upload-sarif@f205ea1c3313d32999d8d6a48b4f6530d4437b38 # v4
@@ -71,6 +88,43 @@ jobs:
           CODEQL_ACTION_ANALYSIS_KEY: .github/workflows/ci.yml:qodana
         with:
           sarif_file: ${{ steps.download.outputs.path }}
+          checkout_path: ${{ runner.temp }}/qodana-publication
           ref: refs/pull/${{ steps.publication.outputs.pull_number }}/head
           sha: ${{ steps.publication.outputs.head_sha }}
           category: Kotventure/qodana
+
+      - name: Complete the pull-request Qodana check
+        if: always() && steps.publication.outputs.check_run_id != ''
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          CHECK_CONCLUSION: ${{ steps.publication.outputs.check_conclusion }}
+          CHECK_EXTERNAL_ID: ${{ steps.publication.outputs.check_external_id }}
+          CHECK_RUN_ID: ${{ steps.publication.outputs.check_run_id }}
+          CHECK_SUMMARY: ${{ steps.publication.outputs.check_summary }}
+          HEAD_SHA: ${{ steps.publication.outputs.head_sha }}
+          JOB_STATUS: ${{ job.status }}
+        with:
+          script: |
+            const {
+              completeWorkflowCheck,
+              workflowResultConclusion,
+            } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/workflow-run-check.js`);
+            const conclusion = process.env.CHECK_CONCLUSION
+              || workflowResultConclusion(process.env.JOB_STATUS);
+            const summaries = {
+              success: 'Qodana analysed and published the validated pull-request source.',
+              failure: 'Qodana analysis or publication failed.',
+              cancelled: 'Qodana analysis or publication was cancelled.',
+              skipped: 'Qodana publication was skipped.',
+              timed_out: 'Qodana analysis timed out.',
+            };
+            await completeWorkflowCheck({
+              github,
+              context,
+              checkId: Number(process.env.CHECK_RUN_ID),
+              name: 'Qodana / pull request',
+              headSha: process.env.HEAD_SHA,
+              externalId: process.env.CHECK_EXTERNAL_ID,
+              conclusion,
+              summary: process.env.CHECK_SUMMARY || summaries[conclusion],
+            });
