@@ -202,8 +202,10 @@ run, Qodana run, run attempts, and source commits.
 The `Qodana publication` workflow checks out the default branch. It validates
 the CI run, current pull request, changed paths, run attempt, head SHA, base
 SHA, artefact name, artefact archive, and SARIF structure. It then normalises
-the SARIF with default-branch code and uploads one result with the stable
-`.github/workflows/ci.yml:qodana` analysis key and `Kotventure/qodana` category.
+the SARIF with default-branch code. The upload uses a verified non-Git artefact
+directory, the validated pull-request head SHA, the stable
+`.github/workflows/ci.yml:qodana` analysis key, and the `Kotventure/qodana`
+category.
 No pull-request code runs in the publication workflow. The workflow completes
 the registered check with the publication result. It reports an upstream scan
 failure when no SARIF artefact can exist.
@@ -333,7 +335,7 @@ repository automation tests use `node --test`.
 |--------|------|
 | `validate-conventional-title.sh` | Title/commit subject format |
 | `check-one-declaration-per-file.sh` | One top-level class/interface/object per main-source file |
-| `normalize-qodana-sarif.sh` | Fix 0-based SARIF regions for GitHub code scanning |
+| `normalize-qodana-sarif.sh` | Fix 0-based SARIF regions and remove scanner-owned automation metadata before upload |
 | `write-gradle-job-summary.sh` | Job summary: Java/Gradle/Kotlin versions + failed tasks |
 | `vanilla-fixture-cache-key.sh` | Compute MC fixture cache key |
 | `download-base-metrics.sh` | PR feedback: fetch base coverage/jars/metrics from the base commit's CI run |

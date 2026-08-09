@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const { execFileSync } = require('node:child_process');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
@@ -351,6 +352,37 @@ test('classifies only approved documentation paths and release files', () => {
   assert.equal(classifyChangedFiles([{ filename: '.github/scripts/normalize-qodana-sarif.sh' }]), 'code');
   assert.equal(classifyChangedFiles([{ filename: 'docs/../.github/workflows/ci.yml' }]), 'code');
   assert.equal(classifyChangedFiles([]), 'code');
+});
+
+test('normalises Qodana metadata for a stable code-scanning category', (t) => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'qodana-normalize-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const sarifPath = path.join(directory, 'qodana.sarif.json');
+  fs.writeFileSync(sarifPath, JSON.stringify({
+    version: '2.1.0',
+    runs: [{
+      automationDetails: {
+        id: 'Kotventure/qodana/2026-08-09',
+        guid: 'aaeed1dc-350f-44a8-870d-62f8cb2b1dd5',
+      },
+      results: [{
+        locations: [{
+          physicalLocation: {
+            region: { startLine: 0, startColumn: 0 },
+          },
+        }],
+      }],
+    }],
+  }));
+
+  execFileSync('bash', [path.join(__dirname, 'normalize-qodana-sarif.sh'), sarifPath]);
+
+  const document = JSON.parse(fs.readFileSync(sarifPath, 'utf8'));
+  assert.equal(document.runs[0].automationDetails, undefined);
+  assert.deepEqual(
+    document.runs[0].results[0].locations[0].physicalLocation.region,
+    { startLine: 1, startColumn: 1 },
+  );
 });
 
 test('binds Qodana artifacts to both run attempts and the source SHAs', () => {

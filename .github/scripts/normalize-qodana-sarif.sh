@@ -38,7 +38,8 @@ jq '
             | (if (.startColumn? | type) == "number" and .startColumn < 1 then .startColumn = 1 else . end)
         end;
 
-    walk(
+    .runs |= map(del(.automationDetails))
+    | walk(
         if type == "object" and (.region? | type) == "object" then
             .region |= normalize_region
         else

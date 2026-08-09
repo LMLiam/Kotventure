@@ -65,6 +65,22 @@ jobs:
           SARIF_PATH: ${{ steps.download.outputs.path }}
         run: bash .github/scripts/normalize-qodana-sarif.sh "$SARIF_PATH"
 
+      - name: Verify the SARIF upload root is not a Git worktree
+        if: steps.publication.outputs.publish == 'true'
+        shell: bash
+        env:
+          UPLOAD_ROOT: ${{ runner.temp }}/qodana-publication
+        run: |
+          set -euo pipefail
+          if [[ ! -d $UPLOAD_ROOT ]]; then
+            printf 'SARIF upload root does not exist: %s\n' "$UPLOAD_ROOT" >&2
+            exit 1
+          fi
+          if git -C "$UPLOAD_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+            printf 'SARIF upload root must not be in a Git worktree: %s\n' "$UPLOAD_ROOT" >&2
+            exit 1
+          fi
+
       - name: Upload Qodana results to code scanning
         if: steps.publication.outputs.publish == 'true'
         uses: github/codeql-action/upload-sarif@f205ea1c3313d32999d8d6a48b4f6530d4437b38 # v4
@@ -72,6 +88,7 @@ jobs:
           CODEQL_ACTION_ANALYSIS_KEY: .github/workflows/ci.yml:qodana
         with:
           sarif_file: ${{ steps.download.outputs.path }}
+          checkout_path: ${{ runner.temp }}/qodana-publication
           ref: refs/pull/${{ steps.publication.outputs.pull_number }}/head
           sha: ${{ steps.publication.outputs.head_sha }}
           category: Kotventure/qodana
