@@ -1,0 +1,76 @@
+name: Qodana publication
+
+on:
+  workflow_run:
+    workflows: [Qodana]
+    types: [completed]
+
+permissions: {}
+
+concurrency:
+  group: qodana-publication-${{ github.event.workflow_run.id }}-${{ github.event.workflow_run.run_attempt }}
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    name: Publish Qodana result
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+      security-events: write
+    steps:
+      - name: Checkout trusted publication code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Validate the current Qodana source
+        id: publication
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const { writePublicationOutputs } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/qodana-publisher.js`);
+            await writePublicationOutputs({ github, context, core });
+
+      - name: Download and validate the Qodana SARIF
+        id: download
+        if: steps.publication.outputs.publish == 'true'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          ARTIFACT_ID: ${{ steps.publication.outputs.artifact_id }}
+          OUTPUT_DIRECTORY: ${{ runner.temp }}/qodana-publication
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          script: |
+            const { downloadQodanaArtifact } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/qodana-publisher-storage.js`);
+            const filePath = await downloadQodanaArtifact({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              artifactId: Number(process.env.ARTIFACT_ID),
+              outputDirectory: process.env.OUTPUT_DIRECTORY,
+              token: process.env.GITHUB_TOKEN,
+            });
+            core.setOutput('path', filePath);
+
+      - name: Normalize Qodana SARIF regions
+        if: steps.publication.outputs.publish == 'true'
+        shell: bash
+        env:
+          SARIF_PATH: ${{ steps.download.outputs.path }}
+        run: bash .github/scripts/normalize-qodana-sarif.sh "$SARIF_PATH"
+
+      - name: Upload Qodana results to code scanning
+        if: steps.publication.outputs.publish == 'true'
+        uses: github/codeql-action/upload-sarif@f205ea1c3313d32999d8d6a48b4f6530d4437b38 # v4
+        env:
+          CODEQL_ACTION_ANALYSIS_KEY: .github/workflows/ci.yml:qodana
+        with:
+          sarif_file: ${{ steps.download.outputs.path }}
+          ref: refs/pull/${{ steps.publication.outputs.pull_number }}/head
+          sha: ${{ steps.publication.outputs.head_sha }}
+          category: Kotventure/qodana

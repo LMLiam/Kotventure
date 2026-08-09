@@ -12,6 +12,9 @@ For local development commands, see [CONTRIBUTING.md](../.github/CONTRIBUTING.md
 |----------|------|----------|---------|
 | **CI** | `ci.yml` | PR, push, `merge_group`, weekly schedule, `workflow_dispatch` | Gate, path filter, parallel lint, build, and analysis. Always reports the required status check |
 | **PR metrics publication** | `pr-metrics-publish.yml` | `workflow_run` after CI | Validates the CI result and publishes one metrics comment with default-branch code |
+| **Qodana** | `qodana.yml` | `workflow_run` after successful PR CI | Runs Qodana with read-only permissions and creates one bounded SARIF artefact |
+| **Qodana publication** | `qodana-publish.yml` | `workflow_run` after Qodana | Validates the current PR and publishes SARIF with default-branch code |
+| **Qodana trusted** | `qodana-trusted.yml` | `workflow_run` after successful push, schedule, or dispatch CI | Runs and publishes Qodana for trusted refs |
 | **PR** | `pr.yml` | `pull_request_target` | Title + commit validation, area labels |
 | **Release provenance** | `release-provenance.yml` | `pull_request_target` | Verifies Release Please identity and release files from the default branch |
 | **Release** | `release.yml` | push `master` | Opens or updates release PRs. Creates tags and releases after merge |
@@ -33,7 +36,6 @@ CI
 │
 ├─ Tier 2: Deep Analysis (after Tier 1 passes) ────────────────────
 │   ├─ CodeQL            (actions + java-kotlin matrix)
-│   ├─ Qodana            (static analysis or documentation attestation + SARIF)
 │   └─ Vanilla conformance  (MC-backed selector tests, path-filtered)
 │
 ├─ Policy (independent of tiers) ──────────────────────────────────
@@ -45,18 +47,25 @@ CI
 └─ Status (required merge-gate check) ─────────────────────────────
     └─ Aggregates Tier 1 + Vanilla + Dependencies
 
+Qodana security pipeline (workflow_run)
+├─ Qodana            (read-only PR-head analysis or trusted attestation artefact)
+├─ Qodana publication (default-branch validation and SARIF upload)
+└─ Qodana trusted    (trusted push, schedule, and dispatch analysis)
+
 PR metrics publication (workflow_run)
 └─ Validates the completed CI run, result artefact, and current PR
    └─ Publishes one non-gating metrics comment with default-branch code
 ```
 
-For code changes, Tier 2 starts only after Tier 1 passes. A documentation-only pull request can run the Qodana
-documentation attestation when Lint and Build are skipped. The attestation does not check out or analyse code. This
-sequence prevents unnecessary analysis of code that does not compile or pass lint. The Status job always starts. It
-reports one required check that controls merges.
+For code changes, Tier 2 starts only after Tier 1 passes. The Qodana security pipeline starts after successful pull-request
+CI. A documentation-only pull request receives a trusted QDJVM attestation. The attestation does not check out or
+analyse code. This sequence prevents analysis of code that does not compile or pass lint. The Status job always starts.
+It reports one required check that controls merges.
 
 The workflow listens for `merge_group` events. Merge groups, schedules, and manual dispatches do not use the path
-filter. They always start the full pipeline: Build, Vanilla, Qodana, and CodeQL.
+filter. They always start the full pipeline: Build, Vanilla, and CodeQL. The `Qodana trusted` workflow analyses a
+push, schedule, or manual-dispatch ref after CI completes. It does not run for a merge-group ref because a merge group
+contains pull-request code.
 
 ## When workflows run
 
@@ -101,11 +110,11 @@ The full CI path includes these code paths:
 | PR (approved docs-only paths) | ✓ | — | QDJVM documentation attestation | — |
 | PR (trusted Release Please files only) | ✓ | — | QDJVM attestation | — |
 | PR (untrusted release candidate) | ✓ | ✓ | ✓ | ✓ |
-| Push to `master` (code paths) | ✓ | ✓ | ✓ | ✓ |
-| Push to `master` (docs only) | ✓ | — | — | — |
-| `merge_group` | ✓ | ✓ (path filter skipped) | ✓ | ✓ |
-| Weekly schedule | ✓ | ✓ | ✓ | ✓ |
-| `workflow_dispatch` | ✓ | ✓ | ✓ | ✓ |
+| Push to `master` (code paths) | ✓ | ✓ | Trusted Qodana | ✓ |
+| Push to `master` (docs only) | ✓ | — | Trusted Qodana | — |
+| `merge_group` | ✓ | ✓ (path filter skipped) | — | ✓ |
+| Weekly schedule | ✓ | ✓ | Trusted Qodana | ✓ |
+| `workflow_dispatch` | ✓ | ✓ | Trusted Qodana | ✓ |
 
 ### Manual CI (`workflow_dispatch`)
 
@@ -167,32 +176,40 @@ relying on the release-only CI path.
 When you add Release Please `extra-files`, update the allowlist in both
 `ci.yml` and `release-provenance.yml`.
 
-For a trusted pure Release Please PR, the gate starts the `QDJVM (release
-attestation)` job. The job uploads a zero-result SARIF record with the `QDJVM`
-tool name under the existing `Kotventure/qodana` configuration. It does not
-run Qodana. An untrusted release candidate runs normal CI instead.
+For a trusted pure Release Please PR, the `Qodana` workflow creates a zero-result
+SARIF record with the `QDJVM` tool name. It does not run Qodana. The trusted
+publication workflow validates the current Release Please provenance before it
+uploads the record. An untrusted release candidate uses the normal Qodana scan.
 
-For a normal documentation-only pull request, the `Qodana` job uses its
-documentation-only path. It does not check out pull-request code or run
-Qodana. It uploads a zero-result SARIF record with the `QDJVM` tool name under
-the existing `Kotventure/qodana` configuration. This records the path
-classification. It does not claim that Qodana scanned code. The result is tied
+For a normal documentation-only pull request, the `Qodana` workflow creates a
+zero-result SARIF record with the `QDJVM` tool name. It does not check out or
+analyse pull-request code. The trusted publication workflow validates the
+current documentation paths before it uploads the record. The result is tied
 to the pull-request head commit.
 
-Code-path pull requests use the same `Qodana` job for the real Qodana scan.
-The job keeps the existing Qodana permissions because the combined design uses
-the real scan as its permission baseline. The documentation path does not use
-the extra capabilities to check out or execute pull-request code. Release
-candidates do not use this attestation.
+For a code pull request, the `Qodana` workflow checks out the default-branch
+workflow code and the pull-request head into separate paths. It supplies the
+default-branch `qodana.yaml` file to Qodana. The scan job has only read
+permissions. It does not receive `QODANA_TOKEN`. It disables Qodana annotations,
+pull-request comments, fix pushes, and result upload. It stores one SARIF file
+as a bounded artefact.
 
-The `Master` ruleset requires the applicable QDJVM result for each pull
-request: documentation-only pull requests use this attestation, code pull
+The `Qodana publication` workflow checks out the default branch. It validates
+the CI run, current pull request, changed paths, run attempt, head SHA, base
+SHA, artefact name, artefact archive, and SARIF structure. It then normalises
+the SARIF with default-branch code and uploads one result with the stable
+`.github/workflows/ci.yml:qodana` analysis key and `Kotventure/qodana` category.
+No pull-request code runs in the publication workflow.
+
+The `Qodana trusted` workflow handles push, schedule, and manual-dispatch CI.
+It checks out the trusted source commit and uploads its result directly. Its
+write permission does not apply to pull-request or merge-group analysis.
+
+The `Master` ruleset requires one applicable QDJVM result for each pull request:
+documentation-only pull requests use the documentation attestation, code pull
 requests use the real Qodana result, and trusted Release Please pull requests
-use the release attestation. Both paths use the stable
-`.github/workflows/ci.yml:qodana` analysis key and `Kotventure/qodana`
-category.
-The attestation SARIF declares one rule and reports zero alerts. This lets
-GitHub treat the tool as configured.
+use the release attestation. The attestation SARIF declares one rule and
+reports zero alerts. This lets GitHub treat the tool as configured.
 
 ### Full builds
 
@@ -264,7 +281,9 @@ For an occasional diagnostic scan, give `build-scan: true` to `gradle-job`. The 
 | Default workflow permissions | Set the repository default to `contents: read` |
 | Release provenance workflow | Uses `contents: read` and `pull-requests: read`. Does not check out pull-request code |
 | CI gate | Uses `actions: read`, `contents: read`, and `pull-requests: read` |
-| Qodana and documentation attestation | Uses the existing `checks: write`, `contents: read`, `pull-requests: write`, and `security-events: write` permissions. The documentation path does not check out pull-request code |
+| Qodana scan | Uses `actions: read`, `contents: read`, and `pull-requests: read`. It has no `security-events: write` permission, no `QODANA_TOKEN`, and no Qodana GitHub side effects |
+| Qodana publication | Uses `actions: read`, `contents: read`, `pull-requests: read`, and `security-events: write`. It runs default-branch code and validates the artefact before upload |
+| Qodana trusted | Uses `actions: read`, `contents: read`, and `security-events: write` only for push, schedule, and manual-dispatch refs |
 | Release workflow | Uses an installation token from `release-please-kotventure`. Its `GITHUB_TOKEN` has no permissions |
 | Build job | Uses `checks: write` and `contents: read`. Cannot write to pull requests. Clears `GITHUB_TOKEN` for Gradle |
 | PR feedback job | Uses `actions: read`, `pull-requests: read`, and `contents: read`. Computes a bounded result artefact and cannot write to pull requests. Uses the cache or artefacts before a base JAR-only build. Clears `GITHUB_TOKEN` for Gradle |
@@ -295,7 +314,8 @@ The Title and Commits jobs are required status checks.
 Before Spotless and ktlint, Lint starts two additional checks. The declaration script permits one top-level type in
 each main-source file. The `pr-metrics-comment` tests use `node --test`.
 
-PR feedback does not control a merge because it uses `continue-on-error`. A failure does not fail Build or Status.
+PR feedback does not control a merge because it uses `continue-on-error`. A failure does not fail Build or Status. The
+repository automation tests use `node --test`.
 
 ## Scripts
 
@@ -310,6 +330,10 @@ PR feedback does not control a merge because it uses `continue-on-error`. A fail
 | `build-base-jars.sh` | PR feedback: last-resort jar-only Gradle build of the base SHA |
 | `collect-ci-metrics.sh` | Build: test/skipped counts + build duration → `ci-metrics.json` |
 | `pr-metrics-publisher.js` | Trusted workflow_run publisher: validates the source run and renders the metrics comment |
+| `qodana-source.js` | Trusted workflow_run source and path classification for Qodana |
+| `qodana-publisher.js` | Trusted Qodana publication source validation |
+| `qodana-publisher-archive.js` | Bounded single-file SARIF archive extraction |
+| `qodana-publisher-storage.js` | Bounded artifact download and SARIF validation |
 
 ## Action pins and Dependabot
 
