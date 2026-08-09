@@ -2,12 +2,15 @@
 
 const {
   MAX_ARTIFACT_BYTES,
+  MAX_CHECK_ARTIFACT_BYTES,
   MAX_SARIF_BYTES,
   MAX_SARIF_RESULTS,
   QODANA_ARTIFACT_PREFIX,
+  QODANA_CHECK_ARTIFACT_PREFIX,
   QODANA_WORKFLOW_NAME,
   QODANA_WORKFLOW_PATH,
   parseArtifactName,
+  parseCheckArtifactName,
 } = require('./qodana-contract.js');
 
 class QodanaPublicationRejectedError extends Error {}
@@ -56,10 +59,12 @@ function validateQodanaWorkflowSource({ eventRun, run, workflow, repository }) {
   }
   requireEqual(eventRun.event, 'workflow_run', 'workflow run event');
   requireEqual(eventRun.status, 'completed', 'workflow run event status');
-  requireEqual(eventRun.conclusion, 'success', 'workflow run event conclusion');
+  requireEqual(eventRun.conclusion, run.conclusion, 'workflow run event conclusion');
   requireEqual(run.event, 'workflow_run', 'workflow run event');
   requireEqual(run.status, 'completed', 'workflow run status');
-  requireEqual(run.conclusion, 'success', 'workflow run conclusion');
+  if (!['success', 'failure', 'cancelled', 'timed_out'].includes(run.conclusion)) {
+    reject('workflow run conclusion is invalid');
+  }
   requireEqual(run.repository?.full_name, repository.full_name, 'workflow run repository');
   requireEqual(run.repository?.id, repository.id, 'workflow run repository id');
   requireEqual(run.head_repository?.full_name, repository.full_name, 'workflow head repository');
@@ -74,7 +79,48 @@ function validateQodanaWorkflowSource({ eventRun, run, workflow, repository }) {
     runId: requirePositiveInteger(run.id, 'Qodana workflow run id'),
     runAttempt: requirePositiveInteger(run.run_attempt, 'Qodana workflow run attempt'),
     repository: repository.full_name,
+    conclusion: run.conclusion,
   };
+}
+
+function selectQodanaCheckArtifact({ artifacts, qodanaRun, repository }) {
+  if (!Array.isArray(artifacts)) {
+    reject('workflow artifacts are missing');
+  }
+  const candidates = artifacts
+    .filter((artifact) => typeof artifact?.name === 'string'
+      && artifact.name.startsWith(QODANA_CHECK_ARTIFACT_PREFIX))
+    .map((artifact) => ({ artifact, descriptor: parseCheckArtifactName(artifact.name) }))
+    .filter(({ descriptor }) => descriptor?.qodanaRunId === qodanaRun.id
+      && descriptor.qodanaRunAttempt === qodanaRun.run_attempt);
+  if (candidates.length !== 1) {
+    reject(`expected exactly one Qodana check artifact, found ${candidates.length}`);
+  }
+  const [{ artifact, descriptor }] = candidates;
+  requirePositiveInteger(artifact.id, 'Qodana check artifact id');
+  if (artifact.expired !== false) {
+    reject('Qodana check artifact is expired');
+  }
+  if (!Number.isSafeInteger(artifact.size_in_bytes)
+    || artifact.size_in_bytes < 1
+    || artifact.size_in_bytes > MAX_CHECK_ARTIFACT_BYTES) {
+    reject('Qodana check artifact size is invalid');
+  }
+  const artifactRun = requireObject(artifact.workflow_run, 'Qodana check artifact workflow run');
+  requireEqual(artifactRun.id, qodanaRun.id, 'Qodana check artifact workflow run id');
+  requireEqual(artifactRun.repository_id, repository.id, 'Qodana check artifact repository id');
+  requireEqual(artifactRun.head_repository_id, qodanaRun.head_repository?.id, 'Qodana check artifact head repository id');
+  requireEqual(artifactRun.head_branch, qodanaRun.head_branch, 'Qodana check artifact head branch');
+  requireEqual(artifactRun.head_sha, qodanaRun.head_sha, 'Qodana check artifact head SHA');
+  return { artifact, descriptor };
+}
+
+function validateQodanaCheckSource({ descriptor, source }) {
+  requireEqual(descriptor.sourceKind, source.sourceKind, 'Qodana check source kind');
+  requireEqual(descriptor.ciRunId, source.runId, 'Qodana check CI run id');
+  requireEqual(descriptor.ciRunAttempt, source.runAttempt, 'Qodana check CI run attempt');
+  requireEqual(descriptor.headSha, source.headSha, 'Qodana check head SHA');
+  requireEqual(descriptor.baseSha, source.baseSha, 'Qodana check base SHA');
 }
 
 function selectQodanaRunArtifact({ artifacts, qodanaRun, repository }) {
@@ -232,8 +278,10 @@ function validateQodanaSarif(value) {
 module.exports = {
   QodanaPublicationRejectedError,
   selectQodanaArtifact,
+  selectQodanaCheckArtifact,
   selectQodanaRunArtifact,
   validateQodanaArtifactSource,
+  validateQodanaCheckSource,
   validateQodanaSarif,
   validateQodanaWorkflowSource,
 };

@@ -29,6 +29,7 @@ const {
     ARTIFACT_API_URL,
     ARTIFACT_ID,
     ARTIFACT_STORAGE_URL,
+    HEAD_SHA,
     makeArtifact,
     makeArtifactFetch,
     makeDownloadOptions,
@@ -567,6 +568,7 @@ describe('publisher orchestration', () => {
         assert.equal(outputs.get('publish'), 'true');
         assert.equal(outputs.get('artifact_id'), '700');
         assert.equal(outputs.get('pull_number'), '42');
+        assert.equal(outputs.get('head_sha'), HEAD_SHA);
     });
 
     test('sets publish=false when source validation rejects publication', async () => {
@@ -605,7 +607,7 @@ describe('publisher orchestration', () => {
         const inputs = makeInputs();
         const warnings = [];
 
-        await publishMetrics({
+        const published = await publishMetrics({
             github: makeGithub({
                 run: inputs.run,
                 pullRequest: {
@@ -623,6 +625,7 @@ describe('publisher orchestration', () => {
             artifactDirectory: 'unused',
         });
 
+        assert.equal(published, false);
         assert.equal(warnings.length, 1);
         assert.match(
                 warnings[0],
@@ -668,7 +671,7 @@ describe('publisher orchestration', () => {
             return paginate(method, parameters);
         };
 
-        await publishMetrics({
+        const published = await publishMetrics({
             github,
             context: makeWorkflowRunContext(inputs.run),
             core: {
@@ -678,6 +681,7 @@ describe('publisher orchestration', () => {
             artifactDirectory: directory,
         });
 
+        assert.equal(published, true);
         assert.equal(publishedComments.length, 1);
         assert.equal(publishedComments[0].issue_number, 42);
         assert.match(

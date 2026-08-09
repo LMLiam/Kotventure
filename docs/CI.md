@@ -194,16 +194,25 @@ permissions. It does not receive `QODANA_TOKEN`. It disables Qodana annotations,
 pull-request comments, fix pushes, and result upload. It stores one SARIF file
 as a bounded artefact.
 
+A separate registration job creates the `Qodana / pull request` check on the
+validated pull-request head. The check starts with `in_progress`. The read-only
+scan job cannot update it. The registration artefact binds the check to the CI
+run, Qodana run, run attempts, and source commits.
+
 The `Qodana publication` workflow checks out the default branch. It validates
 the CI run, current pull request, changed paths, run attempt, head SHA, base
 SHA, artefact name, artefact archive, and SARIF structure. It then normalises
 the SARIF with default-branch code and uploads one result with the stable
 `.github/workflows/ci.yml:qodana` analysis key and `Kotventure/qodana` category.
-No pull-request code runs in the publication workflow.
+No pull-request code runs in the publication workflow. The workflow completes
+the registered check with the publication result. It reports an upstream scan
+failure when no SARIF artefact can exist.
 
 The `Qodana trusted` workflow handles push, schedule, and manual-dispatch CI.
 It checks out the trusted source commit and uploads its result directly. Its
-write permission does not apply to pull-request or merge-group analysis.
+write permission does not apply to pull-request or merge-group analysis. A
+registration job creates the `Qodana / trusted ref` check on the validated
+source commit. A separate report job completes the check after analysis.
 
 The `Master` ruleset requires one applicable QDJVM result for each pull request:
 documentation-only pull requests use the documentation attestation, code pull
@@ -232,7 +241,8 @@ When the account supports the feature, enable the queue in the **Master** rulese
 
 After Build, the **PR feedback** job computes one bounded JSON result. The separate **PR metrics publication** workflow
 validates that result and posts **one** bot comment (`<!-- pr-metrics -->`) with code from the default branch. The
-publication workflow does not execute pull-request code.
+publication workflow does not execute pull-request code. It also creates the `PR metrics publication` check on the
+validated pull-request head. It completes the check with the publication result.
 
 The comment contains:
 
@@ -281,13 +291,13 @@ For an occasional diagnostic scan, give `build-scan: true` to `gradle-job`. The 
 | Default workflow permissions | Set the repository default to `contents: read` |
 | Release provenance workflow | Uses `contents: read` and `pull-requests: read`. Does not check out pull-request code |
 | CI gate | Uses `actions: read`, `contents: read`, and `pull-requests: read` |
-| Qodana scan | Uses `actions: read`, `contents: read`, and `pull-requests: read`. It has no `security-events: write` permission, no `QODANA_TOKEN`, and no Qodana GitHub side effects |
-| Qodana publication | Uses `actions: read`, `contents: read`, `pull-requests: read`, and `security-events: write`. It runs default-branch code and validates the artefact before upload |
-| Qodana trusted | Uses `actions: read`, `contents: read`, and `security-events: write` only for push, schedule, and manual-dispatch refs |
+| Qodana scan | The registration job adds `checks: write` and creates the source-bound check. The analysis job uses only `actions: read`, `contents: read`, and `pull-requests: read`. It has no write permission, no `QODANA_TOKEN`, and no Qodana GitHub side effects |
+| Qodana publication | Uses `actions: read`, `checks: write`, `contents: read`, `pull-requests: read`, and `security-events: write`. It runs default-branch code, validates the artefacts, uploads SARIF, and completes the source-bound check |
+| Qodana trusted | The registration and report jobs use `checks: write`. The analysis job uses `actions: read`, `contents: read`, and `security-events: write` only for push, schedule, and manual-dispatch refs |
 | Release workflow | Uses an installation token from `release-please-kotventure`. Its `GITHUB_TOKEN` has no permissions |
 | Build job | Uses `checks: write` and `contents: read`. Cannot write to pull requests. Clears `GITHUB_TOKEN` for Gradle |
 | PR feedback job | Uses `actions: read`, `pull-requests: read`, and `contents: read`. Computes a bounded result artefact and cannot write to pull requests. Uses the cache or artefacts before a base JAR-only build. Clears `GITHUB_TOKEN` for Gradle |
-| PR metrics publication | Runs default-branch code after CI. Uses `actions: read`, `contents: read`, and `pull-requests: write`. Validates the source workflow, run attempt, current PR head and base, exact artefact, and result provenance before it posts |
+| PR metrics publication | Runs default-branch code after CI. Uses `actions: read`, `checks: write`, `contents: read`, and `pull-requests: write`. Validates the source workflow, run attempt, current PR head and base, exact artefact, and result provenance before it creates the check or posts the comment |
 | Build scans | Off by default. Enable with `build-scan: true` |
 | Dokka preview artefact | Contains untrusted HTML from the pull request. Retain for 14 days. Do not publish as Pages |
 
@@ -331,9 +341,11 @@ repository automation tests use `node --test`.
 | `collect-ci-metrics.sh` | Build: test/skipped counts + build duration → `ci-metrics.json` |
 | `pr-metrics-publisher.js` | Trusted workflow_run publisher: validates the source run and renders the metrics comment |
 | `qodana-source.js` | Trusted workflow_run source and path classification for Qodana |
+| `qodana-check-registration.js` | Creates and records the source-bound pull-request Qodana check |
 | `qodana-publisher.js` | Trusted Qodana publication source validation |
 | `qodana-publisher-archive.js` | Bounded single-file SARIF archive extraction |
 | `qodana-publisher-storage.js` | Bounded artifact download and SARIF validation |
+| `workflow-run-check.js` | Creates, validates, and completes source-bound workflow checks |
 
 ## Action pins and Dependabot
 

@@ -5,6 +5,9 @@ const CI_WORKFLOW_PATH = '.github/workflows/ci.yml';
 const QODANA_WORKFLOW_NAME = 'Qodana';
 const QODANA_WORKFLOW_PATH = '.github/workflows/qodana.yml';
 const QODANA_ARTIFACT_PREFIX = 'qodana-sarif-';
+const QODANA_CHECK_ARTIFACT_PREFIX = 'qodana-check-';
+const QODANA_CHECK_FILE_NAME = 'qodana-check.json';
+const MAX_CHECK_ARTIFACT_BYTES = 64 * 1024;
 const QODANA_SARIF_FILE_NAME = 'qodana.sarif.json';
 const MAX_ARTIFACT_BYTES = 16 * 1024 * 1024;
 const MAX_SARIF_BYTES = 16 * 1024 * 1024;
@@ -139,22 +142,69 @@ function parseArtifactName(name) {
   };
 }
 
+function buildCheckArtifactName({
+  sourceKind,
+  runId,
+  runAttempt,
+  qodanaRunId,
+  qodanaRunAttempt,
+  checkRunId,
+  headSha,
+  baseSha,
+}) {
+  if (!['code', 'documentation', 'release'].includes(sourceKind)) {
+    throw new Error('Qodana source kind is invalid');
+  }
+  return `${QODANA_CHECK_ARTIFACT_PREFIX}${sourceKind}-${requirePositiveInteger(runId, 'CI workflow run id')}-${requirePositiveInteger(runAttempt, 'CI workflow run attempt')}-${requirePositiveInteger(qodanaRunId, 'Qodana workflow run id')}-${requirePositiveInteger(qodanaRunAttempt, 'Qodana workflow run attempt')}-${requirePositiveInteger(checkRunId, 'check run id')}-${requireSha(headSha, 'head SHA')}-${requireSha(baseSha, 'base SHA')}`;
+}
+
+function parseCheckArtifactName(name) {
+  if (typeof name !== 'string') {
+    return null;
+  }
+  const match = name.match(
+    new RegExp(`^${QODANA_CHECK_ARTIFACT_PREFIX}(code|documentation|release)-(\\d+)-(\\d+)-(\\d+)-(\\d+)-(\\d+)-([0-9a-f]{40})-([0-9a-f]{40})$`),
+  );
+  if (!match) {
+    return null;
+  }
+  const integers = match.slice(2, 7).map(Number);
+  if (integers.some((value) => !Number.isSafeInteger(value) || value < 1)) {
+    return null;
+  }
+  return {
+    sourceKind: match[1],
+    ciRunId: integers[0],
+    ciRunAttempt: integers[1],
+    qodanaRunId: integers[2],
+    qodanaRunAttempt: integers[3],
+    checkRunId: integers[4],
+    headSha: match[7],
+    baseSha: match[8],
+  };
+}
+
 module.exports = {
   CI_WORKFLOW_NAME,
   CI_WORKFLOW_PATH,
   DOCUMENTATION_PATH_PATTERNS,
   MAX_ARTIFACT_BYTES,
+  MAX_CHECK_ARTIFACT_BYTES,
   MAX_SARIF_BYTES,
   MAX_SARIF_RESULTS,
   QODANA_ARTIFACT_PREFIX,
+  QODANA_CHECK_ARTIFACT_PREFIX,
+  QODANA_CHECK_FILE_NAME,
   QODANA_SARIF_FILE_NAME,
   QODANA_WORKFLOW_NAME,
   QODANA_WORKFLOW_PATH,
   RELEASE_ONLY_FILES,
   buildArtifactName,
+  buildCheckArtifactName,
   changedPathNames,
   classifyChangedFiles,
   isDocumentationPath,
   isSafeRepositoryPath,
   parseArtifactName,
+  parseCheckArtifactName,
 };
