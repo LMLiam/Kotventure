@@ -5,14 +5,17 @@ const os = require('node:os');
 const path = require('node:path');
 const zlib = require('node:zlib');
 const { serializeMetricsResult } = require('../actions/pr-metrics-comment/lib/metrics-result.js');
-const { RESULT_FILE_NAME } = require('./pr-metrics-publisher-contract.js');
 const {
-    expectedArtifactName,
-    validateWorkflowSource,
-} = require('./pr-metrics-publisher-validation.js');
+    RESULT_ARTIFACT_PREFIX,
+    RESULT_FILE_NAME,
+} = require('./pr-metrics-publisher-contract.js');
 
 const BASE_SHA = 'a'.repeat(40);
 const HEAD_SHA = 'b'.repeat(40);
+const ARTIFACT_ID = 700;
+const ARTIFACT_API_URL = 'https://api.github.test';
+const ARTIFACT_STORAGE_URL = 'https://artifact.example/result.zip';
+const TEST_TOKEN = 'test-token';
 
 const REPOSITORY = Object.freeze({
     full_name: 'LMLiam/Kotventure',
@@ -77,14 +80,31 @@ function makeInputs() {
     };
 }
 
-function makeSource(inputs = makeInputs()) {
-    return validateWorkflowSource(inputs);
+function makeSource(overrides = {}) {
+    return {
+        repository: REPOSITORY.full_name,
+        repositoryId: REPOSITORY.id,
+        workflow: 'CI',
+        event: 'pull_request',
+        runId: 100,
+        runAttempt: 2,
+        pullRequest: 42,
+        baseRepository: REPOSITORY.full_name,
+        baseRepositoryId: REPOSITORY.id,
+        baseRef: REPOSITORY.default_branch,
+        baseSha: BASE_SHA,
+        headRepository: HEAD_REPOSITORY.full_name,
+        headRepositoryId: HEAD_REPOSITORY.id,
+        headRef: 'fix/metrics',
+        headSha: HEAD_SHA,
+        ...overrides,
+    };
 }
 
 function makeArtifact(source = makeSource()) {
     return {
-        id: 700,
-        name: expectedArtifactName(source),
+        id: ARTIFACT_ID,
+        name: `${RESULT_ARTIFACT_PREFIX}${source.runId}-${source.runAttempt}`,
         expired: false,
         size_in_bytes: 200,
         workflow_run: {
@@ -175,11 +195,11 @@ function makeWorkflowRunContext(run = makeInputs().run) {
 }
 
 function makeGithub({
-                        run = makeInputs().run,
-                        associatedPullRequests = [],
-                        artifacts = [],
-                        pullRequest = makeInputs().pullRequest,
-                    } = {}) {
+    run = makeInputs().run,
+    associatedPullRequests = [],
+    artifacts = [],
+    pullRequest = makeInputs().pullRequest,
+} = {}) {
     const listAssociatedPullRequests = () => {};
     const listWorkflowRunArtifacts = () => {};
 
@@ -224,7 +244,7 @@ function makeGithub({
     };
 }
 
-function makeResult() {
+function makeResult(source = makeSource()) {
     return serializeMetricsResult({
         context: {
             repo: {
@@ -234,26 +254,26 @@ function makeResult() {
             eventName: 'pull_request',
             payload: {
                 pull_request: {
-                    number: 42,
+                    number: source.pullRequest,
                     base: {
                         repo: {
-                            full_name: REPOSITORY.full_name,
+                            full_name: source.baseRepository,
                         },
-                        ref: 'master',
-                        sha: BASE_SHA,
+                        ref: source.baseRef,
+                        sha: source.baseSha,
                     },
                     head: {
                         repo: {
-                            full_name: HEAD_REPOSITORY.full_name,
+                            full_name: source.headRepository,
                         },
-                        ref: 'fix/metrics',
-                        sha: HEAD_SHA,
+                        ref: source.headRef,
+                        sha: source.headSha,
                     },
                 },
             },
         },
-        runId: '100',
-        runAttempt: '2',
+        runId: String(source.runId),
+        runAttempt: String(source.runAttempt),
         headCoverage: null,
         baseCoverage: null,
         headJars: new Map([
@@ -273,6 +293,48 @@ function makeResult() {
     });
 }
 
+function makeArtifactFetch(archiveResponse) {
+    const requests = [];
+    const downloadUrl = `${ARTIFACT_API_URL}/repos/LMLiam/Kotventure/actions/artifacts/${ARTIFACT_ID}/zip`;
+
+    return {
+        requests,
+        fetchImpl: async (location, options) => {
+            requests.push({
+                location,
+                options,
+            });
+
+            if (location === downloadUrl) {
+                return {
+                    status: 302,
+                    headers: {
+                        location: ARTIFACT_STORAGE_URL,
+                    },
+                };
+            }
+
+            if (location === ARTIFACT_STORAGE_URL) {
+                return archiveResponse;
+            }
+
+            throw new Error(`unexpected artifact request: ${location}`);
+        },
+    };
+}
+
+function makeDownloadOptions(outputDirectory, fetchImpl) {
+    return {
+        owner: 'LMLiam',
+        repo: 'Kotventure',
+        artifactId: ARTIFACT_ID,
+        outputDirectory,
+        apiUrl: ARTIFACT_API_URL,
+        token: TEST_TOKEN,
+        fetchImpl,
+    };
+}
+
 function makeTempDirectory(t, prefix) {
     const directory = fs.mkdtempSync(
             path.join(os.tmpdir(), prefix),
@@ -289,11 +351,16 @@ function makeTempDirectory(t, prefix) {
 }
 
 module.exports = {
+    ARTIFACT_API_URL,
+    ARTIFACT_ID,
+    ARTIFACT_STORAGE_URL,
     BASE_SHA,
     HEAD_SHA,
     HEAD_REPOSITORY,
     REPOSITORY,
     makeArtifact,
+    makeArtifactFetch,
+    makeDownloadOptions,
     makeGithub,
     makeInputs,
     makeResult,

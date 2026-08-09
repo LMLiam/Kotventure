@@ -26,8 +26,12 @@ const {
     validateSource,
 } = require('./pr-metrics-publisher.js');
 const {
-    BASE_SHA,
+    ARTIFACT_API_URL,
+    ARTIFACT_ID,
+    ARTIFACT_STORAGE_URL,
     makeArtifact,
+    makeArtifactFetch,
+    makeDownloadOptions,
     makeGithub,
     makeInputs,
     makeResult,
@@ -37,8 +41,8 @@ const {
     makeZip,
 } = require('./pr-metrics-publisher-test-fixtures.js');
 
-function assertRejected(callback) {
-    assert.throws(callback, PublicationRejectedError);
+function assertRejected(callback, message) {
+    assert.throws(callback, PublicationRejectedError, message);
 }
 
 function makeReadableBody(chunks) {
@@ -69,50 +73,99 @@ function makeReadableBody(chunks) {
     };
 }
 
+function assertArtifactRequests(requests) {
+    assert.equal(requests.length, 2);
+
+    const [apiRequest, storageRequest] = requests;
+    const downloadUrl = `${ARTIFACT_API_URL}/repos/LMLiam/Kotventure/actions/artifacts/${ARTIFACT_ID}/zip`;
+
+    assert.equal(apiRequest.location, downloadUrl);
+    assert.equal(apiRequest.options.redirect, 'manual');
+    assert.equal(apiRequest.options.headers.authorization, 'Bearer test-token');
+    assert.equal(typeof apiRequest.options.signal?.aborted, 'boolean');
+
+    assert.equal(storageRequest.location, ARTIFACT_STORAGE_URL);
+    assert.equal(storageRequest.options.redirect, 'follow');
+    assert.equal(typeof storageRequest.options.signal?.aborted, 'boolean');
+}
+
 describe('workflow source validation', () => {
     test('accepts a matching workflow, run, repository, and pull request', () => {
-        const source = makeSource();
-
-        assert.equal(source.runId, 100);
-        assert.equal(source.runAttempt, 2);
-        assert.equal(source.repositoryId, 1);
-        assert.equal(source.headRepositoryId, 2);
-        assert.equal(source.baseSha, BASE_SHA);
+        assert.deepEqual(
+                validateWorkflowSource(makeInputs()),
+                makeSource(),
+        );
     });
 
     test('rejects mismatched trusted workflow and pull-request identity', () => {
-        const changes = [
-            (inputs) => {
-                inputs.eventRun.conclusion = 'failure';
-            },
-            (inputs) => {
-                inputs.run.run_attempt = 3;
-            },
-            (inputs) => {
-                inputs.run.workflow_id = 56;
-            },
-            (inputs) => {
-                inputs.workflow.name = 'Untrusted CI';
-            },
-            (inputs) => {
-                inputs.pullRequest.base.ref = 'release';
-            },
-            (inputs) => {
-                inputs.pullRequest.head.sha = 'c'.repeat(40);
-            },
-            (inputs) => {
-                inputs.run.head_repository = {
+        const cases = [
+            ['event run id', (inputs) => { inputs.eventRun.id = 101; }],
+            ['event type', (inputs) => { inputs.eventRun.event = 'push'; }],
+            ['event run attempt', (inputs) => { inputs.eventRun.run_attempt = 3; }],
+            ['event head SHA', (inputs) => { inputs.eventRun.head_sha = 'c'.repeat(40); }],
+            ['event workflow id', (inputs) => { inputs.eventRun.workflow_id = 56; }],
+            ['event status', (inputs) => { inputs.eventRun.status = 'in_progress'; }],
+            ['event conclusion', (inputs) => { inputs.eventRun.conclusion = 'failure'; }],
+            ['run event', (inputs) => { inputs.run.event = 'push'; }],
+            ['run status', (inputs) => { inputs.run.status = 'in_progress'; }],
+            ['run conclusion', (inputs) => { inputs.run.conclusion = 'failure'; }],
+            ['run repository', (inputs) => {
+                inputs.run.repository = {
+                    ...inputs.run.repository,
                     full_name: 'other/repo',
+                };
+            }],
+            ['run repository id', (inputs) => {
+                inputs.run.repository = {
+                    ...inputs.run.repository,
                     id: 3,
                 };
-            },
+            }],
+            ['workflow id', (inputs) => { inputs.workflow.id = 56; }],
+            ['workflow name', (inputs) => { inputs.workflow.name = 'Untrusted CI'; }],
+            ['workflow path', (inputs) => { inputs.workflow.path = '.github/workflows/untrusted.yml'; }],
+            ['run pull request', (inputs) => { inputs.run.pull_requests[0].number = 43; }],
+            ['resolved pull request', (inputs) => { inputs.pullNumber = 43; }],
+            ['pull request state', (inputs) => { inputs.pullRequest.state = 'closed'; }],
+            ['base repository', (inputs) => {
+                inputs.pullRequest.base.repo = {
+                    ...inputs.pullRequest.base.repo,
+                    full_name: 'other/repo',
+                };
+            }],
+            ['base repository id', (inputs) => {
+                inputs.pullRequest.base.repo = {
+                    ...inputs.pullRequest.base.repo,
+                    id: 3,
+                };
+            }],
+            ['base branch', (inputs) => { inputs.pullRequest.base.ref = 'release'; }],
+            ['head repository', (inputs) => {
+                inputs.run.head_repository = {
+                    ...inputs.run.head_repository,
+                    full_name: 'other/repo',
+                };
+            }],
+            ['head repository id', (inputs) => {
+                inputs.run.head_repository = {
+                    ...inputs.run.head_repository,
+                    id: 3,
+                };
+            }],
+            ['head branch', (inputs) => { inputs.run.head_branch = 'other/branch'; }],
+            ['head SHA', (inputs) => { inputs.pullRequest.head.sha = 'c'.repeat(40); }],
+            ['run attempt', (inputs) => { inputs.run.run_attempt = 3; }],
+            ['run workflow id', (inputs) => { inputs.run.workflow_id = 56; }],
         ];
 
-        for (const change of changes) {
+        for (const [name, change] of cases) {
             const inputs = structuredClone(makeInputs());
             change(inputs);
 
-            assertRejected(() => validateWorkflowSource(inputs));
+            assertRejected(
+                    () => validateWorkflowSource(inputs),
+                    name,
+            );
         }
     });
 
@@ -129,7 +182,7 @@ describe('workflow source validation', () => {
                     },
                 ],
                 artifacts: [
-                    makeArtifact(makeSource(inputs)),
+                    makeArtifact(),
                 ],
             }),
             context: makeWorkflowRunContext(inputs.run),
@@ -295,49 +348,19 @@ describe('metrics artifact storage', () => {
                 ),
         );
 
-        const apiUrl = 'https://api.github.test';
-
-        const filePath = await downloadMetricsArtifact({
-            owner: 'LMLiam',
-            repo: 'Kotventure',
-            artifactId: 700,
-            outputDirectory: directory,
-            apiUrl,
-            token: 'test-token',
-            fetchImpl: async (location, options) => {
-                const downloadUrl = `${apiUrl}/repos/LMLiam/Kotventure/actions/artifacts/700/zip`;
-
-                if (location === downloadUrl) {
-                    assert.equal(options.redirect, 'manual');
-                    assert.equal(
-                            options.headers.authorization,
-                            'Bearer test-token',
-                    );
-
-                    return {
-                        status: 302,
-                        headers: {
-                            location: 'https://artifact.example/result.zip',
-                        },
-                    };
-                }
-
-                assert.equal(
-                        location,
-                        'https://artifact.example/result.zip',
-                );
-
-                assert.equal(options.redirect, 'follow');
-
-                return {
-                    ok: true,
-                    headers: {
-                        'content-length': String(archive.length),
-                    },
-                    arrayBuffer: async () => archive,
-                };
+        const artifactFetch = makeArtifactFetch({
+            ok: true,
+            headers: {
+                'content-length': String(archive.length),
             },
+            arrayBuffer: async () => archive,
         });
+
+        const filePath = await downloadMetricsArtifact(
+                makeDownloadOptions(directory, artifactFetch.fetchImpl),
+        );
+
+        assertArtifactRequests(artifactFetch.requests);
 
         assert.equal(
                 filePath,
@@ -366,43 +389,21 @@ describe('metrics artifact storage', () => {
             archive.subarray(0, 1),
             archive.subarray(1),
         ]);
-        const apiUrl = 'https://api.github.test';
-        const downloadUrl = `${apiUrl}/repos/LMLiam/Kotventure/actions/artifacts/700/zip`;
-
-        await downloadMetricsArtifact({
-            owner: 'LMLiam',
-            repo: 'Kotventure',
-            artifactId: 700,
-            outputDirectory: directory,
-            apiUrl,
-            token: 'test-token',
-            fetchImpl: async (location) => {
-                if (location === downloadUrl) {
-                    return {
-                        status: 302,
-                        headers: {
-                            location: 'https://artifact.example/result.zip',
-                        },
-                    };
-                }
-
-                assert.equal(
-                        location,
-                        'https://artifact.example/result.zip',
-                );
-
-                return {
-                    ok: true,
-                    headers: {},
-                    body: readable.body,
-                };
-            },
+        const artifactFetch = makeArtifactFetch({
+            ok: true,
+            headers: {},
+            body: readable.body,
         });
+
+        await downloadMetricsArtifact(
+                makeDownloadOptions(directory, artifactFetch.fetchImpl),
+        );
 
         assert.equal(
                 readMetricsArtifact(directory).metrics.headJars[0].module,
                 'core',
         );
+        assertArtifactRequests(artifactFetch.requests);
         assert.equal(readable.wasCancelled(), false);
     });
 
@@ -414,37 +415,20 @@ describe('metrics artifact storage', () => {
         const readable = makeReadableBody([
             Buffer.alloc(MAX_ARTIFACT_BYTES + 1),
         ]);
-        const apiUrl = 'https://api.github.test';
-        const downloadUrl = `${apiUrl}/repos/LMLiam/Kotventure/actions/artifacts/700/zip`;
+        const artifactFetch = makeArtifactFetch({
+            ok: true,
+            headers: {},
+            body: readable.body,
+        });
 
         await assert.rejects(
-                () => downloadMetricsArtifact({
-                    owner: 'LMLiam',
-                    repo: 'Kotventure',
-                    artifactId: 700,
-                    outputDirectory: directory,
-                    apiUrl,
-                    token: 'test-token',
-                    fetchImpl: async (location) => {
-                        if (location === downloadUrl) {
-                            return {
-                                status: 302,
-                                headers: {
-                                    location: 'https://artifact.example/result.zip',
-                                },
-                            };
-                        }
-
-                        return {
-                            ok: true,
-                            headers: {},
-                            body: readable.body,
-                        };
-                    },
-                }),
+                () => downloadMetricsArtifact(
+                        makeDownloadOptions(directory, artifactFetch.fetchImpl),
+                ),
                 new RegExp(`exceeds ${MAX_ARTIFACT_BYTES} bytes`),
         );
 
+        assertArtifactRequests(artifactFetch.requests);
         assert.equal(readable.wasCancelled(), true);
     });
 
@@ -454,37 +438,20 @@ describe('metrics artifact storage', () => {
                 'pr-metrics-invalid-stream-',
         );
         const readable = makeReadableBody([null]);
-        const apiUrl = 'https://api.github.test';
-        const downloadUrl = `${apiUrl}/repos/LMLiam/Kotventure/actions/artifacts/700/zip`;
+        const artifactFetch = makeArtifactFetch({
+            ok: true,
+            headers: {},
+            body: readable.body,
+        });
 
         await assert.rejects(
-                () => downloadMetricsArtifact({
-                    owner: 'LMLiam',
-                    repo: 'Kotventure',
-                    artifactId: 700,
-                    outputDirectory: directory,
-                    apiUrl,
-                    token: 'test-token',
-                    fetchImpl: async (location) => {
-                        if (location === downloadUrl) {
-                            return {
-                                status: 302,
-                                headers: {
-                                    location: 'https://artifact.example/result.zip',
-                                },
-                            };
-                        }
-
-                        return {
-                            ok: true,
-                            headers: {},
-                            body: readable.body,
-                        };
-                    },
-                }),
+                () => downloadMetricsArtifact(
+                        makeDownloadOptions(directory, artifactFetch.fetchImpl),
+                ),
                 /returned an invalid body/,
         );
 
+        assertArtifactRequests(artifactFetch.requests);
         assert.equal(readable.wasCancelled(), true);
     });
 
@@ -585,7 +552,7 @@ describe('publisher orchestration', () => {
             github: makeGithub({
                 run: inputs.run,
                 artifacts: [
-                    makeArtifact(makeSource(inputs)),
+                    makeArtifact(),
                 ],
             }),
             context: makeWorkflowRunContext(inputs.run),
@@ -665,7 +632,7 @@ describe('publisher orchestration', () => {
 
     test('publishes a valid metrics result as a pull-request comment', async (t) => {
         const inputs = makeInputs();
-        const source = makeSource(inputs);
+        const source = makeSource();
         const directory = makeTempDirectory(
                 t,
                 'pr-metrics-publish-',
@@ -674,7 +641,7 @@ describe('publisher orchestration', () => {
 
         fs.writeFileSync(
                 path.join(directory, RESULT_FILE_NAME),
-                JSON.stringify(makeResult()),
+                JSON.stringify(makeResult(source)),
         );
 
         const github = makeGithub({
