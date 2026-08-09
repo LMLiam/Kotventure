@@ -1,12 +1,5 @@
 #!/usr/bin/env bash
 
-# Build module JARs from the base commit for compatibility checks.
-#
-# Required environment:
-#   BASE_SHA  Commit, branch, tag, or ref to build from origin.
-#
-# The resulting JARs are written to base-libs/
-
 set -euo pipefail
 shopt -s nullglob
 
@@ -20,29 +13,37 @@ command -v git >/dev/null 2>&1 || die 'git is required but was not found in PATH
 
 repo_root=$(git rev-parse --show-toplevel 2>/dev/null) || die 'not inside a Git repository'
 
-readonly WORKTREE_DIR="$repo_root/base-src"
 readonly OUT_DIR="$repo_root/base-libs"
+readonly TEMPORARY_ROOT=${RUNNER_TEMP:-${TMPDIR:-/tmp}}
 
-cd -- "$repo_root"
+WORKTREE_ROOT=$(mktemp -d "$TEMPORARY_ROOT/kotventure-base-jars.XXXXXX")
+readonly WORKTREE_ROOT
+readonly WORKTREE_DIR="$WORKTREE_ROOT/source"
 
 worktree_added=false
 
 cleanup() {
-    $worktree_added || return
+    local status=$?
+    local prune_worktrees=false
+    trap - EXIT
 
-    if ! git worktree remove --force "$WORKTREE_DIR" >/dev/null 2>&1; then
-        rm -rf -- "$WORKTREE_DIR"
-        git worktree prune
+    if $worktree_added \
+            && ! git -C "$repo_root" worktree remove --force "$WORKTREE_DIR" >/dev/null 2>&1; then
+        prune_worktrees=true
     fi
+
+    rm -rf -- "$WORKTREE_ROOT"
+
+    if $prune_worktrees; then
+        git -C "$repo_root" worktree prune >/dev/null 2>&1 || true
+    fi
+
+    exit "$status"
 }
 
 trap cleanup EXIT
 
-if [[ -e $WORKTREE_DIR ]]; then
-    printf 'Removing stale worktree: %s\n' "$WORKTREE_DIR"
-    git worktree remove --force "$WORKTREE_DIR" >/dev/null 2>&1 || rm -rf -- "$WORKTREE_DIR"
-    git worktree prune
-fi
+cd -- "$repo_root"
 
 printf 'Fetching base ref: %s\n' "$BASE_SHA"
 git fetch --no-tags --depth=1 origin "$BASE_SHA"
