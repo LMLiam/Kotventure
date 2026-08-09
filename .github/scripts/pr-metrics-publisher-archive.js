@@ -133,7 +133,6 @@ function readCentralDirectoryEntry(archive) {
             || uncompressedSize === ZIP64_32_BIT_VALUE
             || localHeaderOffset === ZIP64_32_BIT_VALUE;
 
-
     if ((flags & ENCRYPTED_FLAG) !== 0
         || unsupportedCompression
         || usesZip64Entry
@@ -226,7 +225,7 @@ function decompressEntry(compressedData, entry) {
         }
 
         return zlib.inflateRawSync(compressedData, {
-            maxOutputLength: MAX_RESULT_BYTES
+            maxOutputLength: MAX_RESULT_BYTES,
         });
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -246,7 +245,7 @@ function extractMetricsResultArchive(archive) {
     const result = decompressEntry(compressedData, entry);
 
     if (result.length !== entry.uncompressedSize || result.length > MAX_RESULT_BYTES) {
-        rejectArchive('decompress to an invalid size');
+        rejectArchive('decompresses to an invalid size');
     }
 
     return result;

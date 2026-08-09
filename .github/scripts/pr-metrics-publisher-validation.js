@@ -65,40 +65,10 @@ function expectedArtifactName({ runId, runAttempt }) {
     return `${RESULT_ARTIFACT_PREFIX}${id}-${attempt}`;
 }
 
-function validateWorkflowSource({
-    eventRun,
-    run,
-    workflow,
-    repository,
-    pullRequest,
-    pullNumber,
-}) {
-    requireObject(eventRun, 'workflow_run event');
-    requireObject(run, 'workflow run');
-    requireObject(workflow, 'workflow');
-    requireObject(repository, 'repository');
-    requireObject(pullRequest, 'pull request');
-
+function validateCompletedRun(eventRun, run) {
     const runId = requireSafeInteger(run.id, 'workflow run id');
     const runAttempt = requireSafeInteger(run.run_attempt, 'workflow run attempt');
     const workflowId = requireSafeInteger(run.workflow_id, 'workflow id');
-
-    const repositoryId = requireSafeInteger(repository.id, 'repository id');
-    const repositoryName = requireString(repository.full_name, 'repository name');
-    const defaultBranch = requireString(
-            repository.default_branch,
-            'repository default branch'
-    );
-
-    const pullRequestNumber = requireSafeInteger(
-            pullRequest.number,
-            'pull request number'
-    );
-
-    const resolvedPullNumber = requireSafeInteger(
-            pullNumber,
-            'resolved pull request number'
-    );
 
     requireEqual(eventRun.id, runId, 'workflow run id');
     requireEqual(eventRun.run_attempt, runAttempt, 'workflow run attempt');
@@ -108,7 +78,7 @@ function validateWorkflowSource({
         requireEqual(
                 eventRun.workflow_id,
                 workflowId,
-                'workflow run workflow id'
+                'workflow run workflow id',
         );
     }
 
@@ -119,6 +89,21 @@ function validateWorkflowSource({
     requireEqual(run.event, 'pull_request', 'workflow run event');
     requireEqual(run.status, 'completed', 'workflow run status');
     requireEqual(run.conclusion, 'success', 'workflow run conclusion');
+
+    return {
+        runId,
+        runAttempt,
+        workflowId,
+    };
+}
+
+function validateTrustedWorkflow(run, workflow, repository, workflowId) {
+    const repositoryId = requireSafeInteger(repository.id, 'repository id');
+    const repositoryName = requireString(repository.full_name, 'repository name');
+    const defaultBranch = requireString(
+            repository.default_branch,
+            'repository default branch',
+    );
 
     requireEqual(
             run.repository?.full_name,
@@ -135,6 +120,29 @@ function validateWorkflowSource({
     requireEqual(workflow.id, workflowId, 'workflow identity');
     requireEqual(workflow.name, WORKFLOW_NAME, 'workflow name');
     requireEqual(workflow.path, EXPECTED_WORKFLOW_PATH, 'workflow path');
+
+    return {
+        repository: repositoryName,
+        repositoryId,
+        defaultBranch,
+    };
+}
+
+function validateCurrentPullRequest({
+    run,
+    pullRequest,
+    pullNumber,
+    trustedRepository,
+}) {
+    const pullRequestNumber = requireSafeInteger(
+            pullRequest.number,
+            'pull request number',
+    );
+
+    const resolvedPullNumber = requireSafeInteger(
+            pullNumber,
+            'resolved pull request number',
+    );
 
     if (!Array.isArray(run.pull_requests) || run.pull_requests.length > 1) {
         reject('workflow run must identify at most one pull request');
@@ -208,19 +216,19 @@ function validateWorkflowSource({
 
     requireEqual(
             baseRepositoryName,
-            repositoryName,
+            trustedRepository.repository,
             'pull request base repository',
     );
 
     requireEqual(
             baseRepositoryId,
-            repositoryId,
+            trustedRepository.repositoryId,
             'pull request base repository id',
     );
 
     requireEqual(
             baseRef,
-            defaultBranch,
+            trustedRepository.defaultBranch,
             'pull request base branch',
     );
 
@@ -249,12 +257,6 @@ function validateWorkflowSource({
     );
 
     return {
-        repository: repositoryName,
-        repositoryId,
-        workflow: WORKFLOW_NAME,
-        event: 'pull_request',
-        runId,
-        runAttempt,
         pullRequest: pullRequestNumber,
         baseRepository: baseRepositoryName,
         baseRepositoryId,
@@ -264,6 +266,46 @@ function validateWorkflowSource({
         headRepositoryId,
         headRef,
         headSha,
+    };
+}
+
+function validateWorkflowSource({
+    eventRun,
+    run,
+    workflow,
+    repository,
+    pullRequest,
+    pullNumber,
+}) {
+    requireObject(eventRun, 'workflow_run event');
+    requireObject(run, 'workflow run');
+    requireObject(workflow, 'workflow');
+    requireObject(repository, 'repository');
+    requireObject(pullRequest, 'pull request');
+
+    const completedRun = validateCompletedRun(eventRun, run);
+    const trustedWorkflow = validateTrustedWorkflow(
+            run,
+            workflow,
+            repository,
+            completedRun.workflowId,
+    );
+
+    const currentPullRequest = validateCurrentPullRequest({
+        run,
+        pullRequest,
+        pullNumber,
+        trustedRepository: trustedWorkflow,
+    });
+
+    return {
+        repository: trustedWorkflow.repository,
+        repositoryId: trustedWorkflow.repositoryId,
+        workflow: WORKFLOW_NAME,
+        event: 'pull_request',
+        runId: completedRun.runId,
+        runAttempt: completedRun.runAttempt,
+        ...currentPullRequest,
     };
 }
 

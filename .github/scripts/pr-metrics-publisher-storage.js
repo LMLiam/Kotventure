@@ -27,6 +27,42 @@ function getHeader(headers, name) {
     return headers[name] ?? headers[name.toLowerCase()] ?? null;
 }
 
+async function cancelReader(reader) {
+    try {
+        await reader.cancel();
+    } catch {
+        // Cancellation must not replace the validation error.
+    }
+}
+
+async function readStreamingBytes(body, maximumBytes) {
+    const reader = body.getReader();
+    const chunks = [];
+    let totalBytes = 0;
+
+    while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) {
+            return Buffer.concat(chunks, totalBytes);
+        }
+
+        if (!(value instanceof Uint8Array)) {
+            await cancelReader(reader);
+            throw new Error('metrics artifact download returned an invalid body');
+        }
+
+        if (totalBytes + value.byteLength > maximumBytes) {
+            await cancelReader(reader);
+            throw new Error(`metrics artifact download exceeds ${maximumBytes} bytes`);
+        }
+
+        const chunk = Buffer.from(value);
+        chunks.push(chunk);
+        totalBytes += chunk.length;
+    }
+}
+
 async function readResponseBytes(response, maximumBytes) {
     if (!response || response.ok === false) {
         throw new Error('metrics artifact download failed');
@@ -39,33 +75,7 @@ async function readResponseBytes(response, maximumBytes) {
     }
 
     if (response.body && typeof response.body.getReader === 'function') {
-        const reader = response.body.getReader();
-        const chunks = [];
-        let totalBytes = 0;
-
-        while (true) {
-            const { done, value } = await reader.read();
-
-            if (done) {
-                break;
-            }
-
-            if (!value || !Number.isSafeInteger(value.byteLength)) {
-                await reader.cancel().catch(() => {});
-                throw new Error('metrics artifact download returned an invalid body');
-            }
-
-            if (totalBytes + value.byteLength > maximumBytes) {
-                await reader.cancel().catch(() => {});
-                throw new Error(`metrics artifact download exceeds ${maximumBytes} bytes`);
-            }
-
-            const chunk = Buffer.from(value);
-            chunks.push(chunk);
-            totalBytes += chunk.length;
-        }
-
-        return Buffer.concat(chunks, totalBytes);
+        return readStreamingBytes(response.body, maximumBytes);
     }
 
     if (typeof response.arrayBuffer !== 'function') {
@@ -139,7 +149,7 @@ async function downloadMetricsArtifact({
                     authorization: `Bearer ${token}`,
                 },
                 redirect: 'manual',
-                signal: AbortSignal.timeout(ARTIFACT_API_TIMEOUT_MS)
+                signal: AbortSignal.timeout(ARTIFACT_API_TIMEOUT_MS),
             },
     );
 
@@ -162,7 +172,7 @@ async function downloadMetricsArtifact({
 
     const archiveResponse = await fetchImpl(artifactUrl.href, {
         redirect: 'follow',
-        signal: AbortSignal.timeout(ARTIFACT_STORAGE_TIMEOUT_MS)
+        signal: AbortSignal.timeout(ARTIFACT_STORAGE_TIMEOUT_MS),
     });
 
     const archive = await readResponseBytes(archiveResponse, MAX_ARTIFACT_BYTES);
@@ -173,7 +183,7 @@ async function downloadMetricsArtifact({
     const filePath = path.join(outputDirectory, RESULT_FILE_NAME);
     fs.writeFileSync(filePath, result, {
         flag: 'wx',
-        mode: 0o600
+        mode: 0o600,
     });
 
     return filePath;
@@ -221,5 +231,5 @@ function readMetricsArtifact(directory) {
 
 module.exports = {
     downloadMetricsArtifact,
-    readMetricsArtifact
+    readMetricsArtifact,
 };

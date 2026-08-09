@@ -93,7 +93,7 @@ async function resolveSource({ github, context }) {
             github.rest.actions.getWorkflowRun({
                 owner,
                 repo,
-                run_id: eventRun.id
+                run_id: eventRun.id,
             }),
     ]);
 
@@ -101,7 +101,7 @@ async function resolveSource({ github, context }) {
             github.rest.actions.getWorkflow({
                 owner,
                 repo,
-                workflow_id: run.workflow_id
+                workflow_id: run.workflow_id,
             }),
             resolvePullRequestNumber({
                 github,
@@ -114,7 +114,7 @@ async function resolveSource({ github, context }) {
     const { data: pullRequest } = await github.rest.pulls.get({
         owner,
         repo,
-        pull_number: pullNumber
+        pull_number: pullNumber,
     });
 
     const source = validateWorkflowSource({
@@ -123,7 +123,7 @@ async function resolveSource({ github, context }) {
         workflow,
         repository,
         pullRequest,
-        pullNumber
+        pullNumber,
     });
 
     const artifacts = await github.paginate(
@@ -132,7 +132,7 @@ async function resolveSource({ github, context }) {
                 owner,
                 repo,
                 run_id: source.runId,
-                per_page: 100
+                per_page: 100,
             },
     );
 
@@ -153,7 +153,7 @@ async function resolvePublishableSource({ github, context, core }) {
     try {
         return await resolveSource({
             github,
-            context
+            context,
         });
     } catch (error) {
         if (!(error instanceof PublicationRejectedError)) {
@@ -229,11 +229,11 @@ function buildArtifactLinks({
 }
 
 async function publishMetrics({
-                                  github,
-                                  context,
-                                  core,
-                                  artifactDirectory,
-                              }) {
+    github,
+    context,
+    core,
+    artifactDirectory,
+}) {
     const source = await resolvePublishableSource({
         github,
         context,
@@ -244,8 +244,10 @@ async function publishMetrics({
         return;
     }
 
-    const result = readMetricsArtifact(artifactDirectory);
-    validateResultProvenance(result, source);
+    const result = validateResultProvenance(
+            readMetricsArtifact(artifactDirectory),
+            source,
+    );
 
     const metrics = deserializeMetricsResult(result);
     const workspace = process.env.GITHUB_WORKSPACE || process.cwd();
