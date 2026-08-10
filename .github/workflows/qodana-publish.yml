@@ -11,6 +11,9 @@ concurrency:
   group: qodana-publication-${{ github.event.workflow_run.id }}-${{ github.event.workflow_run.run_attempt }}
   cancel-in-progress: true
 
+env:
+  NODE_OPTIONS: --use-system-ca
+
 jobs:
   publish:
     name: Publish Qodana result
@@ -34,6 +37,8 @@ jobs:
         id: publication
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
+          retries: 3
+          retry-exempt-status-codes: 400,401,403,404,422
           script: |
             const { writePublicationOutputs } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/qodana-publisher.js`);
             await writePublicationOutputs({ github, context, core });
@@ -47,6 +52,8 @@ jobs:
           OUTPUT_DIRECTORY: ${{ runner.temp }}/qodana-publication
           GITHUB_TOKEN: ${{ github.token }}
         with:
+          retries: 3
+          retry-exempt-status-codes: 400,401,403,404,422
           script: |
             const { downloadQodanaArtifact } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/qodana-publisher-storage.js`);
             const filePath = await downloadQodanaArtifact({
@@ -104,6 +111,8 @@ jobs:
           HEAD_SHA: ${{ steps.publication.outputs.head_sha }}
           JOB_STATUS: ${{ job.status }}
         with:
+          retries: 3
+          retry-exempt-status-codes: 400,401,403,404,422
           script: |
             const {
               completeWorkflowCheck,
