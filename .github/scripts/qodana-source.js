@@ -8,6 +8,7 @@ const {
 } = require('./qodana-contract.js');
 const { createValidators } = require('./shared/validation.js');
 const { validateEventRun } = require('./shared/run-context.js');
+const { hasTrustedReleaseProvenance } = require('./shared/release-provenance.js');
 
 class QodanaSourceRejectedError extends Error {
   constructor(message, { stale = false } = {}) {
@@ -66,93 +67,6 @@ function hasTrustedReleaseMetadata({ repository, pullRequest }) {
     && pullRequest.head?.ref === 'release-please--branches--master'
     && pullRequest.user?.login === 'release-please-kotventure[bot]'
     && pullRequest.user?.type === 'Bot';
-}
-
-async function readTrustedReleaseProvenance({ github, owner, repo, repository, pullRequest }) {
-  let workflow;
-  try {
-    const response = await github.rest.actions.getWorkflow({
-      owner,
-      repo,
-      workflow_id: 'release-provenance.yml',
-    });
-    workflow = requireObject(response.data, 'release provenance workflow');
-  } catch {
-    return 'missing';
-  }
-  if (workflow.path !== '.github/workflows/release-provenance.yml') {
-    return 'missing';
-  }
-
-  let runs;
-  try {
-    runs = await github.paginate(github.rest.actions.listWorkflowRuns, {
-      owner,
-      repo,
-      workflow_id: 'release-provenance.yml',
-      event: 'pull_request_target',
-      per_page: 100,
-    });
-  } catch {
-    return 'missing';
-  }
-
-  const candidate = runs
-    .filter((run) => {
-      const associatedPullRequests = Array.isArray(run?.pull_requests) ? run.pull_requests : [];
-      return run?.event === 'pull_request_target'
-        && run.repository?.full_name === repository.full_name
-        && run.head_sha === pullRequest.head.sha
-        && run.head_branch === pullRequest.head.ref
-        && (associatedPullRequests.length === 0
-          || associatedPullRequests.some((item) => item.number === pullRequest.number));
-    })
-    .sort((left, right) => new Date(right.created_at) - new Date(left.created_at))[0];
-
-  if (!candidate) {
-    return 'missing';
-  }
-  if (candidate.status !== 'completed') {
-    return 'pending';
-  }
-  if (candidate.conclusion !== 'success') {
-    return 'failed';
-  }
-
-  let jobs;
-  try {
-    jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
-      owner,
-      repo,
-      run_id: candidate.id,
-      per_page: 100,
-    });
-  } catch {
-    return 'missing';
-  }
-  const trustedJob = jobs.find((job) => job?.name === 'Trusted release provenance');
-  if (trustedJob?.status === 'completed' && trustedJob.conclusion === 'success') {
-    return 'success';
-  }
-  return trustedJob?.status === 'completed' ? 'failed' : 'pending';
-}
-
-function wait(milliseconds) {
-  return new Promise((resolve) => setTimeout(resolve, milliseconds));
-}
-
-async function hasTrustedReleaseProvenance(options) {
-  const attempts = options.waitForReleaseProvenance === false ? 1 : 6;
-  for (let attempt = 0; attempt < attempts; attempt += 1) {
-    const status = await readTrustedReleaseProvenance(options);
-    if (status === 'success' || status === 'failed') {
-      return status === 'success';
-    }
-    if (attempt + 1 < attempts) {
-      await wait(10_000);
-    }
-  }
-  return false;
 }
 
 async function resolveMergeBase({ github, owner, repo, baseSha, headSha }) {
