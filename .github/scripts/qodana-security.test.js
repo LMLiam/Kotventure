@@ -428,7 +428,7 @@ test('rejects archives whose entry metadata is internally inconsistent', () => {
   const document = createAttestation({ sourceKind: 'documentation', headSha: HEAD_SHA });
   const content = Buffer.from(JSON.stringify(document));
   const archive = makeStoredZip(content);
-  const centralDirectoryOffset = 30 + 'qodana.sarif.json'.length + content.length;
+  const centralDirectoryOffset = archive.readUInt32LE(archive.length - 6);
 
   const mismatchedSizes = Buffer.from(archive);
   mismatchedSizes.writeUInt32LE(content.length + 1, 18);

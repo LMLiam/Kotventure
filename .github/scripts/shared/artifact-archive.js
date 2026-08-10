@@ -1,6 +1,7 @@
 'use strict';
 
 const zlib = require('node:zlib');
+const { createValidators } = require('./validation.js');
 
 const END_OF_CENTRAL_DIRECTORY_SIGNATURE = 0x06054b50;
 const CENTRAL_DIRECTORY_SIGNATURE = 0x02014b50;
@@ -25,6 +26,17 @@ function extractSingleEntryArchive(archive, {
   maxArchiveBytes,
   maxBytes,
 }) {
+  const { requireInteger, requireString } = createValidators((message) => {
+    throw new Error(`archive extraction options ${message}`);
+  });
+  requireString(errorPrefix, 'error prefix');
+  requireInteger(maxArchiveBytes, 'maximum archive bytes');
+  requireInteger(maxBytes, 'maximum entry bytes');
+  if (!Buffer.isBuffer(expectedFileName)
+    && (typeof expectedFileName !== 'string' || expectedFileName.length === 0)) {
+    throw new Error('archive extraction options expected file name is invalid');
+  }
+
   const expectedName = Buffer.isBuffer(expectedFileName)
     ? expectedFileName
     : Buffer.from(expectedFileName, 'utf8');
