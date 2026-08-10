@@ -45,8 +45,6 @@ function writeQodanaCheckRegistration({
 }) {
   const artifactName = buildCheckArtifactName({
     sourceKind: source.sourceKind,
-    runId: source.runId,
-    runAttempt: source.runAttempt,
     qodanaRunId,
     qodanaRunAttempt,
     checkRunId: check.id,

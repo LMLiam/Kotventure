@@ -1,6 +1,6 @@
 'use strict';
 
-const { resolveCiRun, QodanaSourceRejectedError } = require('./qodana-source.js');
+const { resolvePullRequestSource, QodanaSourceRejectedError } = require('./qodana-source.js');
 const {
   QodanaPublicationRejectedError,
   recoverQodanaCheckDescriptor,
@@ -83,13 +83,11 @@ async function resolvePublication({ github, context }) {
 
   let source;
   try {
-    source = await resolveCiRun({
+    source = await resolvePullRequestSource({
       github,
       owner,
       repo,
-      runId: checkDescriptor.ciRunId,
-      expectedRunAttempt: checkDescriptor.ciRunAttempt,
-      expectedHeadSha: checkDescriptor.headSha,
+      headSha: checkDescriptor.headSha,
       expectedBaseSha: checkDescriptor.baseSha,
       waitForReleaseProvenance: false,
     });

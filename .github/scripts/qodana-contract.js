@@ -98,8 +98,6 @@ function requirePositiveInteger(value, label) {
 
 function buildArtifactName({
   sourceKind,
-  runId,
-  runAttempt,
   qodanaRunId,
   qodanaRunAttempt,
   headSha,
@@ -108,7 +106,7 @@ function buildArtifactName({
   if (!['code', 'documentation', 'release'].includes(sourceKind)) {
     throw new Error('Qodana source kind is invalid');
   }
-  return `${QODANA_ARTIFACT_PREFIX}${sourceKind}-${requirePositiveInteger(runId, 'CI workflow run id')}-${requirePositiveInteger(runAttempt, 'CI workflow run attempt')}-${requirePositiveInteger(qodanaRunId, 'Qodana workflow run id')}-${requirePositiveInteger(qodanaRunAttempt, 'Qodana workflow run attempt')}-${requireSha(headSha, 'head SHA')}-${requireSha(baseSha, 'base SHA')}`;
+  return `${QODANA_ARTIFACT_PREFIX}${sourceKind}-${requirePositiveInteger(qodanaRunId, 'Qodana workflow run id')}-${requirePositiveInteger(qodanaRunAttempt, 'Qodana workflow run attempt')}-${requireSha(headSha, 'head SHA')}-${requireSha(baseSha, 'base SHA')}`;
 }
 
 function parseArtifactName(name) {
@@ -116,36 +114,28 @@ function parseArtifactName(name) {
     return null;
   }
   const match = name.match(
-    new RegExp(`^${QODANA_ARTIFACT_PREFIX}(code|documentation|release)-(\\d+)-(\\d+)-(\\d+)-(\\d+)-([0-9a-f]{40})-([0-9a-f]{40})$`),
+    new RegExp(`^${QODANA_ARTIFACT_PREFIX}(code|documentation|release)-(\\d+)-(\\d+)-([0-9a-f]{40})-([0-9a-f]{40})$`),
   );
   if (!match) {
     return null;
   }
-  const runId = Number(match[2]);
-  const runAttempt = Number(match[3]);
-  const qodanaRunId = Number(match[4]);
-  const qodanaRunAttempt = Number(match[5]);
-  if (!Number.isSafeInteger(runId) || runId < 1
-    || !Number.isSafeInteger(runAttempt) || runAttempt < 1
-    || !Number.isSafeInteger(qodanaRunId) || qodanaRunId < 1
+  const qodanaRunId = Number(match[2]);
+  const qodanaRunAttempt = Number(match[3]);
+  if (!Number.isSafeInteger(qodanaRunId) || qodanaRunId < 1
     || !Number.isSafeInteger(qodanaRunAttempt) || qodanaRunAttempt < 1) {
     return null;
   }
   return {
     sourceKind: match[1],
-    ciRunId: runId,
-    ciRunAttempt: runAttempt,
     qodanaRunId,
     qodanaRunAttempt,
-    headSha: match[6],
-    baseSha: match[7],
+    headSha: match[4],
+    baseSha: match[5],
   };
 }
 
 function buildCheckArtifactName({
   sourceKind,
-  runId,
-  runAttempt,
   qodanaRunId,
   qodanaRunAttempt,
   checkRunId,
@@ -155,7 +145,7 @@ function buildCheckArtifactName({
   if (!['code', 'documentation', 'release'].includes(sourceKind)) {
     throw new Error('Qodana source kind is invalid');
   }
-  return `${QODANA_CHECK_ARTIFACT_PREFIX}${sourceKind}-${requirePositiveInteger(runId, 'CI workflow run id')}-${requirePositiveInteger(runAttempt, 'CI workflow run attempt')}-${requirePositiveInteger(qodanaRunId, 'Qodana workflow run id')}-${requirePositiveInteger(qodanaRunAttempt, 'Qodana workflow run attempt')}-${requirePositiveInteger(checkRunId, 'check run id')}-${requireSha(headSha, 'head SHA')}-${requireSha(baseSha, 'base SHA')}`;
+  return `${QODANA_CHECK_ARTIFACT_PREFIX}${sourceKind}-${requirePositiveInteger(qodanaRunId, 'Qodana workflow run id')}-${requirePositiveInteger(qodanaRunAttempt, 'Qodana workflow run attempt')}-${requirePositiveInteger(checkRunId, 'check run id')}-${requireSha(headSha, 'head SHA')}-${requireSha(baseSha, 'base SHA')}`;
 }
 
 function parseCheckArtifactName(name) {
@@ -163,24 +153,22 @@ function parseCheckArtifactName(name) {
     return null;
   }
   const match = name.match(
-    new RegExp(`^${QODANA_CHECK_ARTIFACT_PREFIX}(code|documentation|release)-(\\d+)-(\\d+)-(\\d+)-(\\d+)-(\\d+)-([0-9a-f]{40})-([0-9a-f]{40})$`),
+    new RegExp(`^${QODANA_CHECK_ARTIFACT_PREFIX}(code|documentation|release)-(\\d+)-(\\d+)-(\\d+)-([0-9a-f]{40})-([0-9a-f]{40})$`),
   );
   if (!match) {
     return null;
   }
-  const integers = match.slice(2, 7).map(Number);
+  const integers = match.slice(2, 5).map(Number);
   if (integers.some((value) => !Number.isSafeInteger(value) || value < 1)) {
     return null;
   }
   return {
     sourceKind: match[1],
-    ciRunId: integers[0],
-    ciRunAttempt: integers[1],
-    qodanaRunId: integers[2],
-    qodanaRunAttempt: integers[3],
-    checkRunId: integers[4],
-    headSha: match[7],
-    baseSha: match[8],
+    qodanaRunId: integers[0],
+    qodanaRunAttempt: integers[1],
+    checkRunId: integers[2],
+    headSha: match[5],
+    baseSha: match[6],
   };
 }
 

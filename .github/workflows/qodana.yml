@@ -1,14 +1,14 @@
 name: Qodana
 
 on:
-  workflow_run:
-    workflows: [CI]
-    types: [completed]
+  pull_request_target:
+    branches: [master]
+    types: [opened, synchronize, reopened]
 
 permissions: {}
 
 concurrency:
-  group: qodana-${{ github.event.workflow_run.id }}-${{ github.event.workflow_run.run_attempt }}
+  group: qodana-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
   cancel-in-progress: true
 
 env:
@@ -17,9 +17,6 @@ env:
 jobs:
   register:
     name: Register Qodana check
-    if: >-
-      github.event.workflow_run.event == 'pull_request'
-      && github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -33,6 +30,7 @@ jobs:
       check_artifact_name: ${{ steps.source.outputs.check_artifact_name }}
       check_external_id: ${{ steps.source.outputs.check_external_id }}
       check_run_id: ${{ steps.source.outputs.check_run_id }}
+      head_repository: ${{ steps.source.outputs.head_repository }}
       head_sha: ${{ steps.source.outputs.head_sha }}
       merge_base_sha: ${{ steps.source.outputs.merge_base_sha }}
       pull_number: ${{ steps.source.outputs.pull_number }}
@@ -44,7 +42,7 @@ jobs:
           ref: ${{ github.sha }}
           persist-credentials: false
 
-      - name: Resolve the completed CI source
+      - name: Resolve the pull-request source
         id: source
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
@@ -55,12 +53,12 @@ jobs:
           retries: 3
           retry-exempt-status-codes: 400,401,403,404,422
           script: |
-            const { resolveSource } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/qodana-source.js`);
+            const { resolvePullRequestEventSource } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/qodana-source.js`);
             const {
               createQodanaCheck,
               writeQodanaCheckRegistration,
             } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/qodana-check-registration.js`);
-            const source = await resolveSource({
+            const source = await resolvePullRequestEventSource({
               github,
               context,
               qodanaRunId: Number(process.env.QODANA_RUN_ID),
@@ -69,6 +67,7 @@ jobs:
             core.setOutput('source_kind', source.sourceKind);
             core.setOutput('artifact_name', source.artifactName);
             core.setOutput('pull_number', String(source.pullRequest));
+            core.setOutput('head_repository', source.headRepository);
             core.setOutput('head_sha', source.headSha);
             core.setOutput('base_ref', source.baseRef);
             core.setOutput('merge_base_sha', source.mergeBaseSha || '');
@@ -119,7 +118,7 @@ jobs:
         if: needs.register.outputs.source_kind == 'code'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          repository: ${{ github.repository }}
+          repository: ${{ needs.register.outputs.head_repository }}
           ref: ${{ needs.register.outputs.head_sha }}
           path: source
           fetch-depth: 0

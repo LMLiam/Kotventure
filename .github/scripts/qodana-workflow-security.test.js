@@ -36,10 +36,15 @@ test('the Qodana scan workflow is read-only and disables GitHub side effects', (
   const analyse = readJob(workflow, 'analyse', 'report-registration-failure');
   const registrationFailure = readJob(workflow, 'report-registration-failure');
 
-  assert.match(workflow, /workflow_run:/);
+  assert.match(workflow, /pull_request_target:/);
+  assert.match(workflow, /branches: \[master\]/);
+  assert.match(workflow, /types: \[opened, synchronize, reopened\]/);
+  assert.match(workflow, /group: qodana-\$\{\{ github\.event\.pull_request\.number \}\}/);
+  assert.doesNotMatch(workflow, /workflow_run:/);
   assert.doesNotMatch(workflow, /QODANA_TOKEN/);
   assert.match(register, /checks:\s*write/);
   assert.doesNotMatch(analyse, /(?:actions|checks|contents|pull-requests|security-events):\s*write/);
+  assert.match(register, /resolvePullRequestEventSource/);
   assert.match(register, /createQodanaCheck/);
   assert.ok(
     register.indexOf("core.setOutput('check_run_id'")
@@ -58,6 +63,7 @@ test('the Qodana scan workflow is read-only and disables GitHub side effects', (
   assert.doesNotMatch(workflow, /--config source\/qodana\.yaml/);
   assert.match(workflow, /ref:\s*\$\{\{ github\.sha \}\}/);
   assert.match(workflow, /git -C source rev-parse HEAD/);
+  assert.match(analyse, /repository:\s*\$\{\{ needs\.register\.outputs\.head_repository \}\}/);
   assert.match(analyse, /ref:\s*\$\{\{ needs\.register\.outputs\.head_sha \}\}/);
   assert.match(workflow, /cp --remove-destination -- qodana\.yaml source\/qodana\.yaml/);
   assert.doesNotMatch(workflow, /normalize-qodana-sarif\.sh/);

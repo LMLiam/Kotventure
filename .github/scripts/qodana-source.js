@@ -54,45 +54,11 @@ function repositoryName(repository) {
   return repository.full_name;
 }
 
-async function getPullRequest({ github, owner, repo, repository, run }) {
-  const listedPullRequests = Array.isArray(run.pull_requests) ? run.pull_requests : [];
-  if (listedPullRequests.length > 1) {
-    reject('workflow run identifies more than one pull request');
-  }
-
-  let pullNumber = listedPullRequests[0]?.number;
-  if (pullNumber == null) {
-    const associatedPullRequests = await github.paginate(
-      github.rest.repos.listPullRequestsAssociatedWithCommit,
-      {
-        owner,
-        repo,
-        commit_sha: run.head_sha,
-        per_page: 100,
-      },
-    );
-    const matchingPullRequests = Array.isArray(associatedPullRequests)
-      ? associatedPullRequests.filter((pullRequest) => pullRequest?.state === 'open'
-        && pullRequest.base?.repo?.full_name === repository.full_name
-        && pullRequest.base?.repo?.id === repository.id
-        && pullRequest.base?.ref === repository.default_branch
-        && pullRequest.head?.repo?.full_name === run.head_repository?.full_name
-        && pullRequest.head?.repo?.id === run.head_repository?.id
-        && pullRequest.head?.ref === run.head_branch
-        && pullRequest.head?.sha === run.head_sha)
-      : [];
-    if (matchingPullRequests.length !== 1) {
-      reject('workflow run does not identify exactly one pull request');
-    }
-    pullNumber = matchingPullRequests[0]?.number;
-  }
-  requirePositiveInteger(pullNumber, 'pull request number');
-  const response = await github.rest.pulls.get({
-    owner,
-    repo,
-    pull_number: pullNumber,
-  });
-  return requireObject(response.data, 'pull request');
+async function fetchRepository({ github, owner, repo }) {
+  const repositoryResponse = await github.rest.repos.get({ owner, repo });
+  const repository = requireObject(repositoryResponse.data, 'repository');
+  requireEqual(repository.full_name, `${owner}/${repo}`, 'repository identity');
+  return repository;
 }
 
 async function getChangedFiles({ github, owner, repo, pullRequest }) {
@@ -227,63 +193,34 @@ function validateEventRun({ eventRun, run }) {
   }
 }
 
-async function resolveCiRun({
-  github,
-  owner,
-  repo,
-  runId,
-  eventRun,
-  expectedRunAttempt,
-  expectedHeadSha,
-  expectedBaseSha,
-  waitForReleaseProvenance = true,
+function validatePullRequestState({
+  pullRequest,
+  repository,
+  expectedHeadSha = null,
+  expectedBaseSha = null,
 }) {
-  requirePositiveInteger(runId, 'workflow run id');
-  const repositoryResponse = await github.rest.repos.get({ owner, repo });
-  const repository = requireObject(repositoryResponse.data, 'repository');
-  requireEqual(repository.full_name, `${owner}/${repo}`, 'repository identity');
-  const runResponse = await github.rest.actions.getWorkflowRun({ owner, repo, run_id: runId });
-  const run = requireObject(runResponse.data, 'workflow run');
-  const workflowResponse = await github.rest.actions.getWorkflow({
-    owner,
-    repo,
-    workflow_id: run.workflow_id,
-  });
-  const workflow = requireObject(workflowResponse.data, 'workflow');
-
-  if (eventRun) {
-    validateEventRun({ eventRun, run });
-  }
-  requireEqual(run.event, 'pull_request', 'workflow run event');
-  requireEqual(run.status, 'completed', 'workflow run status');
-  requireEqual(run.conclusion, 'success', 'workflow run conclusion');
-  requireEqual(run.repository?.full_name, repositoryName(repository), 'workflow run repository');
-  requireEqual(run.repository?.id, repository.id, 'workflow run repository id');
-  requireEqual(workflow.id, run.workflow_id, 'workflow identity');
-  requireEqual(workflow.name, CI_WORKFLOW_NAME, 'workflow name');
-  requireEqual(workflow.path, CI_WORKFLOW_PATH, 'workflow path');
-  if (expectedRunAttempt != null) {
-    requireEqual(run.run_attempt, expectedRunAttempt, 'workflow run attempt');
-  }
-  if (expectedHeadSha != null) {
-    requireEqual(run.head_sha, expectedHeadSha, 'workflow run head SHA');
-  }
-
-  const pullRequest = await getPullRequest({ github, owner, repo, repository, run });
   requireEqual(pullRequest.state, 'open', 'pull request state', true);
   requireEqual(pullRequest.base?.repo?.full_name, repository.full_name, 'pull request base repository', true);
   requireEqual(pullRequest.base?.repo?.id, repository.id, 'pull request base repository id', true);
   requireEqual(pullRequest.base?.ref, repository.default_branch, 'pull request base branch', true);
   requireSha(pullRequest.base?.sha, 'pull request base SHA');
-  const headRepository = requireObject(pullRequest.head?.repo, 'pull request head repository');
-  requireEqual(run.head_repository?.full_name, headRepository.full_name, 'workflow head repository', true);
-  requireEqual(run.head_repository?.id, headRepository.id, 'workflow head repository id', true);
-  requireEqual(run.head_branch, pullRequest.head?.ref, 'workflow head branch', true);
-  requireEqual(run.head_sha, pullRequest.head?.sha, 'pull request head SHA', true);
+  requireSha(pullRequest.head?.sha, 'pull request head SHA');
+  if (expectedHeadSha != null) {
+    requireEqual(pullRequest.head?.sha, expectedHeadSha, 'pull request head SHA', true);
+  }
   if (expectedBaseSha != null) {
     requireEqual(pullRequest.base.sha, expectedBaseSha, 'pull request base SHA', true);
   }
+}
 
+async function completePullRequestSource({
+  github,
+  owner,
+  repo,
+  repository,
+  pullRequest,
+  waitForReleaseProvenance = true,
+}) {
   const files = await getChangedFiles({ github, owner, repo, pullRequest });
   const pathClassification = classifyChangedFiles(files);
   let sourceKind = pathClassification;
@@ -299,11 +236,9 @@ async function resolveCiRun({
       });
     sourceKind = trusted ? 'release' : 'code';
   }
-
+  const headRepository = requireObject(pullRequest.head?.repo, 'pull request head repository');
   const source = {
     repository: repository.full_name,
-    runId: requirePositiveInteger(run.id, 'workflow run id'),
-    runAttempt: requirePositiveInteger(run.run_attempt, 'workflow run attempt'),
     pullRequest: requirePositiveInteger(pullRequest.number, 'pull request number'),
     pathClassification,
     sourceKind,
@@ -316,7 +251,6 @@ async function resolveCiRun({
     headRef: pullRequest.head.ref,
     headSha: pullRequest.head.sha,
   };
-
   if (sourceKind === 'code') {
     source.mergeBaseSha = await resolveMergeBase({
       github,
@@ -329,21 +263,83 @@ async function resolveCiRun({
   return source;
 }
 
-async function resolveSource({ github, context, qodanaRunId, qodanaRunAttempt }) {
-  const eventRun = requireObject(context.payload?.workflow_run, 'workflow_run event');
-  const source = await resolveCiRun({
+async function findPullRequestForHeadSha({ github, owner, repo, repository, headSha }) {
+  const associatedPullRequests = await github.paginate(
+    github.rest.repos.listPullRequestsAssociatedWithCommit,
+    {
+      owner,
+      repo,
+      commit_sha: headSha,
+      per_page: 100,
+    },
+  );
+  const matchingPullRequests = Array.isArray(associatedPullRequests)
+    ? associatedPullRequests.filter((pullRequest) => pullRequest?.state === 'open'
+      && pullRequest.base?.repo?.full_name === repository.full_name
+      && pullRequest.base?.repo?.id === repository.id
+      && pullRequest.base?.ref === repository.default_branch
+      && pullRequest.head?.sha === headSha)
+    : [];
+  if (matchingPullRequests.length !== 1) {
+    reject('pull request head SHA does not identify exactly one open pull request', true);
+  }
+  return matchingPullRequests[0].number;
+}
+
+async function resolvePullRequestSource({
+  github,
+  owner,
+  repo,
+  headSha,
+  expectedBaseSha = null,
+  waitForReleaseProvenance = true,
+}) {
+  requireSha(headSha, 'pull request head SHA');
+  const repository = await fetchRepository({ github, owner, repo });
+  const pullNumber = await findPullRequestForHeadSha({ github, owner, repo, repository, headSha });
+  const response = await github.rest.pulls.get({ owner, repo, pull_number: pullNumber });
+  const pullRequest = requireObject(response.data, 'pull request');
+  validatePullRequestState({
+    pullRequest,
+    repository,
+    expectedHeadSha: headSha,
+    expectedBaseSha,
+  });
+  return completePullRequestSource({
     github,
-    owner: context.repo.owner,
-    repo: context.repo.repo,
-    runId: requirePositiveInteger(eventRun.id, 'workflow run id'),
-    eventRun,
+    owner,
+    repo,
+    repository,
+    pullRequest,
+    waitForReleaseProvenance,
+  });
+}
+
+async function resolvePullRequestEventSource({ github, context, qodanaRunId, qodanaRunAttempt }) {
+  const pullRequestEvent = requireObject(context.payload?.pull_request, 'pull_request event');
+  const eventHeadSha = requireSha(pullRequestEvent.head?.sha, 'pull request event head SHA');
+  const owner = context.repo.owner;
+  const repo = context.repo.repo;
+  const repository = await fetchRepository({ github, owner, repo });
+  requireEqual(pullRequestEvent.base?.repo?.full_name, repository.full_name, 'pull request base repository');
+  requireEqual(pullRequestEvent.base?.repo?.id, repository.id, 'pull request base repository id');
+  requireEqual(pullRequestEvent.base?.ref, repository.default_branch, 'pull request base branch');
+  const pullNumber = requirePositiveInteger(pullRequestEvent.number, 'pull request number');
+  const response = await github.rest.pulls.get({ owner, repo, pull_number: pullNumber });
+  const pullRequest = requireObject(response.data, 'pull request');
+  validatePullRequestState({ pullRequest, repository, expectedHeadSha: eventHeadSha });
+  const source = await completePullRequestSource({
+    github,
+    owner,
+    repo,
+    repository,
+    pullRequest,
+    waitForReleaseProvenance: true,
   });
   return {
     ...source,
     artifactName: buildArtifactName({
       sourceKind: source.sourceKind,
-      runId: source.runId,
-      runAttempt: source.runAttempt,
       qodanaRunId: requirePositiveInteger(qodanaRunId, 'Qodana workflow run id'),
       qodanaRunAttempt: requirePositiveInteger(qodanaRunAttempt, 'Qodana workflow run attempt'),
       headSha: source.headSha,
@@ -393,7 +389,7 @@ module.exports = {
   QodanaSourceRejectedError,
   hasTrustedReleaseMetadata,
   hasTrustedReleaseProvenance,
-  resolveCiRun,
-  resolveSource,
+  resolvePullRequestEventSource,
+  resolvePullRequestSource,
   resolveTrustedCiRun,
 };

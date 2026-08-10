@@ -13,7 +13,7 @@ For local development commands, see [CONTRIBUTING.md](../.github/CONTRIBUTING.md
 | **CI** | `ci.yml` | PR, push, `merge_group`, weekly schedule, `workflow_dispatch` | Gate, path filter, parallel lint (Kotlin + Actions), sharded build (`core | text | runtime` → Aggregate), Vanilla. Always reports the required status check |
 | **CodeQL** | `codeql.yml` | PR, push, `merge_group`, weekly schedule | CodeQL analysis (`actions` + `java-kotlin` matrix), parallel with CI |
 | **PR metrics publication** | `pr-metrics-publish.yml` | `workflow_run` after CI | Validates the CI result and publishes one metrics comment with default-branch code |
-| **Qodana** | `qodana.yml` | `workflow_run` after successful PR CI | Runs Qodana with read-only permissions and creates one bounded SARIF artefact |
+| **Qodana** | `qodana.yml` | `pull_request_target` (in parallel with PR CI) | Runs Qodana with read-only permissions and creates one bounded SARIF artefact |
 | **Qodana publication** | `qodana-publish.yml` | `workflow_run` after Qodana | Validates the current PR and publishes SARIF with default-branch code |
 | **Qodana trusted** | `qodana-trusted.yml` | `workflow_run` after successful push, schedule, or dispatch CI | Runs and publishes Qodana for trusted refs |
 | **PR** | `pr.yml` | `pull_request_target` | Title + commit validation, area labels |
@@ -53,9 +53,9 @@ CI
 └─ Status (required merge-gate check) ─────────────────────────────
     └─ Aggregates Tier 1 + Vanilla + Dependencies
 
-Qodana security pipeline (workflow_run)
+Qodana security pipeline (pull_request_target, parallel with PR CI)
 ├─ Qodana            (read-only PR-head analysis or trusted attestation artefact)
-├─ Qodana publication (default-branch validation and SARIF upload)
+├─ Qodana publication (default-branch validation and SARIF upload, workflow_run after Qodana)
 └─ Qodana trusted    (trusted push, schedule, and dispatch analysis)
 
 PR metrics publication (workflow_run)
@@ -63,10 +63,11 @@ PR metrics publication (workflow_run)
    └─ Publishes one non-gating metrics comment with default-branch code
 ```
 
-All heavy CI jobs (`Lint`, `Build` shards, `Vanilla`, `Dokka`) start in parallel after `Triage` (gated only on `triage.outputs.code`/`vanilla`), not serially. Vanilla was already parallel to the build before this change. CodeQL runs from its own `codeql.yml` workflow with its own gate and path filter, parallel to CI rather than gated on `Triage`. The Qodana security pipeline starts after successful pull-request
-CI. A documentation-only pull request receives a trusted QDJVM attestation. The attestation does not check out or
-analyse code. This sequence prevents analysis of code that does not compile — heavy jobs run in parallel, but Qodana only publishes after CI succeeds and `Aggregate` consumes the shard coverage hand-off. The Status job always starts.
-It reports one required check that controls merges.
+All heavy CI jobs (`Lint`, `Build` shards, `Vanilla`, `Dokka`) start in parallel after `Triage` (gated only on `triage.outputs.code`/`vanilla`), not serially. Vanilla was already parallel to the build before this change. CodeQL runs from its own `codeql.yml` workflow with its own gate and path filter, parallel to CI rather than gated on `Triage`. The Qodana security pipeline triggers on `pull_request_target` and runs in parallel with CI
+from the default branch. A documentation-only pull request receives a trusted QDJVM attestation. The attestation does
+not check out or analyse code. The scan may analyse code before CI finishes; results publish when the scan completes,
+and the merge stays gated on the `Status` check. `Aggregate` consumes the shard coverage hand-off without re-running
+tests. The Status job always starts. It reports one required check that controls merges.
 
 Each Build shard executes its tests under Kover and uploads a `kover-handoff-<shard>` artefact with the binary `.ic`
 reports and the compiled classes. `Aggregate` restores that data and generates the XML/HTML reports and the `koverVerify`
@@ -206,13 +207,13 @@ as a bounded artefact.
 
 A separate registration job creates the `Qodana / pull request` check on the
 validated pull-request head. The check starts with `in_progress`. The read-only
-scan job cannot update it. The registration artefact binds the check to the CI
-run, Qodana run, run attempts, and source commits.
+scan job cannot update it. The registration artefact binds the check to the
+Qodana run, run attempt, and source commits.
 
-The `Qodana publication` workflow checks out the default branch. It validates
-the CI run, current pull request, changed paths, run attempt, head SHA, base
-SHA, artefact name, artefact archive, and SARIF structure. It then normalises
-the SARIF with default-branch code. The upload uses a verified non-Git artefact
+The `Qodana publication` workflow checks out the default branch. It resolves
+the current pull request by head SHA and validates it, the changed paths, the
+Qodana run attempt, head SHA, base SHA, artefact name, artefact archive, and
+SARIF structure. It then normalises the SARIF with default-branch code. The upload uses a verified non-Git artefact
 directory, the validated pull-request head SHA, the stable
 `.github/workflows/ci.yml:qodana` analysis key, and the `Kotventure/qodana`
 category.
@@ -305,7 +306,7 @@ For an occasional diagnostic scan, give `build-scan: true` to `gradle-job`. The 
 | Default workflow permissions | Set the repository default to `contents: read` |
 | Release provenance workflow | Uses `contents: read` and `pull-requests: read`. Does not check out pull-request code |
 | CI gate | Uses `actions: read`, `contents: read`, and `pull-requests: read` |
-| Qodana scan | The registration job adds `checks: write` and creates the source-bound check. The analysis job uses only `actions: read`, `contents: read`, and `pull-requests: read`. It has no write permission, no `QODANA_TOKEN`, and no Qodana GitHub side effects |
+| Qodana scan | Triggers on `pull_request_target` from the default branch and runs in parallel with CI. The registration job adds `checks: write` and creates the source-bound check. The analysis job uses only `actions: read`, `contents: read`, and `pull-requests: read`. It has no write permission, no `QODANA_TOKEN`, and no Qodana GitHub side effects |
 | Qodana publication | Uses `actions: read`, `checks: write`, `contents: read`, `pull-requests: read`, and `security-events: write`. It runs default-branch code, validates the artefacts, uploads SARIF, and completes the source-bound check |
 | Qodana trusted | The registration and report jobs use `checks: write`. The analysis job uses `actions: read`, `contents: read`, and `security-events: write` only for push, schedule, and manual-dispatch refs |
 | Release workflow | Uses an installation token from `release-please-kotventure`. Its `GITHUB_TOKEN` has no permissions |
@@ -355,7 +356,7 @@ repository automation tests use `node --test`.
 | `build-base-jars.sh` | PR feedback: last-resort jar-only Gradle build of the base SHA |
 | `collect-ci-metrics.sh` | Aggregate: test/skipped counts + longest shard and Aggregate coverage durations → `ci-metrics.json` |
 | `pr-metrics-publisher.js` | Trusted workflow_run publisher: validates the source run and renders the metrics comment |
-| `qodana-source.js` | Trusted workflow_run source and path classification for Qodana |
+| `qodana-source.js` | Trusted `pull_request_target` source resolution and path classification for Qodana |
 | `qodana-check-registration.js` | Creates and records the source-bound pull-request Qodana check |
 | `qodana-publisher.js` | Trusted Qodana publication source validation |
 | `qodana-publisher-archive.js` | Bounded single-file SARIF archive extraction |
