@@ -1,26 +1,9 @@
 'use strict';
 
-const RELEASE_ONLY_FILES = new Set([
-  'CHANGELOG.md',
-  '.release-please-manifest.json',
-  'gradle/libs.versions.toml',
-]);
-
-const DOCUMENTATION_PATH_PATTERNS = [
-  /^README\.md$/,
-  /^LICENSE\.md$/,
-  /^AGENTS\.md$/,
-  /^docs\/.+$/,
-  /^\.github\/(?:CONTRIBUTING|SUPPORT)\.md$/,
-  /^\.github\/pull_request_template\.md$/,
-  /^\.github\/(?:PULL_REQUEST_TEMPLATE|ISSUE_TEMPLATE)\/[^/]+$/,
-  /^modules\/[^/]+\/README\.md$/,
-  /^assets\/.+\.(?:svg|png|jpe?g|gif|webp)$/i,
-];
-
-function isDocumentationPath(name) {
-  return DOCUMENTATION_PATH_PATTERNS.some((pattern) => pattern.test(name));
-}
+const {
+  RELEASE_ONLY_FILES,
+  isDocumentationPath,
+} = require('./shared/path-classification.js');
 
 function setAlways(core, documentationOnly = false) {
   core.setOutput('run', 'true');
@@ -185,7 +168,6 @@ async function decideGate({ github, context, core }) {
 }
 
 module.exports = {
-  DOCUMENTATION_PATH_PATTERNS,
   RELEASE_ONLY_FILES,
   decideGate,
   isDocumentationPath,
