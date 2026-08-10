@@ -294,7 +294,7 @@ jobs:
   aggregate:
     name: Aggregate
     needs: [build]
-    if: always() && needs.build.result != 'cancelled' && needs.build.result != 'skipped'
+    if: needs.build.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -303,7 +303,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
           persist-credentials: false
 
       - name: Set up JDK and Gradle
@@ -317,7 +316,7 @@ jobs:
           merge-multiple: true
 
       - name: Generate coverage and reports
-        run: ./gradlew koverXmlReport koverHtmlReport dokkaGenerate --no-build-cache --rerun-tasks -Pkotlin.incremental=false
+        run: ./gradlew koverXmlReport koverHtmlReport dokkaGenerate
 
       - name: Collect CI metrics
         run: bash .github/scripts/collect-ci-metrics.sh
