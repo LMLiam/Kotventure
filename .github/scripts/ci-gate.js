@@ -1,0 +1,192 @@
+'use strict';
+
+const RELEASE_ONLY_FILES = new Set([
+  'CHANGELOG.md',
+  '.release-please-manifest.json',
+  'gradle/libs.versions.toml',
+]);
+
+const DOCUMENTATION_PATH_PATTERNS = [
+  /^README\.md$/,
+  /^LICENSE\.md$/,
+  /^AGENTS\.md$/,
+  /^docs\/.+$/,
+  /^\.github\/(?:CONTRIBUTING|SUPPORT)\.md$/,
+  /^\.github\/pull_request_template\.md$/,
+  /^\.github\/(?:PULL_REQUEST_TEMPLATE|ISSUE_TEMPLATE)\/[^/]+$/,
+  /^modules\/[^/]+\/README\.md$/,
+  /^assets\/.+\.(?:svg|png|jpe?g|gif|webp)$/i,
+];
+
+function isDocumentationPath(name) {
+  return DOCUMENTATION_PATH_PATTERNS.some((pattern) => pattern.test(name));
+}
+
+function setAlways(core, documentationOnly = false) {
+  core.setOutput('run', 'true');
+  core.setOutput('release_only', 'false');
+  core.setOutput('release_candidate', 'false');
+  core.setOutput('documentation_only', documentationOnly ? 'true' : 'false');
+}
+
+function setForceFull(core) {
+  core.setOutput('run', 'true');
+  core.setOutput('release_only', 'false');
+  core.setOutput('release_candidate', 'true');
+  core.setOutput('documentation_only', 'false');
+}
+
+async function decideGate({ github, context, core }) {
+  if (context.eventName === 'push') {
+    setAlways(core);
+    return;
+  }
+
+  if (context.eventName !== 'pull_request') {
+    core.info(`Event ${context.eventName}: always run heavy CI.`);
+    setAlways(core);
+    return;
+  }
+
+  const pullRequest = context.payload.pull_request;
+  const repository = `${context.repo.owner}/${context.repo.repo}`;
+  let files;
+  try {
+    files = await github.paginate(github.rest.pulls.listFiles, {
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      pull_number: pullRequest.number,
+      per_page: 100,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    core.warning(`Could not read pull-request files; run full CI: ${message}`);
+    setForceFull(core);
+    return;
+  }
+
+  const changedFileCount = pullRequest.changed_files;
+  if (!Number.isInteger(changedFileCount) || changedFileCount <= 0 || files.length !== changedFileCount) {
+    core.warning(
+      `Could not verify the complete pull-request file list (returned ${files.length}; expected ${changedFileCount ?? 'unknown'}); run full CI.`,
+    );
+    setForceFull(core);
+    return;
+  }
+
+  const unexpected = [...new Set(files
+    .flatMap((file) => [file.filename, file.previous_filename].filter(Boolean))
+    .filter((name) => !RELEASE_ONLY_FILES.has(name)))].sort();
+  const changedPaths = files
+    .flatMap((file) => [file.filename, file.previous_filename].filter(Boolean));
+  const documentationOnly = changedPaths.length > 0
+    && changedPaths.every(isDocumentationPath);
+  core.setOutput('documentation_only', documentationOnly ? 'true' : 'false');
+  const pureRelease = unexpected.length === 0;
+  const releaseCandidate = pullRequest.head?.ref?.startsWith('release-please--') || pureRelease;
+
+  if (!releaseCandidate) {
+    setAlways(core, documentationOnly);
+    return;
+  }
+
+  const trustedMetadata =
+    context.payload.repository?.full_name === repository
+    && pullRequest.base.repo?.full_name === repository
+    && pullRequest.base.ref === 'master'
+    && pullRequest.head.repo?.full_name === repository
+    && pullRequest.head.ref === 'release-please--branches--master'
+    && pullRequest.user.login === 'release-please-kotventure[bot]'
+    && pullRequest.user.type === 'Bot'
+    && context.payload.sender?.login === 'release-please-kotventure[bot]'
+    && context.payload.sender?.type === 'Bot';
+
+  if (!trustedMetadata || !pureRelease) {
+    if (unexpected.length > 0) {
+      core.info(`Release candidate has non-release changes; run full CI: ${unexpected.join(', ')}`);
+    } else {
+      core.info('Release candidate lacks trusted App provenance; run full CI.');
+    }
+    setForceFull(core);
+    return;
+  }
+
+  const findProvenanceRun = async () => {
+    const runs = await github.paginate(github.rest.actions.listWorkflowRuns, {
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      workflow_id: 'release-provenance.yml',
+      event: 'pull_request_target',
+      per_page: 100,
+    });
+
+    return runs
+      .filter((run) => {
+        const associatedPullRequests = run.pull_requests || [];
+        return run.event === 'pull_request_target'
+          && run.head_sha === pullRequest.head.sha
+          && run.head_branch === pullRequest.head.ref
+          && (associatedPullRequests.length === 0
+            || associatedPullRequests.some(
+              (candidate) => candidate.number === pullRequest.number,
+            ));
+      })
+      .sort((left, right) => new Date(right.created_at) - new Date(left.created_at))[0];
+  };
+
+  let provenanceRun;
+  try {
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      provenanceRun = await findProvenanceRun();
+      if (provenanceRun?.status === 'completed' || attempt === 5) {
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 10_000));
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    core.warning(`Could not read trusted Release Please provenance; run full CI: ${message}`);
+    setForceFull(core);
+    return;
+  }
+
+  if (!provenanceRun || provenanceRun.status !== 'completed') {
+    core.info('Trusted Release Please provenance is missing or incomplete; run full CI.');
+    setForceFull(core);
+    return;
+  }
+
+  let jobs;
+  try {
+    jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      run_id: provenanceRun.id,
+      per_page: 100,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    core.warning(`Could not read the provenance job result; run full CI: ${message}`);
+    setForceFull(core);
+    return;
+  }
+  const trustedJob = jobs.find((job) => job.name === 'Trusted release provenance');
+
+  if (trustedJob?.status === 'completed' && trustedJob.conclusion === 'success') {
+    core.info('Trusted Release Please provenance verified; skip heavy CI.');
+    core.setOutput('run', 'false');
+    core.setOutput('release_only', 'true');
+    core.setOutput('release_candidate', 'true');
+    return;
+  }
+
+  core.info('Trusted Release Please provenance did not succeed; run full CI.');
+  setForceFull(core);
+}
+
+module.exports = {
+  DOCUMENTATION_PATH_PATTERNS,
+  RELEASE_ONLY_FILES,
+  decideGate,
+  isDocumentationPath,
+};
