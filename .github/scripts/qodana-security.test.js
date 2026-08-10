@@ -424,6 +424,34 @@ test('extracts exactly one bounded SARIF file from an artifact ZIP', () => {
   );
 });
 
+test('rejects archives whose entry metadata is internally inconsistent', () => {
+  const document = createAttestation({ sourceKind: 'documentation', headSha: HEAD_SHA });
+  const content = Buffer.from(JSON.stringify(document));
+  const archive = makeStoredZip(content);
+  const centralDirectoryOffset = 30 + 'qodana.sarif.json'.length + content.length;
+
+  const mismatchedSizes = Buffer.from(archive);
+  mismatchedSizes.writeUInt32LE(content.length + 1, 18);
+  assert.throws(
+    () => extractQodanaSarifArchive(mismatchedSizes),
+    /has inconsistent file sizes/,
+  );
+
+  const nonZeroDiskStart = Buffer.from(archive);
+  nonZeroDiskStart.writeUInt16LE(1, centralDirectoryOffset + 34);
+  assert.throws(
+    () => extractQodanaSarifArchive(nonZeroDiskStart),
+    /uses unsupported compression or metadata/,
+  );
+
+  const misplacedLocalHeader = Buffer.from(archive);
+  misplacedLocalHeader.writeUInt32LE(centralDirectoryOffset, centralDirectoryOffset + 42);
+  assert.throws(
+    () => extractQodanaSarifArchive(misplacedLocalHeader),
+    /has an invalid local file header offset/,
+  );
+});
+
 test('rejects malformed SARIF and every standard project traversal location', () => {
   assert.throws(() => validateQodanaSarif(Buffer.from('{')), /not valid JSON/);
   const document = createAttestation({ sourceKind: 'documentation', headSha: HEAD_SHA });
