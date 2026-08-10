@@ -14,10 +14,17 @@
 // any threshold change in the PR description so reviewers are not surprised by a CI failure.
 def coverageLineThreshold = 85
 
-dependencies {
-    subprojects
-            .findAll { subproject -> subproject.name != 'bom' }
-            .each { subproject -> kover subproject }
+def externalBinariesDir = providers.gradleProperty('kover.externalBinariesDir').orNull
+if (externalBinariesDir != null) {
+    dependencies {
+        add('kover', fileTree(externalBinariesDir) { include '**/*.artifact' })
+    }
+} else {
+    dependencies {
+        subprojects
+                .findAll { subproject -> subproject.name != 'bom' }
+                .each { subproject -> kover subproject }
+    }
 }
 
 kover {

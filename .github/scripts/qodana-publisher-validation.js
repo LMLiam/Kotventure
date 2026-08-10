@@ -60,7 +60,7 @@ function validateQodanaWorkflowSource({ eventRun, run, workflow, repository }) {
   requireEqual(eventRun.event, 'workflow_run', 'workflow run event');
   requireEqual(eventRun.status, 'completed', 'workflow run event status');
   requireEqual(eventRun.conclusion, run.conclusion, 'workflow run event conclusion');
-  requireEqual(run.event, 'workflow_run', 'workflow run event');
+  requireEqual(run.event, 'pull_request_target', 'workflow run event');
   requireEqual(run.status, 'completed', 'workflow run status');
   if (!['success', 'failure', 'cancelled', 'timed_out'].includes(run.conclusion)) {
     reject('workflow run conclusion is invalid');
@@ -69,7 +69,9 @@ function validateQodanaWorkflowSource({ eventRun, run, workflow, repository }) {
   requireEqual(run.repository?.id, repository.id, 'workflow run repository id');
   requireEqual(run.head_repository?.full_name, repository.full_name, 'workflow head repository');
   requireEqual(run.head_repository?.id, repository.id, 'workflow head repository id');
-  requireEqual(run.head_branch, repository.default_branch, 'workflow run default branch');
+  if (typeof run.head_branch !== 'string' || run.head_branch.length === 0) {
+    reject('workflow run head branch is invalid');
+  }
   requireSha(run.head_sha, 'workflow run head SHA');
   requireEqual(workflow.id, run.workflow_id, 'workflow identity');
   requireEqual(workflow.name, QODANA_WORKFLOW_NAME, 'workflow name');
@@ -155,8 +157,6 @@ function recoverQodanaCheckDescriptor({ artifacts, qodanaRun }) {
 
 function validateQodanaCheckSource({ descriptor, source }) {
   requireEqual(descriptor.sourceKind, source.sourceKind, 'Qodana check source kind');
-  requireEqual(descriptor.ciRunId, source.runId, 'Qodana check CI run id');
-  requireEqual(descriptor.ciRunAttempt, source.runAttempt, 'Qodana check CI run attempt');
   requireEqual(descriptor.headSha, source.headSha, 'Qodana check head SHA');
   requireEqual(descriptor.baseSha, source.baseSha, 'Qodana check base SHA');
 }
@@ -175,8 +175,6 @@ function selectQodanaRunArtifact({ artifacts, qodanaRun, repository }) {
 
 function validateQodanaArtifactSource({ descriptor, source }) {
   requireEqual(descriptor.sourceKind, source.sourceKind, 'Qodana source kind');
-  requireEqual(descriptor.ciRunId, source.runId, 'CI workflow run id');
-  requireEqual(descriptor.ciRunAttempt, source.runAttempt, 'CI workflow run attempt');
   requireEqual(descriptor.headSha, source.headSha, 'Qodana artifact head SHA');
   requireEqual(descriptor.baseSha, source.baseSha, 'Qodana artifact base SHA');
 }
