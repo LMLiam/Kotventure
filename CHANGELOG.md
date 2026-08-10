@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any release.
 
+## [0.26.4](https://github.com/LMLiam/Kotventure/compare/0.26.3...0.26.4) (2026-08-10)
+
+
+### 🔧 Refactors
+
+* **ci:** extract gate decision to script ([#511](https://github.com/LMLiam/Kotventure/issues/511)) ([8ea72bd](https://github.com/LMLiam/Kotventure/commit/8ea72bd74968bab62a4bf634a2392086f84d03af))
+
 ## [0.26.3](https://github.com/LMLiam/Kotventure/compare/0.26.2...0.26.3) (2026-08-10)
 
 
