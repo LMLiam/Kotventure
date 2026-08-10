@@ -32,7 +32,7 @@ CI
 ├─ Tier 1: Core (parallel, fast feedback — all gated on Triage) ──
 │   ├─ Lint (Kotlin)     (spotlessCheck + ktlintCheck)
 │   ├─ Lint (Actions)    (declaration check + pr-metrics-comment tests)
-│   ├─ Build             (sharded: core | text (`minimessage` + `serializer`) | runtime (`coroutines` + `paper` + `test` + `bom`) — each `koverBinaryReport` + test results)
+│   ├─ Build             (sharded: core | text (`minimessage` + `serializer`) | runtime (`coroutines` + `paper` + `test` + `test-snapshot` + `bom`) — each `koverBinaryReport` + test results)
 │   ├─ Vanilla           (MC-backed selector tests, path-filtered)
 │   └─ Dokka             (dokkaGenerate, parallel with Build)
 │
@@ -353,7 +353,7 @@ repository automation tests use `node --test`.
 | `vanilla-fixture-cache-key.sh` | Compute MC fixture cache key |
 | `download-base-metrics.sh` | PR feedback: fetch base coverage/jars/metrics from the base commit's CI run |
 | `build-base-jars.sh` | PR feedback: last-resort jar-only Gradle build of the base SHA |
-| `collect-ci-metrics.sh` | Aggregate: test/skipped counts + maximum shard build duration → `ci-metrics.json` |
+| `collect-ci-metrics.sh` | Aggregate: test/skipped counts + longest shard and Aggregate coverage durations → `ci-metrics.json` |
 | `pr-metrics-publisher.js` | Trusted workflow_run publisher: validates the source run and renders the metrics comment |
 | `qodana-source.js` | Trusted workflow_run source and path classification for Qodana |
 | `qodana-check-registration.js` | Creates and records the source-bound pull-request Qodana check |
