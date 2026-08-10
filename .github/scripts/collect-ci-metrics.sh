@@ -27,24 +27,42 @@ done < <(find . -type f -name 'TEST-*.xml' -path '*/build/test-results/test/*' 2
 
 duration=null
 
-# Each build shard writes gradle-duration-<shard>.txt (measured by the gradle-job action).
-# The reported duration is the maximum shard build duration, i.e. the critical-path build
-# time in the parallel CI. When no per-shard files exist (single-invocation build), the
-# plain gradle-duration.txt is used instead.
-shard_files=(gradle-duration-*.txt)
-if [[ -n "${shard_files[0]:-}" && -f "${shard_files[0]}" ]]; then
-    max_duration=0
-    for dfile in "${shard_files[@]}"; do
-        [[ -f $dfile ]] || continue
-        read -r val < "$dfile"
-        if [[ $val =~ ^[0-9]+$ ]] && (( val > max_duration )); then
-            max_duration=$val
+# Each build shard writes gradle-duration-<shard>.txt and the Aggregate coverage build writes
+# gradle-duration.txt (both measured by the gradle-job action). The reported duration is the
+# sequential build time on the critical path: the longest shard build plus the Aggregate
+# coverage build, which can only start after every shard completes. When only one source
+# exists (single-invocation builds), that value is used; when neither is valid, the field
+# stays null.
+max_shard_duration=0
+aggregate_duration=0
+has_shard=false
+has_aggregate=false
+
+for dfile in gradle-duration-*.txt; do
+    [[ -f $dfile ]] || continue
+    read -r val < "$dfile"
+    if [[ $val =~ ^[0-9]+$ ]]; then
+        has_shard=true
+        if (( val > max_shard_duration )); then
+            max_shard_duration=$val
         fi
-    done
-    duration=$max_duration
-elif [[ -f gradle-duration.txt ]]; then
+    fi
+done
+
+if [[ -f gradle-duration.txt ]]; then
     read -r val < gradle-duration.txt
-    [[ $val =~ ^[0-9]+$ ]] && duration=$val
+    if [[ $val =~ ^[0-9]+$ ]]; then
+        has_aggregate=true
+        aggregate_duration=$val
+    fi
+fi
+
+if [[ $has_shard == true && $has_aggregate == true ]]; then
+    duration=$((max_shard_duration + aggregate_duration))
+elif [[ $has_shard == true ]]; then
+    duration=$max_shard_duration
+elif [[ $has_aggregate == true ]]; then
+    duration=$aggregate_duration
 fi
 
 printf '{"tests": %d, "skipped": %d, "durationSeconds": %s}\n' "$tests" "$skipped" "$duration" > "$METRICS_FILE"
