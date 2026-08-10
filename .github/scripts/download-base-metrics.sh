@@ -92,42 +92,38 @@ restore_file_artifact() {
 }
 
 restore_jars() {
-    local artifact download_dir destination
-    local artifact_names=(
-        module-jars
-        gradle-build-artifacts
-    )
+    local artifact='module-jars'
+    local download_dir destination
 
-    for artifact in "${artifact_names[@]}"; do
-        download_dir="$download_root/$artifact"
-        mkdir -p -- "$download_dir"
+    download_dir="$download_root/$artifact"
+    mkdir -p -- "$download_dir"
 
-        if ! gh run download "$run_id" --name "$artifact" --dir "$download_dir"; then
+    if ! gh run download "$run_id" --name "$artifact" --dir "$download_dir"; then
+        warn 'could not restore module JARs from any supported artifact'
+        return 1
+    fi
+
+    local jars=("$download_dir"/**/kotventure-*.jar)
+
+    if (( ${#jars[@]} == 0 )); then
+        warn 'could not restore module JARs from any supported artifact'
+        return 1
+    fi
+
+    mkdir -p -- "$JARS_DIR"
+
+    for jar in "${jars[@]}"; do
+        destination="$JARS_DIR/${jar##*/}"
+
+        if [[ -e $destination ]]; then
+            warn "not overwriting existing JAR: $destination"
             continue
         fi
 
-        local jars=("$download_dir"/**/kotventure-*.jar)
-
-        (( ${#jars[@]} > 0 )) || continue
-
-        mkdir -p -- "$JARS_DIR"
-
-        for jar in "${jars[@]}"; do
-            destination="$JARS_DIR/${jar##*/}"
-
-            if [[ -e $destination ]]; then
-                warn "not overwriting existing JAR: $destination"
-                continue
-            fi
-
-            cp -- "$jar" "$destination"
-        done
-
-        return 0
+        cp -- "$jar" "$destination"
     done
 
-    warn 'could not restore module JARs from any supported artifact'
-    return 1
+    return 0
 }
 
 if (( need_coverage )); then
