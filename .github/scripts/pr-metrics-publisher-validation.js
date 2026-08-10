@@ -10,6 +10,7 @@ const {
     WORKFLOW_NAME,
 } = require('./pr-metrics-publisher-contract.js');
 const { createValidators } = require('./shared/validation.js');
+const { createArtifactBinding } = require('./shared/artifact-binding.js');
 
 class PublicationRejectedError extends Error {
     constructor(message) {
@@ -28,6 +29,7 @@ const {
     requireObject,
     requireString,
 } = createValidators(reject);
+const { validateArtifactBinding } = createArtifactBinding(reject);
 
 function expectedArtifactName({ runId, runAttempt }) {
     const id = requireSafeInteger(runId, 'workflow run id');
@@ -294,53 +296,18 @@ function selectMetricsArtifact({ artifacts, source }) {
 
     const [artifact] = matches;
 
-    requireSafeInteger(artifact.id, 'metrics artifact id');
-
-    if (artifact.expired !== false) {
-        reject('metrics artifact is expired');
-    }
-
-    requireSafeInteger(
-            artifact.size_in_bytes,
-            'metrics artifact size',
-            1,
-            MAX_ARTIFACT_BYTES,
-    );
-
-    const workflowRun = requireObject(
-            artifact.workflow_run,
-            'metrics artifact workflow run',
-    );
-
-    requireEqual(
-            workflowRun.id,
-            source.runId,
-            'metrics artifact workflow run id',
-    );
-
-    requireEqual(
-            workflowRun.repository_id,
-            source.repositoryId,
-            'metrics artifact repository id',
-    );
-
-    requireEqual(
-            workflowRun.head_repository_id,
-            source.headRepositoryId,
-            'metrics artifact head repository id',
-    );
-
-    requireEqual(
-            workflowRun.head_branch,
-            source.headRef,
-            'metrics artifact head branch',
-    );
-
-    requireEqual(
-            workflowRun.head_sha,
-            source.headSha,
-            'metrics artifact head SHA',
-    );
+    validateArtifactBinding({
+        artifact,
+        expected: {
+            runId: source.runId,
+            repositoryId: source.repositoryId,
+            headRepositoryId: source.headRepositoryId,
+            headBranch: source.headRef,
+            headSha: source.headSha,
+        },
+        maxBytes: MAX_ARTIFACT_BYTES,
+        label: 'metrics artifact',
+    });
 
     return artifact;
 }

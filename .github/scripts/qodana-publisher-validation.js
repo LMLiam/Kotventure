@@ -10,6 +10,7 @@ const {
   parseArtifactName,
 } = require('./qodana-contract.js');
 const { createValidators } = require('./shared/validation.js');
+const { createArtifactBinding } = require('./shared/artifact-binding.js');
 
 class QodanaPublicationRejectedError extends Error {}
 
@@ -23,6 +24,7 @@ const {
   requireObject,
   requireSha,
 } = createValidators(reject);
+const { validateArtifactBinding } = createArtifactBinding(reject);
 
 function validateQodanaWorkflowSource({ eventRun, run, workflow, repository }) {
   requireObject(eventRun, 'workflow_run event');
@@ -89,21 +91,18 @@ function selectRunArtifact({
     reject(`expected exactly one ${label}, found ${candidates.length}`);
   }
   const [{ artifact, descriptor }] = candidates;
-  requirePositiveInteger(artifact.id, `${label} id`);
-  if (artifact.expired !== false) {
-    reject(`${label} is expired`);
-  }
-  if (!Number.isSafeInteger(artifact.size_in_bytes)
-    || artifact.size_in_bytes < 1
-    || artifact.size_in_bytes > maximumBytes) {
-    reject(`${label} size is invalid`);
-  }
-  const artifactRun = requireObject(artifact.workflow_run, `${label} workflow run`);
-  requireEqual(artifactRun.id, qodanaRun.id, `${label} workflow run id`);
-  requireEqual(artifactRun.repository_id, repository.id, `${label} repository id`);
-  requireEqual(artifactRun.head_repository_id, qodanaRun.head_repository?.id, `${label} head repository id`);
-  requireEqual(artifactRun.head_branch, qodanaRun.head_branch, `${label} head branch`);
-  requireEqual(artifactRun.head_sha, qodanaRun.head_sha, `${label} head SHA`);
+  validateArtifactBinding({
+    artifact,
+    expected: {
+      runId: qodanaRun.id,
+      repositoryId: repository.id,
+      headRepositoryId: qodanaRun.head_repository?.id,
+      headBranch: qodanaRun.head_branch,
+      headSha: qodanaRun.head_sha,
+    },
+    maxBytes: maximumBytes,
+    label,
+  });
   return { artifact, descriptor };
 }
 

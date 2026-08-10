@@ -7,6 +7,7 @@ const {
   classifyChangedFiles,
 } = require('./qodana-contract.js');
 const { createValidators } = require('./shared/validation.js');
+const { createRunContext } = require('./shared/run-context.js');
 
 class QodanaSourceRejectedError extends Error {
   constructor(message, { stale = false } = {}) {
@@ -26,6 +27,7 @@ const {
   requireObject,
   requireSha,
 } = createValidators(reject);
+const { validateEventRun } = createRunContext(reject);
 
 function repositoryName(repository) {
   requireObject(repository, 'repository');
@@ -162,16 +164,6 @@ async function resolveMergeBase({ github, owner, repo, baseSha, headSha }) {
   });
   const mergeBaseSha = response.data?.merge_base_commit?.sha;
   return requireSha(mergeBaseSha, 'merge-base SHA');
-}
-
-function validateEventRun({ eventRun, run }) {
-  requireObject(eventRun, 'workflow_run event');
-  requireEqual(eventRun.id, run.id, 'workflow run id');
-  requireEqual(eventRun.run_attempt, run.run_attempt, 'workflow run attempt');
-  requireEqual(eventRun.head_sha, run.head_sha, 'workflow run head SHA');
-  if (eventRun.workflow_id != null) {
-    requireEqual(eventRun.workflow_id, run.workflow_id, 'workflow run workflow id');
-  }
 }
 
 function validatePullRequestState({

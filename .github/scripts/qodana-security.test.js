@@ -219,6 +219,7 @@ function makePublicationGithub({
     id: qodanaRun.id,
     run_attempt: qodanaRun.run_attempt,
     workflow_id: qodanaRun.workflow_id,
+    head_sha: qodanaRun.head_sha,
     event: qodanaRun.event,
     status: qodanaRun.status,
     conclusion: qodanaRun.conclusion,

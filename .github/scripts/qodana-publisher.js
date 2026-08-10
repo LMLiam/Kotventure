@@ -8,7 +8,11 @@ const {
   validateQodanaWorkflowSource,
 } = require('./qodana-publisher-validation.js');
 const { createValidators } = require('./shared/validation.js');
+const { createRunContext } = require('./shared/run-context.js');
 const { requireObject } = createValidators((message) => {
+  throw new QodanaPublicationRejectedError(message);
+});
+const { fetchWorkflowRunContext } = createRunContext((message) => {
   throw new QodanaPublicationRejectedError(message);
 });
 
@@ -16,23 +20,12 @@ async function resolvePublication({ github, context }) {
   const eventRun = requireObject(context.payload?.workflow_run, 'workflow_run event');
   const owner = context.repo.owner;
   const repo = context.repo.repo;
-  const repositoryResponse = await github.rest.repos.get({ owner, repo });
-  const repository = requireObject(repositoryResponse.data, 'repository');
-  if (repository.full_name !== `${owner}/${repo}`) {
-    throw new QodanaPublicationRejectedError('repository identity is invalid');
-  }
-  const runResponse = await github.rest.actions.getWorkflowRun({
+  const { repository, run: qodanaRun, workflow } = await fetchWorkflowRunContext({
+    github,
     owner,
     repo,
-    run_id: eventRun.id,
+    eventRun,
   });
-  const qodanaRun = requireObject(runResponse.data, 'Qodana workflow run');
-  const workflowResponse = await github.rest.actions.getWorkflow({
-    owner,
-    repo,
-    workflow_id: qodanaRun.workflow_id,
-  });
-  const workflow = requireObject(workflowResponse.data, 'Qodana workflow');
   const trustedRun = validateQodanaWorkflowSource({
     eventRun,
     run: qodanaRun,
