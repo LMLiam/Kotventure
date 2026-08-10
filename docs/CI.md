@@ -26,20 +26,21 @@ For local development commands, see [CONTRIBUTING.md](../.github/CONTRIBUTING.md
 ```
 CI
 │
-├─ Tier 0: Triage ─────────────────────────────────────────────────
-│   ├─ Gate              (verify provenance before a release-only skip; `ci-gate.js`)
-│   └─ Detect changes    (path filter → code, vanilla)
+├─ Triage ─────────────────────────────────────────────────────────
+│   └─ Triage            (gate + path filter → code, vanilla, docs_only — single runner)
 │
-├─ Tier 1: Core (parallel, fast feedback) ─────────────────────────
+├─ Tier 1: Core (parallel, fast feedback — all gated on Triage) ──
 │   ├─ Lint (Kotlin)     (spotlessCheck + ktlintCheck)
 │   ├─ Lint (Actions)    (declaration check + pr-metrics-comment tests)
-│   ├─ Build             (sharded: core | text (`minimessage` + `serializer`) | runtime (`coroutines` + `paper` + `test` + `bom`) → Aggregate)
-│   │   └─ Aggregate     (kover, dokka, metrics, baseline cache — after all shards)
-│   │       └─ PR feedback   (read-only metrics computation and result artefact)
-│   └─ Vanilla           (MC-backed selector tests, path-filtered, parallel with Tier 1)
+│   ├─ Build             (sharded: core | text (`minimessage` + `serializer`) | runtime (`coroutines` + `paper` + `test` + `bom`) — each `koverBinaryReport` + test results)
+│   ├─ Vanilla           (MC-backed selector tests, path-filtered)
+│   └─ Dokka             (dokkaGenerate, parallel with Build)
+│   └─ CodeQL            (actions + java-kotlin matrix, own workflow `codeql.yml`, parallel with CI)
 │
-├─ CodeQL (parallel with CI) ──────────────────────────────────────
-│   └─ CodeQL            (actions + java-kotlin matrix, own workflow `codeql.yml`)
+├─ Tier 2: Aggregate (after Build shards) ─────────────────────────
+│   ├─ Aggregate         (merge kover binaries → koverXmlReport/koverHtmlReport/koverVerify, metrics, baseline cache)
+│   │   └─ PR feedback   (read-only metrics computation and result artefact)
+│   └─ (Vanilla/Dokka already completed in Tier 1)
 │
 ├─ Policy (independent of tiers) ──────────────────────────────────
 │   ├─ Dependencies      (dependency-review-action, PRs only)
@@ -60,13 +61,13 @@ PR metrics publication (workflow_run)
    └─ Publishes one non-gating metrics comment with default-branch code
 ```
 
-Vanilla and CodeQL start in parallel with Tier 1 (gated only on `changes` + `gate`), not after Tier 1. The Qodana security pipeline starts after successful pull-request
+All heavy jobs (`Lint`, `Build` shards, `Vanilla`, `Dokka`, `CodeQL`) start in parallel after `Triage` (gated only on `triage.outputs.code`/`vanilla`), not serially. The Qodana security pipeline starts after successful pull-request
 CI. A documentation-only pull request receives a trusted QDJVM attestation. The attestation does not check out or
-analyse code. This sequence prevents analysis of code that does not compile — Tier 2 still runs in parallel, but Qodana only publishes after CI succeeds. The Status job always starts.
+analyse code. This sequence prevents analysis of code that does not compile — heavy jobs run in parallel, but Qodana only publishes after CI succeeds and `Aggregate` merges the binary coverage reports. The Status job always starts.
 It reports one required check that controls merges.
 
 The workflow listens for `merge_group` events. Merge groups, schedules, and manual dispatches do not use the path
-filter. They always start the full pipeline: Build (sharded), Vanilla, and CodeQL (own workflow). The `Qodana trusted` workflow analyses a
+filter. They always start the full pipeline: Build (sharded → Aggregate with `koverVerify` at 85%), Vanilla, Dokka, and CodeQL (own workflow). The `Qodana trusted` workflow analyses a
 push, schedule, or manual-dispatch ref after CI completes. It does not run for a merge-group ref because a merge group
 contains pull-request code.
 
