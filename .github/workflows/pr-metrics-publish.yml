@@ -16,6 +16,9 @@ concurrency:
 
 permissions: {}
 
+env:
+  NODE_OPTIONS: --use-system-ca
+
 jobs:
   publish:
     name: Publish PR metrics
@@ -36,8 +39,10 @@ jobs:
 
       - name: Validate source run
         id: source
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
+          retries: 3
+          retry-exempt-status-codes: 400,401,403,404,422
           script: |
             const { validateSource } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/pr-metrics-publisher.js`);
             await validateSource({ github, context, core });
@@ -45,10 +50,12 @@ jobs:
       - name: Register the metrics publication check
         id: check
         if: steps.source.outputs.publish == 'true'
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           HEAD_SHA: ${{ steps.source.outputs.head_sha }}
         with:
+          retries: 3
+          retry-exempt-status-codes: 400,401,403,404,422
           script: |
             const {
               buildCheckExternalId,
@@ -73,12 +80,14 @@ jobs:
 
       - name: Download and validate metrics result
         if: steps.source.outputs.publish == 'true'
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           ARTIFACT_ID: ${{ steps.source.outputs.artifact_id }}
           ARTIFACT_DIRECTORY: ${{ runner.temp }}/pr-metrics-result
           GITHUB_TOKEN: ${{ github.token }}
         with:
+          retries: 3
+          retry-exempt-status-codes: 400,401,403,404,422
           script: |
             const { downloadMetricsArtifact } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/pr-metrics-publisher-storage.js`);
             await downloadMetricsArtifact({
@@ -91,10 +100,12 @@ jobs:
       - name: Publish metrics comment
         id: publish
         if: steps.source.outputs.publish == 'true'
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           ARTIFACT_DIRECTORY: ${{ runner.temp }}/pr-metrics-result
         with:
+          retries: 3
+          retry-exempt-status-codes: 400,401,403,404,422
           script: |
             const { publishMetrics } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/pr-metrics-publisher.js`);
             const published = await publishMetrics({
@@ -107,7 +118,7 @@ jobs:
 
       - name: Complete the metrics publication check
         if: always() && steps.check.outputs.check_run_id != ''
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           CHECK_EXTERNAL_ID: ${{ steps.check.outputs.check_external_id }}
           CHECK_RUN_ID: ${{ steps.check.outputs.check_run_id }}
@@ -115,6 +126,8 @@ jobs:
           JOB_STATUS: ${{ job.status }}
           PUBLISHED: ${{ steps.publish.outputs.published }}
         with:
+          retries: 3
+          retry-exempt-status-codes: 400,401,403,404,422
           script: |
             const {
               completeWorkflowCheck,

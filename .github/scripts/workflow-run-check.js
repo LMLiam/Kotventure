@@ -49,8 +49,8 @@ function requireEqual(actual, expected, label) {
 function workflowRunUrl(context) {
   const serverUrl = requireText(context?.serverUrl, 'GitHub server URL', 512);
   const repository = `${requireText(context?.repo?.owner, 'repository owner', 100)}/${requireText(context?.repo?.repo, 'repository name', 100)}`;
-  const runId = requirePositiveInteger(context?.runId, 'workflow run id');
-  const runAttempt = requirePositiveInteger(context?.runAttempt, 'workflow run attempt');
+  const runId = requirePositiveInteger(Number(context?.runId), 'workflow run id');
+  const runAttempt = requirePositiveInteger(Number(context?.runAttempt), 'workflow run attempt');
   return `${serverUrl}/${repository}/actions/runs/${runId}/attempts/${runAttempt}`;
 }
 
@@ -58,7 +58,7 @@ function buildCheckExternalId({ kind, runId, runAttempt, headSha }) {
   if (typeof kind !== 'string' || !KIND_PATTERN.test(kind)) {
     throw new Error('check kind is invalid');
   }
-  return `${EXTERNAL_ID_PREFIX}:${kind}:${requirePositiveInteger(runId, 'workflow run id')}:${requirePositiveInteger(runAttempt, 'workflow run attempt')}:${requireSha(headSha, 'check head SHA')}`;
+  return `${EXTERNAL_ID_PREFIX}:${kind}:${requirePositiveInteger(Number(runId), 'workflow run id')}:${requirePositiveInteger(Number(runAttempt), 'workflow run attempt')}:${requireSha(headSha, 'check head SHA')}`;
 }
 
 function validateCreatedCheck(check, expected) {
