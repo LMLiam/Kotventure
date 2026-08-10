@@ -10,7 +10,8 @@ For local development commands, see [CONTRIBUTING.md](../.github/CONTRIBUTING.md
 
 | Workflow | File | Triggers | Purpose |
 |----------|------|----------|---------|
-| **CI** | `ci.yml` | PR, push, `merge_group`, weekly schedule, `workflow_dispatch` | Gate, path filter, parallel lint, build, and analysis. Always reports the required status check |
+| **CI** | `ci.yml` | PR, push, `merge_group`, weekly schedule, `workflow_dispatch` | Gate, path filter, parallel lint (Kotlin + Actions), sharded build (`core | text | runtime` → Aggregate), Vanilla. Always reports the required status check |
+| **CodeQL** | `codeql.yml` | PR, push, `merge_group`, weekly schedule | CodeQL analysis (`actions` + `java-kotlin` matrix), parallel with CI |
 | **PR metrics publication** | `pr-metrics-publish.yml` | `workflow_run` after CI | Validates the CI result and publishes one metrics comment with default-branch code |
 | **Qodana** | `qodana.yml` | `workflow_run` after successful PR CI | Runs Qodana with read-only permissions and creates one bounded SARIF artefact |
 | **Qodana publication** | `qodana-publish.yml` | `workflow_run` after Qodana | Validates the current PR and publishes SARIF with default-branch code |
@@ -26,17 +27,19 @@ For local development commands, see [CONTRIBUTING.md](../.github/CONTRIBUTING.md
 CI
 │
 ├─ Tier 0: Triage ─────────────────────────────────────────────────
-│   ├─ Gate              (verify provenance before a release-only skip)
+│   ├─ Gate              (verify provenance before a release-only skip; `ci-gate.js`)
 │   └─ Detect changes    (path filter → code, vanilla)
 │
 ├─ Tier 1: Core (parallel, fast feedback) ─────────────────────────
-│   ├─ Lint              (declaration check + spotlessCheck + ktlintCheck)
-│   └─ Build             (full multi-project build + Dokka + Kover + Build Scan)
-│       └─ PR feedback   (read-only metrics computation and result artefact)
+│   ├─ Lint (Kotlin)     (spotlessCheck + ktlintCheck)
+│   ├─ Lint (Actions)    (declaration check + pr-metrics-comment tests)
+│   ├─ Build             (sharded: core | text (`minimessage` + `serializer`) | runtime (`coroutines` + `paper` + `test` + `bom`) → Aggregate)
+│   │   └─ Aggregate     (kover, dokka, metrics, baseline cache — after all shards)
+│   │       └─ PR feedback   (read-only metrics computation and result artefact)
+│   └─ Vanilla           (MC-backed selector tests, path-filtered, parallel with Tier 1)
 │
-├─ Tier 2: Deep Analysis (after Tier 1 passes) ────────────────────
-│   ├─ CodeQL            (actions + java-kotlin matrix)
-│   └─ Vanilla conformance  (MC-backed selector tests, path-filtered)
+├─ CodeQL (parallel with CI) ──────────────────────────────────────
+│   └─ CodeQL            (actions + java-kotlin matrix, own workflow `codeql.yml`)
 │
 ├─ Policy (independent of tiers) ──────────────────────────────────
 │   ├─ Dependencies      (dependency-review-action, PRs only)
@@ -57,13 +60,13 @@ PR metrics publication (workflow_run)
    └─ Publishes one non-gating metrics comment with default-branch code
 ```
 
-For code changes, Tier 2 starts only after Tier 1 passes. The Qodana security pipeline starts after successful pull-request
+Vanilla and CodeQL start in parallel with Tier 1 (gated only on `changes` + `gate`), not after Tier 1. The Qodana security pipeline starts after successful pull-request
 CI. A documentation-only pull request receives a trusted QDJVM attestation. The attestation does not check out or
-analyse code. This sequence prevents analysis of code that does not compile or pass lint. The Status job always starts.
+analyse code. This sequence prevents analysis of code that does not compile — Tier 2 still runs in parallel, but Qodana only publishes after CI succeeds. The Status job always starts.
 It reports one required check that controls merges.
 
 The workflow listens for `merge_group` events. Merge groups, schedules, and manual dispatches do not use the path
-filter. They always start the full pipeline: Build, Vanilla, and CodeQL. The `Qodana trusted` workflow analyses a
+filter. They always start the full pipeline: Build (sharded), Vanilla, and CodeQL (own workflow). The `Qodana trusted` workflow analyses a
 push, schedule, or manual-dispatch ref after CI completes. It does not run for a merge-group ref because a merge group
 contains pull-request code.
 
@@ -333,6 +336,7 @@ repository automation tests use `node --test`.
 
 | Script | Role |
 |--------|------|
+| `ci-gate.js` | Gate decision: pure-release, trusted provenance, `release-provenance.yml` polling (`decideGate`) |
 | `validate-conventional-title.sh` | Title/commit subject format |
 | `check-one-declaration-per-file.sh` | One top-level class/interface/object per main-source file |
 | `normalize-qodana-sarif.sh` | Fix 0-based SARIF regions and remove scanner-owned automation metadata before upload |
@@ -340,7 +344,7 @@ repository automation tests use `node --test`.
 | `vanilla-fixture-cache-key.sh` | Compute MC fixture cache key |
 | `download-base-metrics.sh` | PR feedback: fetch base coverage/jars/metrics from the base commit's CI run |
 | `build-base-jars.sh` | PR feedback: last-resort jar-only Gradle build of the base SHA |
-| `collect-ci-metrics.sh` | Build: test/skipped counts + build duration → `ci-metrics.json` |
+| `collect-ci-metrics.sh` | Aggregate: test/skipped counts + build duration → `ci-metrics.json` |
 | `pr-metrics-publisher.js` | Trusted workflow_run publisher: validates the source run and renders the metrics comment |
 | `qodana-source.js` | Trusted workflow_run source and path classification for Qodana |
 | `qodana-check-registration.js` | Creates and records the source-bound pull-request Qodana check |
