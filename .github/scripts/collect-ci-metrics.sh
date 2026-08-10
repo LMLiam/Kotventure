@@ -25,11 +25,28 @@ for file in modules/*/build/test-results/test/TEST-*.xml; do
 done
 
 duration=null
+max_duration=0
+found_duration=false
 
-if [[ -f $DURATION_FILE ]]; then
-    read -r duration < "$DURATION_FILE"
+# Check per-shard duration files (gradle-duration-*.txt) and aggregate duration (gradle-duration.txt).
+# Duration represents the wall-clock indicative time for the longest shard, which is the
+# critical-path build time in the parallel CI (max of shards). If only a single file exists,
+# it is used directly.
+for dfile in gradle-duration-*.txt "$DURATION_FILE"; do
+    [[ -f $dfile ]] || continue
+    read -r val < "$dfile"
+    if [[ $val =~ ^[0-9]+$ ]]; then
+        found_duration=true
+        if (( val > max_duration )); then
+            max_duration=$val
+        fi
+    fi
+done
 
-    [[ $duration =~ ^[0-9]+$ ]] || duration=null
+if [[ $found_duration == true ]]; then
+    duration=$max_duration
+else
+    duration=null
 fi
 
 printf '{"tests": %d, "skipped": %d, "durationSeconds": %s}\n' "$tests" "$skipped" "$duration" > "$METRICS_FILE"
