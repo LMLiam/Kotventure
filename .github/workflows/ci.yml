@@ -34,7 +34,7 @@ permissions:
 # ║                                                                            ║
 # ║  Tier 0 ─ Triage        Gate → Changes (fast, always runs)                ║
 # ║  Tier 1 ─ Core          Lint ┤ Build (parallel, first feedback)            ║
-# ║  Tier 2 ─ Analysis      CodeQL │ Vanilla (after T1 passes)                 ║
+# ║  Tier 2 ─ Analysis      Vanilla (parallel with Tier 1)                      ║
 # ║  Policy ─ Independent   Dependencies │ Commits │ Release attestation       ║
 # ║  Status ─ Aggregator    Required check (merge gate + merge queue)          ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
@@ -59,191 +59,20 @@ jobs:
       release_candidate: ${{ steps.decide.outputs.release_candidate }}
       documentation_only: ${{ steps.decide.outputs.documentation_only }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
       - name: Decide whether heavy CI should run
         id: decide
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
+          retries: 3
+          retry-exempt-status-codes: 400,401,403,404,422
           script: |
-            const ALWAYS = (documentationOnly = false) => {
-              core.setOutput('run', 'true');
-              core.setOutput('release_only', 'false');
-              core.setOutput('release_candidate', 'false');
-              core.setOutput('documentation_only', documentationOnly ? 'true' : 'false');
-            };
-
-            const FORCE_FULL = () => {
-              core.setOutput('run', 'true');
-              core.setOutput('release_only', 'false');
-              core.setOutput('release_candidate', 'true');
-              core.setOutput('documentation_only', 'false');
-            };
-
-            const releaseOnlyFiles = new Set([
-              'CHANGELOG.md',
-              '.release-please-manifest.json',
-              'gradle/libs.versions.toml',
-            ]);
-
-            const documentationPathPatterns = [
-              /^README\.md$/,
-              /^LICENSE\.md$/,
-              /^AGENTS\.md$/,
-              /^docs\/.+$/,
-              /^\.github\/(?:CONTRIBUTING|SUPPORT)\.md$/,
-              /^\.github\/pull_request_template\.md$/,
-              /^\.github\/(?:PULL_REQUEST_TEMPLATE|ISSUE_TEMPLATE)\/[^/]+$/,
-              /^modules\/[^/]+\/README\.md$/,
-              /^assets\/.+\.(?:svg|png|jpe?g|gif|webp)$/i,
-            ];
-
-            const isDocumentationPath = (name) =>
-              documentationPathPatterns.some((pattern) => pattern.test(name));
-
-            if (context.eventName === 'push') {
-              ALWAYS();
-              return;
-            }
-
-            if (context.eventName !== 'pull_request') {
-              core.info(`Event ${context.eventName}: always run heavy CI.`);
-              ALWAYS();
-              return;
-            }
-
-            const pullRequest = context.payload.pull_request;
-            const repository = `${context.repo.owner}/${context.repo.repo}`;
-            let files;
-            try {
-              files = await github.paginate(github.rest.pulls.listFiles, {
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: pullRequest.number,
-                per_page: 100,
-              });
-            } catch (error) {
-              const message = error instanceof Error ? error.message : String(error);
-              core.warning(`Could not read pull-request files; run full CI: ${message}`);
-              FORCE_FULL();
-              return;
-            }
-
-            const changedFileCount = pullRequest.changed_files;
-            if (!Number.isInteger(changedFileCount) || changedFileCount <= 0 || files.length !== changedFileCount) {
-              core.warning(
-                `Could not verify the complete pull-request file list (returned ${files.length}; expected ${changedFileCount ?? 'unknown'}); run full CI.`,
-              );
-              FORCE_FULL();
-              return;
-            }
-
-            const unexpected = [...new Set(files
-              .flatMap((file) => [file.filename, file.previous_filename].filter(Boolean))
-              .filter((name) => !releaseOnlyFiles.has(name)))].sort();
-            const changedPaths = files
-              .flatMap((file) => [file.filename, file.previous_filename].filter(Boolean));
-            const documentationOnly = changedPaths.length > 0
-              && changedPaths.every(isDocumentationPath);
-            core.setOutput('documentation_only', documentationOnly ? 'true' : 'false');
-            const pureRelease = unexpected.length === 0;
-            const releaseCandidate = pullRequest.head?.ref?.startsWith('release-please--') || pureRelease;
-
-            if (!releaseCandidate) {
-              ALWAYS(documentationOnly);
-              return;
-            }
-
-            const trustedMetadata =
-              context.payload.repository?.full_name === repository
-              && pullRequest.base.repo?.full_name === repository
-              && pullRequest.base.ref === 'master'
-              && pullRequest.head.repo?.full_name === repository
-              && pullRequest.head.ref === 'release-please--branches--master'
-              && pullRequest.user.login === 'release-please-kotventure[bot]'
-              && pullRequest.user.type === 'Bot'
-              && context.payload.sender?.login === 'release-please-kotventure[bot]'
-              && context.payload.sender?.type === 'Bot';
-
-            if (!trustedMetadata || !pureRelease) {
-              if (unexpected.length > 0) {
-                core.info(`Release candidate has non-release changes; run full CI: ${unexpected.join(', ')}`);
-              } else {
-                core.info('Release candidate lacks trusted App provenance; run full CI.');
-              }
-              FORCE_FULL();
-              return;
-            }
-
-            const findProvenanceRun = async () => {
-              const runs = await github.paginate(github.rest.actions.listWorkflowRuns, {
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                workflow_id: 'release-provenance.yml',
-                event: 'pull_request_target',
-                per_page: 100,
-              });
-
-              return runs
-                .filter((run) => {
-                  const associatedPullRequests = run.pull_requests || [];
-                  return run.event === 'pull_request_target'
-                    && run.head_sha === pullRequest.head.sha
-                    && run.head_branch === pullRequest.head.ref
-                    && (associatedPullRequests.length === 0
-                      || associatedPullRequests.some(
-                        (candidate) => candidate.number === pullRequest.number,
-                      ));
-                })
-                .sort((left, right) => new Date(right.created_at) - new Date(left.created_at))[0];
-            };
-
-            let provenanceRun;
-            try {
-              for (let attempt = 0; attempt < 6; attempt += 1) {
-                provenanceRun = await findProvenanceRun();
-                if (provenanceRun?.status === 'completed' || attempt === 5) {
-                  break;
-                }
-                await new Promise((resolve) => setTimeout(resolve, 10_000));
-              }
-            } catch (error) {
-              const message = error instanceof Error ? error.message : String(error);
-              core.warning(`Could not read trusted Release Please provenance; run full CI: ${message}`);
-              FORCE_FULL();
-              return;
-            }
-
-            if (!provenanceRun || provenanceRun.status !== 'completed') {
-              core.info('Trusted Release Please provenance is missing or incomplete; run full CI.');
-              FORCE_FULL();
-              return;
-            }
-
-            let jobs;
-            try {
-              jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                run_id: provenanceRun.id,
-                per_page: 100,
-              });
-            } catch (error) {
-              const message = error instanceof Error ? error.message : String(error);
-              core.warning(`Could not read the provenance job result; run full CI: ${message}`);
-              FORCE_FULL();
-              return;
-            }
-            const trustedJob = jobs.find((job) => job.name === 'Trusted release provenance');
-
-            if (trustedJob?.status === 'completed' && trustedJob.conclusion === 'success') {
-              core.info('Trusted Release Please provenance verified; skip heavy CI.');
-              core.setOutput('run', 'false');
-              core.setOutput('release_only', 'true');
-              core.setOutput('release_candidate', 'true');
-              return;
-            }
-
-            core.info('Trusted Release Please provenance did not succeed; run full CI.');
-            FORCE_FULL();
+            const { decideGate } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/ci-gate.js`);
+            await decideGate({ github, context, core });
 
   changes:
     name: Detect changes
@@ -344,12 +173,30 @@ jobs:
   # │ Tier 1: Core (fast feedback — lint and build in parallel)                │
   # ╰──────────────────────────────────────────────────────────────────────────╯
 
-  lint:
-    name: Lint
+  lint-kotlin:
+    name: Lint (Kotlin)
     needs: [gate, changes]
     if: needs.gate.outputs.run == 'true' && needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Run linters
+        uses: ./.github/actions/gradle-job
+        with:
+          tasks: spotlessCheck ktlintCheck
+
+  lint-actions:
+    name: Lint (Actions)
+    needs: [gate, changes]
+    if: needs.gate.outputs.run == 'true' && needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -363,15 +210,20 @@ jobs:
       - name: Test pr-metrics-comment action
         run: node --test .github/actions/pr-metrics-comment/test/*.test.js .github/scripts/pr-metrics-publisher.test.js .github/scripts/qodana-*.test.js .github/scripts/workflow-run-check.test.js
 
-      - name: Run linters
-        uses: ./.github/actions/gradle-job
-        with:
-          tasks: spotlessCheck ktlintCheck
-
   build:
-    name: Build
+    name: Build (${{ matrix.shard }})
     needs: [gate, changes]
     if: needs.gate.outputs.run == 'true' && needs.changes.outputs.code == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: core
+            tasks: :core:test
+          - shard: text
+            tasks: :minimessage:test :serializer:test
+          - shard: runtime
+            tasks: :coroutines:test :paper:test :test:test :bom:build
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -383,6 +235,7 @@ jobs:
         env:
           INPUT_TASKS: ${{ github.event.inputs.tasks || '' }}
           INPUT_MODULE: ${{ github.event.inputs.module || '' }}
+          MATRIX_TASKS: ${{ matrix.tasks }}
         run: |
           set -euo pipefail
           tasks="${INPUT_TASKS#"${INPUT_TASKS%%[![:space:]]*}"}"
@@ -395,16 +248,18 @@ jobs:
             exit 1
           fi
 
-          if [[ -z "$tasks" ]]; then
-            if [[ -n "$module" ]]; then
-              tasks=":${module}:build koverVerify verifyBomConsumerVersionlessDependencies verifyReleaseVersionConsistency koverXmlReport koverHtmlReport dokkaGenerate"
-            else
-              tasks="build dokkaGenerate koverXmlReport koverHtmlReport"
-            fi
+          if [[ -n "$tasks" ]]; then
+            echo "tasks=$tasks" >> "$GITHUB_OUTPUT"
+            echo "Resolved Gradle tasks: $tasks (from input)"
+          elif [[ -n "$module" ]]; then
+            tasks=":${module}:build koverVerify verifyBomConsumerVersionlessDependencies verifyReleaseVersionConsistency koverXmlReport koverHtmlReport dokkaGenerate"
+            echo "tasks=$tasks" >> "$GITHUB_OUTPUT"
+            echo "Resolved Gradle tasks: $tasks (from module)"
+          else
+            tasks="${{ matrix.tasks }}"
+            echo "tasks=$tasks" >> "$GITHUB_OUTPUT"
+            echo "Resolved Gradle tasks: $tasks (from matrix shard ${{ matrix.shard }})"
           fi
-
-          echo "tasks=$tasks" >> "$GITHUB_OUTPUT"
-          echo "Resolved Gradle tasks: $tasks"
 
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -417,17 +272,6 @@ jobs:
         with:
           tasks: ${{ steps.tasks.outputs.tasks }}
 
-      - name: Collect CI metrics
-        run: bash .github/scripts/collect-ci-metrics.sh
-
-      - name: Upload CI metrics
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: ci-metrics
-          path: ci-metrics.json
-          if-no-files-found: ignore
-          retention-days: 14
-
       - name: Publish JUnit test report
         if: always()
         uses: ./.github/actions/publish-junit-report
@@ -439,15 +283,54 @@ jobs:
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: gradle-test-results
+          name: gradle-test-results-${{ matrix.shard }}
           path: |
             modules/*/build/test-results/test
             modules/*/build/reports/tests/test
           if-no-files-found: ignore
           retention-days: 7
 
+
+  aggregate:
+    name: Aggregate
+    needs: [build]
+    if: always() && needs.build.result != 'cancelled' && needs.build.result != 'skipped'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up JDK and Gradle
+        uses: ./.github/actions/setup-jdk-gradle
+
+      - name: Download test results
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: gradle-test-results-*
+          path: .
+          merge-multiple: true
+
+      - name: Generate coverage and reports
+        run: ./gradlew koverXmlReport koverHtmlReport dokkaGenerate --no-build-cache --rerun-tasks -Pkotlin.incremental=false
+
+      - name: Collect CI metrics
+        run: bash .github/scripts/collect-ci-metrics.sh
+
+      - name: Upload CI metrics
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ci-metrics
+          path: ci-metrics.json
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Upload coverage report
-        if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: coverage-report
@@ -456,7 +339,6 @@ jobs:
           retention-days: 14
 
       - name: Upload module jars
-        if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: module-jars
@@ -505,7 +387,7 @@ jobs:
 
   pr-feedback:
     name: PR feedback
-    needs: [build]
+    needs: [aggregate]
     if: >-
       always()
       && github.event_name == 'pull_request'
@@ -623,57 +505,13 @@ jobs:
           retention-days: 1
 
   # ╭──────────────────────────────────────────────────────────────────────────╮
-  # │ Tier 2: Deep Analysis (runs only after Tier 1 passes)                    │
+  # │ Tier 2: Vanilla (parallel with Tier 1)                                   │
   # ╰──────────────────────────────────────────────────────────────────────────╯
-
-  codeql:
-    name: CodeQL (${{ matrix.language }})
-    needs: [lint, build]
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - language: actions
-            build-mode: none
-          - language: java-kotlin
-            build-mode: manual
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@f205ea1c3313d32999d8d6a48b4f6530d4437b38 # v4
-        with:
-          languages: ${{ matrix.language }}
-          build-mode: ${{ matrix.build-mode }}
-
-      - name: Set up JDK and Gradle
-        if: matrix.build-mode == 'manual'
-        uses: ./.github/actions/setup-jdk-gradle
-
-      - name: Build for CodeQL
-        if: matrix.build-mode == 'manual'
-        run: >-
-          ./gradlew classes testClasses -x test -Pkotlin.incremental=false
-          -Pkotlin.daemon.jvmargs=-Xmx4g --no-build-cache --rerun-tasks
-
-      - name: Perform CodeQL analysis
-        uses: github/codeql-action/analyze@f205ea1c3313d32999d8d6a48b4f6530d4437b38 # v4
-        with:
-          category: "/language:${{ matrix.language }}"
 
   vanilla:
     name: Vanilla conformance
-    needs: [lint, build, changes]
-    if: needs.changes.outputs.vanilla == 'true'
+    needs: [gate, changes]
+    if: needs.gate.outputs.run == 'true' && needs.changes.outputs.vanilla == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -784,7 +622,7 @@ jobs:
   status:
     name: Status
     if: always()
-    needs: [gate, changes, lint, build, vanilla, dependencies]
+    needs: [gate, changes, lint-kotlin, lint-actions, build, aggregate, vanilla, dependencies]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -793,8 +631,10 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           GATE_RESULT: ${{ needs.gate.result }}
           CHANGES_RESULT: ${{ needs.changes.result }}
-          LINT_RESULT: ${{ needs.lint.result }}
+          LINT_KOTLIN_RESULT: ${{ needs.lint-kotlin.result }}
+          LINT_ACTIONS_RESULT: ${{ needs.lint-actions.result }}
           BUILD_RESULT: ${{ needs.build.result }}
+          AGGREGATE_RESULT: ${{ needs.aggregate.result }}
           VANILLA_RESULT: ${{ needs.vanilla.result }}
           DEPS_RESULT: ${{ needs.dependencies.result }}
           GATE_RUN: ${{ needs.gate.outputs.run }}
@@ -803,8 +643,10 @@ jobs:
           set -euo pipefail
           gate="$GATE_RESULT"
           changes="$CHANGES_RESULT"
-          lint="$LINT_RESULT"
+          lint_kotlin="$LINT_KOTLIN_RESULT"
+          lint_actions="$LINT_ACTIONS_RESULT"
           build="$BUILD_RESULT"
+          aggregate="$AGGREGATE_RESULT"
           vanilla="$VANILLA_RESULT"
           deps="$DEPS_RESULT"
           run="$GATE_RUN"
@@ -830,13 +672,23 @@ jobs:
             exit 0
           fi
 
-          if [[ "$lint" != "success" ]]; then
-            echo "::error::Lint: $lint"
+          if [[ "$lint_kotlin" != "success" ]]; then
+            echo "::error::Lint (Kotlin): $lint_kotlin"
+            exit 1
+          fi
+
+          if [[ "$lint_actions" != "success" ]]; then
+            echo "::error::Lint (Actions): $lint_actions"
             exit 1
           fi
 
           if [[ "$build" != "success" ]]; then
             echo "::error::Build: $build"
+            exit 1
+          fi
+
+          if [[ "$aggregate" != "success" ]]; then
+            echo "::error::Aggregate: $aggregate"
             exit 1
           fi
 
