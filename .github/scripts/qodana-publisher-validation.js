@@ -9,6 +9,7 @@ const {
   QODANA_WORKFLOW_PATH,
   parseArtifactName,
 } = require('./qodana-contract.js');
+const { createValidators } = require('./shared/validation.js');
 
 class QodanaPublicationRejectedError extends Error {}
 
@@ -16,32 +17,12 @@ function reject(message) {
   throw new QodanaPublicationRejectedError(message);
 }
 
-function requireObject(value, label) {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    reject(`${label} is missing`);
-  }
-  return value;
-}
-
-function requireEqual(actual, expected, label) {
-  if (actual !== expected) {
-    reject(`${label} does not match the trusted value`);
-  }
-}
-
-function requirePositiveInteger(value, label) {
-  if (!Number.isSafeInteger(value) || value < 1) {
-    reject(`${label} is invalid`);
-  }
-  return value;
-}
-
-function requireSha(value, label) {
-  if (typeof value !== 'string' || !/^[0-9a-f]{40}$/.test(value)) {
-    reject(`${label} is invalid`);
-  }
-  return value;
-}
+const {
+  requireEqual,
+  requireInteger: requirePositiveInteger,
+  requireObject,
+  requireSha,
+} = createValidators(reject);
 
 function validateQodanaWorkflowSource({ eventRun, run, workflow, repository }) {
   requireObject(eventRun, 'workflow_run event');

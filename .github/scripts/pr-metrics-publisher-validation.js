@@ -9,6 +9,7 @@ const {
     RESULT_ARTIFACT_PREFIX,
     WORKFLOW_NAME,
 } = require('./pr-metrics-publisher-contract.js');
+const { createValidators } = require('./shared/validation.js');
 
 class PublicationRejectedError extends Error {
     constructor(message) {
@@ -21,42 +22,12 @@ function reject(message) {
     throw new PublicationRejectedError(message);
 }
 
-function requireEqual(actual, expected, label) {
-    if (actual !== expected) {
-        reject(`${label} does not match the trusted value`);
-    }
-
-    return actual;
-}
-
-function requireSafeInteger(
-        value,
-        label,
-        minimum = 1,
-        maximum = Number.MAX_SAFE_INTEGER
-) {
-    if (!Number.isSafeInteger(value) || value < minimum || value > maximum) {
-        reject(`${label} is invalid`);
-    }
-
-    return value;
-}
-
-function requireObject(value, label) {
-    if (!value || typeof value !== 'object' || Array.isArray(value)) {
-        reject(`${label} is missing`);
-    }
-
-    return value;
-}
-
-function requireString(value, label) {
-    if (typeof value !== 'string' || value.length === 0) {
-        reject(`${label} is invalid`);
-    }
-
-    return value;
-}
+const {
+    requireEqual,
+    requireInteger: requireSafeInteger,
+    requireObject,
+    requireString,
+} = createValidators(reject);
 
 function expectedArtifactName({ runId, runAttempt }) {
     const id = requireSafeInteger(runId, 'workflow run id');
