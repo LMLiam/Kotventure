@@ -219,11 +219,11 @@ jobs:
       matrix:
         include:
           - shard: core
-            tasks: :core:build
+            tasks: :core:test
           - shard: text
-            tasks: :minimessage:build :serializer:build
+            tasks: :minimessage:test :serializer:test
           - shard: runtime
-            tasks: :coroutines:build :paper:build :test:build :bom:build
+            tasks: :coroutines:test :paper:test :test:test :bom:build
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -272,17 +272,6 @@ jobs:
         with:
           tasks: ${{ steps.tasks.outputs.tasks }}
 
-      - name: Collect CI metrics
-        run: bash .github/scripts/collect-ci-metrics.sh
-
-      - name: Upload CI metrics
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: ci-metrics-${{ matrix.shard }}
-          path: ci-metrics.json
-          if-no-files-found: ignore
-          retention-days: 14
-
       - name: Publish JUnit test report
         if: always()
         uses: ./.github/actions/publish-junit-report
@@ -301,26 +290,64 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-      - name: Upload coverage report
-        if: always()
+
+  aggregate:
+    name: Aggregate
+    needs: [build]
+    if: always() && needs.build.result != 'cancelled' && needs.build.result != 'skipped'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up JDK and Gradle
+        uses: ./.github/actions/setup-jdk-gradle
+
+      - name: Download test results
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: gradle-test-results-*
+          path: .
+          merge-multiple: true
+
+      - name: Generate coverage and reports
+        run: ./gradlew koverXmlReport koverHtmlReport dokkaGenerate --no-build-cache --rerun-tasks -Pkotlin.incremental=false
+
+      - name: Collect CI metrics
+        run: bash .github/scripts/collect-ci-metrics.sh
+
+      - name: Upload CI metrics
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: coverage-report-${{ matrix.shard }}
+          name: ci-metrics
+          path: ci-metrics.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: coverage-report
           path: build/reports/kover
           if-no-files-found: ignore
           retention-days: 14
 
       - name: Upload module jars
-        if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: module-jars-${{ matrix.shard }}
+          name: module-jars
           path: build/libs/kotventure-*.jar
           if-no-files-found: ignore
           retention-days: 14
 
       - name: Stage baseline cache tree
-        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.shard == 'core'
+        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: |
           set -euo pipefail
           rm -rf .ci-baseline
@@ -334,14 +361,14 @@ jobs:
           cp build/libs/kotventure-*.jar .ci-baseline/libs/ 2>/dev/null || true
 
       - name: Cache baseline coverage and jars for PRs
-        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.shard == 'core'
+        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .ci-baseline
           key: ci-baseline-${{ github.sha }}
 
       - name: Upload Dokka preview
-        if: success() && github.event_name == 'pull_request' && matrix.shard == 'core'
+        if: success() && github.event_name == 'pull_request'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: dokka-preview
@@ -353,14 +380,14 @@ jobs:
         if: failure() || (github.event_name == 'push' && github.ref == 'refs/heads/master')
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: gradle-build-artifacts-${{ matrix.shard }}
+          name: gradle-build-artifacts
           path: build/libs
           if-no-files-found: ignore
           retention-days: 7
 
-  pr-feedback:
+  pr-feedback:  pr-feedback:
     name: PR feedback
-    needs: [build]
+    needs: [aggregate]
     if: >-
       always()
       && github.event_name == 'pull_request'
@@ -406,25 +433,22 @@ jobs:
         continue-on-error: true
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          pattern: coverage-report-*
+          name: coverage-report
           path: build/reports/kover
-          merge-multiple: true
 
       - name: Download head module jars
         continue-on-error: true
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          pattern: module-jars-*
+          name: module-jars
           path: pr-libs
-          merge-multiple: true
 
       - name: Download head CI metrics
         continue-on-error: true
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          pattern: ci-metrics-*
+          name: ci-metrics
           path: head-metrics
-          merge-multiple: true
 
       - name: Download base artifacts from CI run
         continue-on-error: true
@@ -643,7 +667,7 @@ jobs:
   status:
     name: Status
     if: always()
-    needs: [gate, changes, lint-kotlin, lint-actions, build, vanilla, dependencies]
+    needs: [gate, changes, lint-kotlin, lint-actions, build, aggregate, vanilla, dependencies]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -655,6 +679,7 @@ jobs:
           LINT_KOTLIN_RESULT: ${{ needs.lint-kotlin.result }}
           LINT_ACTIONS_RESULT: ${{ needs.lint-actions.result }}
           BUILD_RESULT: ${{ needs.build.result }}
+          AGGREGATE_RESULT: ${{ needs.aggregate.result }}
           VANILLA_RESULT: ${{ needs.vanilla.result }}
           DEPS_RESULT: ${{ needs.dependencies.result }}
           GATE_RUN: ${{ needs.gate.outputs.run }}
@@ -666,6 +691,7 @@ jobs:
           lint_kotlin="$LINT_KOTLIN_RESULT"
           lint_actions="$LINT_ACTIONS_RESULT"
           build="$BUILD_RESULT"
+          aggregate="$AGGREGATE_RESULT"
           vanilla="$VANILLA_RESULT"
           deps="$DEPS_RESULT"
           run="$GATE_RUN"
@@ -703,6 +729,11 @@ jobs:
 
           if [[ "$build" != "success" ]]; then
             echo "::error::Build: $build"
+            exit 1
+          fi
+
+          if [[ "$aggregate" != "success" ]]; then
+            echo "::error::Aggregate: $aggregate"
             exit 1
           fi
 
