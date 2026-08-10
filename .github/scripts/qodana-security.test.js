@@ -8,23 +8,16 @@ const path = require('node:path');
 const test = require('node:test');
 
 const {
-  MAX_CHECK_ARTIFACT_BYTES,
+  MAX_ARTIFACT_BYTES,
   buildArtifactName,
-  buildCheckArtifactName,
   classifyChangedFiles,
   parseArtifactName,
-  parseCheckArtifactName,
 } = require('./qodana-contract.js');
-const {
-  createQodanaCheck,
-  writeQodanaCheckRegistration,
-} = require('./qodana-check-registration.js');
 const { createAttestation } = require('./qodana-attestation.js');
 const { extractQodanaSarifArchive } = require('./qodana-publisher-archive.js');
 const {
   selectQodanaArtifact,
-  selectQodanaCheckArtifact,
-  validateQodanaCheckSource,
+  selectQodanaRunArtifact,
   validateQodanaSarif,
 } = require('./qodana-publisher-validation.js');
 const { resolvePublication } = require('./qodana-publisher.js');
@@ -201,9 +194,6 @@ function makeStoredZip(content, fileName = 'qodana.sarif.json') {
 }
 
 function makePublicationGithub({
-  checkArtifactExpired = false,
-  checkArtifactSize = 200,
-  checkArtifacts = 1,
   delayedReleaseProvenance = false,
   includeSarif = true,
   qodanaConclusion = 'success',
@@ -265,30 +255,7 @@ function makePublicationGithub({
     pull_requests: [{ number: pullRequest.number }],
     created_at: '2026-08-09T00:00:00Z',
   }];
-  const checkArtifact = {
-    id: 699,
-    name: buildCheckArtifactName({
-      sourceKind: 'code',
-      qodanaRunId: qodanaRun.id,
-      qodanaRunAttempt: qodanaRun.run_attempt,
-      checkRunId: 701,
-      headSha: HEAD_SHA,
-      baseSha: BASE_SHA,
-    }),
-    expired: checkArtifactExpired,
-    size_in_bytes: checkArtifactSize,
-    workflow_run: {
-      id: qodanaRun.id,
-      repository_id: REPOSITORY.id,
-      head_repository_id: REPOSITORY.id,
-      head_branch: qodanaRun.head_branch,
-      head_sha: qodanaRun.head_sha,
-    },
-  };
-  const artifacts = Array.from({ length: checkArtifacts }, (_, index) => ({
-    ...checkArtifact,
-    id: checkArtifact.id + index,
-  }));
+  const artifacts = [];
   if (qodanaConclusion === 'success' && includeSarif) {
     artifacts.push({
       id: 700,
@@ -429,80 +396,6 @@ test('binds Qodana artifacts to the Qodana run and the source SHAs', () => {
   ), null);
 });
 
-test('registers a source-bound Qodana check before pull-request analysis', async (t) => {
-  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'qodana-check-'));
-  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
-  const calls = [];
-  const context = {
-    repo: { owner: 'LMLiam', repo: 'Kotventure' },
-    runId: QODANA_RUN_ID,
-    runAttempt: QODANA_RUN_ATTEMPT,
-    serverUrl: 'https://github.com',
-  };
-  const source = {
-    sourceKind: 'code',
-    pullRequest: 42,
-    headSha: HEAD_SHA,
-    baseSha: BASE_SHA,
-  };
-  const check = await createQodanaCheck({
-    github: {
-      rest: {
-        checks: {
-          create: async (parameters) => {
-            calls.push(parameters);
-            return {
-              data: {
-                id: 701,
-                name: parameters.name,
-                head_sha: parameters.head_sha,
-                external_id: parameters.external_id,
-                app: { slug: 'github-actions' },
-              },
-            };
-          },
-        },
-      },
-    },
-    context,
-    source,
-    qodanaRunId: QODANA_RUN_ID,
-    qodanaRunAttempt: QODANA_RUN_ATTEMPT,
-  });
-  const registration = writeQodanaCheckRegistration({
-    check,
-    source,
-    qodanaRunId: QODANA_RUN_ID,
-    qodanaRunAttempt: QODANA_RUN_ATTEMPT,
-    outputDirectory: directory,
-  });
-
-  assert.equal(calls[0].status, 'in_progress');
-  assert.equal(calls[0].head_sha, HEAD_SHA);
-  assert.equal(
-    calls[0].external_id,
-    `workflow-run-check:qodana-pr:${QODANA_RUN_ID}:${QODANA_RUN_ATTEMPT}:${HEAD_SHA}`,
-  );
-  assert.equal(calls[0].name, 'Qodana / pull request');
-  assert.deepEqual(parseCheckArtifactName(registration.artifactName), {
-    sourceKind: 'code',
-    qodanaRunId: QODANA_RUN_ID,
-    qodanaRunAttempt: QODANA_RUN_ATTEMPT,
-    checkRunId: 701,
-    headSha: HEAD_SHA,
-    baseSha: BASE_SHA,
-  });
-  const descriptor = JSON.parse(fs.readFileSync(
-    path.join(directory, 'qodana-check.json'),
-    'utf8',
-  ));
-  assert.equal(descriptor.artifactName, registration.artifactName);
-  assert.equal(descriptor.check.id, 701);
-  assert.equal(descriptor.pullRequest, 42);
-  const stats = fs.statSync(registration.filePath);
-  assert.equal(stats.mode & 0o777, 0o600);
-});
-
 test('creates valid zero-result attestations from trusted code', () => {
   for (const sourceKind of ['documentation', 'release']) {
     const document = createAttestation({ sourceKind, headSha: HEAD_SHA });
@@ -633,42 +526,50 @@ test('selects only the artifact bound to the trusted Qodana workflow run', () =>
   }).id, 700);
 });
 
-test('rejects missing, duplicate, expired, oversized, and source-mismatched check artifacts', () => {
+test('rejects missing, duplicate, expired, and oversized SARIF artifacts', () => {
+  const makeArtifact = (overrides = {}) => ({
+    id: 700,
+    name: buildArtifactName({
+      sourceKind: 'code',
+      qodanaRunId: QODANA_RUN_ID,
+      qodanaRunAttempt: QODANA_RUN_ATTEMPT,
+      headSha: HEAD_SHA,
+      baseSha: BASE_SHA,
+    }),
+    expired: false,
+    size_in_bytes: 100,
+    workflow_run: {
+      id: QODANA_RUN_ID,
+      repository_id: REPOSITORY.id,
+      head_repository_id: REPOSITORY.id,
+      head_branch: 'feature/security',
+      head_sha: HEAD_SHA,
+    },
+    ...overrides,
+  });
+  const qodanaRun = {
+    id: QODANA_RUN_ID,
+    run_attempt: QODANA_RUN_ATTEMPT,
+    head_repository: REPOSITORY,
+    head_branch: 'feature/security',
+    head_sha: HEAD_SHA,
+  };
   const cases = [
-    [{ checkArtifacts: 0 }, /exactly one Qodana check artifact, found 0/],
-    [{ checkArtifacts: 2 }, /exactly one Qodana check artifact, found 2/],
-    [{ checkArtifactExpired: true }, /Qodana check artifact is expired/],
-    [{ checkArtifactSize: MAX_CHECK_ARTIFACT_BYTES + 1 }, /Qodana check artifact size is invalid/],
+    [[], /exactly one Qodana SARIF artifact, found 0/],
+    [[makeArtifact(), makeArtifact()], /exactly one Qodana SARIF artifact, found 2/],
+    [[makeArtifact({ expired: true })], /Qodana SARIF artifact is expired/],
+    [[makeArtifact({ size_in_bytes: MAX_ARTIFACT_BYTES + 1 })], /Qodana SARIF artifact size is invalid/],
   ];
-  for (const [options, expected] of cases) {
-    const inputs = makePublicationGithub(options);
+  for (const [artifacts, expected] of cases) {
     assert.throws(
-      () => selectQodanaCheckArtifact({
-        artifacts: inputs.artifacts,
-        qodanaRun: inputs.qodanaRun,
+      () => selectQodanaRunArtifact({
+        artifacts,
+        qodanaRun,
         repository: REPOSITORY,
       }),
       expected,
     );
   }
-
-  const inputs = makePublicationGithub();
-  const { descriptor } = selectQodanaCheckArtifact({
-    artifacts: inputs.artifacts,
-    qodanaRun: inputs.qodanaRun,
-    repository: REPOSITORY,
-  });
-  assert.throws(
-    () => validateQodanaCheckSource({
-      descriptor,
-      source: {
-        sourceKind: 'code',
-        headSha: 'f'.repeat(40),
-        baseSha: BASE_SHA,
-      },
-    }),
-    /Qodana check head SHA does not match/,
-  );
 });
 
 test('publishes only a successful Qodana run for the current PR head', async () => {
@@ -679,10 +580,6 @@ test('publishes only a successful Qodana run for the current PR head', async () 
   });
   assert.deepEqual(publication, {
     artifactId: 700,
-    checkConclusion: null,
-    checkExternalId: `workflow-run-check:qodana-pr:${QODANA_RUN_ID}:${QODANA_RUN_ATTEMPT}:${HEAD_SHA}`,
-    checkRunId: 701,
-    checkSummary: null,
     headSha: HEAD_SHA,
     pullNumber: 42,
     publish: true,
@@ -691,18 +588,18 @@ test('publishes only a successful Qodana run for the current PR head', async () 
   });
 });
 
-test('completes a check registered before delayed release provenance', async () => {
+test('publishes a source whose release provenance arrived after registration', async () => {
   const inputs = makePublicationGithub({ delayedReleaseProvenance: true });
   const publication = await resolvePublication({
     github: inputs.github,
     context: inputs.context,
   });
   assert.equal(publication.publish, true);
-  assert.equal(publication.checkRunId, 701);
   assert.equal(publication.sourceKind, 'release');
+  assert.equal(publication.artifactId, 700);
 });
 
-test('reports a failed Qodana analysis against its registered pull-request check', async () => {
+test('does not publish a failed Qodana analysis', async () => {
   const inputs = makePublicationGithub({ qodanaConclusion: 'failure' });
   const publication = await resolvePublication({
     github: inputs.github,
@@ -710,61 +607,29 @@ test('reports a failed Qodana analysis against its registered pull-request check
   });
   assert.equal(publication.publish, false);
   assert.equal(publication.artifactId, null);
-  assert.equal(publication.checkConclusion, 'failure');
-  assert.equal(publication.checkSummary, 'Qodana analysis failed.');
-  assert.equal(publication.checkRunId, 701);
-  assert.equal(publication.headSha, HEAD_SHA);
+  assert.equal(publication.rejection, null);
 });
 
-test('reports cancelled and timed-out Qodana analyses against the registered check', async () => {
-  const cases = [
-    ['cancelled', 'The Qodana analysis was cancelled.'],
-    ['timed_out', 'Qodana analysis timed out.'],
-  ];
-  for (const [conclusion, summary] of cases) {
+test('does not publish cancelled or timed-out Qodana analyses', async () => {
+  for (const conclusion of ['cancelled', 'timed_out']) {
     const inputs = makePublicationGithub({ qodanaConclusion: conclusion });
     const publication = await resolvePublication({
       github: inputs.github,
       context: inputs.context,
     });
     assert.equal(publication.publish, false);
-    assert.equal(publication.checkConclusion, conclusion);
-    assert.equal(publication.checkSummary, summary);
     assert.equal(publication.rejection, null);
   }
 });
 
-test('cancels the registered check when the pull-request source becomes stale', async () => {
+test('skips publication when the pull-request source becomes stale', async () => {
   const inputs = makePublicationGithub({ staleSource: true });
   const publication = await resolvePublication({
     github: inputs.github,
     context: inputs.context,
   });
   assert.equal(publication.publish, false);
-  assert.equal(publication.checkConclusion, 'cancelled');
-  assert.equal(
-    publication.checkSummary,
-    'Qodana publication stopped because the pull request changed.',
-  );
   assert.equal(publication.rejection, null);
-});
-
-test('recovers the check identity when registration artifact validation fails', async () => {
-  const cases = [
-    [{ checkArtifacts: 2 }, /exactly one Qodana check artifact, found 2/],
-    [{ checkArtifactExpired: true }, /Qodana check artifact is expired/],
-  ];
-  for (const [options, expected] of cases) {
-    const inputs = makePublicationGithub(options);
-    const publication = await resolvePublication({
-      github: inputs.github,
-      context: inputs.context,
-    });
-    assert.equal(publication.publish, false);
-    assert.equal(publication.checkRunId, 701);
-    assert.equal(publication.checkConclusion, 'failure');
-    assert.match(publication.rejection.message, expected);
-  }
 });
 
 test('reports a missing successful Qodana artifact as publication failure', async () => {
@@ -774,7 +639,6 @@ test('reports a missing successful Qodana artifact as publication failure', asyn
     context: inputs.context,
   });
   assert.equal(publication.publish, false);
-  assert.equal(publication.checkConclusion, 'failure');
   assert.match(publication.rejection.message, /exactly one Qodana SARIF artifact/);
 });
 

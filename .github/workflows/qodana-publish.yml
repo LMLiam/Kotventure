@@ -22,7 +22,6 @@ jobs:
     timeout-minutes: 10
     permissions:
       actions: read
-      checks: write
       contents: read
       pull-requests: read
       security-events: write
@@ -99,41 +98,3 @@ jobs:
           ref: refs/pull/${{ steps.publication.outputs.pull_number }}/head
           sha: ${{ steps.publication.outputs.head_sha }}
           category: Kotventure/qodana
-
-      - name: Complete the pull-request Qodana check
-        if: always() && steps.publication.outputs.check_run_id != ''
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        env:
-          CHECK_CONCLUSION: ${{ steps.publication.outputs.check_conclusion }}
-          CHECK_EXTERNAL_ID: ${{ steps.publication.outputs.check_external_id }}
-          CHECK_RUN_ID: ${{ steps.publication.outputs.check_run_id }}
-          CHECK_SUMMARY: ${{ steps.publication.outputs.check_summary }}
-          HEAD_SHA: ${{ steps.publication.outputs.head_sha }}
-          JOB_STATUS: ${{ job.status }}
-        with:
-          retries: 3
-          retry-exempt-status-codes: 400,401,403,404,422
-          script: |
-            const {
-              completeWorkflowCheck,
-              workflowResultConclusion,
-            } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/workflow-run-check.js`);
-            const conclusion = process.env.CHECK_CONCLUSION
-              || workflowResultConclusion(process.env.JOB_STATUS);
-            const summaries = {
-              success: 'Qodana analysed and published the validated pull-request source.',
-              failure: 'Qodana analysis or publication failed.',
-              cancelled: 'Qodana analysis or publication was cancelled.',
-              skipped: 'Qodana publication was skipped.',
-              timed_out: 'Qodana analysis timed out.',
-            };
-            await completeWorkflowCheck({
-              github,
-              context,
-              checkId: Number(process.env.CHECK_RUN_ID),
-              name: 'Qodana / pull request',
-              headSha: process.env.HEAD_SHA,
-              externalId: process.env.CHECK_EXTERNAL_ID,
-              conclusion,
-              summary: process.env.CHECK_SUMMARY || summaries[conclusion],
-            });

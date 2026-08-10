@@ -3,29 +3,16 @@
 const { resolvePullRequestSource, QodanaSourceRejectedError } = require('./qodana-source.js');
 const {
   QodanaPublicationRejectedError,
-  recoverQodanaCheckDescriptor,
-  selectQodanaCheckArtifact,
   selectQodanaRunArtifact,
   validateQodanaArtifactSource,
-  validateQodanaCheckSource,
   validateQodanaWorkflowSource,
 } = require('./qodana-publisher-validation.js');
-const { buildCheckExternalId } = require('./workflow-run-check.js');
 
 function requireObject(value, label) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new QodanaPublicationRejectedError(`${label} is missing`);
   }
   return value;
-}
-
-function qodanaConclusionSummary(conclusion) {
-  const summaries = {
-    failure: 'Qodana analysis failed.',
-    cancelled: 'The Qodana analysis was cancelled.',
-    timed_out: 'Qodana analysis timed out.',
-  };
-  return summaries[conclusion] || null;
 }
 
 async function resolvePublication({ github, context }) {
@@ -55,6 +42,16 @@ async function resolvePublication({ github, context }) {
     workflow,
     repository,
   });
+  if (trustedRun.conclusion !== 'success') {
+    return {
+      artifactId: null,
+      headSha: null,
+      pullNumber: null,
+      publish: false,
+      rejection: null,
+      sourceKind: null,
+    };
+  }
 
   const artifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts, {
     owner,
@@ -62,24 +59,23 @@ async function resolvePublication({ github, context }) {
     run_id: qodanaRun.id,
     per_page: 100,
   });
-  if (!Array.isArray(artifacts)) {
-    throw new QodanaPublicationRejectedError('Qodana workflow artifacts are missing');
-  }
-  let checkArtifactRejection = null;
-  let checkDescriptor;
+  let selection;
   try {
-    const selection = selectQodanaCheckArtifact({ artifacts, qodanaRun, repository });
-    checkDescriptor = selection.descriptor;
+    selection = selectQodanaRunArtifact({ artifacts, qodanaRun, repository });
   } catch (error) {
-    if (!(error instanceof QodanaPublicationRejectedError)) {
-      throw error;
+    if (error instanceof QodanaPublicationRejectedError) {
+      return {
+        artifactId: null,
+        headSha: null,
+        pullNumber: null,
+        publish: false,
+        rejection: error,
+        sourceKind: null,
+      };
     }
-    checkDescriptor = recoverQodanaCheckDescriptor({ artifacts, qodanaRun });
-    if (!checkDescriptor) {
-      throw error;
-    }
-    checkArtifactRejection = error;
+    throw error;
   }
+  const { artifact, descriptor } = selection;
 
   let source;
   try {
@@ -87,107 +83,48 @@ async function resolvePublication({ github, context }) {
       github,
       owner,
       repo,
-      headSha: checkDescriptor.headSha,
-      expectedBaseSha: checkDescriptor.baseSha,
+      headSha: descriptor.headSha,
+      expectedBaseSha: descriptor.baseSha,
       waitForReleaseProvenance: false,
     });
   } catch (error) {
     if (error instanceof QodanaSourceRejectedError) {
       return {
         artifactId: null,
-        checkConclusion: error.stale ? 'cancelled' : 'failure',
-        checkExternalId: buildCheckExternalId({
-          kind: 'qodana-pr',
-          runId: qodanaRun.id,
-          runAttempt: qodanaRun.run_attempt,
-          headSha: checkDescriptor.headSha,
-        }),
-        checkRunId: checkDescriptor.checkRunId,
-        checkSummary: error.stale
-          ? 'Qodana publication stopped because the pull request changed.'
-          : 'Qodana source validation failed.',
-        headSha: checkDescriptor.headSha,
+        headSha: descriptor.headSha,
         pullNumber: null,
         publish: false,
         rejection: error.stale ? null : error,
-        sourceKind: checkDescriptor.sourceKind,
+        sourceKind: descriptor.sourceKind,
       };
     }
     throw error;
   }
-  const delayedCheckReleaseProvenance = source.sourceKind === 'release'
+  const delayedReleaseProvenance = source.sourceKind === 'release'
     && source.pathClassification === 'release-candidate'
-    && checkDescriptor.sourceKind === 'code';
-  const checkSource = delayedCheckReleaseProvenance
-    ? { ...source, sourceKind: checkDescriptor.sourceKind }
+    && descriptor.sourceKind === 'code';
+  if (source.sourceKind !== descriptor.sourceKind && !delayedReleaseProvenance) {
+    const error = new QodanaPublicationRejectedError('Qodana source classification changed');
+    return {
+      artifactId: null,
+      headSha: descriptor.headSha,
+      pullNumber: source.pullRequest,
+      publish: false,
+      rejection: error,
+      sourceKind: descriptor.sourceKind,
+    };
+  }
+  const artifactSource = delayedReleaseProvenance
+    ? { ...source, sourceKind: descriptor.sourceKind }
     : source;
-  validateQodanaCheckSource({ descriptor: checkDescriptor, source: checkSource });
-  const common = {
-    checkConclusion: trustedRun.conclusion === 'success' ? null : trustedRun.conclusion,
-    checkExternalId: buildCheckExternalId({
-      kind: 'qodana-pr',
-      runId: qodanaRun.id,
-      runAttempt: qodanaRun.run_attempt,
-      headSha: source.headSha,
-    }),
-    checkRunId: checkDescriptor.checkRunId,
-    checkSummary: qodanaConclusionSummary(trustedRun.conclusion),
+  validateQodanaArtifactSource({ descriptor, source: artifactSource });
+  return {
+    artifactId: artifact.id,
     headSha: source.headSha,
     pullNumber: source.pullRequest,
-    sourceKind: source.sourceKind,
-  };
-  if (checkArtifactRejection) {
-    return {
-      ...common,
-      artifactId: null,
-      checkConclusion: 'failure',
-      checkSummary: 'Qodana check registration validation failed.',
-      publish: false,
-      rejection: checkArtifactRejection,
-    };
-  }
-  if (trustedRun.conclusion !== 'success') {
-    return {
-      ...common,
-      artifactId: null,
-      publish: false,
-      rejection: null,
-    };
-  }
-
-  let artifact;
-  try {
-    const selection = selectQodanaRunArtifact({ artifacts, qodanaRun, repository });
-    const { descriptor } = selection;
-    const delayedReleaseProvenance = source.sourceKind === 'release'
-      && source.pathClassification === 'release-candidate'
-      && descriptor.sourceKind === 'code';
-    if (source.sourceKind !== descriptor.sourceKind && !delayedReleaseProvenance) {
-      throw new QodanaPublicationRejectedError('Qodana source classification changed');
-    }
-    const artifactSource = delayedReleaseProvenance
-      ? { ...source, sourceKind: descriptor.sourceKind }
-      : source;
-    validateQodanaArtifactSource({ descriptor, source: artifactSource });
-    artifact = selection.artifact;
-  } catch (error) {
-    if (error instanceof QodanaPublicationRejectedError) {
-      return {
-        ...common,
-        artifactId: null,
-        checkConclusion: 'failure',
-        checkSummary: 'Qodana result validation failed.',
-        publish: false,
-        rejection: error,
-      };
-    }
-    throw error;
-  }
-  return {
-    ...common,
-    artifactId: artifact.id,
     publish: true,
     rejection: null,
+    sourceKind: source.sourceKind,
   };
 }
 
@@ -198,15 +135,15 @@ async function writePublicationOutputs({ github, context, core }) {
     if (publication.artifactId != null) {
       core.setOutput('artifact_id', String(publication.artifactId));
     }
-    core.setOutput('head_sha', publication.headSha);
+    if (publication.headSha != null) {
+      core.setOutput('head_sha', publication.headSha);
+    }
     if (publication.pullNumber != null) {
       core.setOutput('pull_number', String(publication.pullNumber));
     }
-    core.setOutput('source_kind', publication.sourceKind);
-    core.setOutput('check_run_id', String(publication.checkRunId));
-    core.setOutput('check_external_id', publication.checkExternalId);
-    core.setOutput('check_conclusion', publication.checkConclusion || '');
-    core.setOutput('check_summary', publication.checkSummary || '');
+    if (publication.sourceKind != null) {
+      core.setOutput('source_kind', publication.sourceKind);
+    }
     if (publication.rejection) {
       core.setFailed(`Qodana publication rejected: ${publication.rejection.message}`);
     }

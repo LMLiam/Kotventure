@@ -205,11 +205,6 @@ permissions. It does not receive `QODANA_TOKEN`. It disables Qodana annotations,
 pull-request comments, fix pushes, and result upload. It stores one SARIF file
 as a bounded artefact.
 
-A separate registration job creates the `Qodana / pull request` check on the
-validated pull-request head. The check starts with `in_progress`. The read-only
-scan job cannot update it. The registration artefact binds the check to the
-Qodana run, run attempt, and source commits.
-
 The `Qodana publication` workflow checks out the default branch. It resolves
 the current pull request by head SHA and validates it, the changed paths, the
 Qodana run attempt, head SHA, base SHA, artefact name, artefact archive, and
@@ -217,9 +212,9 @@ SARIF structure. It then normalises the SARIF with default-branch code. The uplo
 directory, the validated pull-request head SHA, the stable
 `.github/workflows/ci.yml:qodana` analysis key, and the `Kotventure/qodana`
 category.
-No pull-request code runs in the publication workflow. The workflow completes
-the registered check with the publication result. It reports an upstream scan
-failure when no SARIF artefact can exist.
+No pull-request code runs in the publication workflow. A failed Qodana analysis
+or a rejected source simply publishes nothing; the job-derived checks on the
+pull request surface the failure.
 
 The `Qodana trusted` workflow handles push, schedule, and manual-dispatch CI.
 It checks out the trusted source commit and uploads its result directly. Its
@@ -306,8 +301,8 @@ For an occasional diagnostic scan, give `build-scan: true` to `gradle-job`. The 
 | Default workflow permissions | Set the repository default to `contents: read` |
 | Release provenance workflow | Uses `contents: read` and `pull-requests: read`. Does not check out pull-request code |
 | CI gate | Uses `actions: read`, `contents: read`, and `pull-requests: read` |
-| Qodana scan | Triggers on `pull_request_target` from the default branch and runs in parallel with CI. The registration job adds `checks: write` and creates the source-bound check. The analysis job uses only `actions: read`, `contents: read`, and `pull-requests: read`. It has no write permission, no `QODANA_TOKEN`, and no Qodana GitHub side effects |
-| Qodana publication | Uses `actions: read`, `checks: write`, `contents: read`, `pull-requests: read`, and `security-events: write`. It runs default-branch code, validates the artefacts, uploads SARIF, and completes the source-bound check |
+| Qodana scan | Triggers on `pull_request_target` from the default branch and runs in parallel with CI. The source-resolution and analysis jobs use only `actions: read`, `contents: read`, and `pull-requests: read`. They have no write permission, no `QODANA_TOKEN`, and no Qodana GitHub side effects |
+| Qodana publication | Uses `actions: read`, `contents: read`, `pull-requests: read`, and `security-events: write`. It runs default-branch code, validates the artefacts, and uploads SARIF to code scanning |
 | Qodana trusted | The registration and report jobs use `checks: write`. The analysis job uses `actions: read`, `contents: read`, and `security-events: write` only for push, schedule, and manual-dispatch refs |
 | Release workflow | Uses an installation token from `release-please-kotventure`. Its `GITHUB_TOKEN` has no permissions |
 | Build job | Uses `checks: write` and `contents: read`. Cannot write to pull requests. Clears `GITHUB_TOKEN` for Gradle |
@@ -357,7 +352,6 @@ repository automation tests use `node --test`.
 | `collect-ci-metrics.sh` | Aggregate: test/skipped counts + longest shard and Aggregate coverage durations → `ci-metrics.json` |
 | `pr-metrics-publisher.js` | Trusted workflow_run publisher: validates the source run and renders the metrics comment |
 | `qodana-source.js` | Trusted `pull_request_target` source resolution and path classification for Qodana |
-| `qodana-check-registration.js` | Creates and records the source-bound pull-request Qodana check |
 | `qodana-publisher.js` | Trusted Qodana publication source validation |
 | `qodana-publisher-archive.js` | Bounded single-file SARIF archive extraction |
 | `qodana-publisher-storage.js` | Bounded artifact download and SARIF validation |
