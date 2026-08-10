@@ -33,8 +33,7 @@ test('the pull-request CI workflow does not run or publish Qodana results', () =
 test('the Qodana scan workflow is read-only and disables GitHub side effects', () => {
   const workflow = readRepositoryFile('.github/workflows/qodana.yml');
   const register = readJob(workflow, 'register', 'analyse');
-  const analyse = readJob(workflow, 'analyse', 'report-registration-failure');
-  const registrationFailure = readJob(workflow, 'report-registration-failure');
+  const analyse = readJob(workflow, 'analyse');
 
   assert.match(workflow, /pull_request_target:/);
   assert.match(workflow, /branches: \[master\]/);
@@ -42,19 +41,11 @@ test('the Qodana scan workflow is read-only and disables GitHub side effects', (
   assert.match(workflow, /group: qodana-\$\{\{ github\.event\.pull_request\.number \}\}/);
   assert.doesNotMatch(workflow, /workflow_run:/);
   assert.doesNotMatch(workflow, /QODANA_TOKEN/);
-  assert.match(register, /checks:\s*write/);
+  assert.doesNotMatch(register, /(?:actions|checks|contents|pull-requests|security-events):\s*write/);
   assert.doesNotMatch(analyse, /(?:actions|checks|contents|pull-requests|security-events):\s*write/);
+  assert.doesNotMatch(workflow, /report-registration-failure/);
   assert.match(register, /resolvePullRequestEventSource/);
-  assert.match(register, /createQodanaCheck/);
-  assert.ok(
-    register.indexOf("core.setOutput('check_run_id'")
-      < register.indexOf('const registration = writeQodanaCheckRegistration'),
-    'the workflow must export the check identity before registration persistence',
-  );
-  assert.match(register, /Upload the Qodana check registration/);
-  assert.match(register, /path: \$\{\{ steps\.source\.outputs\.check_file_path \}\}/);
-  assert.match(registrationFailure, /needs\.register\.result != 'success'/);
-  assert.match(registrationFailure, /Complete the failed Qodana registration check/);
+  assert.doesNotMatch(register, /createQodanaCheck/);
   assert.match(workflow, /upload-result:\s*false/);
   assert.match(workflow, /use-annotations:\s*false/);
   assert.match(workflow, /post-pr-comment:\s*false/);
@@ -74,7 +65,7 @@ test('only the trusted publication workflow can upload Qodana SARIF', () => {
 
   assert.match(workflow, /workflow_run:/);
   assert.match(workflow, /security-events:\s*write/);
-  assert.match(workflow, /checks:\s*write/);
+  assert.doesNotMatch(workflow, /checks:\s*write/);
   assert.match(workflow, /actions\/checkout@/);
   assert.match(workflow, /ref:\s*\$\{\{ github\.sha \}\}/);
   assert.match(workflow, /group: qodana-publication-\$\{\{ github\.event\.workflow_run\.id \}\}-\$\{\{ github\.event\.workflow_run\.run_attempt \}\}/);
@@ -86,7 +77,7 @@ test('only the trusted publication workflow can upload Qodana SARIF', () => {
   assert.match(workflow, /sha:\s*\$\{\{ steps\.publication\.outputs\.head_sha \}\}/);
   assert.match(workflow, /CODEQL_ACTION_ANALYSIS_KEY: .github\/workflows\/ci\.yml:qodana/);
   assert.doesNotMatch(workflow, /Checkout pull-request code/);
-  assert.match(workflow, /Complete the pull-request Qodana check/);
+  assert.doesNotMatch(workflow, /Complete the pull-request Qodana check/);
 });
 
 test('trusted Qodana runs are limited to trusted CI events', () => {

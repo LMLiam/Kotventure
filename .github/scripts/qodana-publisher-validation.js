@@ -2,15 +2,12 @@
 
 const {
   MAX_ARTIFACT_BYTES,
-  MAX_CHECK_ARTIFACT_BYTES,
   MAX_SARIF_BYTES,
   MAX_SARIF_RESULTS,
   QODANA_ARTIFACT_PREFIX,
-  QODANA_CHECK_ARTIFACT_PREFIX,
   QODANA_WORKFLOW_NAME,
   QODANA_WORKFLOW_PATH,
   parseArtifactName,
-  parseCheckArtifactName,
 } = require('./qodana-contract.js');
 
 class QodanaPublicationRejectedError extends Error {}
@@ -127,38 +124,6 @@ function selectRunArtifact({
   requireEqual(artifactRun.head_branch, qodanaRun.head_branch, `${label} head branch`);
   requireEqual(artifactRun.head_sha, qodanaRun.head_sha, `${label} head SHA`);
   return { artifact, descriptor };
-}
-
-function selectQodanaCheckArtifact({ artifacts, qodanaRun, repository }) {
-  return selectRunArtifact({
-    artifacts,
-    qodanaRun,
-    repository,
-    prefix: QODANA_CHECK_ARTIFACT_PREFIX,
-    parse: parseCheckArtifactName,
-    maximumBytes: MAX_CHECK_ARTIFACT_BYTES,
-    label: 'Qodana check artifact',
-  });
-}
-
-function recoverQodanaCheckDescriptor({ artifacts, qodanaRun }) {
-  const candidates = matchingRunArtifacts({
-    artifacts,
-    qodanaRun,
-    prefix: QODANA_CHECK_ARTIFACT_PREFIX,
-    parse: parseCheckArtifactName,
-  });
-  const descriptors = new Map();
-  for (const { descriptor } of candidates) {
-    descriptors.set(JSON.stringify(descriptor), descriptor);
-  }
-  return descriptors.size === 1 ? descriptors.values().next().value : null;
-}
-
-function validateQodanaCheckSource({ descriptor, source }) {
-  requireEqual(descriptor.sourceKind, source.sourceKind, 'Qodana check source kind');
-  requireEqual(descriptor.headSha, source.headSha, 'Qodana check head SHA');
-  requireEqual(descriptor.baseSha, source.baseSha, 'Qodana check base SHA');
 }
 
 function selectQodanaRunArtifact({ artifacts, qodanaRun, repository }) {
@@ -291,12 +256,9 @@ function validateQodanaSarif(value) {
 
 module.exports = {
   QodanaPublicationRejectedError,
-  recoverQodanaCheckDescriptor,
   selectQodanaArtifact,
-  selectQodanaCheckArtifact,
   selectQodanaRunArtifact,
   validateQodanaArtifactSource,
-  validateQodanaCheckSource,
   validateQodanaSarif,
   validateQodanaWorkflowSource,
 };
