@@ -29,21 +29,7 @@ concurrency:
 permissions:
   contents: read
 
-# ╔══════════════════════════════════════════════════════════════════════════════╗
-# ║  CI Pipeline                                                               ║
-# ║                                                                            ║
-# ║  Triage ─ Gate+Changes (fast, always runs)                                 ║
-# ║  Tier 1 ─ Parallel: Lint ┤ Build (sharded) ┤ Vanilla ┤ Dokka               ║
-# ║  Tier 2 ─ Aggregate after Build (coverage, metrics, baseline)               ║
-# ║  Policy ─ Independent: Dependencies │ Commits │ Release attestation        ║
-# ║  Status ─ Aggregator (required check for merge gate and merge queue)       ║
-# ╚══════════════════════════════════════════════════════════════════════════════╝
-
 jobs:
-
-  # ╭──────────────────────────────────────────────────────────────────────────╮
-  # │ Tier 0: Triage                                                           │
-  # ╰──────────────────────────────────────────────────────────────────────────╯
 
   triage:
     name: Triage
@@ -157,10 +143,6 @@ jobs:
               echo "documentation_only=false"
             } >> "$GITHUB_OUTPUT"
           fi
-
-  # ╭──────────────────────────────────────────────────────────────────────────╮
-  # │ Tier 1: Core (fast feedback — lint and build in parallel)                │
-  # ╰──────────────────────────────────────────────────────────────────────────╯
 
   lint-kotlin:
     name: Lint (Kotlin)
@@ -367,8 +349,6 @@ jobs:
       - name: Restore Kover data layout
         run: |
           set -euo pipefail
-          # upload-artifact stores the contents of `kover-handoff/` at the artifact root,
-          # so downloading into `kover-handoff/` reproduces the staged layout below.
           for module in kover-handoff/*; do
             [ -d "$module" ] || continue
             name=$(basename "$module")
@@ -613,10 +593,6 @@ jobs:
           if-no-files-found: ignore
           retention-days: 1
 
-  # ╭──────────────────────────────────────────────────────────────────────────╮
-  # │ Tier 2: Vanilla (parallel with Tier 1)                                   │
-  # ╰──────────────────────────────────────────────────────────────────────────╯
-
   vanilla:
     name: Vanilla conformance
     needs: [triage]
@@ -673,11 +649,6 @@ jobs:
           check_name: Vanilla Conformance Report
           report_paths: modules/core/build/test-results/vanillaConformanceTest/TEST-*.xml
 
-
-  # ╭──────────────────────────────────────────────────────────────────────────╮
-  # │ Policy (independent of tiers)                                            │
-  # ╰──────────────────────────────────────────────────────────────────────────╯
-
   dependencies:
     name: Dependencies
     if: github.event_name == 'pull_request'
@@ -723,10 +694,6 @@ jobs:
 
       - name: Validate commit subjects
         run: bash .github/scripts/validate-conventional-title.sh --stdin < commit-subjects.txt
-
-  # ╭──────────────────────────────────────────────────────────────────────────╮
-  # │ Status (required merge-gate check)                                       │
-  # ╰──────────────────────────────────────────────────────────────────────────╯
 
   status:
     name: Status
