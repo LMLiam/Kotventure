@@ -38,7 +38,7 @@ CI
 │   └─ CodeQL            (actions + java-kotlin matrix, own workflow `codeql.yml`, parallel with CI)
 │
 ├─ Tier 2: Aggregate (after Build shards) ─────────────────────────
-│   ├─ Aggregate         (merge kover binaries → koverXmlReport/koverHtmlReport/koverVerify, metrics, baseline cache)
+│   ├─ Aggregate         (consume shard Kover hand-off → koverXmlReport/koverHtmlReport/koverVerify, metrics, baseline cache — no test re-run)
 │   │   └─ PR feedback   (read-only metrics computation and result artefact)
 │   └─ (Vanilla/Dokka already completed in Tier 1)
 │
@@ -61,10 +61,14 @@ PR metrics publication (workflow_run)
    └─ Publishes one non-gating metrics comment with default-branch code
 ```
 
-All heavy jobs (`Lint`, `Build` shards, `Vanilla`, `Dokka`, `CodeQL`) start in parallel after `Triage` (gated only on `triage.outputs.code`/`vanilla`), not serially. The Qodana security pipeline starts after successful pull-request
+All heavy jobs (`Lint`, `Build` shards, `Vanilla`, `Dokka`, `CodeQL`) start in parallel after `Triage` (gated only on `triage.outputs.code`/`vanilla`), not serially. Vanilla and CodeQL were already parallel to the build before this change. The Qodana security pipeline starts after successful pull-request
 CI. A documentation-only pull request receives a trusted QDJVM attestation. The attestation does not check out or
-analyse code. This sequence prevents analysis of code that does not compile — heavy jobs run in parallel, but Qodana only publishes after CI succeeds and `Aggregate` merges the binary coverage reports. The Status job always starts.
+analyse code. This sequence prevents analysis of code that does not compile — heavy jobs run in parallel, but Qodana only publishes after CI succeeds and `Aggregate` consumes the shard coverage hand-off. The Status job always starts.
 It reports one required check that controls merges.
+
+Each Build shard executes its tests under Kover and uploads a `kover-handoff-<shard>` artefact with the binary `.ic`
+reports and the compiled classes. `Aggregate` restores that data and generates the XML/HTML reports and the `koverVerify`
+gate from it. It does not re-run tests: the Aggregate Gradle invocation contains no test tasks.
 
 The workflow listens for `merge_group` events. Merge groups, schedules, and manual dispatches do not use the path
 filter. They always start the full pipeline: Build (sharded → Aggregate with `koverVerify` at 85%), Vanilla, Dokka, and CodeQL (own workflow). The `Qodana trusted` workflow analyses a
@@ -75,7 +79,7 @@ contains pull-request code.
 
 ### Path classification
 
-The `gate` job classifies every current and previous pull-request file name. It
+The `Triage` job classifies every current and previous pull-request file name. It
 uses the documentation-only allowlist below. A pull request qualifies for the
 documentation path only when it has at least one file and every file name
 matches one of these patterns:
@@ -126,14 +130,14 @@ Select Actions → **CI** → **Run workflow**. A manual workflow always starts 
 
 | Input | Default | Behaviour |
 |-------|---------|-----------|
-| `tasks` | empty | Default full set: `build dokkaGenerate koverXmlReport koverHtmlReport`. If only `module` is set: `:<module>:build` plus root verification (`koverVerify`, BOM/release checks, Kover reports, Dokka). |
+| `tasks` | empty | The sharded matrix task set (each shard runs `koverBinaryReport` + `jar`), with `dokkaGenerate` in the parallel Dokka job and coverage verification in Aggregate. If only `module` is set: `:<module>:build` plus root verification (`:koverVerify`, BOM/release checks, Kover reports, Dokka). |
 | `module` | empty | Optional project name (`core`, `minimessage`, `bom`, …). Ignored when `tasks` is non-empty. |
 
 Module names must match `[A-Za-z0-9_-]+`.
 
 ### Heavy CI gate (Release Please)
 
-The `gate` job skips resource-intensive jobs only for a trusted Release Please
+The `Triage` job skips resource-intensive jobs only for a trusted Release Please
 pull request. The `release-provenance.yml` workflow supplies the independent
 check from the default branch. It does not check out the pull request.
 
@@ -228,10 +232,12 @@ reports zero alerts. This lets GitHub treat the tool as configured.
 
 ### Full builds
 
-Pull requests, pushes, merge groups, schedules, and manual dispatches use the complete default task set:
-`build dokkaGenerate koverXmlReport koverHtmlReport`. Path filters control whether the full CI pipeline starts. They do
-not control which modules compile. Thus, each code pull request includes the coverage gate, BOM checks, and dependent
-module compilation.
+Pull requests, pushes, merge groups, schedules, and manual dispatches run the complete pipeline. The Build matrix shards
+the work: `core` (`:core:koverBinaryReport` + `:core:jar`), `text` (`minimessage` + `serializer`), and `runtime`
+(`coroutines` + `paper` + `test` + `test-snapshot` + `bom`). Dokka runs in its own parallel job. Aggregate consumes the
+shard coverage hand-off and enforces the 85% `koverVerify` gate. Path filters control whether the full CI pipeline
+starts. They do not control which modules compile. Thus, each code pull request includes the coverage gate, BOM checks,
+and dependent module compilation.
 
 ### Merge queue
 
@@ -345,7 +351,7 @@ repository automation tests use `node --test`.
 | `vanilla-fixture-cache-key.sh` | Compute MC fixture cache key |
 | `download-base-metrics.sh` | PR feedback: fetch base coverage/jars/metrics from the base commit's CI run |
 | `build-base-jars.sh` | PR feedback: last-resort jar-only Gradle build of the base SHA |
-| `collect-ci-metrics.sh` | Aggregate: test/skipped counts + build duration → `ci-metrics.json` |
+| `collect-ci-metrics.sh` | Aggregate: test/skipped counts + maximum shard build duration → `ci-metrics.json` |
 | `pr-metrics-publisher.js` | Trusted workflow_run publisher: validates the source run and renders the metrics comment |
 | `qodana-source.js` | Trusted workflow_run source and path classification for Qodana |
 | `qodana-check-registration.js` | Creates and records the source-bound pull-request Qodana check |
@@ -408,7 +414,7 @@ Pull requests show many checks. Only the checks in the **Master** ruleset block 
 
 | Check | Merge gate | Notes |
 |-------|:----------:|-------|
-| **Status** | **Required** | Aggregates lint, build, vanilla, and dependencies. Green when skipped for docs-only or release-please changes |
+| **Status** | **Required** | Aggregates lint, build, Aggregate coverage, Dokka, vanilla, and dependencies. Green when skipped for docs-only or release-please changes |
 | **Title** | **Required** | Conventional PR title (from `pr.yml`) |
 | **Commits** | **Required** | Conventional commit subjects (from `pr.yml`) |
 | **Dependencies** | **Required** | Dependency review |
@@ -430,18 +436,23 @@ Pull requests show many checks. Only the checks in the **Master** ruleset block 
 | Dependency / wrapper caches | `setup-gradle` defaults in `.github/actions/setup-jdk-gradle` |
 | Minecraft conformance fixtures | Uses `actions/cache`. The key comes from `targetMinecraftVersion` and `serverBundleSha1` |
 | PR metrics baselines | Uses the `actions/cache` key `ci-baseline-<sha>` on a master push. Downloads an artefact as a fallback. Rebuilds the JAR only as the last option |
+| Kover coverage hand-off | Shards upload `kover-handoff-<shard>`; Aggregate restores them and runs `:koverXmlReport :koverHtmlReport :koverVerify -Pkover.externalBinariesDir=modules`. No test re-run in Aggregate |
 
-### Artefacts (Build job)
+### Artefacts
+
+Each Build shard uploads test results (`gradle-test-results-<shard>`, always, including failed runs), a Kover hand-off
+(`kover-handoff-<shard>`, always), module JARs (`module-jars-<shard>`, always when present), and a duration file
+(`gradle-duration-<shard>`).
 
 | Artefact | When |
 |----------|------|
-| Test results / HTML test reports | Always (including failed runs) |
-| Kover coverage report | Always, including failed runs. Retained for 14 days |
-| Module JARs (`module-jars`) | Always when present. Used for PR head metrics and as the base download fallback |
-| CI metrics (`ci-metrics`) | On successful builds. It contains test counts and duration for the PR comment. |
+| Test results / HTML test reports | Always (including failed runs), per shard |
+| Kover hand-off (`kover-handoff-<shard>`) | Always, per shard. Binary `.ic` reports + compiled classes |
+| Module JARs (`module-jars`) | Re-uploaded from the shards by Aggregate. Used for PR head metrics and as the base download fallback |
+| Coverage report (`coverage-report`) | From Aggregate. Generated from the shard hand-off without re-running tests. Retained for 14 days |
+| CI metrics (`ci-metrics`) | From Aggregate. Test counts, skipped count, and the maximum shard build duration |
 | PR metrics result (`pr-metrics-result-<run-id>-<run-attempt>`) | Successful PR feedback computation. Contains only bounded, typed metric data. Retained for one day |
-| Dokka preview | Successful PRs only. Contains rendered KDoc HTML. Retained for 14 days. Treat as untrusted HTML |
-| Full `build/libs` upload | Only on **job failure**, or on **push to `master`** |
+| Dokka preview | Uploaded from the Dokka job on successful PRs only. Contains rendered KDoc HTML. Retained for 14 days. Treat as untrusted HTML |
 
 ## Re-running CI
 

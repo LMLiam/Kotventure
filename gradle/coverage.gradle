@@ -5,6 +5,10 @@
 // aggregated HTML/XML output lands in `build/reports/kover/`; `./gradlew koverHtmlReport`
 // generates it locally.
 //
+// With the `-Pkover.externalBinariesDir=<dir>` property (CI Aggregate job), the report is
+// generated from binary `.ic` coverage reports produced by the build shards instead of from
+// `kover` project dependencies. This consumes existing coverage without re-running tests.
+//
 // Coverage threshold policy
 // -------------------------
 // Baseline: 85% line coverage. The project is pre-alpha, but every behavioural change ships
@@ -14,10 +18,17 @@
 // any threshold change in the PR description so reviewers are not surprised by a CI failure.
 def coverageLineThreshold = 85
 
-dependencies {
-    subprojects
-            .findAll { subproject -> subproject.name != 'bom' }
-            .each { subproject -> kover subproject }
+def externalBinariesDir = providers.gradleProperty('kover.externalBinariesDir').orNull
+if (externalBinariesDir != null) {
+    dependencies {
+        add('kover', fileTree(externalBinariesDir) { include '**/*.artifact' })
+    }
+} else {
+    dependencies {
+        subprojects
+                .findAll { subproject -> subproject.name != 'bom' }
+                .each { subproject -> kover subproject }
+    }
 }
 
 kover {

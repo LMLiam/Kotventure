@@ -1,18 +1,19 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
-shopt -s nullglob
 
 repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 cd -- "$repo_root"
 
 readonly METRICS_FILE='ci-metrics.json'
-readonly DURATION_FILE='gradle-duration.txt'
 
 tests=0
 skipped=0
 
-for file in modules/*/build/test-results/test/TEST-*.xml; do
+# Test results land in `*/build/test-results/test/` after the Aggregate job downloads the
+# per-shard `gradle-test-results-*` artifacts. `find` tolerates the `modules/` prefix that
+# upload-artifact may or may not preserve in the stored paths.
+while IFS= read -r file; do
     xml=$(<"$file")
 
     if [[ $xml =~ tests=\"([0-9]+)\" ]]; then
@@ -22,31 +23,28 @@ for file in modules/*/build/test-results/test/TEST-*.xml; do
     if [[ $xml =~ skipped=\"([0-9]+)\" ]]; then
         skipped=$((skipped + 10#${BASH_REMATCH[1]}))
     fi
-done
+done < <(find . -type f -name 'TEST-*.xml' -path '*/build/test-results/test/*' 2>/dev/null)
 
 duration=null
-max_duration=0
-found_duration=false
 
-# Check per-shard duration files (gradle-duration-*.txt) and aggregate duration (gradle-duration.txt).
-# Duration represents the wall-clock indicative time for the longest shard, which is the
-# critical-path build time in the parallel CI (max of shards). If only a single file exists,
-# it is used directly.
-for dfile in gradle-duration-*.txt "$DURATION_FILE"; do
-    [[ -f $dfile ]] || continue
-    read -r val < "$dfile"
-    if [[ $val =~ ^[0-9]+$ ]]; then
-        found_duration=true
-        if (( val > max_duration )); then
+# Each build shard writes gradle-duration-<shard>.txt (measured by the gradle-job action).
+# The reported duration is the maximum shard build duration, i.e. the critical-path build
+# time in the parallel CI. When no per-shard files exist (single-invocation build), the
+# plain gradle-duration.txt is used instead.
+shard_files=(gradle-duration-*.txt)
+if [[ -n "${shard_files[0]:-}" && -f "${shard_files[0]}" ]]; then
+    max_duration=0
+    for dfile in "${shard_files[@]}"; do
+        [[ -f $dfile ]] || continue
+        read -r val < "$dfile"
+        if [[ $val =~ ^[0-9]+$ ]] && (( val > max_duration )); then
             max_duration=$val
         fi
-    fi
-done
-
-if [[ $found_duration == true ]]; then
+    done
     duration=$max_duration
-else
-    duration=null
+elif [[ -f gradle-duration.txt ]]; then
+    read -r val < gradle-duration.txt
+    [[ $val =~ ^[0-9]+$ ]] && duration=$val
 fi
 
 printf '{"tests": %d, "skipped": %d, "durationSeconds": %s}\n' "$tests" "$skipped" "$duration" > "$METRICS_FILE"

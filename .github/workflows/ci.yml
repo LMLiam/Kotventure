@@ -207,11 +207,11 @@ jobs:
       matrix:
         include:
           - shard: core
-            tasks: :core:koverBinaryReport
+            tasks: :core:koverBinaryReport :core:jar
           - shard: text
-            tasks: :minimessage:koverBinaryReport :serializer:koverBinaryReport
+            tasks: :minimessage:koverBinaryReport :serializer:koverBinaryReport :minimessage:jar :serializer:jar
           - shard: runtime
-            tasks: :coroutines:koverBinaryReport :paper:koverBinaryReport :test:koverBinaryReport :bom:build
+            tasks: :coroutines:koverBinaryReport :paper:koverBinaryReport :test:koverBinaryReport :test-snapshot:koverBinaryReport :bom:build :coroutines:jar :paper:jar :test:jar :test-snapshot:jar
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -240,7 +240,7 @@ jobs:
             echo "tasks=$tasks" >> "$GITHUB_OUTPUT"
             echo "Resolved Gradle tasks: $tasks (from input)"
           elif [[ -n "$module" ]]; then
-            tasks=":${module}:build koverVerify verifyBomConsumerVersionlessDependencies verifyReleaseVersionConsistency koverXmlReport koverHtmlReport dokkaGenerate"
+            tasks=":${module}:build :koverVerify verifyBomConsumerVersionlessDependencies verifyReleaseVersionConsistency :koverXmlReport :koverHtmlReport dokkaGenerate"
             echo "tasks=$tasks" >> "$GITHUB_OUTPUT"
             echo "Resolved Gradle tasks: $tasks (from module)"
           else
@@ -277,15 +277,39 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-      - name: Upload Kover binary
+      - name: Stage Kover hand-off
+        if: always()
+        run: |
+          set -euo pipefail
+          rm -rf kover-handoff
+          for module in modules/*; do
+            [ -d "$module/build/kover" ] || continue
+            name=$(basename "$module")
+            dir="kover-handoff/$name"
+            mkdir -p "$dir"
+            cp "$module/build/kover/jvm.artifact" "$dir/" 2>/dev/null || true
+            cp -R "$module/build/kover/bin-reports" "$dir/" 2>/dev/null || true
+            cp -R "$module/build/classes/kotlin/main" "$dir/classes-kotlin-main" 2>/dev/null || true
+            cp -R "$module/build/classes/java/main" "$dir/classes-java-main" 2>/dev/null || true
+            cp -R "$module/build/classes/kotlin/vanillaConformanceTest" "$dir/classes-kotlin-vanillaConformanceTest" 2>/dev/null || true
+            cp -R "$module/build/classes/java/vanillaConformanceTest" "$dir/classes-java-vanillaConformanceTest" 2>/dev/null || true
+          done
+
+      - name: Upload Kover hand-off
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: kover-binary-${{ matrix.shard }}
-          path: |
-            build/kover
-            modules/*/build/kover
-            modules/*/build/tmp/kover
+          name: kover-handoff-${{ matrix.shard }}
+          path: kover-handoff
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload module jars
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: module-jars-${{ matrix.shard }}
+          path: build/libs/kotventure-*.jar
           if-no-files-found: ignore
           retention-days: 7
 
@@ -333,12 +357,44 @@ jobs:
           path: .
           merge-multiple: true
 
-      - name: Download Kover binary
+      - name: Download Kover hand-off
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          pattern: kover-binary-*
+          pattern: kover-handoff-*
           path: .
           merge-multiple: true
+
+      - name: Restore Kover data layout
+        run: |
+          set -euo pipefail
+          for module in kover-handoff/*; do
+            [ -d "$module" ] || continue
+            name=$(basename "$module")
+            mkdir -p "modules/$name/build/kover/bin-reports" \
+              "modules/$name/build/classes/kotlin" \
+              "modules/$name/build/classes/java"
+            cp "$module/jvm.artifact" "modules/$name/build/kover/jvm.artifact"
+            if [ -d "$module/bin-reports" ]; then
+              cp -R "$module/bin-reports/." "modules/$name/build/kover/bin-reports/"
+            fi
+            if [ -d "$module/classes-kotlin-main" ]; then
+              mkdir -p "modules/$name/build/classes/kotlin/main"
+              cp -R "$module/classes-kotlin-main/." "modules/$name/build/classes/kotlin/main/"
+            fi
+            if [ -d "$module/classes-java-main" ]; then
+              mkdir -p "modules/$name/build/classes/java/main"
+              cp -R "$module/classes-java-main/." "modules/$name/build/classes/java/main/"
+            fi
+            if [ -d "$module/classes-kotlin-vanillaConformanceTest" ]; then
+              mkdir -p "modules/$name/build/classes/kotlin/vanillaConformanceTest"
+              cp -R "$module/classes-kotlin-vanillaConformanceTest/." "modules/$name/build/classes/kotlin/vanillaConformanceTest/"
+            fi
+            if [ -d "$module/classes-java-vanillaConformanceTest" ]; then
+              mkdir -p "modules/$name/build/classes/java/vanillaConformanceTest"
+              cp -R "$module/classes-java-vanillaConformanceTest/." "modules/$name/build/classes/java/vanillaConformanceTest/"
+            fi
+          done
+          rm -rf kover-handoff
 
       - name: Download durations
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -350,7 +406,7 @@ jobs:
       - name: Generate coverage reports
         uses: ./.github/actions/gradle-job
         with:
-          tasks: koverXmlReport koverHtmlReport koverVerify -x test -x vanillaConformanceTest
+          tasks: :koverXmlReport :koverHtmlReport :koverVerify -Pkover.externalBinariesDir=modules
 
       - name: Collect CI metrics
         run: bash .github/scripts/collect-ci-metrics.sh
@@ -371,11 +427,18 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+      - name: Download module jars
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: module-jars-*
+          path: module-jars
+          merge-multiple: true
+
       - name: Upload module jars
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: module-jars
-          path: build/libs/kotventure-*.jar
+          path: module-jars/*.jar
           if-no-files-found: ignore
           retention-days: 14
 
@@ -392,6 +455,7 @@ jobs:
             cp ci-metrics.json .ci-baseline/ci-metrics.json
           fi
           cp build/libs/kotventure-*.jar .ci-baseline/libs/ 2>/dev/null || true
+          cp module-jars/kotventure-*.jar .ci-baseline/libs/ 2>/dev/null || true
 
       - name: Cache baseline coverage and jars for PRs
         if: success() && github.event_name == 'push' && github.ref == 'refs/heads/master'
@@ -399,15 +463,6 @@ jobs:
         with:
           path: .ci-baseline
           key: ci-baseline-${{ github.sha }}
-
-      - name: Upload build artifacts
-        if: failure() || (github.event_name == 'push' && github.ref == 'refs/heads/master')
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: gradle-build-artifacts
-          path: build/libs
-          if-no-files-found: ignore
-          retention-days: 7
 
   dokka:
     name: Dokka
