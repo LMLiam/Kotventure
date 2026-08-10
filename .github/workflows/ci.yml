@@ -385,7 +385,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-  pr-feedback:  pr-feedback:
+  pr-feedback:
     name: PR feedback
     needs: [aggregate]
     if: >-
