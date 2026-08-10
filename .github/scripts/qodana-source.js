@@ -202,7 +202,6 @@ function validatePullRequestState({
   requireEqual(pullRequest.state, 'open', 'pull request state', true);
   requireEqual(pullRequest.base?.repo?.full_name, repository.full_name, 'pull request base repository', true);
   requireEqual(pullRequest.base?.repo?.id, repository.id, 'pull request base repository id', true);
-  requireEqual(pullRequest.base?.ref, repository.default_branch, 'pull request base branch', true);
   requireSha(pullRequest.base?.sha, 'pull request base SHA');
   requireSha(pullRequest.head?.sha, 'pull request head SHA');
   if (expectedHeadSha != null) {
@@ -277,7 +276,6 @@ async function findPullRequestForHeadSha({ github, owner, repo, repository, head
     ? associatedPullRequests.filter((pullRequest) => pullRequest?.state === 'open'
       && pullRequest.base?.repo?.full_name === repository.full_name
       && pullRequest.base?.repo?.id === repository.id
-      && pullRequest.base?.ref === repository.default_branch
       && pullRequest.head?.sha === headSha)
     : [];
   if (matchingPullRequests.length !== 1) {
@@ -323,7 +321,6 @@ async function resolvePullRequestEventSource({ github, context, qodanaRunId, qod
   const repository = await fetchRepository({ github, owner, repo });
   requireEqual(pullRequestEvent.base?.repo?.full_name, repository.full_name, 'pull request base repository');
   requireEqual(pullRequestEvent.base?.repo?.id, repository.id, 'pull request base repository id');
-  requireEqual(pullRequestEvent.base?.ref, repository.default_branch, 'pull request base branch');
   const pullNumber = requirePositiveInteger(pullRequestEvent.number, 'pull request number');
   const response = await github.rest.pulls.get({ owner, repo, pull_number: pullNumber });
   const pullRequest = requireObject(response.data, 'pull request');
