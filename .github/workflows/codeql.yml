@@ -1,0 +1,189 @@
+name: CodeQL
+
+on:
+  pull_request:
+    branches: [master]
+    types: [opened, edited, synchronize, reopened]
+  push:
+    branches: [master]
+  merge_group:
+  schedule:
+    - cron: '17 3 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: codeql-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    name: Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+    outputs:
+      run: ${{ steps.decide.outputs.run }}
+      release_only: ${{ steps.decide.outputs.release_only }}
+      release_candidate: ${{ steps.decide.outputs.release_candidate }}
+      documentation_only: ${{ steps.decide.outputs.documentation_only }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Decide whether heavy CI should run
+        id: decide
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          retries: 3
+          retry-exempt-status-codes: 400,401,403,404,422
+          script: |
+            const { decideGate } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/ci-gate.js`);
+            await decideGate({ github, context, core });
+
+  changes:
+    name: Detect changes
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      code: ${{ steps.resolve.outputs.code }}
+      vanilla: ${{ steps.resolve.outputs.vanilla }}
+      documentation_only: ${{ steps.resolve.outputs.documentation_only }}
+    steps:
+      - name: Checkout
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Path filter
+        id: filter
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
+        uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4.0.2
+        with:
+          filters: |
+            code:
+              - 'modules/**'
+              - 'gradle/**'
+              - 'build.gradle'
+              - 'settings.gradle'
+              - 'gradle.properties'
+              - 'gradlew'
+              - 'gradlew.bat'
+              - 'buildSrc/**'
+              - '.editorconfig'
+              - '.gitattributes'
+              - '.gitignore'
+              - 'qodana.yaml'
+              - 'jitpack.yml'
+              - 'release-please-config.json'
+              - '.github/workflows/**'
+              - '.github/actions/**'
+              - '.github/scripts/**'
+              - '.github/dependabot.yml'
+            vanilla:
+              - 'modules/core/**'
+              - 'gradle/vanilla-conformance.gradle'
+              - 'buildSrc/**'
+              - '.github/scripts/vanilla-fixture-cache-key.sh'
+              - '.github/workflows/ci.yml'
+              - '.github/actions/setup-jdk-gradle/**'
+              - '.github/actions/publish-junit-report/**'
+
+      - name: Resolve flags
+        id: resolve
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          FILTER_CODE: ${{ steps.filter.outputs.code }}
+          FILTER_VANILLA: ${{ steps.filter.outputs.vanilla }}
+          RELEASE_CANDIDATE: ${{ needs.gate.outputs.release_candidate }}
+          DOCUMENTATION_ONLY: ${{ needs.gate.outputs.documentation_only }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_NAME" == "pull_request" && "$RELEASE_CANDIDATE" == "true" ]]; then
+            {
+              echo "code=true"
+              echo "vanilla=true"
+              echo "documentation_only=false"
+            } >> "$GITHUB_OUTPUT"
+          elif [[ "$EVENT_NAME" == "pull_request" ]]; then
+            if [[ "$DOCUMENTATION_ONLY" == "true" ]]; then
+              {
+                echo "code=false"
+                echo "vanilla=false"
+                echo "documentation_only=true"
+              } >> "$GITHUB_OUTPUT"
+            else
+              {
+                echo "code=true"
+                echo "vanilla=${FILTER_VANILLA}"
+                echo "documentation_only=false"
+              } >> "$GITHUB_OUTPUT"
+            fi
+          elif [[ "$EVENT_NAME" == "push" ]]; then
+            {
+              echo "code=${FILTER_CODE}"
+              echo "vanilla=${FILTER_VANILLA}"
+              echo "documentation_only=false"
+            } >> "$GITHUB_OUTPUT"
+          else
+            {
+              echo "code=true"
+              echo "vanilla=true"
+              echo "documentation_only=false"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+  codeql:
+    name: CodeQL (${{ matrix.language }})
+    needs: [gate, changes]
+    if: needs.gate.outputs.run == 'true' && needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: actions
+            build-mode: none
+          - language: java-kotlin
+            build-mode: manual
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@f205ea1c3313d32999d8d6a48b4f6530d4437b38 # v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+
+      - name: Set up JDK and Gradle
+        if: matrix.build-mode == 'manual'
+        uses: ./.github/actions/setup-jdk-gradle
+
+      - name: Build for CodeQL
+        if: matrix.build-mode == 'manual'
+        run: >-
+          ./gradlew classes testClasses -x test -Pkotlin.incremental=false
+          -Pkotlin.daemon.jvmargs=-Xmx4g --no-build-cache --rerun-tasks
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@f205ea1c3313d32999d8d6a48b4f6530d4437b38 # v4
+        with:
+          category: "/language:${{ matrix.language }}"

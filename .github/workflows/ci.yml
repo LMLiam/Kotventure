@@ -34,7 +34,7 @@ permissions:
 # ║                                                                            ║
 # ║  Tier 0 ─ Triage        Gate → Changes (fast, always runs)                ║
 # ║  Tier 1 ─ Core          Lint ┤ Build (parallel, first feedback)            ║
-# ║  Tier 2 ─ Analysis      CodeQL │ Vanilla (after T1 passes)                 ║
+# ║  Tier 2 ─ Analysis      Vanilla (parallel with Tier 1)                      ║
 # ║  Policy ─ Independent   Dependencies │ Commits │ Release attestation       ║
 # ║  Status ─ Aggregator    Required check (merge gate + merge queue)          ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
@@ -505,53 +505,8 @@ jobs:
           retention-days: 1
 
   # ╭──────────────────────────────────────────────────────────────────────────╮
-  # │ Tier 2: Deep Analysis (parallel with Tier 1 — gated on changes)          │
+  # │ Tier 2: Vanilla (parallel with Tier 1)                                   │
   # ╰──────────────────────────────────────────────────────────────────────────╯
-
-  codeql:
-    name: CodeQL (${{ matrix.language }})
-    needs: [gate, changes]
-    if: needs.gate.outputs.run == 'true' && needs.changes.outputs.code == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - language: actions
-            build-mode: none
-          - language: java-kotlin
-            build-mode: manual
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@f205ea1c3313d32999d8d6a48b4f6530d4437b38 # v4
-        with:
-          languages: ${{ matrix.language }}
-          build-mode: ${{ matrix.build-mode }}
-
-      - name: Set up JDK and Gradle
-        if: matrix.build-mode == 'manual'
-        uses: ./.github/actions/setup-jdk-gradle
-
-      - name: Build for CodeQL
-        if: matrix.build-mode == 'manual'
-        run: >-
-          ./gradlew classes testClasses -x test -Pkotlin.incremental=false
-          -Pkotlin.daemon.jvmargs=-Xmx4g --no-build-cache --rerun-tasks
-
-      - name: Perform CodeQL analysis
-        uses: github/codeql-action/analyze@f205ea1c3313d32999d8d6a48b4f6530d4437b38 # v4
-        with:
-          category: "/language:${{ matrix.language }}"
 
   vanilla:
     name: Vanilla conformance
