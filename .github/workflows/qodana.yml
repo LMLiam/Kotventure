@@ -11,6 +11,9 @@ concurrency:
   group: qodana-${{ github.event.workflow_run.id }}-${{ github.event.workflow_run.run_attempt }}
   cancel-in-progress: true
 
+env:
+  NODE_OPTIONS: --use-system-ca
+
 jobs:
   register:
     name: Register Qodana check
@@ -49,6 +52,8 @@ jobs:
           QODANA_RUN_ID: ${{ github.run_id }}
           QODANA_RUN_ATTEMPT: ${{ github.run_attempt }}
         with:
+          retries: 3
+          retry-exempt-status-codes: 400,401,403,404,422
           script: |
             const { resolveSource } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/qodana-source.js`);
             const {
@@ -164,6 +169,8 @@ jobs:
           HEAD_SHA: ${{ needs.register.outputs.head_sha }}
           OUTPUT_PATH: ${{ runner.temp }}/qodana-attestation/qodana.sarif.json
         with:
+          retries: 3
+          retry-exempt-status-codes: 400,401,403,404,422
           script: |
             const { writeAttestation } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/qodana-attestation.js`);
             writeAttestation({
@@ -217,6 +224,8 @@ jobs:
           HEAD_SHA: ${{ needs.register.outputs.head_sha }}
           REGISTER_RESULT: ${{ needs.register.result }}
         with:
+          retries: 3
+          retry-exempt-status-codes: 400,401,403,404,422
           script: |
             const {
               completeWorkflowCheck,
