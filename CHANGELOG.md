@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any release.
 
+## [0.26.3](https://github.com/LMLiam/Kotventure/compare/0.26.2...0.26.3) (2026-08-10)
+
+
+### 🐛 Fixes
+
+* **ci:** trust system CA and retry Qodana check API ([#509](https://github.com/LMLiam/Kotventure/issues/509)) ([6e2bfca](https://github.com/LMLiam/Kotventure/commit/6e2bfcaad7c8a0811ffec3f8d830c771eab61892))
+
 ## [0.26.2](https://github.com/LMLiam/Kotventure/compare/0.26.1...0.26.2) (2026-08-09)
 
 
