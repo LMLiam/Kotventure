@@ -45,6 +45,7 @@ const HEAD_REPOSITORY = {
 };
 
 function makePullRequest({
+  baseRef = REPOSITORY.default_branch,
   files = [{ filename: 'src/Main.kt' }],
   state = 'open',
   baseSha = BASE_SHA,
@@ -58,7 +59,7 @@ function makePullRequest({
     changed_files: files.length,
     base: {
       repo: REPOSITORY,
-      ref: 'master',
+      ref: baseRef,
       sha: baseSha,
     },
     head: {
@@ -668,6 +669,39 @@ test('resolves same-repository and fork pull-request heads', async () => {
     headSha: HEAD_SHA,
   });
   assert.equal(source.headRepository, forkRepository.full_name);
+  assert.equal(source.headSha, HEAD_SHA);
+});
+
+test('accepts stacked pull requests whose base is another feature branch', async () => {
+  const stackedBase = 'chore/ci-shared-validation';
+  const pullRequest = makePullRequest({ baseRef: stackedBase });
+  const source = await resolvePullRequestSource({
+    github: makeGithub({ pullRequest }),
+    owner: 'LMLiam',
+    repo: 'Kotventure',
+    headSha: HEAD_SHA,
+  });
+  assert.equal(source.sourceKind, 'code');
+  assert.equal(source.baseRef, stackedBase);
+  assert.equal(source.baseSha, BASE_SHA);
+  assert.equal(source.pullRequest, 42);
+});
+
+test('registers a stacked pull request from the pull_request_target event', async () => {
+  const stackedBase = 'chore/ci-shared-validation';
+  const pullRequest = makePullRequest({ baseRef: stackedBase });
+  const source = await resolvePullRequestEventSource({
+    github: makeGithub({ pullRequest }),
+    context: {
+      repo: { owner: 'LMLiam', repo: 'Kotventure' },
+      payload: { pull_request: pullRequest },
+    },
+    qodanaRunId: QODANA_RUN_ID,
+    qodanaRunAttempt: QODANA_RUN_ATTEMPT,
+  });
+  assert.equal(source.sourceKind, 'code');
+  assert.equal(source.baseRef, stackedBase);
+  assert.equal(source.pullRequest, 42);
   assert.equal(source.headSha, HEAD_SHA);
 });
 
