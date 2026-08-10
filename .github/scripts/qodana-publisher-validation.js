@@ -54,7 +54,7 @@ function validateQodanaWorkflowSource({ eventRun, run, workflow, repository }) {
   if (eventRun.workflow_id != null) {
     requireEqual(eventRun.workflow_id, run.workflow_id, 'workflow run workflow id');
   }
-  requireEqual(eventRun.event, 'workflow_run', 'workflow run event');
+  requireEqual(eventRun.event, 'pull_request_target', 'workflow run event');
   requireEqual(eventRun.status, 'completed', 'workflow run event status');
   requireEqual(eventRun.conclusion, run.conclusion, 'workflow run event conclusion');
   requireEqual(run.event, 'pull_request_target', 'workflow run event');
