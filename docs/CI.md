@@ -377,11 +377,11 @@ repository automation tests use `node --test`.
 | `workflow-run-check.js` | Creates, validates, and completes source-bound workflow checks |
 
 The `.github/package.json` manifest and its committed `package-lock.json` hold the npm
-dependencies of the CI tooling. Seven jobs install them: Triage, Lint (Actions), PR
-feedback, CodeQL Gate, Qodana register, PR metrics publication, and Qodana publication.
-Qodana analysis also installs them, only when it creates the trusted QDJVM attestation.
-Each runs `npm ci --ignore-scripts --no-audit --no-fund` from `/.github` and then builds
-the TypeScript tooling with `npm run build`; the trusted publishers and the Qodana jobs
+dependencies of the CI tooling. Eight jobs install them: Triage, Lint (Actions), PR
+feedback, CodeQL Gate, Qodana register, the Qodana attestation job (non-code source
+kinds only), PR metrics publication, and Qodana publication. Each runs
+`npm ci --ignore-scripts --no-audit --no-fund` from `/.github` and then builds the
+TypeScript tooling with `npm run build`; the trusted publishers and the Qodana jobs
 install against the default-branch lockfile. Release provenance remains dependency-free.
 
 ## Action pins and Dependabot
