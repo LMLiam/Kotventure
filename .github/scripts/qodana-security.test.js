@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
-const zlib = require('node:zlib');
+const AdmZip = require('adm-zip');
 
 const {
   MAX_ARTIFACT_BYTES,
@@ -129,68 +129,24 @@ function makeGithub({
 
 function makeStoredZip(content, fileName = 'qodana.sarif.json') {
   const name = Buffer.from(fileName, 'utf8');
-  const localHeader = Buffer.alloc(30 + name.length);
-  localHeader.writeUInt32LE(0x04034b50, 0);
-  localHeader.writeUInt16LE(20, 4);
-  localHeader.writeUInt16LE(0, 6);
-  localHeader.writeUInt16LE(0, 8);
-  localHeader.writeUInt32LE(content.length, 18);
-  localHeader.writeUInt32LE(content.length, 22);
-  localHeader.writeUInt16LE(name.length, 26);
-  name.copy(localHeader, 30);
-
-  const centralDirectory = Buffer.alloc(46 + name.length);
-  centralDirectory.writeUInt32LE(0x02014b50, 0);
-  centralDirectory.writeUInt16LE(20, 4);
-  centralDirectory.writeUInt16LE(20, 6);
-  centralDirectory.writeUInt16LE(0, 8);
-  centralDirectory.writeUInt16LE(0, 10);
-  centralDirectory.writeUInt32LE(content.length, 20);
-  centralDirectory.writeUInt32LE(content.length, 24);
-  centralDirectory.writeUInt16LE(name.length, 28);
-  name.copy(centralDirectory, 46);
-
-  const end = Buffer.alloc(22);
-  end.writeUInt32LE(0x06054b50, 0);
-  end.writeUInt16LE(1, 8);
-  end.writeUInt16LE(1, 10);
-  end.writeUInt32LE(centralDirectory.length, 12);
-  end.writeUInt32LE(localHeader.length + content.length, 16);
-  return Buffer.concat([localHeader, content, centralDirectory, end]);
+  const zip = new AdmZip();
+  const entry = zip.addFile('x'.repeat(name.length), content);
+  entry.header.method = 0;
+  const archive = zip.toBuffer();
+  const centralDirectoryOffset = archive.readUInt32LE(archive.length - 6);
+  name.copy(archive, 30);
+  name.copy(archive, centralDirectoryOffset + 46);
+  return archive;
 }
 
 function makeDeflateZip(content, declaredSize) {
-  const name = Buffer.from('qodana.sarif.json', 'utf8');
-  const compressed = zlib.deflateRawSync(content);
-
-  const localHeader = Buffer.alloc(30 + name.length);
-  localHeader.writeUInt32LE(0x04034b50, 0);
-  localHeader.writeUInt16LE(20, 4);
-  localHeader.writeUInt16LE(0, 6);
-  localHeader.writeUInt16LE(8, 8);
-  localHeader.writeUInt32LE(compressed.length, 18);
-  localHeader.writeUInt32LE(declaredSize, 22);
-  localHeader.writeUInt16LE(name.length, 26);
-  name.copy(localHeader, 30);
-
-  const centralDirectory = Buffer.alloc(46 + name.length);
-  centralDirectory.writeUInt32LE(0x02014b50, 0);
-  centralDirectory.writeUInt16LE(20, 4);
-  centralDirectory.writeUInt16LE(20, 6);
-  centralDirectory.writeUInt16LE(0, 8);
-  centralDirectory.writeUInt16LE(8, 10);
-  centralDirectory.writeUInt32LE(compressed.length, 20);
-  centralDirectory.writeUInt32LE(declaredSize, 24);
-  centralDirectory.writeUInt16LE(name.length, 28);
-  name.copy(centralDirectory, 46);
-
-  const end = Buffer.alloc(22);
-  end.writeUInt32LE(0x06054b50, 0);
-  end.writeUInt16LE(1, 8);
-  end.writeUInt16LE(1, 10);
-  end.writeUInt32LE(centralDirectory.length, 12);
-  end.writeUInt32LE(localHeader.length + compressed.length, 16);
-  return Buffer.concat([localHeader, compressed, centralDirectory, end]);
+  const zip = new AdmZip();
+  zip.addFile('qodana.sarif.json', content);
+  const archive = zip.toBuffer();
+  const centralDirectoryOffset = archive.readUInt32LE(archive.length - 6);
+  archive.writeUInt32LE(declaredSize, 22);
+  archive.writeUInt32LE(declaredSize, centralDirectoryOffset + 24);
+  return archive;
 }
 
 function makePublicationGithub({
