@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any release.
 
+## [0.26.6](https://github.com/LMLiam/Kotventure/compare/0.26.5...0.26.6) (2026-08-11)
+
+
+### 🔧 Refactors
+
+* **ci:** enumerate jar classes with yauzl ([#537](https://github.com/LMLiam/Kotventure/issues/537)) ([2524b26](https://github.com/LMLiam/Kotventure/commit/2524b26980d5159b26af663358effbec943f5bdb))
+* **ci:** extract single-entry archives with yauzl ([#538](https://github.com/LMLiam/Kotventure/issues/538)) ([f89c081](https://github.com/LMLiam/Kotventure/commit/f89c081b0a49158ff4ee337c267c6b140ec928f1))
+* **ci:** parse Kover coverage XML with a DOM parser ([#540](https://github.com/LMLiam/Kotventure/issues/540)) ([73f98f5](https://github.com/LMLiam/Kotventure/commit/73f98f57976b974bbcb9e3064d66e86e52a2d4f1))
+* **ci:** parse patches with jsdiff ([#535](https://github.com/LMLiam/Kotventure/issues/535)) ([c4c8505](https://github.com/LMLiam/Kotventure/commit/c4c8505d45f0252851b7e4d5de8949b2c3846299))
+
 ## [0.26.5](https://github.com/LMLiam/Kotventure/compare/0.26.4...0.26.5) (2026-08-11)
 
 
