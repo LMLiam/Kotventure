@@ -44,8 +44,10 @@ async function collect({ env, context, github, core }) {
 
   const headCoverage = readCoverage(env.HEAD_COVERAGE_PATH);
   const baseCoverage = readCoverage(env.BASE_COVERAGE_PATH);
-  const headJars = collectJars(env.HEAD_LIBS_DIR);
-  const baseJars = collectJars(env.BASE_LIBS_DIR);
+  const [headJars, baseJars] = await Promise.all([
+    collectJars(env.HEAD_LIBS_DIR),
+    collectJars(env.BASE_LIBS_DIR),
+  ]);
 
   if (!headCoverage && headJars.size === 0) {
     core.warning('No head coverage report or JARs found; skipping metrics result');
