@@ -33,3 +33,19 @@ updates:
       - "dependencies"
     commit-message:
       prefix: "chore(ci)"
+
+  - package-ecosystem: "npm"
+    directory: "/.github"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      npm-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+    labels:
+      - "type: chore"
+      - "dependencies"
+    commit-message:
+      prefix: "chore(ci)"

@@ -46,3 +46,6 @@ bin/
 ### Agent scratch ###
 .agents/plans/
 .superpowers/
+
+### Node tooling ###
+.github/node_modules/
