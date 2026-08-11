@@ -39,20 +39,6 @@ function serializeJars(jars: Map<string, JarInfo>): JarValue[] {
   }));
 }
 
-function serializeBuildMetrics(metrics: BuildMetrics | null): BuildMetrics | null {
-  if (!metrics
-    || !Number.isSafeInteger(metrics.tests)
-    || !Number.isSafeInteger(metrics.skipped)
-    || (metrics.durationSeconds !== null && !Number.isSafeInteger(metrics.durationSeconds))) {
-    return null;
-  }
-  return {
-    tests: metrics.tests,
-    skipped: metrics.skipped,
-    durationSeconds: metrics.durationSeconds,
-  };
-}
-
 type PullRequestBase = {
   readonly repo: { readonly full_name: string };
   readonly ref: string;
@@ -126,8 +112,8 @@ export function serializeMetricsResult({
       baseCoverage: serializeCoverage(baseCoverage),
       headJars: serializeJars(headJars),
       baseJars: serializeJars(baseJars),
-      headMetrics: serializeBuildMetrics(headMetrics),
-      baseMetrics: serializeBuildMetrics(baseMetrics),
+      headMetrics,
+      baseMetrics,
       patchCoverage: patchCoverage
         ? { covered: patchCoverage.covered, missed: patchCoverage.missed }
         : null,
