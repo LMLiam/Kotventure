@@ -6,7 +6,7 @@ const { parsePatches } = require('../lib/patch.js');
 
 test('tracks added line numbers across context and removals', () => {
   const patch = [
-    '@@ -1,4 +1,5 @@',
+    '@@ -1,3 +1,4 @@',
     ' context',
     '-old line',
     '+new line',
@@ -56,4 +56,38 @@ test('skips removed files and files without a patch', () => {
   ];
   const parsed = parsePatches(files);
   assert.deepEqual(parsed.map((f) => f.path), ['Kept.kt']);
+});
+
+test('jsdiff parses GitHub REST hunk-only patches without file headers', () => {
+  const { parsePatch } = require('diff');
+  const patch = [
+    '@@ -1,3 +1,4 @@',
+    ' context',
+    '-old line',
+    '+new line',
+    '+second new',
+    ' more context',
+  ].join('\n');
+  const [file] = parsePatch(patch);
+  assert.equal(file.oldFileName, undefined);
+  assert.equal(file.newFileName, undefined);
+  assert.deepEqual(file.hunks[0].lines, [
+    ' context',
+    '-old line',
+    '+new line',
+    '+second new',
+    ' more context',
+  ]);
+});
+
+test('rejects a hunk whose declared counts do not match its body', () => {
+  const patch = [
+    '@@ -1,4 +1,5 @@',
+    ' context',
+    '-old line',
+    '+new line',
+    '+second new',
+    ' more context',
+  ].join('\n');
+  assert.throws(() => parsePatches([{ filename: 'Foo.kt', status: 'modified', patch }]));
 });
