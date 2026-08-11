@@ -8,9 +8,7 @@ const ARTIFACT_API_TIMEOUT_MS = 30_000;
 const ARTIFACT_STORAGE_TIMEOUT_MS = 60_000;
 
 function getHeader(headers, name) {
-  if (!headers) {
-    return null;
-  }
+  if (!headers) return null;
 
   if (typeof headers.get === 'function') {
     return headers.get(name);

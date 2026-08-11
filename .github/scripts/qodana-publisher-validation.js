@@ -10,7 +10,7 @@ const {
   parseArtifactName,
 } = require('./qodana-contract.js');
 const { createValidators } = require('./shared/validation.js');
-const { createArtifactBinding } = require('./shared/artifact-binding.js');
+const { validateArtifactBinding } = require('./shared/artifact-binding.js');
 
 class QodanaPublicationRejectedError extends Error {}
 
@@ -24,7 +24,6 @@ const {
   requireObject,
   requireSha,
 } = createValidators(reject);
-const { validateArtifactBinding } = createArtifactBinding(reject);
 
 function validateQodanaWorkflowSource({ eventRun, run, workflow, repository }) {
   requireObject(eventRun, 'workflow_run event');
@@ -91,7 +90,7 @@ function selectRunArtifact({
     reject(`expected exactly one ${label}, found ${candidates.length}`);
   }
   const [{ artifact, descriptor }] = candidates;
-  validateArtifactBinding({
+  validateArtifactBinding(reject, {
     artifact,
     expected: {
       runId: qodanaRun.id,

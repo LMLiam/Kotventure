@@ -10,7 +10,7 @@ const {
     WORKFLOW_NAME,
 } = require('./pr-metrics-publisher-contract.js');
 const { createValidators } = require('./shared/validation.js');
-const { createArtifactBinding } = require('./shared/artifact-binding.js');
+const { validateArtifactBinding } = require('./shared/artifact-binding.js');
 
 class PublicationRejectedError extends Error {
     constructor(message) {
@@ -29,7 +29,6 @@ const {
     requireObject,
     requireString,
 } = createValidators(reject);
-const { validateArtifactBinding } = createArtifactBinding(reject);
 
 function expectedArtifactName({ runId, runAttempt }) {
     const id = requireSafeInteger(runId, 'workflow run id');
@@ -296,7 +295,7 @@ function selectMetricsArtifact({ artifacts, source }) {
 
     const [artifact] = matches;
 
-    validateArtifactBinding({
+    validateArtifactBinding(reject, {
         artifact,
         expected: {
             runId: source.runId,

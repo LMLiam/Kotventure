@@ -8,19 +8,19 @@ const {
   validateQodanaWorkflowSource,
 } = require('./qodana-publisher-validation.js');
 const { createValidators } = require('./shared/validation.js');
-const { createRunContext } = require('./shared/run-context.js');
-const { requireObject } = createValidators((message) => {
+const { fetchWorkflowRunContext } = require('./shared/run-context.js');
+
+function rejectPublication(message) {
   throw new QodanaPublicationRejectedError(message);
-});
-const { fetchWorkflowRunContext } = createRunContext((message) => {
-  throw new QodanaPublicationRejectedError(message);
-});
+}
+
+const { requireObject } = createValidators(rejectPublication);
 
 async function resolvePublication({ github, context }) {
   const eventRun = requireObject(context.payload?.workflow_run, 'workflow_run event');
   const owner = context.repo.owner;
   const repo = context.repo.repo;
-  const { repository, run: qodanaRun, workflow } = await fetchWorkflowRunContext({
+  const { repository, run: qodanaRun, workflow } = await fetchWorkflowRunContext(rejectPublication, {
     github,
     owner,
     repo,

@@ -7,7 +7,7 @@ const {
   classifyChangedFiles,
 } = require('./qodana-contract.js');
 const { createValidators } = require('./shared/validation.js');
-const { createRunContext } = require('./shared/run-context.js');
+const { validateEventRun } = require('./shared/run-context.js');
 
 class QodanaSourceRejectedError extends Error {
   constructor(message, { stale = false } = {}) {
@@ -27,7 +27,6 @@ const {
   requireObject,
   requireSha,
 } = createValidators(reject);
-const { validateEventRun } = createRunContext(reject);
 
 function repositoryName(repository) {
   requireObject(repository, 'repository');
@@ -333,7 +332,7 @@ async function resolveTrustedCiRun({ github, owner, repo, runId, eventRun }) {
   const workflow = requireObject(workflowResponse.data, 'workflow');
 
   if (eventRun) {
-    validateEventRun({ eventRun, run });
+    validateEventRun(reject, { eventRun, run });
   }
   if (!['push', 'schedule', 'workflow_dispatch'].includes(run.event)) {
     reject('workflow run event is not trusted');

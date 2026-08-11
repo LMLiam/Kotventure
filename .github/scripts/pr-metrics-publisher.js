@@ -14,7 +14,7 @@ const {
     validateResultProvenance,
     validateWorkflowSource,
 } = require('./pr-metrics-publisher-validation.js');
-const { createRunContext } = require('./shared/run-context.js');
+const { fetchWorkflowRunContext } = require('./shared/run-context.js');
 
 const COVERAGE_GATE_FILE = 'gradle/coverage.gradle';
 const JAR_GROWTH_WARNING_THRESHOLD = 10;
@@ -27,8 +27,6 @@ const REPORT_ARTIFACT_LINKS = new Map([
 function rejectPublication(message) {
     throw new PublicationRejectedError(message);
 }
-
-const { fetchWorkflowRunContext } = createRunContext(rejectPublication);
 
 function requirePositiveInteger(value, message) {
     if (!Number.isSafeInteger(value) || value < 1) {
@@ -88,7 +86,7 @@ async function resolveSource({ github, context }) {
 
     const { owner, repo } = context.repo;
 
-    const { repository, run, workflow } = await fetchWorkflowRunContext({
+    const { repository, run, workflow } = await fetchWorkflowRunContext(rejectPublication, {
         github,
         owner,
         repo,
