@@ -4,6 +4,7 @@ const {
   RELEASE_ONLY_FILES,
   isDocumentationPath,
 } = require('./shared/path-classification.js');
+const { findReleaseProvenanceRun } = require('./shared/release-provenance.js');
 
 function setAlways(core, documentationOnly = false) {
   core.setOutput('run', 'true');
@@ -94,33 +95,18 @@ async function decideGate({ github, context, core }) {
     return;
   }
 
-  const findProvenanceRun = async () => {
-    const runs = await github.paginate(github.rest.actions.listWorkflowRuns, {
-      owner: context.repo.owner,
-      repo: context.repo.repo,
-      workflow_id: 'release-provenance.yml',
-      event: 'pull_request_target',
-      per_page: 100,
-    });
-
-    return runs
-      .filter((run) => {
-        const associatedPullRequests = run.pull_requests || [];
-        return run.event === 'pull_request_target'
-          && run.head_sha === pullRequest.head.sha
-          && run.head_branch === pullRequest.head.ref
-          && (associatedPullRequests.length === 0
-            || associatedPullRequests.some(
-              (candidate) => candidate.number === pullRequest.number,
-            ));
-      })
-      .sort((left, right) => new Date(right.created_at) - new Date(left.created_at))[0];
-  };
-
   let provenanceRun;
   try {
     for (let attempt = 0; attempt < 6; attempt += 1) {
-      provenanceRun = await findProvenanceRun();
+      provenanceRun = await findReleaseProvenanceRun({
+        github,
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        repository,
+        headSha: pullRequest.head.sha,
+        headRef: pullRequest.head.ref,
+        pullNumber: pullRequest.number,
+      });
       if (provenanceRun?.status === 'completed' || attempt === 5) {
         break;
       }
