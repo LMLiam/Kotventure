@@ -6,6 +6,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
+const zlib = require('node:zlib');
 
 const {
   MAX_ARTIFACT_BYTES,
@@ -156,6 +157,40 @@ function makeStoredZip(content, fileName = 'qodana.sarif.json') {
   end.writeUInt32LE(centralDirectory.length, 12);
   end.writeUInt32LE(localHeader.length + content.length, 16);
   return Buffer.concat([localHeader, content, centralDirectory, end]);
+}
+
+function makeDeflateZip(content, declaredSize) {
+  const name = Buffer.from('qodana.sarif.json', 'utf8');
+  const compressed = zlib.deflateRawSync(content);
+
+  const localHeader = Buffer.alloc(30 + name.length);
+  localHeader.writeUInt32LE(0x04034b50, 0);
+  localHeader.writeUInt16LE(20, 4);
+  localHeader.writeUInt16LE(0, 6);
+  localHeader.writeUInt16LE(8, 8);
+  localHeader.writeUInt32LE(compressed.length, 18);
+  localHeader.writeUInt32LE(declaredSize, 22);
+  localHeader.writeUInt16LE(name.length, 26);
+  name.copy(localHeader, 30);
+
+  const centralDirectory = Buffer.alloc(46 + name.length);
+  centralDirectory.writeUInt32LE(0x02014b50, 0);
+  centralDirectory.writeUInt16LE(20, 4);
+  centralDirectory.writeUInt16LE(20, 6);
+  centralDirectory.writeUInt16LE(0, 8);
+  centralDirectory.writeUInt16LE(8, 10);
+  centralDirectory.writeUInt32LE(compressed.length, 20);
+  centralDirectory.writeUInt32LE(declaredSize, 24);
+  centralDirectory.writeUInt16LE(name.length, 28);
+  name.copy(centralDirectory, 46);
+
+  const end = Buffer.alloc(22);
+  end.writeUInt32LE(0x06054b50, 0);
+  end.writeUInt16LE(1, 8);
+  end.writeUInt16LE(1, 10);
+  end.writeUInt32LE(centralDirectory.length, 12);
+  end.writeUInt32LE(localHeader.length + compressed.length, 16);
+  return Buffer.concat([localHeader, compressed, centralDirectory, end]);
 }
 
 function makePublicationGithub({
@@ -360,26 +395,26 @@ test('creates valid zero-result attestations from trusted code', () => {
   }
 });
 
-test('extracts exactly one bounded SARIF file from an artifact ZIP', () => {
+test('extracts exactly one bounded SARIF file from an artifact ZIP', async () => {
   const document = createAttestation({ sourceKind: 'documentation', headSha: HEAD_SHA });
   const content = Buffer.from(JSON.stringify(document));
   const archive = makeStoredZip(content);
-  assert.deepEqual(extractQodanaSarifArchive(archive), content);
-  assert.throws(
-    () => extractQodanaSarifArchive(makeStoredZip(content, '../qodana.sarif.json')),
+  assert.deepEqual(await extractQodanaSarifArchive(archive), content);
+  await assert.rejects(
+    extractQodanaSarifArchive(makeStoredZip(content, '../qodana.sarif.json')),
     /must contain only qodana\.sarif\.json/,
   );
 
   const duplicateEntryMetadata = Buffer.from(archive);
   duplicateEntryMetadata.writeUInt16LE(2, duplicateEntryMetadata.length - 14);
   duplicateEntryMetadata.writeUInt16LE(2, duplicateEntryMetadata.length - 12);
-  assert.throws(
-    () => extractQodanaSarifArchive(duplicateEntryMetadata),
+  await assert.rejects(
+    extractQodanaSarifArchive(duplicateEntryMetadata),
     /must contain exactly one file/,
   );
 });
 
-test('rejects archives whose entry metadata is internally inconsistent', () => {
+test('rejects archives whose entry metadata is internally inconsistent', async () => {
   const document = createAttestation({ sourceKind: 'documentation', headSha: HEAD_SHA });
   const content = Buffer.from(JSON.stringify(document));
   const archive = makeStoredZip(content);
@@ -387,23 +422,32 @@ test('rejects archives whose entry metadata is internally inconsistent', () => {
 
   const mismatchedSizes = Buffer.from(archive);
   mismatchedSizes.writeUInt32LE(content.length + 1, 18);
-  assert.throws(
-    () => extractQodanaSarifArchive(mismatchedSizes),
+  await assert.rejects(
+    extractQodanaSarifArchive(mismatchedSizes),
     /has inconsistent file sizes/,
   );
 
   const nonZeroDiskStart = Buffer.from(archive);
   nonZeroDiskStart.writeUInt16LE(1, centralDirectoryOffset + 34);
-  assert.throws(
-    () => extractQodanaSarifArchive(nonZeroDiskStart),
+  await assert.rejects(
+    extractQodanaSarifArchive(nonZeroDiskStart),
     /uses unsupported compression or metadata/,
   );
 
   const misplacedLocalHeader = Buffer.from(archive);
   misplacedLocalHeader.writeUInt32LE(centralDirectoryOffset, centralDirectoryOffset + 42);
-  assert.throws(
-    () => extractQodanaSarifArchive(misplacedLocalHeader),
+  await assert.rejects(
+    extractQodanaSarifArchive(misplacedLocalHeader),
     /has an invalid local file header offset/,
+  );
+});
+
+test('rejects a deflate entry that expands beyond its declared size', async () => {
+  const content = Buffer.alloc(64, 0x61);
+  const archive = makeDeflateZip(content, 4);
+  await assert.rejects(
+    extractQodanaSarifArchive(archive),
+    /cannot be parsed/,
   );
 });
 

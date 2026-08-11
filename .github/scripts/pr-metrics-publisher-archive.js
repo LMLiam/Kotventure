@@ -7,7 +7,7 @@ const {
 } = require('./pr-metrics-publisher-contract.js');
 const { extractSingleEntryArchive } = require('./shared/artifact-archive.js');
 
-function extractMetricsResultArchive(archive) {
+async function extractMetricsResultArchive(archive) {
     return extractSingleEntryArchive(archive, {
         errorPrefix: 'metrics artifact archive',
         expectedFileName: RESULT_FILE_NAME,
