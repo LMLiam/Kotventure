@@ -1,14 +1,10 @@
-'use strict';
-
-function sanitizeModule(name) {
+export function sanitizeModule(name: string): string {
   const cleaned = String(name).replace(/[^a-zA-Z0-9_-]/g, '');
   return cleaned || 'unknown';
 }
 
-function chartLabel(name) {
+export function chartLabel(name: string): string {
   return sanitizeModule(name)
     .replace(/^test-snapshot$/, 'test-snap')
     .replace(/^minimessage$/, 'mini');
 }
-
-module.exports = { sanitizeModule, chartLabel };

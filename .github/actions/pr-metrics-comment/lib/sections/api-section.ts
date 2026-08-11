@@ -1,6 +1,7 @@
-'use strict';
+import type { SectionResult } from './format.js';
+import type { ApiSurface } from '../api-surface.js';
 
-function apiSection(apiSurface) {
+export function apiSection(apiSurface: ApiSurface): SectionResult {
   const added = apiSurface.added.length;
   const removed = apiSurface.removed.length;
   if (added === 0 && removed === 0) return { lines: [], verdictPart: null, warnings: [], changed: false };
@@ -25,5 +26,3 @@ function apiSection(apiSurface) {
     changed: true,
   };
 }
-
-module.exports = { apiSection };

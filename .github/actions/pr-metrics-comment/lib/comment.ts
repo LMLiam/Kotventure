@@ -1,8 +1,20 @@
-'use strict';
+import type { ActionContext } from '../../../scripts/shared/action-context.js';
 
 const MARKER = '<!-- pr-metrics -->';
 
-async function upsertComment({ github, context, body, pullNumber = context.issue.number }) {
+export interface UpsertCommentOptions {
+  github: ActionContext['github'];
+  context: ActionContext['context'];
+  body: string;
+  pullNumber?: number;
+}
+
+export async function upsertComment({
+  github,
+  context,
+  body,
+  pullNumber = context.issue.number,
+}: UpsertCommentOptions): Promise<void> {
   if (!Number.isSafeInteger(pullNumber) || pullNumber < 1) throw new Error('pullNumber must be a positive integer');
   const fullBody = `${MARKER}\n${body}`.trimEnd() + '\n';
   const comments = await github.paginate(github.rest.issues.listComments, {
@@ -13,7 +25,7 @@ async function upsertComment({ github, context, body, pullNumber = context.issue
   });
 
   const existing = comments.find(
-    (c) => c.user?.login === 'github-actions[bot]' && c.body.startsWith(MARKER),
+    (c) => c.user?.login === 'github-actions[bot]' && c.body?.startsWith(MARKER),
   );
   if (existing) {
     await github.rest.issues.updateComment({
@@ -31,5 +43,3 @@ async function upsertComment({ github, context, body, pullNumber = context.issue
     });
   }
 }
-
-module.exports = { upsertComment };

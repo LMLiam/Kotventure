@@ -1,19 +1,23 @@
-'use strict';
-
-const {
+import {
   MAX_RESULT_BYTES,
   SCHEMA_VERSION,
   WORKFLOW_NAME,
-} = require('./metrics-result-contract.js');
-const { validateMetricsResult } = require('./metrics-result-validation.js');
+} from './metrics-result-contract.js';
+import { validateMetricsResult } from './metrics-result-validation.js';
+import type { BuildMetrics, CoverageValue, JarValue, MetricsResultValue } from './metrics-result-validation.js';
+import type { CoverageData } from './coverage.js';
+import type { JarInfo } from './jars.js';
+import type { ApiSurface } from './api-surface.js';
+import type { PatchCoverage } from './patch-coverage.js';
+import type { ActionContext } from '../../../scripts/shared/action-context.js';
 
-function readRunNumber(value, label) {
+function readRunNumber(value: string | undefined, label: string): number {
   const parsed = Number(value);
   if (!Number.isSafeInteger(parsed) || parsed < 1) throw new Error(`${label} must be a positive integer`);
   return parsed;
 }
 
-function serializeCoverage(coverage) {
+function serializeCoverage(coverage: CoverageData | null): CoverageValue | null {
   if (!coverage) return null;
   return {
     modules: [...coverage.modules.entries()].map(([name, counters]) => ({
@@ -26,7 +30,7 @@ function serializeCoverage(coverage) {
   };
 }
 
-function serializeJars(jars) {
+function serializeJars(jars: Map<string, JarInfo>): JarValue[] {
   return [...jars.entries()].map(([module, jar]) => ({
     module,
     size: jar.size,
@@ -34,7 +38,7 @@ function serializeJars(jars) {
   }));
 }
 
-function serializeBuildMetrics(metrics) {
+function serializeBuildMetrics(metrics: BuildMetrics | null): BuildMetrics | null {
   if (!metrics
     || !Number.isSafeInteger(metrics.tests)
     || !Number.isSafeInteger(metrics.skipped)
@@ -48,11 +52,24 @@ function serializeBuildMetrics(metrics) {
   };
 }
 
-function requirePullRequest(context) {
-  const pullRequest = context?.payload?.pull_request;
-  const hasRepository = (value) => value
-    && typeof value === 'object'
-    && !Array.isArray(value);
+interface PullRequestBase {
+  readonly repo: { readonly full_name: string };
+  readonly ref: string;
+  readonly sha: string;
+}
+
+interface PullRequestPayload {
+  readonly number: number;
+  readonly base: PullRequestBase;
+  readonly head: PullRequestBase;
+}
+
+function hasRepository(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function requirePullRequest(context: ActionContext['context']): PullRequestPayload {
+  const pullRequest = context.payload?.pull_request as unknown;
   if (!hasRepository(pullRequest)
     || !hasRepository(pullRequest.base)
     || !hasRepository(pullRequest.base.repo)
@@ -60,13 +77,38 @@ function requirePullRequest(context) {
     || !hasRepository(pullRequest.head.repo)) {
     throw new Error('serializeMetricsResult requires a pull_request payload with base and head repositories');
   }
-  return pullRequest;
+  return pullRequest as unknown as PullRequestPayload;
 }
 
-function serializeMetricsResult({ context, runId, runAttempt, headCoverage, baseCoverage, headJars, baseJars,
-  headMetrics, baseMetrics, patchCoverage, apiSurface }) {
+export interface SerializeMetricsResultOptions {
+  context: ActionContext['context'];
+  runId: string | undefined;
+  runAttempt: string | undefined;
+  headCoverage: CoverageData | null;
+  baseCoverage: CoverageData | null;
+  headJars: Map<string, JarInfo>;
+  baseJars: Map<string, JarInfo>;
+  headMetrics: BuildMetrics | null;
+  baseMetrics: BuildMetrics | null;
+  patchCoverage: PatchCoverage | null;
+  apiSurface: ApiSurface | null;
+}
+
+export function serializeMetricsResult({
+  context,
+  runId,
+  runAttempt,
+  headCoverage,
+  baseCoverage,
+  headJars,
+  baseJars,
+  headMetrics,
+  baseMetrics,
+  patchCoverage,
+  apiSurface,
+}: SerializeMetricsResultOptions): MetricsResultValue {
   const pullRequest = requirePullRequest(context);
-  const result = {
+  const result: MetricsResultValue = {
     schemaVersion: SCHEMA_VERSION,
     provenance: {
       repository: context.repo.owner + '/' + context.repo.repo,
@@ -103,5 +145,3 @@ function serializeMetricsResult({ context, runId, runAttempt, headCoverage, base
   }
   return result;
 }
-
-module.exports = { serializeMetricsResult };

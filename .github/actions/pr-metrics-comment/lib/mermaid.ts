@@ -1,14 +1,20 @@
-'use strict';
-
-function round1(n) {
+function round1(n: number): number {
   return Math.round(n * 10) / 10;
 }
 
-function mermaidFence(config, bodyLines) {
+function mermaidFence(config: string[], bodyLines: string[]): string {
   return ['```mermaid', '---', 'config:', ...config, '---', ...bodyLines, '```'].join('\n');
 }
 
-function deltaVerticalBars({ title, labels, deltas, yLabel, color }) {
+export interface DeltaVerticalBarsOptions {
+  title: string;
+  labels: string[];
+  deltas: number[];
+  yLabel: string;
+  color?: string;
+}
+
+export function deltaVerticalBars({ title, labels, deltas, yLabel, color }: DeltaVerticalBarsOptions): string | null {
   if (!labels.length) return null;
   const values = deltas.map((d) => round1(d));
   const min = Math.min(0, ...values);
@@ -46,5 +52,3 @@ function deltaVerticalBars({ title, labels, deltas, yLabel, color }) {
   ];
   return mermaidFence(config, lines);
 }
-
-module.exports = { deltaVerticalBars };

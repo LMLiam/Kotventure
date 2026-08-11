@@ -1,8 +1,6 @@
-'use strict';
+import * as yauzl from 'yauzl';
 
-const yauzl = require('yauzl');
-
-async function countClassEntries(buffer) {
+export async function countClassEntries(buffer: Buffer): Promise<number | null> {
   try {
     const zipfile = await yauzl.fromBufferPromise(buffer);
     let classes = 0;
@@ -14,5 +12,3 @@ async function countClassEntries(buffer) {
     return null;
   }
 }
-
-module.exports = { countClassEntries };
