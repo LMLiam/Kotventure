@@ -18,7 +18,7 @@ export interface ArtifactBindingRecord {
 export interface ArtifactBindingExpectation {
   runId: number;
   repositoryId: number;
-  headRepositoryId: number | null | undefined;
+  headRepositoryId: number;
   headBranch: string | null;
   headSha: string;
 }
@@ -42,7 +42,9 @@ export function validateArtifactBinding(
   const workflowRun = requireObject<ArtifactWorkflowRunBinding>(artifact.workflow_run, `${label} workflow run`);
   requireEqual(workflowRun.id, expected.runId, `${label} workflow run id`);
   requireEqual(workflowRun.repository_id, expected.repositoryId, `${label} repository id`);
-  requireEqual(workflowRun.head_repository_id, expected.headRepositoryId, `${label} head repository id`);
+  const headRepositoryId = requireBoundedInteger(workflowRun.head_repository_id, `${label} head repository id`);
+  requireBoundedInteger(expected.headRepositoryId, `${label} head repository id`);
+  requireEqual(headRepositoryId, expected.headRepositoryId, `${label} head repository id`);
   requireEqual(workflowRun.head_branch, expected.headBranch, `${label} head branch`);
   requireEqual(workflowRun.head_sha, expected.headSha, `${label} head SHA`);
 }

@@ -543,6 +543,14 @@ test('rejects missing, duplicate, expired, and oversized SARIF artifacts', () =>
     [[makeArtifact(), makeArtifact()], /exactly one Qodana SARIF artifact, found 2/],
     [[makeArtifact({ expired: true })], /Qodana SARIF artifact is expired/],
     [[makeArtifact({ size_in_bytes: MAX_ARTIFACT_BYTES + 1 })], /Qodana SARIF artifact size is invalid/],
+    [[makeArtifact({
+      workflow_run: {
+        id: QODANA_RUN_ID,
+        repository_id: REPOSITORY.id,
+        head_branch: 'feature/security',
+        head_sha: HEAD_SHA,
+      },
+    })], /Qodana SARIF artifact head repository id is invalid/],
   ];
   for (const [artifacts, expected] of cases) {
     assert.throws(
@@ -594,8 +602,8 @@ test('does not publish a failed Qodana analysis', async () => {
   assert.equal(publication.rejection, null);
 });
 
-test('does not publish cancelled or timed-out Qodana analyses', async () => {
-  for (const conclusion of ['cancelled', 'timed_out']) {
+test('does not publish cancelled or other non-success Qodana analyses', async () => {
+  for (const conclusion of ['action_required', 'cancelled', 'neutral', 'skipped', 'stale', 'timed_out']) {
     const inputs = makePublicationGithub({ qodanaConclusion: conclusion });
     const publication = await resolvePublication({
       github: inputs.github,

@@ -21,7 +21,7 @@ import { validateArtifactBinding } from './shared/artifact-binding.js';
 import type { WorkflowRunEventRecord } from './shared/run-context.js';
 import type { JsonValue } from './shared/json.js';
 
-const VALID_RUN_CONCLUSIONS = ['success', 'failure', 'cancelled', 'timed_out'];
+const VALID_RUN_CONCLUSIONS = ['action_required', 'cancelled', 'failure', 'neutral', 'skipped', 'stale', 'success', 'timed_out'];
 
 export class QodanaPublicationRejectedError extends Error {
   constructor(message: string) {
@@ -134,7 +134,7 @@ function selectRunArtifact({
     expected: {
       runId: qodanaRun.id,
       repositoryId: repository.id,
-      headRepositoryId: qodanaRun.head_repository?.id,
+      headRepositoryId: requireBoundedInteger(qodanaRun.head_repository?.id, 'Qodana workflow head repository id'),
       headBranch: qodanaRun.head_branch,
       headSha: qodanaRun.head_sha,
     },

@@ -1,7 +1,3 @@
-import {
-  validateMetricsResult,
-} from '../actions/pr-metrics-comment/lib/metrics-result.js';
-import type { JsonValue } from '../actions/pr-metrics-comment/lib/metrics-result-contract.js';
 import type { MetricsResultValue } from '../actions/pr-metrics-comment/lib/metrics-result-validation.js';
 import {
   EXPECTED_WORKFLOW_PATH,
@@ -363,16 +359,7 @@ function selectMetricsArtifact({
   return artifact;
 }
 
-function validateResultProvenance(result: JsonValue, source: WorkflowSource): MetricsResultValue {
-  let validatedResult: MetricsResultValue;
-
-  try {
-    validatedResult = validateMetricsResult(result);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    reject(`metrics result is invalid: ${message}`);
-  }
-
+function validateResultProvenance(result: MetricsResultValue, source: WorkflowSource): MetricsResultValue {
   const provenanceKeys = [
     'repository',
     'workflow',
@@ -390,13 +377,13 @@ function validateResultProvenance(result: JsonValue, source: WorkflowSource): Me
 
   for (const key of provenanceKeys) {
     requireEqual(
-      validatedResult.provenance[key],
+      result.provenance[key],
       source[key],
       `metrics result provenance ${key}`,
     );
   }
 
-  return validatedResult;
+  return result;
 }
 
 export {

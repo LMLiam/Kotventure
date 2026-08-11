@@ -5,6 +5,7 @@ import {
   validateMetricsResult,
 } from '../actions/pr-metrics-comment/lib/metrics-result.js';
 import type { MetricsResultValue } from '../actions/pr-metrics-comment/lib/metrics-result-validation.js';
+import type { JsonValue } from '../actions/pr-metrics-comment/lib/metrics-result-contract.js';
 import {
   MAX_ARTIFACT_BYTES,
   RESULT_FILE_NAME,
@@ -46,7 +47,7 @@ export function readMetricsArtifact(directory: string): MetricsResultValue {
 
   if (bytes.length > MAX_RESULT_BYTES) throw new Error(`metrics result exceeds ${MAX_RESULT_BYTES} bytes`);
 
-  let result;
+  let result: JsonValue;
 
   try {
     result = JSON.parse(bytes.toString('utf8'));
