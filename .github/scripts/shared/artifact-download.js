@@ -167,7 +167,7 @@ async function downloadSingleFileArtifact({
   });
 
   const archive = await readResponseBytes(archiveResponse, maxArchiveBytes, label);
-  const result = extractSingleEntryArchive(archive, {
+  const result = await extractSingleEntryArchive(archive, {
     errorPrefix: `${label} archive`,
     expectedFileName: fileName,
     maxArchiveBytes,

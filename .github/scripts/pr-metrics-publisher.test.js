@@ -279,7 +279,7 @@ describe('metrics artifact validation', () => {
 });
 
 describe('metrics archive extraction', () => {
-    test('extracts stored and deflated result archives', () => {
+    test('extracts stored and deflated result archives', async () => {
         const content = Buffer.from(
                 JSON.stringify(makeResult()),
                 'utf8',
@@ -287,7 +287,7 @@ describe('metrics archive extraction', () => {
 
         for (const compressionMethod of [0, 8]) {
             assert.deepEqual(
-                    extractMetricsResultArchive(
+                    await extractMetricsResultArchive(
                             makeZip(content, {
                                 compressionMethod,
                             }),
@@ -297,35 +297,33 @@ describe('metrics archive extraction', () => {
         }
     });
 
-    test('rejects an unexpected archive entry name', () => {
-        assert.throws(
-                () => {
-                    extractMetricsResultArchive(
-                            makeZip('{}', {
-                                fileName: 'other.json',
-                            }),
-                    );
-                },
+    test('rejects an unexpected archive entry name', async () => {
+        await assert.rejects(
+                extractMetricsResultArchive(
+                        makeZip('{}', {
+                            fileName: 'other.json',
+                        }),
+                ),
                 /must contain only/,
         );
     });
 
-    test('rejects an entry that expands beyond the result limit', () => {
+    test('rejects an entry that expands beyond the result limit', async () => {
         const archive = makeZip(
                 Buffer.alloc(MAX_RESULT_BYTES + 1, 0x78),
         );
 
         assert.ok(archive.length < MAX_ARTIFACT_BYTES);
 
-        assert.throws(
-                () => extractMetricsResultArchive(archive),
+        await assert.rejects(
+                extractMetricsResultArchive(archive),
                 /outside the size limit/,
         );
     });
 
-    test('rejects an archive larger than the artifact limit before parsing', () => {
-        assert.throws(
-                () => extractMetricsResultArchive(
+    test('rejects an archive larger than the artifact limit before parsing', async () => {
+        await assert.rejects(
+                extractMetricsResultArchive(
                         Buffer.alloc(MAX_ARTIFACT_BYTES + 1),
                 ),
                 /is not a ZIP archive/,

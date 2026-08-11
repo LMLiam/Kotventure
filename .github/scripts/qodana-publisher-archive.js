@@ -7,7 +7,7 @@ const {
 } = require('./qodana-contract.js');
 const { extractSingleEntryArchive } = require('./shared/artifact-archive.js');
 
-function extractQodanaSarifArchive(archive) {
+async function extractQodanaSarifArchive(archive) {
   return extractSingleEntryArchive(archive, {
     errorPrefix: 'Qodana artifact archive',
     expectedFileName: QODANA_SARIF_FILE_NAME,
