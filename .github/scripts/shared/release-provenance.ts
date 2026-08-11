@@ -1,20 +1,8 @@
-import type { ActionContext } from './action-context.js';
-import { createValidators } from './validation.js';
-
-type Octokit = ActionContext['github'];
-
-type WorkflowRunListItem = Awaited<ReturnType<Octokit['rest']['actions']['listWorkflowRuns']>>['data']['workflow_runs'][number];
-type JobItem = Awaited<ReturnType<Octokit['rest']['actions']['listJobsForWorkflowRun']>>['data']['jobs'][number];
-type WorkflowData = Awaited<ReturnType<Octokit['rest']['actions']['getWorkflow']>>['data'];
-type PullRequestData = Awaited<ReturnType<Octokit['rest']['pulls']['get']>>['data'];
+import type { JobItem, Octokit, PullRequestData, WorkflowData, WorkflowRunListItem } from './action-context.js';
 
 const RELEASE_PROVENANCE_WORKFLOW_ID = 'release-provenance.yml';
 const RELEASE_PROVENANCE_WORKFLOW_PATH = '.github/workflows/release-provenance.yml';
 const TRUSTED_PROVENANCE_JOB_NAME = 'Trusted release provenance';
-
-const { requireObject } = createValidators((message: string): never => {
-  throw new Error(message);
-});
 
 export interface FindReleaseProvenanceRunOptions {
   github: Octokit;
@@ -38,6 +26,8 @@ export async function findReleaseProvenanceRun(
     per_page: 100,
   });
   const repositoryName = typeof repository === 'string' ? repository : repository?.full_name;
+
+  if (!repositoryName) return undefined;
 
   return runs
     .filter((run) => {
@@ -73,7 +63,7 @@ export async function readTrustedReleaseProvenance(
       repo,
       workflow_id: RELEASE_PROVENANCE_WORKFLOW_ID,
     });
-    workflow = requireObject<WorkflowData>(response.data, 'release provenance workflow');
+    workflow = response.data;
   } catch {
     return 'missing';
   }

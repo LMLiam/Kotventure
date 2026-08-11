@@ -16,6 +16,10 @@ const DATA_DESCRIPTOR_FLAG = 0x0008;
 const STORED_COMPRESSION = 0;
 const DEFLATE_COMPRESSION = 8;
 
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 export interface ExtractSingleEntryArchiveOptions {
   errorPrefix: string;
   expectedFileName: string | Buffer;
@@ -63,7 +67,7 @@ export async function extractSingleEntryArchive(
   try {
     zipfile = await yauzl.fromBufferPromise(archive, { decodeStrings: false });
   } catch (error) {
-    rejectParse(error instanceof Error ? error.message : String(error));
+    rejectParse(errorMessage(error));
   }
 
   if (zipfile.entryCount !== 1) rejectArchive('must contain exactly one file');
@@ -75,7 +79,7 @@ export async function extractSingleEntryArchive(
       break;
     }
   } catch (error) {
-    rejectParse(error instanceof Error ? error.message : String(error));
+    rejectParse(errorMessage(error));
   }
   if (entry == null) rejectArchive('must contain exactly one file');
 
@@ -108,7 +112,7 @@ export async function extractSingleEntryArchive(
   try {
     localHeader = await zipfile.readLocalFileHeaderPromise(entry);
   } catch (error) {
-    rejectParse(error instanceof Error ? error.message : String(error));
+    rejectParse(errorMessage(error));
   }
 
   if (localHeader.generalPurposeBitFlag !== entry.generalPurposeBitFlag
@@ -140,7 +144,7 @@ export async function extractSingleEntryArchive(
       total += chunk.length;
     }
   } catch (error) {
-    rejectParse(error instanceof Error ? error.message : String(error));
+    rejectParse(errorMessage(error));
   }
 
   const result = Buffer.concat(chunks, total);

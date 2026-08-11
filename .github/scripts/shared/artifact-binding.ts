@@ -36,7 +36,6 @@ export function validateArtifactBinding(
 ): void {
   const { requireEqual, requireInteger, requireObject } = createValidators(reject);
 
-  requireInteger(artifact.id, `${label} id`);
   if (artifact.expired !== false) reject(`${label} is expired`);
   requireInteger(artifact.size_in_bytes, `${label} size`, 1, maxBytes);
 

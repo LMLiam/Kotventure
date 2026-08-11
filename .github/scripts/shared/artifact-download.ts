@@ -117,7 +117,11 @@ function validateDownloadOptions(options: DownloadValidationOptions): void {
     throw new Error(`${label} output directory is required`);
   }
 
-  if (typeof fileName !== 'string' || fileName.length === 0) throw new Error(`${label} download file name is invalid`);
+  if (typeof fileName !== 'string' || fileName.length === 0
+    || fileName === '.' || fileName === '..'
+    || fileName.includes('/') || fileName.includes('\\')) {
+    throw new Error(`${label} download file name is invalid`);
+  }
 
   if (!Number.isSafeInteger(maxArchiveBytes) || maxArchiveBytes < 1) {
     throw new Error(`${label} download archive size limit is invalid`);
