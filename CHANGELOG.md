@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any release.
 
+## [0.26.5](https://github.com/LMLiam/Kotventure/compare/0.26.4...0.26.5) (2026-08-11)
+
+
+### 🐛 Fixes
+
+* **ci:** accept stacked pull requests for Qodana ([#518](https://github.com/LMLiam/Kotventure/issues/518)) ([27fa716](https://github.com/LMLiam/Kotventure/commit/27fa71672cb872d099526b8513c3f97a25179d9b))
+* **ci:** drop edited from heavy pull-request workflows ([#529](https://github.com/LMLiam/Kotventure/issues/529)) ([473a410](https://github.com/LMLiam/Kotventure/commit/473a410145fe8427e733a5961a63d80d06492162))
+* **ci:** publish Qodana results for pull_request_target runs ([#520](https://github.com/LMLiam/Kotventure/issues/520)) ([2e9bbc3](https://github.com/LMLiam/Kotventure/commit/2e9bbc3d00d6f69c8ca1aaa67d8697d2afca98b2))
+
+
+### 🔧 Refactors
+
+* **ci:** share artifact download and run context ([#522](https://github.com/LMLiam/Kotventure/issues/522)) ([4a671cf](https://github.com/LMLiam/Kotventure/commit/4a671cf80951f144ef7405364d139a58b46ee903))
+* **ci:** share path classification ([#524](https://github.com/LMLiam/Kotventure/issues/524)) ([ad07b07](https://github.com/LMLiam/Kotventure/commit/ad07b0713914e635434389fbc71ac07888f6df56))
+* **ci:** share Release Please provenance lookup ([#526](https://github.com/LMLiam/Kotventure/issues/526)) ([0e82d9a](https://github.com/LMLiam/Kotventure/commit/0e82d9a662216db6314ee0230f31d81551141d99))
+* **ci:** share the strict artifact ZIP extractor ([#516](https://github.com/LMLiam/Kotventure/issues/516)) ([ad58d1f](https://github.com/LMLiam/Kotventure/commit/ad58d1f0780f80dd444bbbf1841548eb20b6a268))
+* **ci:** share validation helpers ([#515](https://github.com/LMLiam/Kotventure/issues/515)) ([4047b6b](https://github.com/LMLiam/Kotventure/commit/4047b6bb4cb76613e34e6616157b44f0e3da07a2))
+* **ci:** trigger trusted Qodana directly instead of after CI ([#532](https://github.com/LMLiam/Kotventure/issues/532)) ([a74a744](https://github.com/LMLiam/Kotventure/commit/a74a744b3391472fcff0f507a59a6ca236248f35))
+
 ## [0.26.4](https://github.com/LMLiam/Kotventure/compare/0.26.3...0.26.4) (2026-08-10)
 
 
