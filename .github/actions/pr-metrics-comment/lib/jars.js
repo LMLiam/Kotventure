@@ -19,15 +19,15 @@ function versionKey(version) {
   }).join('.');
 }
 
-function collectJars(rootDir) {
+async function collectJars(rootDir) {
   const sizes = new Map();
   const bestVersion = new Map();
   if (!fs.existsSync(rootDir)) return sizes;
-  function walk(dir) {
+  async function walk(dir) {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
       const full = path.join(dir, entry.name);
       if (entry.isDirectory()) {
-        walk(full);
+        await walk(full);
         continue;
       }
       if (!entry.isFile()) continue;
@@ -36,13 +36,13 @@ function collectJars(rootDir) {
       const prev = bestVersion.get(parsed.module);
       if (!prev || versionKey(parsed.version) > versionKey(prev.version)) {
         const size = fs.statSync(full).size;
-        const classes = countClassEntries(fs.readFileSync(full));
+        const classes = await countClassEntries(fs.readFileSync(full));
         bestVersion.set(parsed.module, { version: parsed.version });
         sizes.set(parsed.module, { size, classes });
       }
     }
   }
-  walk(rootDir);
+  await walk(rootDir);
   return sizes;
 }
 

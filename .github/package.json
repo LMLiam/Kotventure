@@ -5,6 +5,7 @@
   "license": "MIT",
   "type": "commonjs",
   "dependencies": {
-    "diff": "9.0.0"
+    "diff": "9.0.0",
+    "yauzl": "3.4.0"
   }
 }
