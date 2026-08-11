@@ -1,21 +1,25 @@
-'use strict';
-
-const fs = require('node:fs');
-const path = require('node:path');
-const { extractSingleEntryArchive } = require('./artifact-archive.js');
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { extractSingleEntryArchive } from './artifact-archive.js';
 
 const ARTIFACT_API_TIMEOUT_MS = 30_000;
 const ARTIFACT_STORAGE_TIMEOUT_MS = 60_000;
 
-function getHeader(headers, name) {
+type ResponseHeaders = Headers | { readonly [name: string]: string | null | undefined };
+
+function isHeaders(headers: ResponseHeaders): headers is Headers {
+  return typeof headers.get === 'function';
+}
+
+function getHeader(headers: ResponseHeaders | null, name: string): string | null {
   if (!headers) return null;
 
-  if (typeof headers.get === 'function') return headers.get(name);
+  if (isHeaders(headers)) return headers.get(name);
 
   return headers[name] ?? headers[name.toLowerCase()] ?? null;
 }
 
-async function cancelReader(reader) {
+async function cancelReader(reader: ReadableStreamDefaultReader<Uint8Array>): Promise<void> {
   try {
     await reader.cancel();
   } catch {
@@ -23,9 +27,13 @@ async function cancelReader(reader) {
   }
 }
 
-async function readStreamingBytes(body, maximumBytes, label) {
+async function readStreamingBytes(
+  body: ReadableStream<Uint8Array>,
+  maximumBytes: number,
+  label: string,
+): Promise<Buffer> {
   const reader = body.getReader();
-  const chunks = [];
+  const chunks: Buffer[] = [];
   let totalBytes = 0;
 
   while (true) {
@@ -49,7 +57,7 @@ async function readStreamingBytes(body, maximumBytes, label) {
   }
 }
 
-async function readResponseBytes(response, maximumBytes, label) {
+async function readResponseBytes(response: Response, maximumBytes: number, label: string): Promise<Buffer> {
   if (!response || response.ok === false) throw new Error(`${label} download failed`);
 
   const contentLength = Number(getHeader(response.headers, 'content-length'));
@@ -71,20 +79,35 @@ async function readResponseBytes(response, maximumBytes, label) {
   return result;
 }
 
-function validateDownloadOptions({
-  owner,
-  repo,
-  artifactId,
-  outputDirectory,
-  fileName,
-  maxArchiveBytes,
-  maxBytes,
-  token,
-  fetchImpl,
-  label,
-}) {
+interface DownloadValidationOptions {
+  owner: string;
+  repo: string;
+  artifactId: number;
+  outputDirectory: string;
+  fileName: string;
+  maxArchiveBytes: number;
+  maxBytes: number;
+  token: string | undefined;
+  fetchImpl: typeof fetch;
+  label: string;
+}
+
+function validateDownloadOptions(options: DownloadValidationOptions): void {
+  const {
+    owner,
+    repo,
+    artifactId,
+    outputDirectory,
+    fileName,
+    maxArchiveBytes,
+    maxBytes,
+    token,
+    fetchImpl,
+    label,
+  } = options;
+
   if (typeof owner !== 'string' || owner.length === 0
-  || typeof repo !== 'string' || repo.length === 0) {
+    || typeof repo !== 'string' || repo.length === 0) {
     throw new Error(`${label} download requires a repository`);
   }
 
@@ -107,20 +130,37 @@ function validateDownloadOptions({
   if (typeof fetchImpl !== 'function') throw new Error(`${label} download requires fetch`);
 }
 
-async function downloadSingleFileArtifact({
-  owner,
-  repo,
-  artifactId,
-  outputDirectory,
-  fileName,
-  maxArchiveBytes,
-  maxBytes,
-  label,
-  apiUrl = process.env.GITHUB_API_URL || 'https://api.github.com',
-  token = process.env.GITHUB_TOKEN,
-  fetchImpl = globalThis.fetch,
-  validateResult = null,
-}) {
+export interface DownloadSingleFileArtifactOptions {
+  owner: string;
+  repo: string;
+  artifactId: number;
+  outputDirectory: string;
+  fileName: string;
+  maxArchiveBytes: number;
+  maxBytes: number;
+  label: string;
+  apiUrl?: string;
+  token?: string;
+  fetchImpl?: typeof fetch;
+  validateResult?: (result: Buffer) => void;
+}
+
+export async function downloadSingleFileArtifact(options: DownloadSingleFileArtifactOptions): Promise<string> {
+  const {
+    owner,
+    repo,
+    artifactId,
+    outputDirectory,
+    fileName,
+    maxArchiveBytes,
+    maxBytes,
+    label,
+    apiUrl = process.env.GITHUB_API_URL || 'https://api.github.com',
+    token = process.env.GITHUB_TOKEN,
+    fetchImpl = globalThis.fetch,
+    validateResult = null,
+  } = options;
+
   validateDownloadOptions({
     owner,
     repo,
@@ -151,10 +191,10 @@ async function downloadSingleFileArtifact({
   if (response.status !== 302) throw new Error(`${label} download returned HTTP ${response.status}`);
 
   const location = getHeader(response.headers, 'location');
-  let artifactUrl;
+  let artifactUrl: URL;
 
   try {
-    artifactUrl = new URL(location);
+    artifactUrl = new URL(location ?? '');
   } catch {
     throw new Error(`${label} download redirect is invalid`);
   }
@@ -186,5 +226,3 @@ async function downloadSingleFileArtifact({
 
   return filePath;
 }
-
-module.exports = { downloadSingleFileArtifact };

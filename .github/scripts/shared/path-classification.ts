@@ -1,12 +1,10 @@
-'use strict';
-
-const RELEASE_ONLY_FILES = new Set([
+export const RELEASE_ONLY_FILES: ReadonlySet<string> = new Set([
   'CHANGELOG.md',
   '.release-please-manifest.json',
   'gradle/libs.versions.toml',
 ]);
 
-const DOCUMENTATION_PATH_PATTERNS = [
+export const DOCUMENTATION_PATH_PATTERNS: readonly RegExp[] = [
   /^README\.md$/,
   /^LICENSE\.md$/,
   /^AGENTS\.md$/,
@@ -18,7 +16,12 @@ const DOCUMENTATION_PATH_PATTERNS = [
   /^assets\/.+\.(?:svg|png|jpe?g|gif|webp)$/i,
 ];
 
-function isSafeRepositoryPath(name) {
+export interface ChangedFileRecord {
+  filename: string;
+  previous_filename?: string;
+}
+
+export function isSafeRepositoryPath(name: string): boolean {
   return typeof name === 'string'
     && name.length > 0
     && !name.includes('\\')
@@ -27,15 +30,15 @@ function isSafeRepositoryPath(name) {
     && !name.includes('\u0000');
 }
 
-function isDocumentationPath(name) {
+export function isDocumentationPath(name: string): boolean {
   return isSafeRepositoryPath(name)
     && DOCUMENTATION_PATH_PATTERNS.some((pattern) => pattern.test(name));
 }
 
-function changedPathNames(files) {
+export function changedPathNames(files: ChangedFileRecord[] | null | undefined): string[] | null {
   if (!Array.isArray(files) || files.length === 0) return null;
 
-  const paths = [];
+  const paths: string[] = [];
   for (const file of files) {
     if (!file || typeof file.filename !== 'string' || file.filename.length === 0) return null;
     paths.push(file.filename);
@@ -47,19 +50,10 @@ function changedPathNames(files) {
   return paths;
 }
 
-function classifyChangedFiles(files) {
+export function classifyChangedFiles(files: ChangedFileRecord[] | null | undefined): 'code' | 'documentation' | 'release-candidate' {
   const paths = changedPathNames(files);
   if (!paths) return 'code';
   if (paths.every(isDocumentationPath)) return 'documentation';
   if (paths.every((name) => isSafeRepositoryPath(name) && RELEASE_ONLY_FILES.has(name))) return 'release-candidate';
   return 'code';
 }
-
-module.exports = {
-  DOCUMENTATION_PATH_PATTERNS,
-  RELEASE_ONLY_FILES,
-  changedPathNames,
-  classifyChangedFiles,
-  isDocumentationPath,
-  isSafeRepositoryPath,
-};
