@@ -1,6 +1,10 @@
 'use strict';
 
+const { DOMParser } = require('@xmldom/xmldom');
 const { sanitizeModule } = require('./names.js');
+
+const ELEMENT_NODE = 1;
+const LINE_COUNTER = 'LINE';
 
 function moduleFromPackage(pkg) {
   const parts = pkg.split('/');
@@ -11,57 +15,82 @@ function moduleFromPackage(pkg) {
   return sanitizeModule(after[0] || 'unknown');
 }
 
-function packageLineCounter(packageBody) {
-  const stripped = packageBody
-    .replace(/<class[\s\S]*?<\/class>/g, '')
-    .replace(/<sourcefile[\s\S]*?<\/sourcefile>/g, '');
-  const match = stripped.match(/<counter type="LINE" missed="(\d+)" covered="(\d+)"\/>/);
-  if (!match) return null;
-  return { missed: parseInt(match[1], 10), covered: parseInt(match[2], 10) };
+function directChildren(parent, tagName) {
+  const children = [];
+  for (let i = 0; i < parent.childNodes.length; i += 1) {
+    const node = parent.childNodes[i];
+    if (node.nodeType === ELEMENT_NODE && node.tagName === tagName) {
+      children.push(node);
+    }
+  }
+  return children;
 }
 
-function sourcefileLines(packageName, packageBody, files) {
-  const sourcefileRegex = /<sourcefile name="([^"]+)">([\s\S]*?)<\/sourcefile>/g;
-  const lineRegex = /<line nr="(\d+)" mi="(\d+)" ci="(\d+)"/g;
-  let sourcefileMatch;
-  while ((sourcefileMatch = sourcefileRegex.exec(packageBody)) !== null) {
+function lineCounter(container) {
+  for (const counter of directChildren(container, 'counter')) {
+    if (counter.getAttribute('type') !== LINE_COUNTER) continue;
+    return {
+      missed: parseInt(counter.getAttribute('missed'), 10),
+      covered: parseInt(counter.getAttribute('covered'), 10),
+    };
+  }
+  return null;
+}
+
+function sourcefileLines(packageName, packageElement, files) {
+  const sourcefiles = packageElement.getElementsByTagName('sourcefile');
+  for (let i = 0; i < sourcefiles.length; i += 1) {
+    const sourcefile = sourcefiles[i];
     const lines = new Map();
-    let lineMatch;
-    while ((lineMatch = lineRegex.exec(sourcefileMatch[2])) !== null) {
-      lines.set(parseInt(lineMatch[1], 10), parseInt(lineMatch[3], 10) > 0);
+    const lineElements = sourcefile.getElementsByTagName('line');
+    for (let j = 0; j < lineElements.length; j += 1) {
+      const line = lineElements[j];
+      lines.set(
+        parseInt(line.getAttribute('nr'), 10),
+        parseInt(line.getAttribute('ci'), 10) > 0,
+      );
     }
-    if (lines.size > 0) files.set(`${packageName}/${sourcefileMatch[1]}`, lines);
+    if (lines.size > 0) {
+      files.set(`${packageName}/${sourcefile.getAttribute('name')}`, lines);
+    }
   }
 }
 
 function parseCoverage(xml) {
+  const document = new DOMParser().parseFromString(xml, 'text/xml');
+  const root = document.documentElement;
   const modules = new Map();
   const files = new Map();
-  const packageRegex = /<package name="([^"]+)">([\s\S]*?)<\/package>/g;
-  let packageMatch;
-  while ((packageMatch = packageRegex.exec(xml)) !== null) {
-    sourcefileLines(packageMatch[1], packageMatch[2], files);
-    const counters = packageLineCounter(packageMatch[2]);
+
+  if (!root) return { modules, totalMissed: 0, totalCovered: 0, files };
+
+  const packageElements = root.getElementsByTagName('package');
+  for (let i = 0; i < packageElements.length; i += 1) {
+    const packageElement = packageElements[i];
+    const packageName = packageElement.getAttribute('name');
+    sourcefileLines(packageName, packageElement, files);
+    const counters = lineCounter(packageElement);
     if (!counters) continue;
-    const moduleName = moduleFromPackage(packageMatch[1]);
+    const moduleName = moduleFromPackage(packageName);
     if (!modules.has(moduleName)) modules.set(moduleName, { missed: 0, covered: 0 });
     const entry = modules.get(moduleName);
     entry.missed += counters.missed;
     entry.covered += counters.covered;
   }
-  const rootXml = xml.replace(/<package[\s\S]*?<\/package>/g, '');
-  const totalMatch = rootXml.match(/<counter type="LINE" missed="(\d+)" covered="(\d+)"\/>/);
+
+  const total = lineCounter(root);
   let totalMissed = 0;
   let totalCovered = 0;
-  if (totalMatch) {
-    totalMissed = parseInt(totalMatch[1], 10);
-    totalCovered = parseInt(totalMatch[2], 10);
+  if (total) {
+    totalMissed = total.missed;
+    totalCovered = total.covered;
   } else {
     for (const data of modules.values()) {
       totalMissed += data.missed;
       totalCovered += data.covered;
     }
   }
+
   return { modules, totalMissed, totalCovered, files };
 }
 
