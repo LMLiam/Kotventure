@@ -376,6 +376,13 @@ repository automation tests use `node --test`.
 | `qodana-publisher-storage.js` | Bounded artifact download and SARIF validation |
 | `workflow-run-check.js` | Creates, validates, and completes source-bound workflow checks |
 
+The `.github/package.json` manifest and its committed `package-lock.json` hold the npm
+dependencies of the CI tooling. Only four jobs install them: Lint (Actions), PR feedback,
+PR metrics publication, and Qodana publication. Each runs `npm ci --ignore-scripts
+--no-audit --no-fund` from `/.github`; the trusted publishers install against the
+default-branch lockfile. All other script jobs (Triage, CodeQL Gate, Qodana register,
+Release provenance) are dependency-free.
+
 ## Action pins and Dependabot
 
 Each third-party action uses a fixed SHA and has a version comment. One `github-actions` entry in
@@ -386,6 +393,7 @@ new composite actions without a configuration change.
 |-----------|----------|---------------|
 | Gradle (`/`) | Minor and patch updates grouped (`gradle-minor-patch`). Major updates ungrouped | 10 |
 | GitHub Actions (root + composites) | Minor and patch updates grouped. Major updates ungrouped | 10 |
+| npm (`/.github`) | Minor and patch updates grouped (`npm-minor-patch`). Major updates ungrouped | 10 |
 
 ## Branch protection (`master`)
 
