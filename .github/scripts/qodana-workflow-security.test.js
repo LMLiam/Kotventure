@@ -80,30 +80,30 @@ test('only the trusted publication workflow can upload Qodana SARIF', () => {
   assert.doesNotMatch(workflow, /Complete the pull-request Qodana check/);
 });
 
-test('trusted Qodana runs are limited to trusted CI events', () => {
+test('trusted Qodana runs are limited to trusted default-branch refs', () => {
   const workflow = readRepositoryFile('.github/workflows/qodana-trusted.yml');
-  const register = readJob(workflow, 'register', 'analyse');
-  const analyse = readJob(workflow, 'analyse', 'report');
-  const report = readJob(workflow, 'report');
+  const analyse = readJob(workflow, 'analyse');
 
-  assert.match(workflow, /workflow_run:/);
-  assert.match(workflow, /event == 'push'/);
+  assert.match(workflow, /push:/);
+  assert.match(workflow, /branches: \[master\]/);
+  assert.match(workflow, /schedule:/);
+  assert.match(workflow, /workflow_dispatch:/);
+  assert.doesNotMatch(workflow, /workflow_run:/);
   assert.doesNotMatch(workflow, /merge_group/);
-  assert.match(workflow, /security-events:\s*write/);
-  assert.match(register, /checks:\s*write/);
+  assert.doesNotMatch(workflow, /pull_request_target:/);
+  assert.match(analyse, /security-events:\s*write/);
   assert.doesNotMatch(analyse, /checks:\s*write/);
-  assert.match(report, /checks:\s*write/);
-  assert.match(report, /needs\.register\.outputs\.check_run_id != ''/);
-  assert.match(report, /REGISTER_RESULT: \$\{\{ needs\.register\.result \}\}/);
   assert.doesNotMatch(workflow, /QODANA_TOKEN/);
-  assert.match(workflow, /resolveTrustedCiRun/);
-  assert.match(workflow, /ref:\s*\$\{\{ needs\.register\.outputs\.head_sha \}\}/);
+  assert.doesNotMatch(workflow, /resolveTrustedCiRun/);
+  assert.match(workflow, /ref:\s*\$\{\{ github\.sha \}\}/);
   assert.match(workflow, /--project-dir source\s+--config qodana\.yaml/);
   assert.doesNotMatch(workflow, /--config source\/qodana\.yaml/);
-  assert.match(workflow, /ref:\s*refs\/heads\/\$\{\{ github\.event\.repository\.default_branch \}\}/);
-  assert.match(workflow, /sha:\s*\$\{\{ needs\.register\.outputs\.head_sha \}\}/);
+  assert.match(workflow, /ref:\s*\$\{\{ github\.ref \}\}/);
+  assert.match(workflow, /sha:\s*\$\{\{ github\.sha \}\}/);
   assert.match(workflow, /checkout_path:\s*source/);
-  assert.match(report, /Complete the trusted Qodana check/);
+  assert.match(workflow, /cache-read-only: true/);
+  assert.match(workflow, /use-caches: true/);
+  assert.doesNotMatch(workflow, /Report trusted Qodana check/);
 });
 
 test('trusted metrics publication reports its result against the pull-request head', () => {

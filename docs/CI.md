@@ -15,7 +15,7 @@ For local development commands, see [CONTRIBUTING.md](../.github/CONTRIBUTING.md
 | **PR metrics publication** | `pr-metrics-publish.yml` | `workflow_run` after CI | Validates the CI result and publishes one metrics comment with default-branch code |
 | **Qodana** | `qodana.yml` | `pull_request_target` (in parallel with PR CI) | Runs Qodana with read-only permissions and creates one bounded SARIF artefact |
 | **Qodana publication** | `qodana-publish.yml` | `workflow_run` after Qodana | Validates the current PR and publishes SARIF with default-branch code |
-| **Qodana trusted** | `qodana-trusted.yml` | `workflow_run` after successful push, schedule, or dispatch CI | Runs and publishes Qodana for trusted refs |
+| **Qodana trusted** | `qodana-trusted.yml` | push `master`, weekly schedule, `workflow_dispatch` | Runs and publishes Qodana for trusted refs, parallel with CI |
 | **PR** | `pr.yml` | `pull_request_target` | Title + commit validation, area labels |
 | **Release provenance** | `release-provenance.yml` | `pull_request_target` | Verifies Release Please identity and release files from the default branch |
 | **Release** | `release.yml` | push `master` | Opens or updates release PRs. Creates tags and releases after merge |
@@ -53,10 +53,10 @@ CI
 └─ Status (required merge-gate check) ─────────────────────────────
     └─ Aggregates Tier 1 + Vanilla + Dependencies
 
-Qodana security pipeline (pull_request_target, parallel with PR CI)
-├─ Qodana            (read-only PR-head analysis or trusted attestation artefact)
+Qodana security pipeline (parallel with CI)
+├─ Qodana            (pull_request_target, read-only PR-head analysis or trusted attestation artefact)
 ├─ Qodana publication (default-branch validation and SARIF upload, workflow_run after Qodana)
-└─ Qodana trusted    (trusted push, schedule, and dispatch analysis)
+└─ Qodana trusted    (push master, schedule, and manual-dispatch analysis, direct triggers)
 
 PR metrics publication (workflow_run)
 └─ Validates the completed CI run, result artefact, and current PR
@@ -75,8 +75,8 @@ gate from it. It does not re-run tests: the Aggregate Gradle invocation contains
 
 The workflow listens for `merge_group` events. Merge groups, schedules, and manual dispatches do not use the path
 filter. They always start the full pipeline: Build (sharded → Aggregate with `koverVerify` at 85%), Vanilla, Dokka, and CodeQL (own workflow). The `Qodana trusted` workflow analyses a
-push, schedule, or manual-dispatch ref after CI completes. It does not run for a merge-group ref because a merge group
-contains pull-request code.
+push, schedule, or manual-dispatch ref with its own direct triggers, in parallel with CI. It does not run for a
+merge-group ref because a merge group contains pull-request code.
 
 ## When workflows run
 
@@ -229,11 +229,14 @@ No pull-request code runs in the publication workflow. A failed Qodana analysis
 or a rejected source simply publishes nothing; the job-derived checks on the
 pull request surface the failure.
 
-The `Qodana trusted` workflow handles push, schedule, and manual-dispatch CI.
-It checks out the trusted source commit and uploads its result directly. Its
-write permission does not apply to pull-request or merge-group analysis. A
-registration job creates the `Qodana / trusted ref` check on the validated
-source commit. A separate report job completes the check after analysis.
+The `Qodana trusted` workflow handles push, schedule, and manual-dispatch
+refs with direct triggers, in parallel with CI. A job-level guard restricts it
+to the repository default branch, so a manual dispatch on another branch is
+skipped. It checks out the trusted source commit and uploads its result
+directly. Its `security-events: write` permission does not apply to
+pull-request or merge-group analysis. The job-derived checks appear on the
+analysed commit; no separate registration or report job creates a manual
+check.
 
 The `Master` ruleset requires one applicable QDJVM result for each pull request:
 documentation-only pull requests use the documentation attestation, code pull
@@ -316,7 +319,7 @@ For an occasional diagnostic scan, give `build-scan: true` to `gradle-job`. The 
 | CI gate | Uses `actions: read`, `contents: read`, and `pull-requests: read` |
 | Qodana scan | Triggers on `pull_request_target` from the default branch and runs in parallel with CI. The source-resolution and analysis jobs use only `actions: read`, `contents: read`, and `pull-requests: read`. They have no write permission, no `QODANA_TOKEN`, and no Qodana GitHub side effects. They restore the Gradle and Qodana caches read-only |
 | Qodana publication | Uses `actions: read`, `contents: read`, `pull-requests: read`, and `security-events: write`. It runs default-branch code, validates the artefacts, and uploads SARIF to code scanning |
-| Qodana trusted | The registration and report jobs use `checks: write`. The analysis job uses `actions: read`, `contents: read`, and `security-events: write` only for push, schedule, and manual-dispatch refs |
+| Qodana trusted | Uses `actions: read`, `contents: read`, and `security-events: write`. Runs only on push, schedule, and manual-dispatch refs for the repository default branch. Has no `checks: write` |
 | Release workflow | Uses an installation token from `release-please-kotventure`. Its `GITHUB_TOKEN` has no permissions |
 | Build job | Uses `checks: write` and `contents: read`. Cannot write to pull requests. Clears `GITHUB_TOKEN` for Gradle |
 | PR feedback job | Uses `actions: read`, `pull-requests: read`, and `contents: read`. Computes a bounded result artefact and cannot write to pull requests. Uses the cache or artefacts before a base JAR-only build. Clears `GITHUB_TOKEN` for Gradle |

@@ -25,7 +25,6 @@ const { downloadQodanaArtifact } = require('./qodana-publisher-storage.js');
 const {
   resolvePullRequestEventSource,
   resolvePullRequestSource,
-  resolveTrustedCiRun,
   QodanaSourceRejectedError,
 } = require('./qodana-source.js');
 
@@ -74,28 +73,7 @@ function makePullRequest({
   };
 }
 
-function makeCiRun({
-  event = 'workflow_dispatch',
-  headBranch = REPOSITORY.default_branch,
-  headSha = HEAD_SHA,
-} = {}) {
-  return {
-    id: 100,
-    run_attempt: 2,
-    workflow_id: 55,
-    event,
-    status: 'completed',
-    conclusion: 'success',
-    repository: REPOSITORY,
-    head_repository: REPOSITORY,
-    head_branch: headBranch,
-    head_sha: headSha,
-    pull_requests: [],
-  };
-}
-
 function makeGithub({
-  run,
   pullRequest = makePullRequest(),
   files,
   associatedPullRequests,
@@ -130,12 +108,6 @@ function makeGithub({
         }),
       },
       actions: {
-        getWorkflowRun: async () => ({ data: run ?? makeCiRun() }),
-        getWorkflow: async ({ workflow_id: workflowId }) => ({
-          data: workflowId === 'release-provenance.yml'
-            ? { path: '.github/workflows/release-provenance.yml' }
-            : { id: 55, name: 'CI', path: '.github/workflows/ci.yml' },
-        }),
         listJobsForWorkflowRun: listJobs,
         listWorkflowRuns: listReleaseRuns,
       },
@@ -756,31 +728,6 @@ test('resolves the pull_request_target event source for the register job', async
     headSha: HEAD_SHA,
     baseSha: BASE_SHA,
   }));
-});
-
-test('accepts trusted CI only from the current repository default branch', async () => {
-  const run = makeCiRun();
-  const source = await resolveTrustedCiRun({
-    github: makeGithub({ run }),
-    owner: 'LMLiam',
-    repo: 'Kotventure',
-    runId: run.id,
-  });
-  assert.deepEqual(source, {
-    event: 'workflow_dispatch',
-    headSha: HEAD_SHA,
-  });
-
-  run.head_branch = 'feature/untrusted-dispatch';
-  await assert.rejects(
-    resolveTrustedCiRun({
-      github: makeGithub({ run }),
-      owner: 'LMLiam',
-      repo: 'Kotventure',
-      runId: run.id,
-    }),
-    /default branch/,
-  );
 });
 
 test('uses the documentation attestation path without computing a merge base', async () => {
