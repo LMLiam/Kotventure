@@ -10,9 +10,7 @@ function parseModuleJar(filename) {
     return null;
   }
   const match = filename.match(/^kotventure-(.+)-(\d+\.\d+\.\d+(?:[-+][A-Za-z0-9.]+)?)\.jar$/);
-  if (!match) {
-    return null;
-  }
+  if (!match) return null;
   return { module: sanitizeModule(match[1]), version: match[2] };
 }
 
@@ -26,9 +24,7 @@ function versionKey(version) {
 function collectJars(rootDir) {
   const sizes = new Map();
   const bestVersion = new Map();
-  if (!fs.existsSync(rootDir)) {
-    return sizes;
-  }
+  if (!fs.existsSync(rootDir)) return sizes;
   function walk(dir) {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
       const full = path.join(dir, entry.name);

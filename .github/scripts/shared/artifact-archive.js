@@ -236,9 +236,7 @@ function extractSingleEntryArchive(archive, {
 
   function decompressEntry(compressedData, entry) {
     try {
-      if (entry.compressionMethod === STORED_COMPRESSION) {
-        return Buffer.from(compressedData);
-      }
+      if (entry.compressionMethod === STORED_COMPRESSION) return Buffer.from(compressedData);
 
       return zlib.inflateRawSync(compressedData, {
         maxOutputLength: maxBytes,

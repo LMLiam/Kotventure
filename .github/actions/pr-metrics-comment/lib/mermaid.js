@@ -9,9 +9,7 @@ function mermaidFence(config, bodyLines) {
 }
 
 function deltaVerticalBars({ title, labels, deltas, yLabel, color }) {
-  if (!labels.length) {
-    return null;
-  }
+  if (!labels.length) return null;
   const values = deltas.map((d) => round1(d));
   const min = Math.min(0, ...values);
   const max = Math.max(0, ...values);

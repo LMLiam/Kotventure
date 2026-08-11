@@ -55,9 +55,7 @@ function makeReadableBody(chunks) {
             getReader() {
                 return {
                     read: async () => {
-                        if (index >= chunks.length) {
-                            return { done: true };
-                        }
+                        if (index >= chunks.length) return { done: true };
 
                         return {
                             done: false,
@@ -664,9 +662,7 @@ describe('publisher orchestration', () => {
             listComments,
         };
         github.paginate = async (method, parameters) => {
-            if (method === listComments) {
-                return [];
-            }
+            if (method === listComments) return [];
 
             return paginate(method, parameters);
         };

@@ -184,9 +184,7 @@ async function validateSource({
 }
 
 function readCoverageGateThreshold(filePath) {
-    if (!fs.existsSync(filePath)) {
-        return null;
-    }
+    if (!fs.existsSync(filePath)) return null;
 
     const contents = fs.readFileSync(filePath, 'utf8');
     const match = contents.match(/coverageLineThreshold\s*=\s*(\d+)/);
@@ -230,9 +228,7 @@ async function publishMetrics({
         core,
     });
 
-    if (!source) {
-        return false;
-    }
+    if (!source) return false;
 
     const result = validateResultProvenance(
             readMetricsArtifact(artifactDirectory),

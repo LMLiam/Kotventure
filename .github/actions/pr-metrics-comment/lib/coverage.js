@@ -5,13 +5,9 @@ const { sanitizeModule } = require('./names.js');
 function moduleFromPackage(pkg) {
   const parts = pkg.split('/');
   const kotIdx = parts.indexOf('kotventure');
-  if (kotIdx < 0) {
-    return sanitizeModule(parts[0] || 'unknown');
-  }
+  if (kotIdx < 0) return sanitizeModule(parts[0] || 'unknown');
   const after = parts.slice(kotIdx + 1);
-  if (after[0] === 'test' && after[1] === 'snapshot') {
-    return 'test-snapshot';
-  }
+  if (after[0] === 'test' && after[1] === 'snapshot') return 'test-snapshot';
   return sanitizeModule(after[0] || 'unknown');
 }
 
@@ -20,9 +16,7 @@ function packageLineCounter(packageBody) {
     .replace(/<class[\s\S]*?<\/class>/g, '')
     .replace(/<sourcefile[\s\S]*?<\/sourcefile>/g, '');
   const match = stripped.match(/<counter type="LINE" missed="(\d+)" covered="(\d+)"\/>/);
-  if (!match) {
-    return null;
-  }
+  if (!match) return null;
   return { missed: parseInt(match[1], 10), covered: parseInt(match[2], 10) };
 }
 

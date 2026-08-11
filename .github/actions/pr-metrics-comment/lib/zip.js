@@ -12,21 +12,15 @@ function findEocd(buffer) {
       continue;
     }
     const commentLength = buffer.readUInt16LE(i + 20);
-    if (i + EOCD_MIN_SIZE + commentLength === buffer.length) {
-      return i;
-    }
+    if (i + EOCD_MIN_SIZE + commentLength === buffer.length) return i;
   }
   return -1;
 }
 
 function countClassEntries(buffer) {
-  if (buffer.length < EOCD_MIN_SIZE) {
-    return null;
-  }
+  if (buffer.length < EOCD_MIN_SIZE) return null;
   const eocd = findEocd(buffer);
-  if (eocd < 0) {
-    return null;
-  }
+  if (eocd < 0) return null;
   const totalEntries = buffer.readUInt16LE(eocd + 10);
   const cdOffset = buffer.readUInt32LE(eocd + 16);
   let classes = 0;
@@ -40,9 +34,7 @@ function countClassEntries(buffer) {
     const extraLength = buffer.readUInt16LE(offset + 30);
     const commentLength = buffer.readUInt16LE(offset + 32);
     const recordEnd = offset + CENTRAL_HEADER_SIZE + nameLength + extraLength + commentLength;
-    if (recordEnd > buffer.length) {
-      return null;
-    }
+    if (recordEnd > buffer.length) return null;
     const name = buffer.toString('utf8', offset + CENTRAL_HEADER_SIZE, offset + CENTRAL_HEADER_SIZE + nameLength);
     if (name.endsWith('.class')) {
       classes += 1;

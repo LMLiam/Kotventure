@@ -33,20 +33,14 @@ function isDocumentationPath(name) {
 }
 
 function changedPathNames(files) {
-  if (!Array.isArray(files) || files.length === 0) {
-    return null;
-  }
+  if (!Array.isArray(files) || files.length === 0) return null;
 
   const paths = [];
   for (const file of files) {
-    if (!file || typeof file.filename !== 'string' || file.filename.length === 0) {
-      return null;
-    }
+    if (!file || typeof file.filename !== 'string' || file.filename.length === 0) return null;
     paths.push(file.filename);
     if (file.previous_filename != null) {
-      if (typeof file.previous_filename !== 'string' || file.previous_filename.length === 0) {
-        return null;
-      }
+      if (typeof file.previous_filename !== 'string' || file.previous_filename.length === 0) return null;
       paths.push(file.previous_filename);
     }
   }
@@ -55,12 +49,8 @@ function changedPathNames(files) {
 
 function classifyChangedFiles(files) {
   const paths = changedPathNames(files);
-  if (!paths) {
-    return 'code';
-  }
-  if (paths.every(isDocumentationPath)) {
-    return 'documentation';
-  }
+  if (!paths) return 'code';
+  if (paths.every(isDocumentationPath)) return 'documentation';
   if (paths.every((name) => isSafeRepositoryPath(name) && RELEASE_ONLY_FILES.has(name))) {
     return 'release-candidate';
   }

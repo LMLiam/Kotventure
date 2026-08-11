@@ -16,9 +16,7 @@ function readRunNumber(value, label) {
 }
 
 function serializeCoverage(coverage) {
-  if (!coverage) {
-    return null;
-  }
+  if (!coverage) return null;
   return {
     modules: [...coverage.modules.entries()].map(([name, counters]) => ({
       name,

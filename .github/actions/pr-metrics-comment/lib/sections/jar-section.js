@@ -9,9 +9,7 @@ function kb(bytes) {
 }
 
 function classCell(head, base) {
-  if (head?.classes == null) {
-    return '—';
-  }
+  if (head?.classes == null) return '—';
   if (base?.classes != null && base.classes !== head.classes) {
     return `${head.classes} (${formatCount(head.classes - base.classes)})`;
   }

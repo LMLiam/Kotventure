@@ -41,15 +41,11 @@ function buildArtifactName({
 }
 
 function parseArtifactName(name) {
-  if (typeof name !== 'string') {
-    return null;
-  }
+  if (typeof name !== 'string') return null;
   const match = name.match(
     new RegExp(`^${QODANA_ARTIFACT_PREFIX}(code|documentation|release)-(\\d+)-(\\d+)-([0-9a-f]{40})-([0-9a-f]{40})$`),
   );
-  if (!match) {
-    return null;
-  }
+  if (!match) return null;
   const qodanaRunId = Number(match[2]);
   const qodanaRunAttempt = Number(match[3]);
   if (!Number.isSafeInteger(qodanaRunId) || qodanaRunId < 1

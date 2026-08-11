@@ -10,9 +10,7 @@ const ARTIFACT_STORAGE_TIMEOUT_MS = 60_000;
 function getHeader(headers, name) {
   if (!headers) return null;
 
-  if (typeof headers.get === 'function') {
-    return headers.get(name);
-  }
+  if (typeof headers.get === 'function') return headers.get(name);
 
   return headers[name] ?? headers[name.toLowerCase()] ?? null;
 }
@@ -33,9 +31,7 @@ async function readStreamingBytes(body, maximumBytes, label) {
   while (true) {
     const { done, value } = await reader.read();
 
-    if (done) {
-      return Buffer.concat(chunks, totalBytes);
-    }
+    if (done) return Buffer.concat(chunks, totalBytes);
 
     if (!(value instanceof Uint8Array)) {
       await cancelReader(reader);
@@ -86,6 +82,9 @@ function validateDownloadOptions({
   repo,
   artifactId,
   outputDirectory,
+  fileName,
+  maxArchiveBytes,
+  maxBytes,
   token,
   fetchImpl,
   label,
@@ -101,6 +100,18 @@ function validateDownloadOptions({
 
   if (typeof outputDirectory !== 'string' || outputDirectory.length === 0) {
     throw new Error(`${label} output directory is required`);
+  }
+
+  if (typeof fileName !== 'string' || fileName.length === 0) {
+    throw new Error(`${label} download file name is invalid`);
+  }
+
+  if (!Number.isSafeInteger(maxArchiveBytes) || maxArchiveBytes < 1) {
+    throw new Error(`${label} download archive size limit is invalid`);
+  }
+
+  if (!Number.isSafeInteger(maxBytes) || maxBytes < 1) {
+    throw new Error(`${label} download size limit is invalid`);
   }
 
   if (typeof token !== 'string' || token.length === 0) {
@@ -131,6 +142,9 @@ async function downloadSingleFileArtifact({
     repo,
     artifactId,
     outputDirectory,
+    fileName,
+    maxArchiveBytes,
+    maxBytes,
     token,
     fetchImpl,
     label,

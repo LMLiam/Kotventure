@@ -145,18 +145,10 @@ function makeGithub({
       },
     },
     paginate: async (method) => {
-      if (method === listFiles) {
-        return changedFiles;
-      }
-      if (method === listAssociatedPullRequests) {
-        return listAssociatedPullRequests();
-      }
-      if (method === listJobs) {
-        return listJobs();
-      }
-      if (method === listReleaseRuns) {
-        return listReleaseRuns();
-      }
+      if (method === listFiles) return changedFiles;
+      if (method === listAssociatedPullRequests) return listAssociatedPullRequests();
+      if (method === listJobs) return listJobs();
+      if (method === listReleaseRuns) return listReleaseRuns();
       throw new Error('unexpected pagination method');
     },
   };
@@ -314,21 +306,11 @@ function makePublicationGithub({
         },
       },
       paginate: async (method) => {
-        if (method === listArtifacts) {
-          return listArtifacts();
-        }
-        if (method === listFiles) {
-          return files;
-        }
-        if (method === listJobs) {
-          return listJobs();
-        }
-        if (method === listReleaseRuns) {
-          return listReleaseRuns();
-        }
-        if (method === listAssociatedPullRequests) {
-          return listAssociatedPullRequests();
-        }
+        if (method === listArtifacts) return listArtifacts();
+        if (method === listFiles) return files;
+        if (method === listJobs) return listJobs();
+        if (method === listReleaseRuns) return listReleaseRuns();
+        if (method === listAssociatedPullRequests) return listAssociatedPullRequests();
         throw new Error('unexpected publication pagination method');
       },
     },

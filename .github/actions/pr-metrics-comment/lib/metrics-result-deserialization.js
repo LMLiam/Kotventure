@@ -3,9 +3,7 @@
 const { validateMetricsResult } = require('./metrics-result-validation.js');
 
 function deserializeCoverage(coverage) {
-  if (!coverage) {
-    return null;
-  }
+  if (!coverage) return null;
   return {
     modules: new Map(coverage.modules.map(({ name, missed, covered }) => [name, { missed, covered }])),
     totalMissed: coverage.totalMissed,

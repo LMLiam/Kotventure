@@ -271,7 +271,6 @@ async function resolveTrustedCiRun({ github, owner, repo, runId, eventRun }) {
 module.exports = {
   QodanaSourceRejectedError,
   hasTrustedReleaseMetadata,
-  hasTrustedReleaseProvenance,
   resolvePullRequestEventSource,
   resolvePullRequestSource,
   resolveTrustedCiRun,

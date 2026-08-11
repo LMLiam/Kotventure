@@ -16,9 +16,7 @@ const {
 } = require('./metrics-result-contract.js');
 
 function validateCoverage(value, label) {
-  if (value == null) {
-    return null;
-  }
+  if (value == null) return null;
   exactKeys(value, ['modules', 'totalMissed', 'totalCovered'], label);
   if (!Array.isArray(value.modules)) {
     throw new Error(`${label}.modules must be an array`);
@@ -66,9 +64,7 @@ function validateJars(value, label) {
 }
 
 function validateBuildMetrics(value, label) {
-  if (value == null) {
-    return null;
-  }
+  if (value == null) return null;
   exactKeys(value, ['tests', 'skipped', 'durationSeconds'], label);
   boundedInteger(value.tests, `${label}.tests`);
   boundedInteger(value.skipped, `${label}.skipped`);
@@ -79,9 +75,7 @@ function validateBuildMetrics(value, label) {
 }
 
 function validatePatchCoverage(value) {
-  if (value == null) {
-    return null;
-  }
+  if (value == null) return null;
   exactKeys(value, ['covered', 'missed'], 'metrics.patchCoverage');
   boundedInteger(value.covered, 'metrics.patchCoverage.covered');
   boundedInteger(value.missed, 'metrics.patchCoverage.missed');
@@ -89,9 +83,7 @@ function validatePatchCoverage(value) {
 }
 
 function validateApiSurface(value) {
-  if (value == null) {
-    return null;
-  }
+  if (value == null) return null;
   exactKeys(value, ['added', 'removed'], 'metrics.apiSurface');
   for (const [name, declarations] of [['added', value.added], ['removed', value.removed]]) {
     if (!Array.isArray(declarations)) {

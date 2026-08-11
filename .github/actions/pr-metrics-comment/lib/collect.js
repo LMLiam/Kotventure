@@ -9,16 +9,12 @@ const { computeApiSurface } = require('./api-surface.js');
 const { serializeMetricsResult } = require('./metrics-result.js');
 
 function readCoverage(reportPath) {
-  if (!reportPath || !fs.existsSync(reportPath)) {
-    return null;
-  }
+  if (!reportPath || !fs.existsSync(reportPath)) return null;
   return parseCoverage(fs.readFileSync(reportPath, 'utf8'));
 }
 
 function readMetrics(metricsPath) {
-  if (!metricsPath || !fs.existsSync(metricsPath)) {
-    return null;
-  }
+  if (!metricsPath || !fs.existsSync(metricsPath)) return null;
   try {
     const parsed = JSON.parse(fs.readFileSync(metricsPath, 'utf8'));
     return Number.isFinite(parsed.tests) ? parsed : null;
