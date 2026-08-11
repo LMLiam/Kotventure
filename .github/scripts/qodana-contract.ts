@@ -56,8 +56,7 @@ export interface ParsedQodanaArtifactName {
   baseSha: string;
 }
 
-export function parseArtifactName(name: unknown): ParsedQodanaArtifactName | null {
-  if (typeof name !== 'string') return null;
+export function parseArtifactName(name: string): ParsedQodanaArtifactName | null {
   const match = name.match(
     new RegExp(`^${QODANA_ARTIFACT_PREFIX}(code|documentation|release)-(\\d+)-(\\d+)-([0-9a-f]{40})-([0-9a-f]{40})$`),
   );

@@ -19,6 +19,7 @@ import type { RepositoryData, WorkflowData, WorkflowRunArtifact, WorkflowRunData
 import { createValidators } from './shared/validation.js';
 import { validateArtifactBinding } from './shared/artifact-binding.js';
 import type { WorkflowRunEventRecord } from './shared/run-context.js';
+import type { JsonValue } from './shared/json.js';
 
 const VALID_RUN_CONCLUSIONS = ['success', 'failure', 'cancelled', 'timed_out'];
 
@@ -48,11 +49,6 @@ function validateQodanaWorkflowSource({ eventRun, run, workflow, repository }: {
   workflow: WorkflowData;
   repository: RepositoryData;
 }): TrustedQodanaRun {
-  requireObject<WorkflowRunEventRecord>(eventRun, 'workflow_run event');
-  requireObject<WorkflowRunData>(run, 'workflow run');
-  requireObject<WorkflowData>(workflow, 'workflow');
-  requireObject<RepositoryData>(repository, 'repository');
-
   requireEqual(eventRun.id, run.id, 'workflow run id');
   requireEqual(eventRun.run_attempt, run.run_attempt, 'workflow run attempt');
   if (eventRun.workflow_id != null) requireEqual(eventRun.workflow_id, run.workflow_id, 'workflow run workflow id');
@@ -94,7 +90,7 @@ function matchingRunArtifacts({ artifacts, qodanaRun, prefix, parse }: {
   artifacts: WorkflowRunArtifact[];
   qodanaRun: WorkflowRunData;
   prefix: string;
-  parse: (name: unknown) => ParsedQodanaArtifactName | null;
+  parse: (name: string) => ParsedQodanaArtifactName | null;
 }): ArtifactSelection[] {
   if (!Array.isArray(artifacts)) reject('workflow artifacts are missing');
   return artifacts
@@ -120,7 +116,7 @@ function selectRunArtifact({
   qodanaRun: WorkflowRunData;
   repository: RepositoryData;
   prefix: string;
-  parse: (name: unknown) => ParsedQodanaArtifactName | null;
+  parse: (name: string) => ParsedQodanaArtifactName | null;
   maximumBytes: number;
   label: string;
 }): ArtifactSelection {
@@ -179,11 +175,11 @@ function selectQodanaArtifact({ artifacts, qodanaRun, source, repository }: {
   return selection.artifact;
 }
 
-function validateArtifactLocation(location: unknown): void {
-  if (!location || typeof location !== 'object' || Array.isArray(location)) {
+function validateArtifactLocation(location: JsonValue): void {
+  if (location === null || typeof location !== 'object' || Array.isArray(location)) {
     reject('SARIF artifact location is invalid');
   }
-  const { uri, uriBaseId } = location as Record<string, unknown>;
+  const { uri, uriBaseId } = location;
   if (uriBaseId != null
     && (typeof uriBaseId !== 'string' || !/^[A-Za-z0-9_.-]{1,128}$/.test(uriBaseId))) {
     reject('SARIF artifact location base id is invalid');
@@ -200,8 +196,8 @@ function validateArtifactLocation(location: unknown): void {
   }
 }
 
-function validateNestedArtifactLocations(root: unknown): void {
-  const pending: Array<{ value: unknown; depth: number }> = [{ value: root, depth: 0 }];
+function validateNestedArtifactLocations(root: JsonValue): void {
+  const pending: Array<{ value: JsonValue; depth: number }> = [{ value: root, depth: 0 }];
   let visited = 0;
   while (pending.length > 0) {
     const entry = pending.pop();
@@ -209,7 +205,7 @@ function validateNestedArtifactLocations(root: unknown): void {
     const { value, depth } = entry;
     visited += 1;
     if (visited > 250_000 || depth > 100) reject('SARIF structure is too complex');
-    if (!value || typeof value !== 'object') continue;
+    if (value === null || typeof value !== 'object') continue;
     if (Array.isArray(value)) {
       for (const item of value) {
         pending.push({ value: item, depth: depth + 1 });

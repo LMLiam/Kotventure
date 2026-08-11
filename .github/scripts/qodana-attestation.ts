@@ -1,26 +1,27 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import type { JsonObject } from './shared/json.js';
 
 export type AttestationSourceKind = 'documentation' | 'release';
 
-export interface QodanaSarifLocation {
+export type QodanaSarifLocation = {
   uri?: string | null;
   uriBaseId?: string | null;
-}
+};
 
-export interface QodanaSarifRule {
+export type QodanaSarifRule = {
   id: string;
   name: string;
   shortDescription: { text: string };
   fullDescription: { text: string };
   defaultConfiguration: { level: string };
-}
+};
 
-export interface QodanaSarifArtifact {
+export type QodanaSarifArtifact = {
   location?: QodanaSarifLocation | null;
-}
+};
 
-export interface QodanaSarifRun {
+export type QodanaSarifRun = {
   tool: {
     driver: {
       name: string;
@@ -28,16 +29,16 @@ export interface QodanaSarifRun {
       rules: QodanaSarifRule[];
     };
   };
-  results: unknown[];
+  results: JsonObject[];
   artifacts?: QodanaSarifArtifact[];
   originalUriBaseIds?: Record<string, QodanaSarifLocation>;
-}
+};
 
-export interface QodanaSarifDocument {
+export type QodanaSarifDocument = {
   $schema: string;
   version: string;
   runs: QodanaSarifRun[];
-}
+};
 
 interface AttestationRuleDetails {
   version: string;
