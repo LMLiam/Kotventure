@@ -1,6 +1,7 @@
 'use strict';
 
-const SHA_PATTERN = /^[0-9a-f]{40}$/;
+const { createValidators } = require('./shared/validation.js');
+
 const KIND_PATTERN = /^[a-z0-9-]{1,48}$/;
 const EXTERNAL_ID_PREFIX = 'workflow-run-check';
 const CHECK_APP_SLUG = 'github-actions';
@@ -12,39 +13,15 @@ const WORKFLOW_RESULTS = new Set([
   'timed_out',
 ]);
 
-function requireObject(value, label) {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw new Error(`${label} is missing`);
-  }
-  return value;
-}
-
-function requirePositiveInteger(value, label) {
-  if (!Number.isSafeInteger(value) || value < 1) {
-    throw new Error(`${label} is invalid`);
-  }
-  return value;
-}
-
-function requireSha(value, label) {
-  if (typeof value !== 'string' || !SHA_PATTERN.test(value)) {
-    throw new Error(`${label} is invalid`);
-  }
-  return value;
-}
-
-function requireText(value, label, maximumLength) {
-  if (typeof value !== 'string' || value.length < 1 || value.length > maximumLength) {
-    throw new Error(`${label} is invalid`);
-  }
-  return value;
-}
-
-function requireEqual(actual, expected, label) {
-  if (actual !== expected) {
-    throw new Error(`${label} does not match the trusted value`);
-  }
-}
+const {
+  requireEqual,
+  requireInteger: requirePositiveInteger,
+  requireObject,
+  requireSha,
+  requireText,
+} = createValidators((message) => {
+  throw new Error(message);
+});
 
 function workflowRunUrl(context) {
   const serverUrl = requireText(context?.serverUrl, 'GitHub server URL', 512);

@@ -1,5 +1,7 @@
 'use strict';
 
+const { createValidators } = require('./shared/validation.js');
+
 const CI_WORKFLOW_NAME = 'CI';
 const CI_WORKFLOW_PATH = '.github/workflows/ci.yml';
 const QODANA_WORKFLOW_NAME = 'Qodana';
@@ -28,7 +30,12 @@ const DOCUMENTATION_PATH_PATTERNS = [
   /^assets\/.+\.(?:svg|png|jpe?g|gif|webp)$/i,
 ];
 
-const SHA_PATTERN = /^[0-9a-f]{40}$/;
+const {
+  requireInteger: requirePositiveInteger,
+  requireSha,
+} = createValidators((message) => {
+  throw new Error(message);
+});
 
 function isSafeRepositoryPath(name) {
   return typeof name === 'string'
@@ -77,20 +84,6 @@ function classifyChangedFiles(files) {
     return 'release-candidate';
   }
   return 'code';
-}
-
-function requireSha(value, label) {
-  if (typeof value !== 'string' || !SHA_PATTERN.test(value)) {
-    throw new Error(`${label} is invalid`);
-  }
-  return value;
-}
-
-function requirePositiveInteger(value, label) {
-  if (!Number.isSafeInteger(value) || value < 1) {
-    throw new Error(`${label} is invalid`);
-  }
-  return value;
 }
 
 function buildArtifactName({

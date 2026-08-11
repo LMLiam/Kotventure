@@ -6,6 +6,7 @@ const {
   buildArtifactName,
   classifyChangedFiles,
 } = require('./qodana-contract.js');
+const { createValidators } = require('./shared/validation.js');
 
 class QodanaSourceRejectedError extends Error {
   constructor(message, { stale = false } = {}) {
@@ -19,32 +20,12 @@ function reject(message, stale = false) {
   throw new QodanaSourceRejectedError(message, { stale });
 }
 
-function requireObject(value, label) {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    reject(`${label} is missing`);
-  }
-  return value;
-}
-
-function requireEqual(actual, expected, label, stale = false) {
-  if (actual !== expected) {
-    reject(`${label} does not match the trusted value`, stale);
-  }
-}
-
-function requirePositiveInteger(value, label) {
-  if (!Number.isSafeInteger(value) || value < 1) {
-    reject(`${label} is invalid`);
-  }
-  return value;
-}
-
-function requireSha(value, label) {
-  if (typeof value !== 'string' || !/^[0-9a-f]{40}$/.test(value)) {
-    reject(`${label} is invalid`);
-  }
-  return value;
-}
+const {
+  requireEqual,
+  requireInteger: requirePositiveInteger,
+  requireObject,
+  requireSha,
+} = createValidators(reject);
 
 function repositoryName(repository) {
   requireObject(repository, 'repository');

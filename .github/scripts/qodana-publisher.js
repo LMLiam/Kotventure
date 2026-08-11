@@ -7,13 +7,10 @@ const {
   validateQodanaArtifactSource,
   validateQodanaWorkflowSource,
 } = require('./qodana-publisher-validation.js');
-
-function requireObject(value, label) {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw new QodanaPublicationRejectedError(`${label} is missing`);
-  }
-  return value;
-}
+const { createValidators } = require('./shared/validation.js');
+const { requireObject } = createValidators((message) => {
+  throw new QodanaPublicationRejectedError(message);
+});
 
 async function resolvePublication({ github, context }) {
   const eventRun = requireObject(context.payload?.workflow_run, 'workflow_run event');
