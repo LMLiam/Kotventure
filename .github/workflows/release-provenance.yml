@@ -5,7 +5,7 @@ on:
   # Keep contents and pull-requests permissions read-only.
   pull_request_target:
     branches: [master]
-    types: [opened, edited, synchronize, reopened]
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: read

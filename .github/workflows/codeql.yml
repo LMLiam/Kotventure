@@ -3,7 +3,7 @@ name: CodeQL
 on:
   pull_request:
     branches: [master]
-    types: [opened, edited, synchronize, reopened]
+    types: [opened, synchronize, reopened]
   push:
     branches: [master]
   merge_group:

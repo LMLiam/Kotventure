@@ -127,6 +127,17 @@ The full CI path includes these code paths:
 | Weekly schedule | ✓ | ✓ | Trusted Qodana | ✓ |
 | `workflow_dispatch` | ✓ | ✓ | Trusted Qodana | ✓ |
 
+### Pull-request activity types
+
+The pull-request workflows listen for a subset of the `pull_request` activity types. `ci.yml`,
+`codeql.yml`, `qodana.yml`, and `release-provenance.yml` listen for `opened`, `synchronize`, and
+`reopened`. `pr.yml` listens for `opened`, `edited`, `synchronize`, `reopened`, and
+`ready_for_review`.
+
+GitHub delivers `synchronize` when the head branch moves, including force-pushes. It delivers `edited`
+when pull-request metadata changes: the title, body, or base branch. `pr.yml` listens for `edited` so a
+title fix re-validates the required `Title` check without a new push.
+
 ### Manual CI (`workflow_dispatch`)
 
 Select Actions → **CI** → **Run workflow**. A manual workflow always starts and does not use the path filter.
