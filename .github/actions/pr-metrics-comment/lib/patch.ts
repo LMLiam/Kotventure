@@ -1,10 +1,7 @@
 import { parsePatch } from 'diff';
-import type { getOctokit } from '@actions/github';
+import type { PullRequestFile } from '../../../scripts/shared/action-context.js';
 
-type Octokit = ReturnType<typeof getOctokit>;
-type ListFilesData = Awaited<ReturnType<Octokit['rest']['pulls']['listFiles']>>['data'];
-
-export type PullRequestFile = ListFilesData[number];
+export type { PullRequestFile };
 
 export interface AddedLine {
   readonly line: number;
