@@ -13,9 +13,9 @@ For local development commands, see [CONTRIBUTING.md](../.github/CONTRIBUTING.md
 | **CI** | `ci.yml` | PR, push, `merge_group`, weekly schedule, `workflow_dispatch` | Gate, path filter, parallel lint (Kotlin + Actions), sharded build (`core | text | runtime` → Aggregate), Vanilla. Always reports the required status check |
 | **CodeQL** | `codeql.yml` | PR, push, `merge_group`, weekly schedule | CodeQL analysis (`actions` + `java-kotlin` matrix), parallel with CI |
 | **PR metrics publication** | `pr-metrics-publish.yml` | `workflow_run` after CI | Validates the CI result and publishes one metrics comment with default-branch code |
-| **Qodana** | `qodana.yml` | `pull_request_target` (in parallel with PR CI) | Runs Qodana with read-only permissions and creates one bounded SARIF artefact |
+| **Qodana** | `qodana.yml` | `pull_request_target` (in parallel with PR CI) | Runs Qodana with read-only permissions, restores the cached Qodana IDE distribution, and creates one bounded SARIF artefact |
 | **Qodana publication** | `qodana-publish.yml` | `workflow_run` after Qodana | Validates the current PR and publishes SARIF with default-branch code |
-| **Qodana trusted** | `qodana-trusted.yml` | push `master`, weekly schedule, `workflow_dispatch` | Runs and publishes Qodana for trusted refs, parallel with CI |
+| **Qodana trusted** | `qodana-trusted.yml` | push `master`, weekly schedule, `workflow_dispatch` | Runs and publishes Qodana for trusted refs, parallel with CI, and warms the shared IDE-distribution cache |
 | **PR** | `pr.yml` | `pull_request_target` | Title + commit validation, area labels |
 | **Release provenance** | `release-provenance.yml` | `pull_request_target` | Verifies Release Please identity and release files from the default branch |
 | **Release** | `release.yml` | push `master` | Opens or updates release PRs. Creates tags and releases after merge |
@@ -214,9 +214,10 @@ workflow code and the pull-request head into separate paths. It supplies the
 default-branch `qodana.yaml` file to Qodana. The scan job has only read
 permissions. It does not receive `QODANA_TOKEN`. It disables Qodana annotations,
 pull-request comments, fix pushes, and result upload. It stores one SARIF file
-as a bounded artefact. It restores the Gradle and Qodana inspection caches
-read-only; GitHub scopes any cache writes from this pull-request-triggered
-workflow to the pull-request merge ref.
+as a bounded artefact. It restores the Gradle caches, the Qodana inspection cache, and the cached
+Qodana IDE distribution read-only. GitHub gives `pull_request_target` runs
+read-only access to default-branch caches, so this workflow never writes
+cache entries; the trusted workflow keeps them warm.
 
 The `Qodana publication` workflow checks out the default branch. It resolves
 the current pull request by head SHA and validates it, the changed paths, the
@@ -233,7 +234,9 @@ The `Qodana trusted` workflow handles push, schedule, and manual-dispatch
 refs with direct triggers, in parallel with CI. A job-level guard restricts it
 to the repository default branch, so a manual dispatch on another branch is
 skipped. It checks out the trusted source commit and uploads its result
-directly. Its `security-events: write` permission does not apply to
+directly. As a trusted trigger it may write default-branch caches, so it also
+saves the Qodana IDE distribution that the pull-request workflow restores
+read-only. Its `security-events: write` permission does not apply to
 pull-request or merge-group analysis. The job-derived checks appear on the
 analysed commit; no separate registration or report job creates a manual
 check.
@@ -450,7 +453,7 @@ Pull requests show many checks. Only the checks in the **Master** ruleset block 
 | Minecraft conformance fixtures | Uses `actions/cache`. The key comes from `targetMinecraftVersion` and `serverBundleSha1` |
 | PR metrics baselines | Uses the `actions/cache` key `ci-baseline-<sha>` on a master push. Downloads an artefact as a fallback. Rebuilds the JAR only as the last option |
 | Kover coverage hand-off | Shards upload `kover-handoff-<shard>`; Aggregate restores them and runs `:koverXmlReport :koverHtmlReport :koverVerify -Pkover.externalBinariesDir=modules`. No test re-run in Aggregate |
-| Qodana caches | The Qodana analyse jobs restore the Gradle caches read-only (`cache-read-only: true`) and restore and save the Qodana inspection cache (`use-caches: true`). Default-branch-scope caches are written only by trusted CI pushes; pull-request-triggered runs restore them |
+| Qodana caches | The Qodana analyse jobs restore the Gradle caches read-only (`cache-read-only: true`) and restore and save the Qodana inspection cache (`use-caches: true`). The action installs the qodana CLI executable into the runner tool cache (`RUNNER_TOOL_CACHE/qodana/<version>/<arch>`); the IDE distribution (`qodana-jvm-community`) is a separate download that the `cache-dir` override pins inside `${{ runner.temp }}/qodana`, cached under `qodana-ide-<os>-v2026.2.0`. Only trusted triggers (push, schedule, dispatch) may write default-branch caches, so the trusted workflow saves the IDE distribution and pull-request-triggered runs restore it with `actions/cache/restore` |
 
 ### Artefacts
 
