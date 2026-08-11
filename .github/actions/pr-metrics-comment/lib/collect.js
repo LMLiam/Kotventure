@@ -9,16 +9,12 @@ const { computeApiSurface } = require('./api-surface.js');
 const { serializeMetricsResult } = require('./metrics-result.js');
 
 function readCoverage(reportPath) {
-  if (!reportPath || !fs.existsSync(reportPath)) {
-    return null;
-  }
+  if (!reportPath || !fs.existsSync(reportPath)) return null;
   return parseCoverage(fs.readFileSync(reportPath, 'utf8'));
 }
 
 function readMetrics(metricsPath) {
-  if (!metricsPath || !fs.existsSync(metricsPath)) {
-    return null;
-  }
+  if (!metricsPath || !fs.existsSync(metricsPath)) return null;
   try {
     const parsed = JSON.parse(fs.readFileSync(metricsPath, 'utf8'));
     return Number.isFinite(parsed.tests) ? parsed : null;
@@ -44,9 +40,7 @@ async function fetchPatches({ github, context, core }) {
 
 async function collect({ env, context, github, core }) {
   const outputPath = env.OUTPUT_PATH;
-  if (!outputPath) {
-    throw new Error('OUTPUT_PATH is required');
-  }
+  if (!outputPath) throw new Error('OUTPUT_PATH is required');
 
   const headCoverage = readCoverage(env.HEAD_COVERAGE_PATH);
   const baseCoverage = readCoverage(env.BASE_COVERAGE_PATH);

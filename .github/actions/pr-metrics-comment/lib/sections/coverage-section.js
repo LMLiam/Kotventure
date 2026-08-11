@@ -28,9 +28,7 @@ function moduleRows(headCoverage, baseCoverage, deltaLabels, deltaVals, membersh
         deltaVals.push(delta);
       }
     } else if (headPct != null) {
-      if (hasBase) {
-        membership.changed = true;
-      }
+      if (hasBase) membership.changed = true;
       table += hasBase
         ? `| ${name} | ${formatPct(headPct)} | — | new |\n`
         : `| ${name} | ${formatPct(headPct)} |\n`;
@@ -67,11 +65,9 @@ function coverageSection({ headCoverage, baseCoverage, gateThreshold }) {
   }
 
   const lines = ['### Coverage', ''];
-  if (!hasBase) {
-    lines.push('_Base coverage unavailable — chart omitted; table has absolute head coverage._', '');
-  } else if (deltaLabels.length === 0) {
-    lines.push('_No per-module coverage delta (≥ 0.05pp) — chart omitted._', '');
-  } else {
+  if (!hasBase) lines.push('_Base coverage unavailable — chart omitted; table has absolute head coverage._', '');
+  else if (deltaLabels.length === 0) lines.push('_No per-module coverage delta (≥ 0.05pp) — chart omitted._', '');
+  else {
     const sorted = sortedDeltas(deltaLabels, deltaVals);
     lines.push(deltaVerticalBars({
       title: 'Coverage delta (pp, PR − base)',

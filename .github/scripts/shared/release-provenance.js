@@ -53,9 +53,7 @@ async function readTrustedReleaseProvenance({ github, owner, repo, repository, p
   } catch {
     return 'missing';
   }
-  if (workflow.path !== RELEASE_PROVENANCE_WORKFLOW_PATH) {
-    return 'missing';
-  }
+  if (workflow.path !== RELEASE_PROVENANCE_WORKFLOW_PATH) return 'missing';
 
   let candidate;
   try {
@@ -72,15 +70,9 @@ async function readTrustedReleaseProvenance({ github, owner, repo, repository, p
     return 'missing';
   }
 
-  if (!candidate) {
-    return 'missing';
-  }
-  if (candidate.status !== 'completed') {
-    return 'pending';
-  }
-  if (candidate.conclusion !== 'success') {
-    return 'failed';
-  }
+  if (!candidate) return 'missing';
+  if (candidate.status !== 'completed') return 'pending';
+  if (candidate.conclusion !== 'success') return 'failed';
 
   let jobs;
   try {
@@ -94,9 +86,7 @@ async function readTrustedReleaseProvenance({ github, owner, repo, repository, p
     return 'missing';
   }
   const trustedJob = jobs.find((job) => job?.name === TRUSTED_PROVENANCE_JOB_NAME);
-  if (trustedJob?.status === 'completed' && trustedJob.conclusion === 'success') {
-    return 'success';
-  }
+  if (trustedJob?.status === 'completed' && trustedJob.conclusion === 'success') return 'success';
   return trustedJob?.status === 'completed' ? 'failed' : 'pending';
 }
 
@@ -108,12 +98,8 @@ async function hasTrustedReleaseProvenance(options) {
   const attempts = options.waitForReleaseProvenance === false ? 1 : 6;
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     const status = await readTrustedReleaseProvenance(options);
-    if (status === 'success' || status === 'failed') {
-      return status === 'success';
-    }
-    if (attempt + 1 < attempts) {
-      await wait(10_000);
-    }
+    if (status === 'success' || status === 'failed') return status === 'success';
+    if (attempt + 1 < attempts) await wait(10_000);
   }
   return false;
 }

@@ -99,14 +99,14 @@ restore_jars() {
     mkdir -p -- "$download_dir"
 
     if ! gh run download "$run_id" --name "$artifact" --dir "$download_dir"; then
-        warn 'could not restore module JARs from any supported artifact'
+        warn "could not restore module JARs from artifact '$artifact'"
         return 1
     fi
 
     local jars=("$download_dir"/**/kotventure-*.jar)
 
     if (( ${#jars[@]} == 0 )); then
-        warn 'could not restore module JARs from any supported artifact'
+        warn "could not restore module JARs from artifact '$artifact'"
         return 1
     fi
 

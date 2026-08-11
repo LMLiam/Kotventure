@@ -3,9 +3,7 @@
 const MARKER = '<!-- pr-metrics -->';
 
 async function upsertComment({ github, context, body, pullNumber = context.issue.number }) {
-  if (!Number.isSafeInteger(pullNumber) || pullNumber < 1) {
-    throw new Error('pullNumber must be a positive integer');
-  }
+  if (!Number.isSafeInteger(pullNumber) || pullNumber < 1) throw new Error('pullNumber must be a positive integer');
   const fullBody = `${MARKER}\n${body}`.trimEnd() + '\n';
   const comments = await github.paginate(github.rest.issues.listComments, {
     owner: context.repo.owner,

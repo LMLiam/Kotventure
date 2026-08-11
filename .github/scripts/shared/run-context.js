@@ -8,9 +8,7 @@ function validateEventRun(reject, { eventRun, run }) {
   requireEqual(eventRun.id, run.id, 'workflow run id');
   requireEqual(eventRun.run_attempt, run.run_attempt, 'workflow run attempt');
   requireEqual(eventRun.head_sha, run.head_sha, 'workflow run head SHA');
-  if (eventRun.workflow_id != null) {
-    requireEqual(eventRun.workflow_id, run.workflow_id, 'workflow run workflow id');
-  }
+  if (eventRun.workflow_id != null) requireEqual(eventRun.workflow_id, run.workflow_id, 'workflow run workflow id');
 }
 
 async function fetchWorkflowRunContext(reject, { github, owner, repo, eventRun }) {

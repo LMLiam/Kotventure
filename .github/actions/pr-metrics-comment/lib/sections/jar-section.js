@@ -9,9 +9,7 @@ function kb(bytes) {
 }
 
 function classCell(head, base) {
-  if (head?.classes == null) {
-    return '—';
-  }
+  if (head?.classes == null) return '—';
   if (base?.classes != null && base.classes !== head.classes) {
     return `${head.classes} (${formatCount(head.classes - base.classes)})`;
   }
@@ -56,11 +54,9 @@ function jarSection({ headJars, baseJars, growthThreshold }) {
   }
 
   const lines = ['### Artifact sizes', ''];
-  if (!hasAnyBase) {
-    lines.push('_Base JARs unavailable — chart omitted; table has absolute head sizes._', '');
-  } else if (deltaLabels.length === 0) {
-    lines.push('_No per-module size delta (≥ 0.05%) — chart omitted._', '');
-  } else {
+  if (!hasAnyBase) lines.push('_Base JARs unavailable — chart omitted; table has absolute head sizes._', '');
+  else if (deltaLabels.length === 0) lines.push('_No per-module size delta (≥ 0.05%) — chart omitted._', '');
+  else {
     const sorted = sortedDeltas(deltaLabels, deltaVals);
     lines.push(deltaVerticalBars({
       title: 'JAR size delta (%, PR − base)',

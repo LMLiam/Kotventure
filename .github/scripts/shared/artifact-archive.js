@@ -66,15 +66,11 @@ function extractSingleEntryArchive(archive, {
       offset >= firstOffset;
       offset -= 1
     ) {
-      if (archive.readUInt32LE(offset) !== END_OF_CENTRAL_DIRECTORY_SIGNATURE) {
-        continue;
-      }
+      if (archive.readUInt32LE(offset) !== END_OF_CENTRAL_DIRECTORY_SIGNATURE) continue;
 
       const commentLength = archive.readUInt16LE(offset + 20);
 
-      if (offset + END_OF_CENTRAL_DIRECTORY_LENGTH + commentLength === archive.length) {
-        return offset;
-      }
+      if (offset + END_OF_CENTRAL_DIRECTORY_LENGTH + commentLength === archive.length) return offset;
     }
 
     rejectArchive('has no valid end record');
@@ -99,15 +95,11 @@ function extractSingleEntryArchive(archive, {
       rejectArchive('uses unsupported ZIP64 or multi-disk metadata');
     }
 
-    if (entriesOnDisk !== 1 || totalEntries !== 1) {
-      rejectArchive('must contain exactly one file');
-    }
+    if (entriesOnDisk !== 1 || totalEntries !== 1) rejectArchive('must contain exactly one file');
 
     assertRange(archive, centralDirectoryOffset, centralDirectorySize, 'central directory');
 
-    if (centralDirectoryOffset + centralDirectorySize !== endOffset) {
-      rejectArchive('has a misplaced central directory');
-    }
+    if (centralDirectoryOffset + centralDirectorySize !== endOffset) rejectArchive('has a misplaced central directory');
 
     if (centralDirectorySize < CENTRAL_DIRECTORY_HEADER_LENGTH
       || archive.readUInt32LE(centralDirectoryOffset) !== CENTRAL_DIRECTORY_SIGNATURE) {
@@ -122,18 +114,14 @@ function extractSingleEntryArchive(archive, {
       + extraLength
       + commentLength;
 
-    if (recordLength !== centralDirectorySize) {
-      rejectArchive('has an invalid central directory record');
-    }
+    if (recordLength !== centralDirectorySize) rejectArchive('has an invalid central directory record');
 
     const fileNameOffset = centralDirectoryOffset + CENTRAL_DIRECTORY_HEADER_LENGTH;
     assertRange(archive, fileNameOffset, fileNameLength, 'file name');
 
     const fileName = archive.subarray(fileNameOffset, fileNameOffset + fileNameLength);
 
-    if (!fileName.equals(expectedName)) {
-      rejectArchive(`must contain only ${expectedName.toString('utf8')}`);
-    }
+    if (!fileName.equals(expectedName)) rejectArchive(`must contain only ${expectedName.toString('utf8')}`);
 
     const flags = archive.readUInt16LE(centralDirectoryOffset + 8);
     const compressionMethod = archive.readUInt16LE(centralDirectoryOffset + 10);
@@ -163,9 +151,7 @@ function extractSingleEntryArchive(archive, {
       rejectArchive('contains an entry outside the size limit');
     }
 
-    if (localHeaderOffset >= centralDirectoryOffset) {
-      rejectArchive('has an invalid local file header offset');
-    }
+    if (localHeaderOffset >= centralDirectoryOffset) rejectArchive('has an invalid local file header offset');
 
     return {
       centralDirectoryOffset,
@@ -216,9 +202,7 @@ function extractSingleEntryArchive(archive, {
       localFileNameOffset + localFileNameLength,
     );
 
-    if (!localFileName.equals(entry.fileName)) {
-      rejectArchive('has inconsistent file names');
-    }
+    if (!localFileName.equals(entry.fileName)) rejectArchive('has inconsistent file names');
 
     const compressedDataOffset = localFileNameOffset + localFileNameLength + localExtraLength;
 
@@ -236,9 +220,7 @@ function extractSingleEntryArchive(archive, {
 
   function decompressEntry(compressedData, entry) {
     try {
-      if (entry.compressionMethod === STORED_COMPRESSION) {
-        return Buffer.from(compressedData);
-      }
+      if (entry.compressionMethod === STORED_COMPRESSION) return Buffer.from(compressedData);
 
       return zlib.inflateRawSync(compressedData, {
         maxOutputLength: maxBytes,

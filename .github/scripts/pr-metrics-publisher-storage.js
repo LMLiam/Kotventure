@@ -36,19 +36,13 @@ function readMetricsArtifact(directory) {
     const filePath = path.join(directory, RESULT_FILE_NAME);
     const stats = fs.lstatSync(filePath);
 
-    if (!stats.isFile() || stats.isSymbolicLink()) {
-        throw new Error(`${RESULT_FILE_NAME} must be a regular file`);
-    }
+    if (!stats.isFile() || stats.isSymbolicLink()) throw new Error(`${RESULT_FILE_NAME} must be a regular file`);
 
-    if (stats.size > MAX_RESULT_BYTES) {
-        throw new Error(`metrics result exceeds ${MAX_RESULT_BYTES} bytes`);
-    }
+    if (stats.size > MAX_RESULT_BYTES) throw new Error(`metrics result exceeds ${MAX_RESULT_BYTES} bytes`);
 
     const bytes = fs.readFileSync(filePath);
 
-    if (bytes.length > MAX_RESULT_BYTES) {
-        throw new Error(`metrics result exceeds ${MAX_RESULT_BYTES} bytes`);
-    }
+    if (bytes.length > MAX_RESULT_BYTES) throw new Error(`metrics result exceeds ${MAX_RESULT_BYTES} bytes`);
 
     let result;
 

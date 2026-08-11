@@ -37,9 +37,7 @@ const ZERO_WIDTH_CODE_POINTS = new Set([
 ]);
 
 function exactKeys(value, expected, label) {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw new Error(`${label} must be an object`);
-  }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error(`${label} must be an object`);
   const actual = Object.keys(value).sort();
   const keys = [...expected].sort();
   if (actual.length !== keys.length || actual.some((key, index) => key !== keys[index])) {
@@ -55,9 +53,7 @@ function boundedInteger(value, label, minimum = 0, maximum = MAX_COUNT) {
 }
 
 function boundedString(value, pattern, label) {
-  if (typeof value !== 'string' || !pattern.test(value)) {
-    throw new Error(`${label} has an invalid value`);
-  }
+  if (typeof value !== 'string' || !pattern.test(value)) throw new Error(`${label} has an invalid value`);
   return value;
 }
 

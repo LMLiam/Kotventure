@@ -10,9 +10,7 @@ const ARTIFACT_STORAGE_TIMEOUT_MS = 60_000;
 function getHeader(headers, name) {
   if (!headers) return null;
 
-  if (typeof headers.get === 'function') {
-    return headers.get(name);
-  }
+  if (typeof headers.get === 'function') return headers.get(name);
 
   return headers[name] ?? headers[name.toLowerCase()] ?? null;
 }
@@ -33,9 +31,7 @@ async function readStreamingBytes(body, maximumBytes, label) {
   while (true) {
     const { done, value } = await reader.read();
 
-    if (done) {
-      return Buffer.concat(chunks, totalBytes);
-    }
+    if (done) return Buffer.concat(chunks, totalBytes);
 
     if (!(value instanceof Uint8Array)) {
       await cancelReader(reader);
@@ -54,9 +50,7 @@ async function readStreamingBytes(body, maximumBytes, label) {
 }
 
 async function readResponseBytes(response, maximumBytes, label) {
-  if (!response || response.ok === false) {
-    throw new Error(`${label} download failed`);
-  }
+  if (!response || response.ok === false) throw new Error(`${label} download failed`);
 
   const contentLength = Number(getHeader(response.headers, 'content-length'));
 
@@ -68,15 +62,11 @@ async function readResponseBytes(response, maximumBytes, label) {
     return readStreamingBytes(response.body, maximumBytes, label);
   }
 
-  if (typeof response.arrayBuffer !== 'function') {
-    throw new Error(`${label} download has no readable body`);
-  }
+  if (typeof response.arrayBuffer !== 'function') throw new Error(`${label} download has no readable body`);
 
   const result = Buffer.from(await response.arrayBuffer());
 
-  if (result.length > maximumBytes) {
-    throw new Error(`${label} download exceeds ${maximumBytes} bytes`);
-  }
+  if (result.length > maximumBytes) throw new Error(`${label} download exceeds ${maximumBytes} bytes`);
 
   return result;
 }
@@ -86,6 +76,9 @@ function validateDownloadOptions({
   repo,
   artifactId,
   outputDirectory,
+  fileName,
+  maxArchiveBytes,
+  maxBytes,
   token,
   fetchImpl,
   label,
@@ -95,21 +88,23 @@ function validateDownloadOptions({
     throw new Error(`${label} download requires a repository`);
   }
 
-  if (!Number.isSafeInteger(artifactId) || artifactId < 1) {
-    throw new Error(`${label} id is invalid`);
-  }
+  if (!Number.isSafeInteger(artifactId) || artifactId < 1) throw new Error(`${label} id is invalid`);
 
   if (typeof outputDirectory !== 'string' || outputDirectory.length === 0) {
     throw new Error(`${label} output directory is required`);
   }
 
-  if (typeof token !== 'string' || token.length === 0) {
-    throw new Error(`${label} download requires a GitHub token`);
+  if (typeof fileName !== 'string' || fileName.length === 0) throw new Error(`${label} download file name is invalid`);
+
+  if (!Number.isSafeInteger(maxArchiveBytes) || maxArchiveBytes < 1) {
+    throw new Error(`${label} download archive size limit is invalid`);
   }
 
-  if (typeof fetchImpl !== 'function') {
-    throw new Error(`${label} download requires fetch`);
-  }
+  if (!Number.isSafeInteger(maxBytes) || maxBytes < 1) throw new Error(`${label} download size limit is invalid`);
+
+  if (typeof token !== 'string' || token.length === 0) throw new Error(`${label} download requires a GitHub token`);
+
+  if (typeof fetchImpl !== 'function') throw new Error(`${label} download requires fetch`);
 }
 
 async function downloadSingleFileArtifact({
@@ -131,6 +126,9 @@ async function downloadSingleFileArtifact({
     repo,
     artifactId,
     outputDirectory,
+    fileName,
+    maxArchiveBytes,
+    maxBytes,
     token,
     fetchImpl,
     label,
@@ -150,9 +148,7 @@ async function downloadSingleFileArtifact({
     },
   );
 
-  if (response.status !== 302) {
-    throw new Error(`${label} download returned HTTP ${response.status}`);
-  }
+  if (response.status !== 302) throw new Error(`${label} download returned HTTP ${response.status}`);
 
   const location = getHeader(response.headers, 'location');
   let artifactUrl;
@@ -163,9 +159,7 @@ async function downloadSingleFileArtifact({
     throw new Error(`${label} download redirect is invalid`);
   }
 
-  if (artifactUrl.protocol !== 'https:') {
-    throw new Error(`${label} download redirect is invalid`);
-  }
+  if (artifactUrl.protocol !== 'https:') throw new Error(`${label} download redirect is invalid`);
 
   const archiveResponse = await fetchImpl(artifactUrl.href, {
     redirect: 'follow',
@@ -180,9 +174,7 @@ async function downloadSingleFileArtifact({
     maxBytes,
   });
 
-  if (validateResult) {
-    validateResult(result);
-  }
+  if (validateResult) validateResult(result);
 
   fs.mkdirSync(outputDirectory, { recursive: true });
 

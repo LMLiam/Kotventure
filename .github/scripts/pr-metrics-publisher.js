@@ -29,9 +29,7 @@ function rejectPublication(message) {
 }
 
 function requirePositiveInteger(value, message) {
-    if (!Number.isSafeInteger(value) || value < 1) {
-        rejectPublication(message);
-    }
+    if (!Number.isSafeInteger(value) || value < 1) rejectPublication(message);
 
     return value;
 }
@@ -42,13 +40,9 @@ async function resolvePullRequestNumber({
     repo,
     run,
 }) {
-    if (!Array.isArray(run.pull_requests)) {
-        rejectPublication('workflow run pull requests are invalid');
-    }
+    if (!Array.isArray(run.pull_requests)) rejectPublication('workflow run pull requests are invalid');
 
-    if (run.pull_requests.length > 1) {
-        rejectPublication('workflow run must identify exactly one pull request');
-    }
+    if (run.pull_requests.length > 1) rejectPublication('workflow run must identify exactly one pull request');
 
     if (run.pull_requests.length === 1) {
         return requirePositiveInteger(
@@ -67,9 +61,7 @@ async function resolvePullRequestNumber({
             },
     );
 
-    if (associatedPullRequests.length !== 1) {
-        rejectPublication('workflow run must identify exactly one pull request');
-    }
+    if (associatedPullRequests.length !== 1) rejectPublication('workflow run must identify exactly one pull request');
 
     return requirePositiveInteger(
             associatedPullRequests[0].number,
@@ -145,9 +137,7 @@ async function resolvePublishableSource({ github, context, core }) {
             context,
         });
     } catch (error) {
-        if (!(error instanceof PublicationRejectedError)) {
-            throw error;
-        }
+        if (!(error instanceof PublicationRejectedError)) throw error;
 
         core.warning(`Metrics publication skipped: ${error.message}`);
         return null;
@@ -184,9 +174,7 @@ async function validateSource({
 }
 
 function readCoverageGateThreshold(filePath) {
-    if (!fs.existsSync(filePath)) {
-        return null;
-    }
+    if (!fs.existsSync(filePath)) return null;
 
     const contents = fs.readFileSync(filePath, 'utf8');
     const match = contents.match(/coverageLineThreshold\s*=\s*(\d+)/);
@@ -210,9 +198,7 @@ function buildArtifactLinks({
     for (const artifact of source.artifacts) {
         const key = REPORT_ARTIFACT_LINKS.get(artifact.name);
 
-        if (key && Number.isSafeInteger(artifact.id)) {
-            links[key] = `${runUrl}/artifacts/${artifact.id}`;
-        }
+        if (key && Number.isSafeInteger(artifact.id)) links[key] = `${runUrl}/artifacts/${artifact.id}`;
     }
 
     return links;
@@ -230,9 +216,7 @@ async function publishMetrics({
         core,
     });
 
-    if (!source) {
-        return false;
-    }
+    if (!source) return false;
 
     const result = validateResultProvenance(
             readMetricsArtifact(artifactDirectory),

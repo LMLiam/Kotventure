@@ -7,11 +7,7 @@ function toRanges(lineNumbers) {
   const ranges = [];
   for (const n of sorted) {
     const last = ranges[ranges.length - 1];
-    if (last && n === last[1] + 1) {
-      last[1] = n;
-    } else {
-      ranges.push([n, n]);
-    }
+    if (last && n === last[1] + 1) last[1] = n; else ranges.push([n, n]);
   }
   return ranges;
 }
@@ -22,19 +18,13 @@ function computePatchCoverage(patches, coverageFiles) {
   const uncovered = [];
   for (const patch of patches) {
     const match = patch.path.match(MAIN_SOURCE);
-    if (!match) {
-      continue;
-    }
+    if (!match) continue;
     const lines = coverageFiles.get(match[1]);
-    if (!lines) {
-      continue;
-    }
+    if (!lines) continue;
     const missedLines = [];
     for (const added of patch.addedLines) {
       const lineCovered = lines.get(added.line);
-      if (lineCovered === undefined) {
-        continue;
-      }
+      if (lineCovered === undefined) continue;
       if (lineCovered) {
         covered += 1;
       } else {
@@ -42,9 +32,7 @@ function computePatchCoverage(patches, coverageFiles) {
         missedLines.push(added.line);
       }
     }
-    if (missedLines.length > 0) {
-      uncovered.push({ path: patch.path, ranges: toRanges(missedLines) });
-    }
+    if (missedLines.length > 0) uncovered.push({ path: patch.path, ranges: toRanges(missedLines) });
   }
   return { covered, missed, uncovered };
 }

@@ -231,13 +231,9 @@ function makeGithub({
             },
         },
         paginate: async (method) => {
-            if (method === listAssociatedPullRequests) {
-                return associatedPullRequests;
-            }
+            if (method === listAssociatedPullRequests) return associatedPullRequests;
 
-            if (method === listWorkflowRunArtifacts) {
-                return artifacts;
-            }
+            if (method === listWorkflowRunArtifacts) return artifacts;
 
             throw new Error('unexpected pagination method');
         },
@@ -314,9 +310,7 @@ function makeArtifactFetch(archiveResponse) {
                 };
             }
 
-            if (location === ARTIFACT_STORAGE_URL) {
-                return archiveResponse;
-            }
+            if (location === ARTIFACT_STORAGE_URL) return archiveResponse;
 
             throw new Error(`unexpected artifact request: ${location}`);
         },
