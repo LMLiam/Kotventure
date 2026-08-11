@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["es2022"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "exactOptionalPropertyTypes": true,
+    "types": ["node"],
+    "noEmit": false,
+    "sourceMap": false,
+    "declaration": false
+  },
+  "include": ["scripts/**/*.ts", "actions/**/*.ts"]
+}
