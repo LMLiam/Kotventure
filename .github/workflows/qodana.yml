@@ -38,6 +38,14 @@ jobs:
           ref: ${{ github.sha }}
           persist-credentials: false
 
+      - name: Install CI tooling dependencies
+        working-directory: .github
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Build CI tooling
+        working-directory: .github
+        run: npm run build
+
       - name: Resolve the pull-request source
         id: source
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
@@ -138,6 +146,16 @@ jobs:
         env:
           QODANA_PR_SHA: ${{ needs.register.outputs.merge_base_sha }}
           QODANA_REVISION: ${{ needs.register.outputs.head_sha }}
+
+      - name: Install CI tooling dependencies
+        if: needs.register.outputs.source_kind != 'code'
+        working-directory: .github
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Build CI tooling
+        if: needs.register.outputs.source_kind != 'code'
+        working-directory: .github
+        run: npm run build
 
       - name: Create trusted QDJVM attestation
         if: needs.register.outputs.source_kind != 'code'
