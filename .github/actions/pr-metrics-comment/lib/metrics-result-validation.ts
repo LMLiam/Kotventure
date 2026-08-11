@@ -14,7 +14,7 @@ import {
 } from './metrics-result-contract.js';
 import type { JsonValue } from './metrics-result-contract.js';
 
-export type CoverageModuleValue = {
+type CoverageModuleValue = {
   readonly name: string;
   readonly missed: number;
   readonly covered: number;
@@ -38,17 +38,17 @@ export type BuildMetrics = {
   readonly durationSeconds: number | null;
 };
 
-export type PatchCoverageValue = {
+type PatchCoverageValue = {
   readonly covered: number;
   readonly missed: number;
 };
 
-export type ApiSurfaceValue = {
+type ApiSurfaceValue = {
   readonly added: string[];
   readonly removed: string[];
 };
 
-export type ProvenanceValue = {
+type ProvenanceValue = {
   readonly repository: string;
   readonly workflow: string;
   readonly event: string;
@@ -78,7 +78,7 @@ export type MetricsResultValue = {
   };
 };
 
-export function validateCoverage(value: JsonValue, label: string): CoverageValue | null {
+function validateCoverage(value: JsonValue, label: string): CoverageValue | null {
   if (value == null) return null;
   const checked = exactKeys<CoverageValue>(value, ['modules', 'totalMissed', 'totalCovered'], label);
   if (!Array.isArray(checked.modules)) throw new Error(`${label}.modules must be an array`);
@@ -97,7 +97,7 @@ export function validateCoverage(value: JsonValue, label: string): CoverageValue
   return checked;
 }
 
-export function validateJars(value: JsonValue, label: string): JarValue[] {
+function validateJars(value: JsonValue, label: string): JarValue[] {
   if (!Array.isArray(value)) throw new Error(`${label} must be an array`);
   if (value.length > MAX_MODULES) throw new Error(`${label} has too many entries`);
   const names = new Set<string>();
@@ -123,7 +123,7 @@ export function validateBuildMetrics(value: JsonValue, label: string): BuildMetr
   return checked;
 }
 
-export function validatePatchCoverage(value: JsonValue): PatchCoverageValue | null {
+function validatePatchCoverage(value: JsonValue): PatchCoverageValue | null {
   if (value == null) return null;
   const checked = exactKeys<PatchCoverageValue>(value, ['covered', 'missed'], 'metrics.patchCoverage');
   boundedInteger(checked.covered, 'metrics.patchCoverage.covered');
@@ -131,7 +131,7 @@ export function validatePatchCoverage(value: JsonValue): PatchCoverageValue | nu
   return checked;
 }
 
-export function validateApiSurface(value: JsonValue): ApiSurfaceValue | null {
+function validateApiSurface(value: JsonValue): ApiSurfaceValue | null {
   if (value == null) return null;
   const checked = exactKeys<ApiSurfaceValue>(value, ['added', 'removed'], 'metrics.apiSurface');
   for (const name of ['added', 'removed'] as const) {
@@ -145,7 +145,7 @@ export function validateApiSurface(value: JsonValue): ApiSurfaceValue | null {
   return checked;
 }
 
-export function validateProvenance(value: JsonValue): ProvenanceValue {
+function validateProvenance(value: JsonValue): ProvenanceValue {
   const checked = exactKeys<ProvenanceValue>(value, [
     'repository',
     'workflow',
