@@ -3,5 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "license": "MIT",
-  "type": "commonjs"
+  "type": "commonjs",
+  "dependencies": {
+    "diff": "9.0.0"
+  }
 }
