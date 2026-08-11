@@ -26,7 +26,8 @@ test('returns null for non-zip data', async () => {
 
 test('returns null when the central directory is corrupt', async () => {
   const zip = buildZip(['a.class']);
-  zip.writeUInt32LE(0xdeadbeef, 10);
+  const centralDirectoryOffset = zip.readUInt32LE(zip.length - 6);
+  zip.writeUInt32LE(0xdeadbeef, centralDirectoryOffset);
   assert.equal(await countClassEntries(zip), null);
 });
 
@@ -37,6 +38,7 @@ test('returns null when trailing data follows the end record', async () => {
 
 test('returns null when a central directory record overflows the buffer', async () => {
   const zip = buildZip(['a.class']);
-  zip.writeUInt16LE(0xffff, 10 + 28);
+  const centralDirectoryOffset = zip.readUInt32LE(zip.length - 6);
+  zip.writeUInt16LE(0xffff, centralDirectoryOffset + 28);
   assert.equal(await countClassEntries(zip), null);
 });

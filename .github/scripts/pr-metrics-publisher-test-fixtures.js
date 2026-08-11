@@ -3,7 +3,7 @@
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const zlib = require('node:zlib');
+const AdmZip = require('adm-zip');
 const { serializeMetricsResult } = require('../actions/pr-metrics-comment/lib/metrics-result.js');
 const {
     RESULT_ARTIFACT_PREFIX,
@@ -124,53 +124,13 @@ function makeZip(
             fileName = RESULT_FILE_NAME,
         } = {},
 ) {
-    const name = Buffer.from(fileName, 'utf8');
-
-    const uncompressed = Buffer.isBuffer(content)
-            ? content
-            : Buffer.from(content, 'utf8');
-
-    const compressed = compressionMethod === 8
-            ? zlib.deflateRawSync(uncompressed)
-            : uncompressed;
-
-    const local = Buffer.alloc(30 + name.length);
-
-    local.writeUInt32LE(0x04034b50, 0);
-    local.writeUInt16LE(20, 4);
-    local.writeUInt16LE(compressionMethod, 8);
-    local.writeUInt32LE(compressed.length, 18);
-    local.writeUInt32LE(uncompressed.length, 22);
-    local.writeUInt16LE(name.length, 26);
-
-    name.copy(local, 30);
-
-    const central = Buffer.alloc(46 + name.length);
-
-    central.writeUInt32LE(0x02014b50, 0);
-    central.writeUInt16LE(20, 4);
-    central.writeUInt16LE(20, 6);
-    central.writeUInt16LE(compressionMethod, 10);
-    central.writeUInt32LE(compressed.length, 20);
-    central.writeUInt32LE(uncompressed.length, 24);
-    central.writeUInt16LE(name.length, 28);
-
-    name.copy(central, 46);
-
-    const end = Buffer.alloc(22);
-
-    end.writeUInt32LE(0x06054b50, 0);
-    end.writeUInt16LE(1, 8);
-    end.writeUInt16LE(1, 10);
-    end.writeUInt32LE(central.length, 12);
-    end.writeUInt32LE(local.length + compressed.length, 16);
-
-    return Buffer.concat([
-        local,
-        compressed,
-        central,
-        end,
-    ]);
+    const zip = new AdmZip();
+    const entry = zip.addFile(
+            fileName,
+            Buffer.isBuffer(content) ? content : Buffer.from(content, 'utf8'),
+    );
+    if (compressionMethod === 0) entry.header.method = 0;
+    return zip.toBuffer();
 }
 
 function makeWorkflowRunContext(run = makeInputs().run) {
