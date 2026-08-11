@@ -1,13 +1,10 @@
 'use strict';
 
 const {
-  CI_WORKFLOW_NAME,
-  CI_WORKFLOW_PATH,
   buildArtifactName,
   classifyChangedFiles,
 } = require('./qodana-contract.js');
 const { createValidators } = require('./shared/validation.js');
-const { validateEventRun } = require('./shared/run-context.js');
 const { hasTrustedReleaseProvenance } = require('./shared/release-provenance.js');
 
 class QodanaSourceRejectedError extends Error {
@@ -28,14 +25,6 @@ const {
   requireObject,
   requireSha,
 } = createValidators(reject);
-
-function repositoryName(repository) {
-  requireObject(repository, 'repository');
-  if (typeof repository.full_name !== 'string' || repository.full_name.length === 0) {
-    reject('repository name is invalid');
-  }
-  return repository.full_name;
-}
 
 async function fetchRepository({ github, owner, repo }) {
   const repositoryResponse = await github.rest.repos.get({ owner, repo });
@@ -227,43 +216,9 @@ async function resolvePullRequestEventSource({ github, context, qodanaRunId, qod
   };
 }
 
-async function resolveTrustedCiRun({ github, owner, repo, runId, eventRun }) {
-  requirePositiveInteger(runId, 'workflow run id');
-  const repositoryResponse = await github.rest.repos.get({ owner, repo });
-  const repository = requireObject(repositoryResponse.data, 'repository');
-  requireEqual(repository.full_name, `${owner}/${repo}`, 'repository identity');
-  const runResponse = await github.rest.actions.getWorkflowRun({ owner, repo, run_id: runId });
-  const run = requireObject(runResponse.data, 'workflow run');
-  const workflowResponse = await github.rest.actions.getWorkflow({
-    owner,
-    repo,
-    workflow_id: run.workflow_id,
-  });
-  const workflow = requireObject(workflowResponse.data, 'workflow');
-
-  if (eventRun) validateEventRun(reject, { eventRun, run });
-  if (!['push', 'schedule', 'workflow_dispatch'].includes(run.event)) reject('workflow run event is not trusted');
-  requireEqual(run.status, 'completed', 'workflow run status');
-  requireEqual(run.conclusion, 'success', 'workflow run conclusion');
-  requireEqual(run.repository?.full_name, repositoryName(repository), 'workflow run repository');
-  requireEqual(run.repository?.id, repository.id, 'workflow run repository id');
-  requireEqual(run.head_repository?.full_name, repository.full_name, 'workflow head repository');
-  requireEqual(run.head_repository?.id, repository.id, 'workflow head repository id');
-  requireEqual(run.head_branch, repository.default_branch, 'workflow run default branch');
-  requireEqual(workflow.id, run.workflow_id, 'workflow identity');
-  requireEqual(workflow.name, CI_WORKFLOW_NAME, 'workflow name');
-  requireEqual(workflow.path, CI_WORKFLOW_PATH, 'workflow path');
-
-  return {
-    event: run.event,
-    headSha: requireSha(run.head_sha, 'workflow run head SHA'),
-  };
-}
-
 module.exports = {
   QodanaSourceRejectedError,
   hasTrustedReleaseMetadata,
   resolvePullRequestEventSource,
   resolvePullRequestSource,
-  resolveTrustedCiRun,
 };

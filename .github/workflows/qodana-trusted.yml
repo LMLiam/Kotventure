@@ -1,86 +1,25 @@
 name: Qodana trusted
 
 on:
-  workflow_run:
-    workflows: [CI]
-    types: [completed]
+  push:
+    branches: [master]
+  schedule:
+    - cron: '17 3 * * 1'
+  workflow_dispatch:
 
 permissions: {}
 
 concurrency:
-  group: qodana-trusted-${{ github.event.workflow_run.id }}-${{ github.event.workflow_run.run_attempt }}
+  group: qodana-trusted-${{ github.ref }}
   cancel-in-progress: true
 
 env:
   NODE_OPTIONS: --use-system-ca
 
 jobs:
-  register:
-    name: Register trusted Qodana check
-    if: >-
-      (
-        github.event.workflow_run.event == 'push'
-        || github.event.workflow_run.event == 'schedule'
-        || github.event.workflow_run.event == 'workflow_dispatch'
-      )
-      && github.event.workflow_run.conclusion == 'success'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      actions: read
-      checks: write
-      contents: read
-    outputs:
-      check_external_id: ${{ steps.source.outputs.check_external_id }}
-      check_run_id: ${{ steps.source.outputs.check_run_id }}
-      head_sha: ${{ steps.source.outputs.head_sha }}
-    steps:
-      - name: Checkout trusted workflow code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ github.sha }}
-          persist-credentials: false
-
-      - name: Resolve the completed trusted CI source
-        id: source
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        with:
-          retries: 3
-          retry-exempt-status-codes: 400,401,403,404,422
-          script: |
-            const { resolveTrustedCiRun } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/qodana-source.js`);
-            const source = await resolveTrustedCiRun({
-              github,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              runId: context.payload.workflow_run.id,
-              eventRun: context.payload.workflow_run,
-            });
-            core.setOutput('head_sha', source.headSha);
-            const {
-              buildCheckExternalId,
-              createWorkflowCheck,
-            } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/workflow-run-check.js`);
-            const externalId = buildCheckExternalId({
-              kind: 'qodana-trusted',
-              runId: context.runId,
-              runAttempt: context.runAttempt,
-              headSha: source.headSha,
-            });
-            const check = await createWorkflowCheck({
-              github,
-              context,
-              name: 'Qodana / trusted ref',
-              headSha: source.headSha,
-              externalId,
-              summary: 'Qodana is analysing the validated trusted source.',
-            });
-            core.setOutput('check_run_id', String(check.id));
-            core.setOutput('check_external_id', check.externalId);
-
   analyse:
     name: Qodana trusted ref
-    needs: register
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -94,11 +33,11 @@ jobs:
           ref: ${{ github.sha }}
           persist-credentials: false
 
-      - name: Checkout the validated trusted source
+      - name: Checkout the trusted source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: ${{ github.repository }}
-          ref: ${{ needs.register.outputs.head_sha }}
+          ref: ${{ github.sha }}
           path: source
           persist-credentials: false
 
@@ -121,7 +60,7 @@ jobs:
           push-fixes: none
           use-caches: true
         env:
-          QODANA_REVISION: ${{ needs.register.outputs.head_sha }}
+          QODANA_REVISION: ${{ github.sha }}
 
       - name: Normalize Qodana SARIF regions
         shell: bash
@@ -134,59 +73,6 @@ jobs:
         with:
           sarif_file: ${{ runner.temp }}/qodana/results/qodana.sarif.json
           checkout_path: source
-          ref: refs/heads/${{ github.event.repository.default_branch }}
-          sha: ${{ needs.register.outputs.head_sha }}
+          ref: ${{ github.ref }}
+          sha: ${{ github.sha }}
           category: Kotventure/qodana
-
-  report:
-    name: Report trusted Qodana check
-    needs: [register, analyse]
-    if: always() && needs.register.outputs.check_run_id != ''
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      checks: write
-      contents: read
-    steps:
-      - name: Checkout trusted workflow code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ github.sha }}
-          persist-credentials: false
-
-      - name: Complete the trusted Qodana check
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        env:
-          ANALYSE_RESULT: ${{ needs.analyse.result }}
-          CHECK_EXTERNAL_ID: ${{ needs.register.outputs.check_external_id }}
-          CHECK_RUN_ID: ${{ needs.register.outputs.check_run_id }}
-          HEAD_SHA: ${{ needs.register.outputs.head_sha }}
-          REGISTER_RESULT: ${{ needs.register.result }}
-        with:
-          retries: 3
-          retry-exempt-status-codes: 400,401,403,404,422
-          script: |
-            const {
-              completeWorkflowCheck,
-              workflowResultConclusion,
-            } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/workflow-run-check.js`);
-            const result = process.env.REGISTER_RESULT === 'success'
-              ? process.env.ANALYSE_RESULT
-              : process.env.REGISTER_RESULT;
-            const conclusion = workflowResultConclusion(result);
-            const summaries = {
-              success: 'Qodana analysed and published the validated trusted source.',
-              failure: 'Qodana analysis or publication failed.',
-              cancelled: 'The trusted Qodana workflow was cancelled.',
-              skipped: 'The trusted Qodana workflow was skipped.',
-            };
-            await completeWorkflowCheck({
-              github,
-              context,
-              checkId: Number(process.env.CHECK_RUN_ID),
-              name: 'Qodana / trusted ref',
-              headSha: process.env.HEAD_SHA,
-              externalId: process.env.CHECK_EXTERNAL_ID,
-              conclusion,
-              summary: summaries[conclusion],
-            });
