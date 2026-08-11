@@ -4,8 +4,8 @@ export const MAX_RESULT_BYTES = 64 * 1024;
 export const MAX_MODULES = 32;
 export const MAX_DECLARATIONS = 100;
 export const MAX_REF_LENGTH = 200;
-const MAX_DECLARATION_LENGTH = 120;
-const MAX_COUNT = 1_000_000_000;
+export const MAX_DECLARATION_LENGTH = 120;
+export const MAX_COUNT = 1_000_000_000;
 export const MODULE_PATTERN = /^(?:[A-Za-z0-9_-]){1,32}(?![\s\S])/;
 export const REPOSITORY_PATTERN = /^(?:[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)(?![\s\S])/;
 export const SHA_PATTERN = /^(?:[a-f0-9]){40}(?![\s\S])/;
@@ -36,39 +36,7 @@ const ZERO_WIDTH_CODE_POINTS = new Set([
 
 export type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
-export type JsonObject = { [key: string]: JsonValue };
-
-export function isObject(value: JsonValue | undefined): value is JsonObject {
-  return !!value && typeof value === 'object' && !Array.isArray(value);
-}
-
-export function exactKeys<T extends object>(
-  value: JsonValue,
-  expected: readonly string[],
-  label: string,
-): T {
-  if (!isObject(value)) throw new Error(`${label} must be an object`);
-  const actual = Object.keys(value).sort();
-  const keys = [...expected].sort();
-  if (actual.length !== keys.length || actual.some((key, index) => key !== keys[index])) {
-    throw new Error(`${label} has unexpected properties`);
-  }
-  return value as T;
-}
-
-export function boundedInteger(value: JsonValue, label: string, minimum = 0, maximum = MAX_COUNT): number {
-  if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < minimum || value > maximum) {
-    throw new Error(`${label} must be an integer from ${minimum} to ${maximum}`);
-  }
-  return value;
-}
-
-export function boundedString(value: JsonValue, pattern: RegExp, label: string): string {
-  if (typeof value !== 'string' || !pattern.test(value)) throw new Error(`${label} has an invalid value`);
-  return value;
-}
-
-function hasUnsafeTextCharacter(value: string, allowBacktick: boolean): boolean {
+export function hasUnsafeTextCharacter(value: string, allowBacktick: boolean): boolean {
   for (const character of value) {
     const codePoint = character.codePointAt(0) ?? 0;
     if (codePoint <= CONTROL_CODE_POINT_MAX
@@ -83,20 +51,4 @@ function hasUnsafeTextCharacter(value: string, allowBacktick: boolean): boolean 
     }
   }
   return false;
-}
-
-export function boundedRef(value: JsonValue, label: string): string {
-  if (typeof value !== 'string' || value.length < 1 || value.length > MAX_REF_LENGTH
-    || hasUnsafeTextCharacter(value, true)) {
-    throw new Error(`${label} has an invalid value`);
-  }
-  return value;
-}
-
-export function boundedDeclaration(value: JsonValue, label: string): string {
-  if (typeof value !== 'string' || value.length < 1 || value.length > MAX_DECLARATION_LENGTH
-    || hasUnsafeTextCharacter(value, false)) {
-    throw new Error(`${label} has an invalid value`);
-  }
-  return value;
 }

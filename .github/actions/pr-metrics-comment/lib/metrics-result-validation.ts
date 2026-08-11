@@ -1,203 +1,156 @@
+import { z } from 'zod';
 import {
+  MAX_COUNT,
   MAX_DECLARATIONS,
+  MAX_DECLARATION_LENGTH,
   MAX_MODULES,
+  MAX_REF_LENGTH,
   MODULE_PATTERN,
   REPOSITORY_PATTERN,
   SCHEMA_VERSION,
   SHA_PATTERN,
   WORKFLOW_NAME,
-  boundedDeclaration,
-  boundedInteger,
-  boundedRef,
-  boundedString,
-  exactKeys,
+  hasUnsafeTextCharacter,
 } from './metrics-result-contract.js';
 import type { JsonValue } from './metrics-result-contract.js';
 
-type CoverageModuleValue = {
-  readonly name: string;
-  readonly missed: number;
-  readonly covered: number;
-};
-
-export type CoverageValue = {
-  readonly modules: CoverageModuleValue[];
-  readonly totalMissed: number;
-  readonly totalCovered: number;
-};
-
-export type JarValue = {
-  readonly module: string;
-  readonly size: number;
-  readonly classes: number | null;
-};
-
-export type BuildMetrics = {
-  readonly tests: number;
-  readonly skipped: number;
-  readonly durationSeconds: number | null;
-};
-
-type PatchCoverageValue = {
-  readonly covered: number;
-  readonly missed: number;
-};
-
-type ApiSurfaceValue = {
-  readonly added: string[];
-  readonly removed: string[];
-};
-
-type ProvenanceValue = {
-  readonly repository: string;
-  readonly workflow: string;
-  readonly event: string;
-  readonly runId: number;
-  readonly runAttempt: number;
-  readonly pullRequest: number;
-  readonly baseRepository: string;
-  readonly baseRef: string;
-  readonly baseSha: string;
-  readonly headRepository: string;
-  readonly headRef: string;
-  readonly headSha: string;
-};
-
-export type MetricsResultValue = {
-  readonly schemaVersion: number;
-  readonly provenance: ProvenanceValue;
-  readonly metrics: {
-    readonly headCoverage: CoverageValue | null;
-    readonly baseCoverage: CoverageValue | null;
-    readonly headJars: JarValue[];
-    readonly baseJars: JarValue[];
-    readonly headMetrics: BuildMetrics | null;
-    readonly baseMetrics: BuildMetrics | null;
-    readonly patchCoverage: PatchCoverageValue | null;
-    readonly apiSurface: ApiSurfaceValue | null;
-  };
-};
-
-function validateCoverage(value: JsonValue, label: string): CoverageValue | null {
-  if (value == null) return null;
-  const checked = exactKeys<CoverageValue>(value, ['modules', 'totalMissed', 'totalCovered'], label);
-  if (!Array.isArray(checked.modules)) throw new Error(`${label}.modules must be an array`);
-  if (checked.modules.length > MAX_MODULES) throw new Error(`${label}.modules has too many entries`);
-  const names = new Set<string>();
-  for (const [index, module] of checked.modules.entries()) {
-    const checkedModule = exactKeys<CoverageModuleValue>(module, ['name', 'missed', 'covered'], `${label}.modules[${index}]`);
-    const moduleName = boundedString(checkedModule.name, MODULE_PATTERN, `${label}.modules[${index}].name`);
-    if (names.has(moduleName)) throw new Error(`${label}.modules contains a duplicate name`);
-    names.add(moduleName);
-    boundedInteger(checkedModule.missed, `${label}.modules[${index}].missed`);
-    boundedInteger(checkedModule.covered, `${label}.modules[${index}].covered`);
+function parseOrThrow<T>(schema: z.ZodType<T>, value: unknown): T {
+  const result = schema.safeParse(value, {
+    error: (issue) => {
+      switch (issue.code) {
+        case 'unrecognized_keys':
+          return 'has unexpected properties';
+        case 'invalid_type':
+          if (issue.expected === 'array') return 'must be an array';
+          if (issue.expected === 'int') return 'must be an integer';
+          if (issue.expected === 'object') return 'must be an object';
+          if (issue.expected === 'string') return 'must be a string';
+          return issue.message;
+        case 'too_small':
+        case 'too_big': {
+          if (issue.origin === 'array') return 'has too many entries';
+          if (issue.origin === 'number') {
+            const minimum = 'minimum' in issue ? issue.minimum : 0;
+            const maximum = 'maximum' in issue ? issue.maximum : Number.MAX_SAFE_INTEGER;
+            return `must be an integer from ${minimum} to ${maximum}`;
+          }
+          if (issue.origin === 'string') return 'has an invalid value';
+          return issue.message;
+        }
+        case 'invalid_format':
+          return 'has an invalid value';
+        default:
+          return issue.message;
+      }
+    },
+  });
+  if (!result.success) {
+    throw new Error(result.error.issues
+      .map((issue) => {
+        const path = issue.path.join('.');
+        return path.length > 0 ? `${path} ${issue.message}` : issue.message;
+      })
+      .join('; '));
   }
-  boundedInteger(checked.totalMissed, `${label}.totalMissed`);
-  boundedInteger(checked.totalCovered, `${label}.totalCovered`);
-  return checked;
+  return value as T;
 }
 
-function validateJars(value: JsonValue, label: string): JarValue[] {
-  if (!Array.isArray(value)) throw new Error(`${label} must be an array`);
-  if (value.length > MAX_MODULES) throw new Error(`${label} has too many entries`);
-  const names = new Set<string>();
-  const jars: JarValue[] = [];
-  for (const [index, jar] of value.entries()) {
-    const checkedJar = exactKeys<JarValue>(jar, ['module', 'size', 'classes'], `${label}[${index}]`);
-    const jarModule = boundedString(checkedJar.module, MODULE_PATTERN, `${label}[${index}].module`);
-    if (names.has(jarModule)) throw new Error(`${label} contains a duplicate module`);
-    names.add(jarModule);
-    boundedInteger(checkedJar.size, `${label}[${index}].size`);
-    if (checkedJar.classes !== null) boundedInteger(checkedJar.classes, `${label}[${index}].classes`);
-    jars.push(checkedJar);
-  }
-  return jars;
-}
+const boundedCountSchema = z.number().int().min(0).max(MAX_COUNT);
 
-export function validateBuildMetrics(value: JsonValue, label: string): BuildMetrics | null {
+const moduleNameSchema = z.string().regex(MODULE_PATTERN);
+
+const coverageModuleSchema = z.strictObject({
+  name: moduleNameSchema,
+  missed: boundedCountSchema,
+  covered: boundedCountSchema,
+});
+
+const coverageSchema = z.strictObject({
+  modules: z.array(coverageModuleSchema).max(MAX_MODULES).refine(
+    (modules): boolean => new Set(modules.map((module) => module.name)).size === modules.length,
+    { message: 'contains a duplicate name' },
+  ),
+  totalMissed: boundedCountSchema,
+  totalCovered: boundedCountSchema,
+});
+
+const jarSchema = z.strictObject({
+  module: moduleNameSchema,
+  size: boundedCountSchema,
+  classes: z.number().int().min(0).max(MAX_COUNT).nullable(),
+});
+
+const jarsSchema = z.array(jarSchema).max(MAX_MODULES).refine(
+  (jars): boolean => new Set(jars.map((jar) => jar.module)).size === jars.length,
+  { message: 'contains a duplicate module' },
+);
+
+const buildMetricsSchema = z.strictObject({
+  tests: boundedCountSchema,
+  skipped: boundedCountSchema,
+  durationSeconds: z.number().int().min(0).max(MAX_COUNT).nullable(),
+});
+
+const patchCoverageSchema = z.strictObject({
+  covered: boundedCountSchema,
+  missed: boundedCountSchema,
+});
+
+const declarationSchema = z.string().min(1).max(MAX_DECLARATION_LENGTH).refine(
+  (value): boolean => !hasUnsafeTextCharacter(value, false),
+  { message: 'has an invalid value' },
+);
+
+const apiSurfaceSchema = z.strictObject({
+  added: z.array(declarationSchema).max(MAX_DECLARATIONS),
+  removed: z.array(declarationSchema).max(MAX_DECLARATIONS),
+});
+
+const refSchema = z.string().min(1).max(MAX_REF_LENGTH).refine(
+  (value): boolean => !hasUnsafeTextCharacter(value, true),
+  { message: 'has an invalid value' },
+);
+
+const provenanceSchema = z.strictObject({
+  repository: z.string().regex(REPOSITORY_PATTERN),
+  workflow: z.string().refine((value): boolean => value === WORKFLOW_NAME, { message: `must be ${WORKFLOW_NAME}` }),
+  event: z.string().refine((value): boolean => value === 'pull_request', { message: 'must be pull_request' }),
+  runId: z.number().int().min(1).max(Number.MAX_SAFE_INTEGER),
+  runAttempt: z.number().int().min(1).max(1000),
+  pullRequest: z.number().int().min(1).max(Number.MAX_SAFE_INTEGER),
+  baseRepository: z.string().regex(REPOSITORY_PATTERN),
+  baseRef: refSchema,
+  baseSha: z.string().regex(SHA_PATTERN),
+  headRepository: z.string().regex(REPOSITORY_PATTERN),
+  headRef: refSchema,
+  headSha: z.string().regex(SHA_PATTERN),
+});
+
+const metricsResultSchema = z.strictObject({
+  schemaVersion: z.literal(SCHEMA_VERSION),
+  provenance: provenanceSchema,
+  metrics: z.strictObject({
+    headCoverage: coverageSchema.nullable(),
+    baseCoverage: coverageSchema.nullable(),
+    headJars: jarsSchema,
+    baseJars: jarsSchema,
+    headMetrics: buildMetricsSchema.nullable(),
+    baseMetrics: buildMetricsSchema.nullable(),
+    patchCoverage: patchCoverageSchema.nullable(),
+    apiSurface: apiSurfaceSchema.nullable(),
+  }),
+});
+
+export type CoverageValue = z.infer<typeof coverageSchema>;
+export type JarValue = z.infer<typeof jarSchema>;
+export type BuildMetrics = z.infer<typeof buildMetricsSchema>;
+export type MetricsResultValue = z.infer<typeof metricsResultSchema>;
+
+export function validateBuildMetrics(value: JsonValue): BuildMetrics | null {
   if (value == null) return null;
-  const checked = exactKeys<BuildMetrics>(value, ['tests', 'skipped', 'durationSeconds'], label);
-  boundedInteger(checked.tests, `${label}.tests`);
-  boundedInteger(checked.skipped, `${label}.skipped`);
-  if (checked.durationSeconds !== null) boundedInteger(checked.durationSeconds, `${label}.durationSeconds`);
-  return checked;
-}
-
-function validatePatchCoverage(value: JsonValue): PatchCoverageValue | null {
-  if (value == null) return null;
-  const checked = exactKeys<PatchCoverageValue>(value, ['covered', 'missed'], 'metrics.patchCoverage');
-  boundedInteger(checked.covered, 'metrics.patchCoverage.covered');
-  boundedInteger(checked.missed, 'metrics.patchCoverage.missed');
-  return checked;
-}
-
-function validateApiSurface(value: JsonValue): ApiSurfaceValue | null {
-  if (value == null) return null;
-  const checked = exactKeys<ApiSurfaceValue>(value, ['added', 'removed'], 'metrics.apiSurface');
-  for (const name of ['added', 'removed'] as const) {
-    const declarations = checked[name];
-    if (!Array.isArray(declarations)) throw new Error(`metrics.apiSurface.${name} must be an array`);
-    if (declarations.length > MAX_DECLARATIONS) throw new Error(`metrics.apiSurface.${name} has too many entries`);
-    for (const [index, declaration] of declarations.entries()) {
-      boundedDeclaration(declaration, `metrics.apiSurface.${name}[${index}]`);
-    }
-  }
-  return checked;
-}
-
-function validateProvenance(value: JsonValue): ProvenanceValue {
-  const checked = exactKeys<ProvenanceValue>(value, [
-    'repository',
-    'workflow',
-    'event',
-    'runId',
-    'runAttempt',
-    'pullRequest',
-    'baseRepository',
-    'baseRef',
-    'baseSha',
-    'headRepository',
-    'headRef',
-    'headSha',
-  ], 'provenance');
-  boundedString(checked.repository, REPOSITORY_PATTERN, 'provenance.repository');
-  if (checked.workflow !== WORKFLOW_NAME) throw new Error(`provenance.workflow must be ${WORKFLOW_NAME}`);
-  if (checked.event !== 'pull_request') throw new Error('provenance.event must be pull_request');
-  boundedInteger(checked.runId, 'provenance.runId', 1, Number.MAX_SAFE_INTEGER);
-  boundedInteger(checked.runAttempt, 'provenance.runAttempt', 1, 1000);
-  boundedInteger(checked.pullRequest, 'provenance.pullRequest', 1, Number.MAX_SAFE_INTEGER);
-  boundedString(checked.baseRepository, REPOSITORY_PATTERN, 'provenance.baseRepository');
-  boundedRef(checked.baseRef, 'provenance.baseRef');
-  boundedString(checked.baseSha, SHA_PATTERN, 'provenance.baseSha');
-  boundedString(checked.headRepository, REPOSITORY_PATTERN, 'provenance.headRepository');
-  boundedRef(checked.headRef, 'provenance.headRef');
-  boundedString(checked.headSha, SHA_PATTERN, 'provenance.headSha');
-  return checked;
+  return parseOrThrow(buildMetricsSchema, value);
 }
 
 export function validateMetricsResult(value: JsonValue): MetricsResultValue {
-  const checked = exactKeys<MetricsResultValue>(value, ['schemaVersion', 'provenance', 'metrics'], 'metrics result');
-  if (checked.schemaVersion !== SCHEMA_VERSION) {
-    throw new Error(`Unsupported metrics result schema: ${checked.schemaVersion}`);
-  }
-  validateProvenance(checked.provenance);
-  const metrics = exactKeys<MetricsResultValue['metrics']>(checked.metrics, [
-    'headCoverage',
-    'baseCoverage',
-    'headJars',
-    'baseJars',
-    'headMetrics',
-    'baseMetrics',
-    'patchCoverage',
-    'apiSurface',
-  ], 'metrics');
-  validateCoverage(metrics.headCoverage, 'metrics.headCoverage');
-  validateCoverage(metrics.baseCoverage, 'metrics.baseCoverage');
-  validateJars(metrics.headJars, 'metrics.headJars');
-  validateJars(metrics.baseJars, 'metrics.baseJars');
-  validateBuildMetrics(metrics.headMetrics, 'metrics.headMetrics');
-  validateBuildMetrics(metrics.baseMetrics, 'metrics.baseMetrics');
-  validatePatchCoverage(metrics.patchCoverage);
-  validateApiSurface(metrics.apiSurface);
-  return checked;
+  return parseOrThrow(metricsResultSchema, value);
 }
