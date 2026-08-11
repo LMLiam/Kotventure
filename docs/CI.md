@@ -380,7 +380,7 @@ The `.github/package.json` manifest and its committed `package-lock.json` hold t
 dependencies of the CI tooling. Eight jobs install them: Triage, Lint (Actions), PR
 feedback, CodeQL Gate, Qodana register, the Qodana attestation job (non-code source
 kinds only), PR metrics publication, and Qodana publication. Each runs
-`npm ci --ignore-scripts --no-audit --no-fund` from `/.github` and then builds the
+`npm ci --ignore-scripts --no-audit --no-fund` from `.github` and then builds the
 TypeScript tooling with `npm run build`; the trusted publishers and the Qodana jobs
 install against the default-branch lockfile. Release provenance remains dependency-free.
 
