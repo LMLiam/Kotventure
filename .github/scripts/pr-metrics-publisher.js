@@ -14,6 +14,7 @@ const {
     validateResultProvenance,
     validateWorkflowSource,
 } = require('./pr-metrics-publisher-validation.js');
+const { fetchWorkflowRunContext } = require('./shared/run-context.js');
 
 const COVERAGE_GATE_FILE = 'gradle/coverage.gradle';
 const JAR_GROWTH_WARNING_THRESHOLD = 10;
@@ -85,31 +86,19 @@ async function resolveSource({ github, context }) {
 
     const { owner, repo } = context.repo;
 
-    const [{ data: repository }, { data: run }] = await Promise.all([
-            github.rest.repos.get({
-                owner,
-                repo,
-            }),
-            github.rest.actions.getWorkflowRun({
-                owner,
-                repo,
-                run_id: eventRun.id,
-            }),
-    ]);
+    const { repository, run, workflow } = await fetchWorkflowRunContext(rejectPublication, {
+        github,
+        owner,
+        repo,
+        eventRun,
+    });
 
-    const [{ data: workflow }, pullNumber] = await Promise.all([
-            github.rest.actions.getWorkflow({
-                owner,
-                repo,
-                workflow_id: run.workflow_id,
-            }),
-            resolvePullRequestNumber({
-                github,
-                owner,
-                repo,
-                run,
-            }),
-    ]);
+    const pullNumber = await resolvePullRequestNumber({
+        github,
+        owner,
+        repo,
+        run,
+    });
 
     const { data: pullRequest } = await github.rest.pulls.get({
         owner,
