@@ -49,3 +49,7 @@ bin/
 
 ### Node tooling ###
 .github/node_modules/
+.github/scripts/**/*.js
+.github/scripts/**/*.js.map
+.github/actions/pr-metrics-comment/**/*.js
+.github/actions/pr-metrics-comment/**/*.js.map

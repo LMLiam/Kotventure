@@ -4,10 +4,21 @@
   "private": true,
   "license": "MIT",
   "type": "commonjs",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
   "dependencies": {
     "@xmldom/xmldom": "0.9.10",
     "adm-zip": "0.6.0",
     "diff": "9.0.0",
     "yauzl": "3.4.0"
+  },
+  "devDependencies": {
+    "@actions/core": "3.0.1",
+    "@actions/github": "9.1.1",
+    "@types/node": "24.13.3",
+    "@types/yauzl": "3.4.0",
+    "typescript": "7.0.2"
   }
 }

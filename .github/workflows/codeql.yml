@@ -38,6 +38,14 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Install CI tooling dependencies
+        working-directory: .github
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Build CI tooling
+        working-directory: .github
+        run: npm run build
+
       - name: Decide whether heavy CI should run
         id: decide
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
@@ -90,6 +98,9 @@ jobs:
               - '.github/actions/**'
               - '.github/scripts/**'
               - '.github/dependabot.yml'
+              - '.github/package.json'
+              - '.github/package-lock.json'
+              - '.github/tsconfig*.json'
             vanilla:
               - 'modules/core/**'
               - 'gradle/vanilla-conformance.gradle'
