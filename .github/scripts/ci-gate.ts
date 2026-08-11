@@ -95,8 +95,8 @@ async function decideGate({
     && pullRequest.base.ref === 'master'
     && pullRequest.head.repo?.full_name === repository
     && pullRequest.head.ref === 'release-please--branches--master'
-    && pullRequest.user.login === 'release-please-kotventure[bot]'
-    && pullRequest.user.type === 'Bot'
+    && pullRequest.user?.login === 'release-please-kotventure[bot]'
+    && pullRequest.user?.type === 'Bot'
     && context.payload.sender?.login === 'release-please-kotventure[bot]'
     && context.payload.sender?.type === 'Bot';
 

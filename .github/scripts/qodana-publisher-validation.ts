@@ -23,7 +23,12 @@ import type { JsonValue } from './shared/json.js';
 
 const VALID_RUN_CONCLUSIONS = ['success', 'failure', 'cancelled', 'timed_out'];
 
-export class QodanaPublicationRejectedError extends Error {}
+export class QodanaPublicationRejectedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'QodanaPublicationRejectedError';
+  }
+}
 
 function reject(message: string): never {
   throw new QodanaPublicationRejectedError(message);
@@ -234,7 +239,6 @@ function validateQodanaSarif(value: Buffer | string): QodanaSarifDocument {
   if (!Array.isArray(document.runs) || document.runs.length !== 1) reject('SARIF must contain exactly one run');
   const run = document.runs[0];
   if (run == null) reject('SARIF must contain exactly one run');
-  requireObject<QodanaSarifRun>(run, 'SARIF run');
   const tool = requireObject<QodanaSarifRun['tool']>(run.tool, 'SARIF tool');
   const driver = requireObject<QodanaSarifRun['tool']['driver']>(tool.driver, 'SARIF driver');
   if (driver.name !== 'QDJVM') reject('SARIF driver name is invalid');
