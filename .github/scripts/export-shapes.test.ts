@@ -4,13 +4,16 @@
 // at fixed paths. Asserting the exported names here proves that the compiled
 // output keeps the same module shapes after the TypeScript conversion.
 
-const test = require('node:test');
-const assert = require('node:assert/strict');
+import { strict as assert } from 'node:assert';
+import * as path from 'node:path';
+import { test } from 'node:test';
 
 const SCRIPTS_DIR = __dirname;
 
+// The entry points are still plain JavaScript in this PR, so they are loaded
+// with require() exactly as the workflows load them at runtime.
 function load(relativePath: string): Record<string, unknown> {
-  return require(`${SCRIPTS_DIR}/${relativePath}`);
+  return require(path.join(SCRIPTS_DIR, relativePath));
 }
 
 test('CI entry points keep their runtime export shapes', () => {
