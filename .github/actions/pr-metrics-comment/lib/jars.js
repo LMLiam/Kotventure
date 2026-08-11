@@ -6,9 +6,7 @@ const { sanitizeModule } = require('./names.js');
 const { countClassEntries } = require('./zip.js');
 
 function parseModuleJar(filename) {
-  if (!filename.endsWith('.jar') || filename.includes('-sources') || filename.includes('-javadoc')) {
-    return null;
-  }
+  if (!filename.endsWith('.jar') || filename.includes('-sources') || filename.includes('-javadoc')) return null;
   const match = filename.match(/^kotventure-(.+)-(\d+\.\d+\.\d+(?:[-+][A-Za-z0-9.]+)?)\.jar$/);
   if (!match) return null;
   return { module: sanitizeModule(match[1]), version: match[2] };
@@ -32,13 +30,9 @@ function collectJars(rootDir) {
         walk(full);
         continue;
       }
-      if (!entry.isFile()) {
-        continue;
-      }
+      if (!entry.isFile()) continue;
       const parsed = parseModuleJar(entry.name);
-      if (!parsed) {
-        continue;
-      }
+      if (!parsed) continue;
       const prev = bestVersion.get(parsed.module);
       if (!prev || versionKey(parsed.version) > versionKey(prev.version)) {
         const size = fs.statSync(full).size;

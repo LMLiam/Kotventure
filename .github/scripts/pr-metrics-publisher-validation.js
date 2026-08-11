@@ -282,16 +282,12 @@ function validateWorkflowSource({
 }
 
 function selectMetricsArtifact({ artifacts, source }) {
-    if (!Array.isArray(artifacts)) {
-        reject('workflow artifacts are missing');
-    }
+    if (!Array.isArray(artifacts)) reject('workflow artifacts are missing');
 
     const name = expectedArtifactName(source);
     const matches = artifacts.filter((artifact) => artifact?.name === name);
 
-    if (matches.length !== 1) {
-        reject(`expected exactly one metrics artifact, found ${matches.length}`);
-    }
+    if (matches.length !== 1) reject(`expected exactly one metrics artifact, found ${matches.length}`);
 
     const [artifact] = matches;
 

@@ -27,9 +27,7 @@ function parsePatch(patch) {
 function parsePatches(files) {
   const parsed = [];
   for (const file of files) {
-    if (!file.patch || file.status === 'removed') {
-      continue;
-    }
+    if (!file.patch || file.status === 'removed') continue;
     parsed.push({ path: file.filename, ...parsePatch(file.patch) });
   }
   return parsed;

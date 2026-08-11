@@ -122,21 +122,11 @@ async function writePublicationOutputs({ github, context, core }) {
   try {
     const publication = await resolvePublication({ github, context });
     core.setOutput('publish', String(publication.publish));
-    if (publication.artifactId != null) {
-      core.setOutput('artifact_id', String(publication.artifactId));
-    }
-    if (publication.headSha != null) {
-      core.setOutput('head_sha', publication.headSha);
-    }
-    if (publication.pullNumber != null) {
-      core.setOutput('pull_number', String(publication.pullNumber));
-    }
-    if (publication.sourceKind != null) {
-      core.setOutput('source_kind', publication.sourceKind);
-    }
-    if (publication.rejection) {
-      core.setFailed(`Qodana publication rejected: ${publication.rejection.message}`);
-    }
+    if (publication.artifactId != null) core.setOutput('artifact_id', String(publication.artifactId));
+    if (publication.headSha != null) core.setOutput('head_sha', publication.headSha);
+    if (publication.pullNumber != null) core.setOutput('pull_number', String(publication.pullNumber));
+    if (publication.sourceKind != null) core.setOutput('source_kind', publication.sourceKind);
+    if (publication.rejection) core.setFailed(`Qodana publication rejected: ${publication.rejection.message}`);
     return publication;
   } catch (error) {
     if (error instanceof QodanaSourceRejectedError && error.stale) {

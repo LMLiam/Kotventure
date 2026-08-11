@@ -90,12 +90,8 @@ function validatePullRequestState({
   requireEqual(pullRequest.base?.repo?.id, repository.id, 'pull request base repository id', true);
   requireSha(pullRequest.base?.sha, 'pull request base SHA');
   requireSha(pullRequest.head?.sha, 'pull request head SHA');
-  if (expectedHeadSha != null) {
-    requireEqual(pullRequest.head?.sha, expectedHeadSha, 'pull request head SHA', true);
-  }
-  if (expectedBaseSha != null) {
-    requireEqual(pullRequest.base.sha, expectedBaseSha, 'pull request base SHA', true);
-  }
+  if (expectedHeadSha != null) requireEqual(pullRequest.head?.sha, expectedHeadSha, 'pull request head SHA', true);
+  if (expectedBaseSha != null) requireEqual(pullRequest.base.sha, expectedBaseSha, 'pull request base SHA', true);
 }
 
 async function completePullRequestSource({
@@ -245,12 +241,8 @@ async function resolveTrustedCiRun({ github, owner, repo, runId, eventRun }) {
   });
   const workflow = requireObject(workflowResponse.data, 'workflow');
 
-  if (eventRun) {
-    validateEventRun(reject, { eventRun, run });
-  }
-  if (!['push', 'schedule', 'workflow_dispatch'].includes(run.event)) {
-    reject('workflow run event is not trusted');
-  }
+  if (eventRun) validateEventRun(reject, { eventRun, run });
+  if (!['push', 'schedule', 'workflow_dispatch'].includes(run.event)) reject('workflow run event is not trusted');
   requireEqual(run.status, 'completed', 'workflow run status');
   requireEqual(run.conclusion, 'success', 'workflow run conclusion');
   requireEqual(run.repository?.full_name, repositoryName(repository), 'workflow run repository');

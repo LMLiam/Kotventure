@@ -99,9 +99,7 @@ async function hasTrustedReleaseProvenance(options) {
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     const status = await readTrustedReleaseProvenance(options);
     if (status === 'success' || status === 'failed') return status === 'success';
-    if (attempt + 1 < attempts) {
-      await wait(10_000);
-    }
+    if (attempt + 1 < attempts) await wait(10_000);
   }
   return false;
 }

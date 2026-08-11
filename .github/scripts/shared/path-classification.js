@@ -51,9 +51,7 @@ function classifyChangedFiles(files) {
   const paths = changedPathNames(files);
   if (!paths) return 'code';
   if (paths.every(isDocumentationPath)) return 'documentation';
-  if (paths.every((name) => isSafeRepositoryPath(name) && RELEASE_ONLY_FILES.has(name))) {
-    return 'release-candidate';
-  }
+  if (paths.every((name) => isSafeRepositoryPath(name) && RELEASE_ONLY_FILES.has(name))) return 'release-candidate';
   return 'code';
 }
 

@@ -34,9 +34,7 @@ function buildArtifactName({
   headSha,
   baseSha,
 }) {
-  if (!['code', 'documentation', 'release'].includes(sourceKind)) {
-    throw new Error('Qodana source kind is invalid');
-  }
+  if (!['code', 'documentation', 'release'].includes(sourceKind)) throw new Error('Qodana source kind is invalid');
   return `${QODANA_ARTIFACT_PREFIX}${sourceKind}-${requirePositiveInteger(qodanaRunId, 'Qodana workflow run id')}-${requirePositiveInteger(qodanaRunAttempt, 'Qodana workflow run attempt')}-${requireSha(headSha, 'head SHA')}-${requireSha(baseSha, 'base SHA')}`;
 }
 

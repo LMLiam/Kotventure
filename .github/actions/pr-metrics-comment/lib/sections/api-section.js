@@ -3,9 +3,7 @@
 function apiSection(apiSurface) {
   const added = apiSurface.added.length;
   const removed = apiSurface.removed.length;
-  if (added === 0 && removed === 0) {
-    return { lines: [], verdictPart: null, warnings: [], changed: false };
-  }
+  if (added === 0 && removed === 0) return { lines: [], verdictPart: null, warnings: [], changed: false };
   const lines = [
     `### Public API — +${added} / −${removed} declarations`,
     '',

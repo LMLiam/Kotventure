@@ -8,18 +8,10 @@ const { statsSection } = require('./sections/stats-section.js');
 
 function footer({ headSha, links }) {
   const parts = [];
-  if (headSha) {
-    parts.push(`Updated for \`${headSha}\``);
-  }
-  if (links?.run) {
-    parts.push(`[Run](${links.run})`);
-  }
-  if (links?.dokka) {
-    parts.push(`[Dokka preview](${links.dokka})`);
-  }
-  if (links?.tests) {
-    parts.push(`[Test results](${links.tests})`);
-  }
+  if (headSha) parts.push(`Updated for \`${headSha}\``);
+  if (links?.run) parts.push(`[Run](${links.run})`);
+  if (links?.dokka) parts.push(`[Dokka preview](${links.dokka})`);
+  if (links?.tests) parts.push(`[Test results](${links.tests})`);
   return parts.length > 0 ? ['---', '', parts.join(' · '), ''] : [];
 }
 
@@ -39,18 +31,10 @@ function buildReport({
   links = {},
 }) {
   const parts = [];
-  if (headCoverage) {
-    parts.push(coverageSection({ headCoverage, baseCoverage, gateThreshold }));
-  }
-  if (patchCoverage) {
-    parts.push(patchSection(patchCoverage));
-  }
-  if (headJars.size > 0) {
-    parts.push(jarSection({ headJars, baseJars, growthThreshold }));
-  }
-  if (apiSurface) {
-    parts.push(apiSection(apiSurface));
-  }
+  if (headCoverage) parts.push(coverageSection({ headCoverage, baseCoverage, gateThreshold }));
+  if (patchCoverage) parts.push(patchSection(patchCoverage));
+  if (headJars.size > 0) parts.push(jarSection({ headJars, baseJars, growthThreshold }));
+  if (apiSurface) parts.push(apiSection(apiSurface));
   parts.push(statsSection({ headMetrics, baseMetrics }));
 
   const warnings = parts.flatMap((p) => p.warnings);

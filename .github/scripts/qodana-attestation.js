@@ -57,9 +57,7 @@ function createAttestation({ sourceKind, headSha }) {
 }
 
 function writeAttestation({ sourceKind, headSha, outputPath }) {
-  if (typeof outputPath !== 'string' || outputPath.length === 0) {
-    throw new Error('attestation output path is required');
-  }
+  if (typeof outputPath !== 'string' || outputPath.length === 0) throw new Error('attestation output path is required');
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
   fs.writeFileSync(outputPath, JSON.stringify(createAttestation({ sourceKind, headSha })));
 }

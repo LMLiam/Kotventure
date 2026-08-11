@@ -40,9 +40,7 @@ async function fetchPatches({ github, context, core }) {
 
 async function collect({ env, context, github, core }) {
   const outputPath = env.OUTPUT_PATH;
-  if (!outputPath) {
-    throw new Error('OUTPUT_PATH is required');
-  }
+  if (!outputPath) throw new Error('OUTPUT_PATH is required');
 
   const headCoverage = readCoverage(env.HEAD_COVERAGE_PATH);
   const baseCoverage = readCoverage(env.BASE_COVERAGE_PATH);

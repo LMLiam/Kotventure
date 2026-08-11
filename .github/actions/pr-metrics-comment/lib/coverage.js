@@ -30,9 +30,7 @@ function sourcefileLines(packageName, packageBody, files) {
     while ((lineMatch = lineRegex.exec(sourcefileMatch[2])) !== null) {
       lines.set(parseInt(lineMatch[1], 10), parseInt(lineMatch[3], 10) > 0);
     }
-    if (lines.size > 0) {
-      files.set(`${packageName}/${sourcefileMatch[1]}`, lines);
-    }
+    if (lines.size > 0) files.set(`${packageName}/${sourcefileMatch[1]}`, lines);
   }
 }
 
@@ -44,13 +42,9 @@ function parseCoverage(xml) {
   while ((packageMatch = packageRegex.exec(xml)) !== null) {
     sourcefileLines(packageMatch[1], packageMatch[2], files);
     const counters = packageLineCounter(packageMatch[2]);
-    if (!counters) {
-      continue;
-    }
+    if (!counters) continue;
     const moduleName = moduleFromPackage(packageMatch[1]);
-    if (!modules.has(moduleName)) {
-      modules.set(moduleName, { missed: 0, covered: 0 });
-    }
+    if (!modules.has(moduleName)) modules.set(moduleName, { missed: 0, covered: 0 });
     const entry = modules.get(moduleName);
     entry.missed += counters.missed;
     entry.covered += counters.covered;

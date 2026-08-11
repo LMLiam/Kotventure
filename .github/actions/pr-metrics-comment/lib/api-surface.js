@@ -21,11 +21,7 @@ function cancelPairs(added, removed) {
   const kept = [];
   for (const sig of added) {
     const idx = remaining.indexOf(sig);
-    if (idx >= 0) {
-      remaining.splice(idx, 1);
-    } else {
-      kept.push(sig);
-    }
+    if (idx >= 0) remaining.splice(idx, 1); else kept.push(sig);
   }
   return { added: kept, removed: remaining };
 }
@@ -34,9 +30,7 @@ function computeApiSurface(patches) {
   const addedAll = [];
   const removedAll = [];
   for (const patch of patches) {
-    if (!MAIN_SOURCE.test(patch.path)) {
-      continue;
-    }
+    if (!MAIN_SOURCE.test(patch.path)) continue;
     addedAll.push(...declarationsIn(patch.addedLines.map((l) => l.text)));
     removedAll.push(...declarationsIn(patch.removedText));
   }

@@ -33,9 +33,7 @@ function validateQodanaWorkflowSource({ eventRun, run, workflow, repository }) {
 
   requireEqual(eventRun.id, run.id, 'workflow run id');
   requireEqual(eventRun.run_attempt, run.run_attempt, 'workflow run attempt');
-  if (eventRun.workflow_id != null) {
-    requireEqual(eventRun.workflow_id, run.workflow_id, 'workflow run workflow id');
-  }
+  if (eventRun.workflow_id != null) requireEqual(eventRun.workflow_id, run.workflow_id, 'workflow run workflow id');
   requireEqual(eventRun.event, 'pull_request_target', 'workflow run event');
   requireEqual(eventRun.status, 'completed', 'workflow run event status');
   requireEqual(eventRun.conclusion, run.conclusion, 'workflow run event conclusion');
@@ -65,9 +63,7 @@ function validateQodanaWorkflowSource({ eventRun, run, workflow, repository }) {
 }
 
 function matchingRunArtifacts({ artifacts, qodanaRun, prefix, parse }) {
-  if (!Array.isArray(artifacts)) {
-    reject('workflow artifacts are missing');
-  }
+  if (!Array.isArray(artifacts)) reject('workflow artifacts are missing');
   return artifacts
     .filter((artifact) => typeof artifact?.name === 'string'
       && artifact.name.startsWith(prefix))
@@ -86,9 +82,7 @@ function selectRunArtifact({
   label,
 }) {
   const candidates = matchingRunArtifacts({ artifacts, qodanaRun, prefix, parse });
-  if (candidates.length !== 1) {
-    reject(`expected exactly one ${label}, found ${candidates.length}`);
-  }
+  if (candidates.length !== 1) reject(`expected exactly one ${label}, found ${candidates.length}`);
   const [{ artifact, descriptor }] = candidates;
   validateArtifactBinding(reject, {
     artifact,
@@ -139,9 +133,7 @@ function validateArtifactLocation(location) {
     && (typeof uriBaseId !== 'string' || !/^[A-Za-z0-9_.-]{1,128}$/.test(uriBaseId))) {
     reject('SARIF artifact location base id is invalid');
   }
-  if (uri == null) {
-    return;
-  }
+  if (uri == null) return;
   if (typeof uri !== 'string' || uri.length > 4096 || uri.includes('\u0000')) {
     reject('SARIF artifact location is invalid');
   }
@@ -159,25 +151,17 @@ function validateNestedArtifactLocations(root) {
   while (pending.length > 0) {
     const { value, depth } = pending.pop();
     visited += 1;
-    if (visited > 250_000 || depth > 100) {
-      reject('SARIF structure is too complex');
-    }
-    if (!value || typeof value !== 'object') {
-      continue;
-    }
+    if (visited > 250_000 || depth > 100) reject('SARIF structure is too complex');
+    if (!value || typeof value !== 'object') continue;
     if (Array.isArray(value)) {
       for (const item of value) {
         pending.push({ value: item, depth: depth + 1 });
       }
       continue;
     }
-    if (Object.hasOwn(value, 'uri') || Object.hasOwn(value, 'uriBaseId')) {
-      validateArtifactLocation(value);
-    }
+    if (Object.hasOwn(value, 'uri') || Object.hasOwn(value, 'uriBaseId')) validateArtifactLocation(value);
     for (const [key, child] of Object.entries(value)) {
-      if (key === 'artifactLocation') {
-        validateArtifactLocation(child);
-      }
+      if (key === 'artifactLocation') validateArtifactLocation(child);
       pending.push({ value: child, depth: depth + 1 });
     }
   }
@@ -185,9 +169,7 @@ function validateNestedArtifactLocations(root) {
 
 function validateQodanaSarif(value) {
   const bytes = Buffer.isBuffer(value) ? value : Buffer.from(String(value), 'utf8');
-  if (bytes.length < 1 || bytes.length > MAX_SARIF_BYTES) {
-    reject('SARIF size is invalid');
-  }
+  if (bytes.length < 1 || bytes.length > MAX_SARIF_BYTES) reject('SARIF size is invalid');
   let document;
   try {
     document = JSON.parse(bytes.toString('utf8'));
@@ -196,31 +178,21 @@ function validateQodanaSarif(value) {
   }
   requireObject(document, 'SARIF document');
   requireEqual(document.version, '2.1.0', 'SARIF version');
-  if (!Array.isArray(document.runs) || document.runs.length !== 1) {
-    reject('SARIF must contain exactly one run');
-  }
+  if (!Array.isArray(document.runs) || document.runs.length !== 1) reject('SARIF must contain exactly one run');
   const [run] = document.runs;
   requireObject(run, 'SARIF run');
   const tool = requireObject(run.tool, 'SARIF tool');
   const driver = requireObject(tool.driver, 'SARIF driver');
-  if (driver.name !== 'QDJVM') {
-    reject('SARIF driver name is invalid');
-  }
-  if (!Array.isArray(run.results) || run.results.length > MAX_SARIF_RESULTS) {
-    reject('SARIF results are invalid');
-  }
+  if (driver.name !== 'QDJVM') reject('SARIF driver name is invalid');
+  if (!Array.isArray(run.results) || run.results.length > MAX_SARIF_RESULTS) reject('SARIF results are invalid');
   for (const result of run.results) {
     requireObject(result, 'SARIF result');
   }
   if (run.artifacts != null) {
-    if (!Array.isArray(run.artifacts)) {
-      reject('SARIF artifacts are invalid');
-    }
+    if (!Array.isArray(run.artifacts)) reject('SARIF artifacts are invalid');
     for (const artifact of run.artifacts) {
       const location = requireObject(artifact, 'SARIF artifact').location;
-      if (location != null) {
-        validateArtifactLocation(location);
-      }
+      if (location != null) validateArtifactLocation(location);
     }
   }
   if (run.originalUriBaseIds != null) {

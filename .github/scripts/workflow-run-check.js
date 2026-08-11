@@ -32,9 +32,7 @@ function workflowRunUrl(context) {
 }
 
 function buildCheckExternalId({ kind, runId, runAttempt, headSha }) {
-  if (typeof kind !== 'string' || !KIND_PATTERN.test(kind)) {
-    throw new Error('check kind is invalid');
-  }
+  if (typeof kind !== 'string' || !KIND_PATTERN.test(kind)) throw new Error('check kind is invalid');
   return `${EXTERNAL_ID_PREFIX}:${kind}:${requirePositiveInteger(Number(runId), 'workflow run id')}:${requirePositiveInteger(Number(runAttempt), 'workflow run attempt')}:${requireSha(headSha, 'check head SHA')}`;
 }
 
@@ -90,9 +88,7 @@ async function createWorkflowCheck({
 }
 
 function workflowResultConclusion(result) {
-  if (typeof result !== 'string' || !WORKFLOW_RESULTS.has(result)) {
-    throw new Error('workflow result is invalid');
-  }
+  if (typeof result !== 'string' || !WORKFLOW_RESULTS.has(result)) throw new Error('workflow result is invalid');
   return result;
 }
 

@@ -10,9 +10,7 @@ function validateArtifactBinding(reject, { artifact, expected, maxBytes, label }
   } = createValidators(reject);
 
   requireInteger(artifact.id, `${label} id`);
-  if (artifact.expired !== false) {
-    reject(`${label} is expired`);
-  }
+  if (artifact.expired !== false) reject(`${label} is expired`);
   requireInteger(artifact.size_in_bytes, `${label} size`, 1, maxBytes);
 
   const workflowRun = requireObject(artifact.workflow_run, `${label} workflow run`);

@@ -107,9 +107,7 @@ async function decideGate({ github, context, core }) {
         headRef: pullRequest.head.ref,
         pullNumber: pullRequest.number,
       });
-      if (provenanceRun?.status === 'completed' || attempt === 5) {
-        break;
-      }
+      if (provenanceRun?.status === 'completed' || attempt === 5) break;
       await new Promise((resolve) => setTimeout(resolve, 10_000));
     }
   } catch (error) {
