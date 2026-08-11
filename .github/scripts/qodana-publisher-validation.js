@@ -19,8 +19,8 @@ function reject(message) {
 }
 
 const {
+  requireBoundedInteger,
   requireEqual,
-  requireBoundedInteger: requirePositiveInteger,
   requireObject,
   requireSha,
 } = createValidators(reject);
@@ -55,8 +55,8 @@ function validateQodanaWorkflowSource({ eventRun, run, workflow, repository }) {
   requireEqual(workflow.path, QODANA_WORKFLOW_PATH, 'workflow path');
 
   return {
-    runId: requirePositiveInteger(run.id, 'Qodana workflow run id'),
-    runAttempt: requirePositiveInteger(run.run_attempt, 'Qodana workflow run attempt'),
+    runId: requireBoundedInteger(run.id, 'Qodana workflow run id'),
+    runAttempt: requireBoundedInteger(run.run_attempt, 'Qodana workflow run attempt'),
     repository: repository.full_name,
     conclusion: run.conclusion,
   };

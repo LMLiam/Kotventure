@@ -14,8 +14,8 @@ const WORKFLOW_RESULTS = new Set([
 ]);
 
 const {
+  requireBoundedInteger,
   requireEqual,
-  requireBoundedInteger: requirePositiveInteger,
   requireObject,
   requireSha,
   requireText,
@@ -26,19 +26,19 @@ const {
 function workflowRunUrl(context) {
   const serverUrl = requireText(context?.serverUrl, 'GitHub server URL', 512);
   const repository = `${requireText(context?.repo?.owner, 'repository owner', 100)}/${requireText(context?.repo?.repo, 'repository name', 100)}`;
-  const runId = requirePositiveInteger(Number(context?.runId), 'workflow run id');
-  const runAttempt = requirePositiveInteger(Number(context?.runAttempt), 'workflow run attempt');
+  const runId = requireBoundedInteger(Number(context?.runId), 'workflow run id');
+  const runAttempt = requireBoundedInteger(Number(context?.runAttempt), 'workflow run attempt');
   return `${serverUrl}/${repository}/actions/runs/${runId}/attempts/${runAttempt}`;
 }
 
 function buildCheckExternalId({ kind, runId, runAttempt, headSha }) {
   if (typeof kind !== 'string' || !KIND_PATTERN.test(kind)) throw new Error('check kind is invalid');
-  return `${EXTERNAL_ID_PREFIX}:${kind}:${requirePositiveInteger(Number(runId), 'workflow run id')}:${requirePositiveInteger(Number(runAttempt), 'workflow run attempt')}:${requireSha(headSha, 'check head SHA')}`;
+  return `${EXTERNAL_ID_PREFIX}:${kind}:${requireBoundedInteger(Number(runId), 'workflow run id')}:${requireBoundedInteger(Number(runAttempt), 'workflow run attempt')}:${requireSha(headSha, 'check head SHA')}`;
 }
 
 function validateCreatedCheck(check, expected) {
   requireObject(check, 'created check');
-  requirePositiveInteger(check.id, 'created check id');
+  requireBoundedInteger(check.id, 'created check id');
   requireEqual(check.name, expected.name, 'created check name');
   requireEqual(check.head_sha, expected.headSha, 'created check head SHA');
   requireEqual(check.external_id, expected.externalId, 'created check external id');
@@ -104,7 +104,7 @@ async function completeWorkflowCheck({
 }) {
   const owner = requireText(context?.repo?.owner, 'repository owner', 100);
   const repo = requireText(context?.repo?.repo, 'repository name', 100);
-  const trustedCheckId = requirePositiveInteger(checkId, 'check id');
+  const trustedCheckId = requireBoundedInteger(checkId, 'check id');
   const trustedName = requireText(name, 'check name', 100);
   const trustedHeadSha = requireSha(headSha, 'check head SHA');
   const trustedExternalId = requireText(externalId, 'check external id', 256);

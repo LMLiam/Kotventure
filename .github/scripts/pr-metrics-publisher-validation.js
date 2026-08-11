@@ -24,23 +24,23 @@ function reject(message) {
 }
 
 const {
+    requireBoundedInteger,
     requireEqual,
-    requireBoundedInteger: requireSafeInteger,
     requireObject,
     requireString,
 } = createValidators(reject);
 
 function expectedArtifactName({ runId, runAttempt }) {
-    const id = requireSafeInteger(runId, 'workflow run id');
-    const attempt = requireSafeInteger(runAttempt, 'workflow run attempt');
+    const id = requireBoundedInteger(runId, 'workflow run id');
+    const attempt = requireBoundedInteger(runAttempt, 'workflow run attempt');
 
     return `${RESULT_ARTIFACT_PREFIX}${id}-${attempt}`;
 }
 
 function validateCompletedRun(eventRun, run) {
-    const runId = requireSafeInteger(run.id, 'workflow run id');
-    const runAttempt = requireSafeInteger(run.run_attempt, 'workflow run attempt');
-    const workflowId = requireSafeInteger(run.workflow_id, 'workflow id');
+    const runId = requireBoundedInteger(run.id, 'workflow run id');
+    const runAttempt = requireBoundedInteger(run.run_attempt, 'workflow run attempt');
+    const workflowId = requireBoundedInteger(run.workflow_id, 'workflow id');
 
     requireEqual(eventRun.id, runId, 'workflow run id');
     requireEqual(eventRun.run_attempt, runAttempt, 'workflow run attempt');
@@ -70,7 +70,7 @@ function validateCompletedRun(eventRun, run) {
 }
 
 function validateTrustedWorkflow(run, workflow, repository, workflowId) {
-    const repositoryId = requireSafeInteger(repository.id, 'repository id');
+    const repositoryId = requireBoundedInteger(repository.id, 'repository id');
     const repositoryName = requireString(repository.full_name, 'repository name');
     const defaultBranch = requireString(
             repository.default_branch,
@@ -106,12 +106,12 @@ function validateCurrentPullRequest({
     pullNumber,
     trustedRepository,
 }) {
-    const pullRequestNumber = requireSafeInteger(
+    const pullRequestNumber = requireBoundedInteger(
             pullRequest.number,
             'pull request number',
     );
 
-    const resolvedPullNumber = requireSafeInteger(
+    const resolvedPullNumber = requireBoundedInteger(
             pullNumber,
             'resolved pull request number',
     );
@@ -151,7 +151,7 @@ function validateCurrentPullRequest({
             'pull request base repository',
     );
 
-    const baseRepositoryId = requireSafeInteger(
+    const baseRepositoryId = requireBoundedInteger(
             baseRepository.id,
             'pull request base repository id',
     );
@@ -171,7 +171,7 @@ function validateCurrentPullRequest({
             'pull request head repository',
     );
 
-    const headRepositoryId = requireSafeInteger(
+    const headRepositoryId = requireBoundedInteger(
             headRepository.id,
             'pull request head repository id',
     );
