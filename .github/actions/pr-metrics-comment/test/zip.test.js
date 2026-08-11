@@ -29,3 +29,14 @@ test('returns null when the central directory is corrupt', () => {
   zip.writeUInt32LE(0xdeadbeef, 10);
   assert.equal(countClassEntries(zip), null);
 });
+
+test('returns null when trailing data follows the end record', () => {
+  const zip = buildZip(['a.class']);
+  assert.equal(countClassEntries(Buffer.concat([zip, Buffer.from('trailing')])), null);
+});
+
+test('returns null when a central directory record overflows the buffer', () => {
+  const zip = buildZip(['a.class']);
+  zip.writeUInt16LE(0xffff, 10 + 28);
+  assert.equal(countClassEntries(zip), null);
+});

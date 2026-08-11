@@ -8,7 +8,11 @@ const CENTRAL_HEADER_SIZE = 46;
 function findEocd(buffer) {
   const start = Math.max(0, buffer.length - EOCD_MIN_SIZE - 0xffff);
   for (let i = buffer.length - EOCD_MIN_SIZE; i >= start; i--) {
-    if (buffer.readUInt32LE(i) === EOCD_SIG) {
+    if (buffer.readUInt32LE(i) !== EOCD_SIG) {
+      continue;
+    }
+    const commentLength = buffer.readUInt16LE(i + 20);
+    if (i + EOCD_MIN_SIZE + commentLength === buffer.length) {
       return i;
     }
   }
@@ -35,11 +39,15 @@ function countClassEntries(buffer) {
     const nameLength = buffer.readUInt16LE(offset + 28);
     const extraLength = buffer.readUInt16LE(offset + 30);
     const commentLength = buffer.readUInt16LE(offset + 32);
+    const recordEnd = offset + CENTRAL_HEADER_SIZE + nameLength + extraLength + commentLength;
+    if (recordEnd > buffer.length) {
+      return null;
+    }
     const name = buffer.toString('utf8', offset + CENTRAL_HEADER_SIZE, offset + CENTRAL_HEADER_SIZE + nameLength);
     if (name.endsWith('.class')) {
       classes += 1;
     }
-    offset += CENTRAL_HEADER_SIZE + nameLength + extraLength + commentLength;
+    offset = recordEnd;
   }
   return classes;
 }
