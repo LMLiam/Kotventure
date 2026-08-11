@@ -5,6 +5,7 @@ import { parsePatches } from './patch.js';
 import { computePatchCoverage } from './patch-coverage.js';
 import { computeApiSurface } from './api-surface.js';
 import { serializeMetricsResult } from './metrics-result.js';
+import { validateBuildMetrics } from './metrics-result-validation.js';
 import type { ActionContext } from '../../../scripts/shared/action-context.js';
 import type { CoverageData } from './coverage.js';
 import type { ParsedPatch } from './patch.js';
@@ -22,8 +23,7 @@ function readCoverage(reportPath: string | undefined): CoverageData | null {
 function readMetrics(metricsPath: string | undefined): BuildMetrics | null {
   if (!metricsPath || !fs.existsSync(metricsPath)) return null;
   try {
-    const parsed = JSON.parse(fs.readFileSync(metricsPath, 'utf8')) as Record<string, unknown>;
-    return Number.isFinite(parsed.tests) ? parsed as unknown as BuildMetrics : null;
+    return validateBuildMetrics(JSON.parse(fs.readFileSync(metricsPath, 'utf8')), 'build metrics');
   } catch {
     return null;
   }

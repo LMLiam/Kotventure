@@ -1,4 +1,5 @@
 import { validateMetricsResult } from './metrics-result-validation.js';
+import type { JsonValue } from './metrics-result-contract.js';
 import type { BuildMetrics, CoverageValue, JarValue, MetricsResultValue } from './metrics-result-validation.js';
 import type { CoverageData, ModuleCounters } from './coverage.js';
 import type { JarInfo } from './jars.js';
@@ -32,7 +33,7 @@ function deserializeJars(jars: JarValue[]): Map<string, JarInfo> {
   return new Map(jars.map(({ module, size, classes }) => [module, { size, classes }]));
 }
 
-export function deserializeMetricsResult(result: unknown): DeserializedMetricsResult {
+export function deserializeMetricsResult(result: JsonValue): DeserializedMetricsResult {
   const validated = validateMetricsResult(result);
   return {
     headCoverage: deserializeCoverage(validated.metrics.headCoverage),

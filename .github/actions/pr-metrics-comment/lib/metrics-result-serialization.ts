@@ -1,4 +1,5 @@
 import {
+  isObject,
   MAX_RESULT_BYTES,
   SCHEMA_VERSION,
   WORKFLOW_NAME,
@@ -52,32 +53,28 @@ function serializeBuildMetrics(metrics: BuildMetrics | null): BuildMetrics | nul
   };
 }
 
-interface PullRequestBase {
+type PullRequestBase = {
   readonly repo: { readonly full_name: string };
   readonly ref: string;
   readonly sha: string;
-}
+};
 
-interface PullRequestPayload {
+type PullRequestPayload = {
   readonly number: number;
   readonly base: PullRequestBase;
   readonly head: PullRequestBase;
-}
-
-function hasRepository(value: unknown): value is Record<string, unknown> {
-  return !!value && typeof value === 'object' && !Array.isArray(value);
-}
+};
 
 function requirePullRequest(context: ActionContext['context']): PullRequestPayload {
-  const pullRequest = context.payload?.pull_request as unknown;
-  if (!hasRepository(pullRequest)
-    || !hasRepository(pullRequest.base)
-    || !hasRepository(pullRequest.base.repo)
-    || !hasRepository(pullRequest.head)
-    || !hasRepository(pullRequest.head.repo)) {
+  const pullRequest = context.payload?.pull_request;
+  if (!isObject(pullRequest)
+    || !isObject(pullRequest.base)
+    || !isObject(pullRequest.base.repo)
+    || !isObject(pullRequest.head)
+    || !isObject(pullRequest.head.repo)) {
     throw new Error('serializeMetricsResult requires a pull_request payload with base and head repositories');
   }
-  return pullRequest as unknown as PullRequestPayload;
+  return pullRequest as PullRequestPayload;
 }
 
 export interface SerializeMetricsResultOptions {

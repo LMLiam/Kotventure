@@ -34,31 +34,36 @@ const ZERO_WIDTH_CODE_POINTS = new Set([
   0xfeff,
 ]);
 
-function isObject(value: unknown): value is Record<string, unknown> {
+export type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
+
+export type JsonObject = { [key: string]: JsonValue };
+
+export function isObject(value: JsonValue | undefined): value is JsonObject {
   return !!value && typeof value === 'object' && !Array.isArray(value);
 }
 
-export function exactKeys(
-  value: unknown,
+export function exactKeys<T extends object>(
+  value: JsonValue,
   expected: readonly string[],
   label: string,
-): asserts value is Record<string, unknown> {
+): T {
   if (!isObject(value)) throw new Error(`${label} must be an object`);
   const actual = Object.keys(value).sort();
   const keys = [...expected].sort();
   if (actual.length !== keys.length || actual.some((key, index) => key !== keys[index])) {
     throw new Error(`${label} has unexpected properties`);
   }
+  return value as T;
 }
 
-export function boundedInteger(value: unknown, label: string, minimum = 0, maximum = MAX_COUNT): number {
+export function boundedInteger(value: JsonValue, label: string, minimum = 0, maximum = MAX_COUNT): number {
   if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < minimum || value > maximum) {
     throw new Error(`${label} must be an integer from ${minimum} to ${maximum}`);
   }
   return value;
 }
 
-export function boundedString(value: unknown, pattern: RegExp, label: string): string {
+export function boundedString(value: JsonValue, pattern: RegExp, label: string): string {
   if (typeof value !== 'string' || !pattern.test(value)) throw new Error(`${label} has an invalid value`);
   return value;
 }
@@ -80,7 +85,7 @@ function hasUnsafeTextCharacter(value: string, allowBacktick: boolean): boolean 
   return false;
 }
 
-export function boundedRef(value: unknown, label: string): string {
+export function boundedRef(value: JsonValue, label: string): string {
   if (typeof value !== 'string' || value.length < 1 || value.length > MAX_REF_LENGTH
     || hasUnsafeTextCharacter(value, true)) {
     throw new Error(`${label} has an invalid value`);
@@ -88,7 +93,7 @@ export function boundedRef(value: unknown, label: string): string {
   return value;
 }
 
-export function boundedDeclaration(value: unknown, label: string): string {
+export function boundedDeclaration(value: JsonValue, label: string): string {
   if (typeof value !== 'string' || value.length < 1 || value.length > MAX_DECLARATION_LENGTH
     || hasUnsafeTextCharacter(value, false)) {
     throw new Error(`${label} has an invalid value`);
