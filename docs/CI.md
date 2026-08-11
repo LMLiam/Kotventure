@@ -214,7 +214,9 @@ workflow code and the pull-request head into separate paths. It supplies the
 default-branch `qodana.yaml` file to Qodana. The scan job has only read
 permissions. It does not receive `QODANA_TOKEN`. It disables Qodana annotations,
 pull-request comments, fix pushes, and result upload. It stores one SARIF file
-as a bounded artefact.
+as a bounded artefact. It restores the Gradle and Qodana inspection caches
+read-only; GitHub scopes any cache writes from this pull-request-triggered
+workflow to the pull-request merge ref.
 
 The `Qodana publication` workflow checks out the default branch. It resolves
 the current pull request by head SHA and validates it, the changed paths, the
@@ -312,7 +314,7 @@ For an occasional diagnostic scan, give `build-scan: true` to `gradle-job`. The 
 | Default workflow permissions | Set the repository default to `contents: read` |
 | Release provenance workflow | Uses `contents: read` and `pull-requests: read`. Does not check out pull-request code |
 | CI gate | Uses `actions: read`, `contents: read`, and `pull-requests: read` |
-| Qodana scan | Triggers on `pull_request_target` from the default branch and runs in parallel with CI. The source-resolution and analysis jobs use only `actions: read`, `contents: read`, and `pull-requests: read`. They have no write permission, no `QODANA_TOKEN`, and no Qodana GitHub side effects |
+| Qodana scan | Triggers on `pull_request_target` from the default branch and runs in parallel with CI. The source-resolution and analysis jobs use only `actions: read`, `contents: read`, and `pull-requests: read`. They have no write permission, no `QODANA_TOKEN`, and no Qodana GitHub side effects. They restore the Gradle and Qodana caches read-only |
 | Qodana publication | Uses `actions: read`, `contents: read`, `pull-requests: read`, and `security-events: write`. It runs default-branch code, validates the artefacts, and uploads SARIF to code scanning |
 | Qodana trusted | The registration and report jobs use `checks: write`. The analysis job uses `actions: read`, `contents: read`, and `security-events: write` only for push, schedule, and manual-dispatch refs |
 | Release workflow | Uses an installation token from `release-please-kotventure`. Its `GITHUB_TOKEN` has no permissions |
@@ -445,6 +447,7 @@ Pull requests show many checks. Only the checks in the **Master** ruleset block 
 | Minecraft conformance fixtures | Uses `actions/cache`. The key comes from `targetMinecraftVersion` and `serverBundleSha1` |
 | PR metrics baselines | Uses the `actions/cache` key `ci-baseline-<sha>` on a master push. Downloads an artefact as a fallback. Rebuilds the JAR only as the last option |
 | Kover coverage hand-off | Shards upload `kover-handoff-<shard>`; Aggregate restores them and runs `:koverXmlReport :koverHtmlReport :koverVerify -Pkover.externalBinariesDir=modules`. No test re-run in Aggregate |
+| Qodana caches | The Qodana analyse jobs restore the Gradle caches read-only (`cache-read-only: true`) and restore and save the Qodana inspection cache (`use-caches: true`). Default-branch-scope caches are written only by trusted CI pushes; pull-request-triggered runs restore them |
 
 ### Artefacts
 
