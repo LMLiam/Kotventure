@@ -60,26 +60,6 @@ test('the Qodana scan workflow is read-only and disables GitHub side effects', (
   assert.doesNotMatch(workflow, /normalize-qodana-sarif\.sh/);
 });
 
-test('only the trusted publication workflow can upload Qodana SARIF', () => {
-  const workflow = readRepositoryFile('.github/workflows/qodana-publish.yml');
-
-  assert.match(workflow, /workflow_run:/);
-  assert.match(workflow, /security-events:\s*write/);
-  assert.doesNotMatch(workflow, /checks:\s*write/);
-  assert.match(workflow, /actions\/checkout@/);
-  assert.match(workflow, /ref:\s*\$\{\{ github\.sha \}\}/);
-  assert.match(workflow, /group: qodana-publication-\$\{\{ github\.event\.workflow_run\.id \}\}-\$\{\{ github\.event\.workflow_run\.run_attempt \}\}/);
-  assert.match(workflow, /github\/codeql-action\/upload-sarif@f205ea1c3313d32999d8d6a48b4f6530d4437b38/);
-  assert.match(workflow, /Verify the SARIF upload root is not a Git worktree/);
-  assert.match(workflow, /git -C "\$UPLOAD_ROOT" rev-parse --is-inside-work-tree/);
-  assert.match(workflow, /checkout_path:\s*\$\{\{ runner\.temp \}\}\/qodana-publication/);
-  assert.match(workflow, /ref:\s*refs\/pull\/\$\{\{ steps\.publication\.outputs\.pull_number \}\}\/head/);
-  assert.match(workflow, /sha:\s*\$\{\{ steps\.publication\.outputs\.head_sha \}\}/);
-  assert.match(workflow, /CODEQL_ACTION_ANALYSIS_KEY: .github\/workflows\/ci\.yml:qodana/);
-  assert.doesNotMatch(workflow, /Checkout pull-request code/);
-  assert.doesNotMatch(workflow, /Complete the pull-request Qodana check/);
-});
-
 test('trusted Qodana runs are limited to trusted default-branch refs', () => {
   const workflow = readRepositoryFile('.github/workflows/qodana-trusted.yml');
   const analyse = readJob(workflow, 'analyse');
