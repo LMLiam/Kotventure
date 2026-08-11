@@ -79,6 +79,47 @@ test('rejects unknown report properties', () => {
   assert.throws(() => validateMetricsResult(result), /unexpected properties/);
 });
 
+test('reports the exact bound for too-small and too-big counters', () => {
+  const tooSmall = makeResult();
+  tooSmall.metrics.headCoverage.totalMissed = -1;
+  assert.throws(
+    () => validateMetricsResult(tooSmall),
+    /must be an integer from 0 to 1000000000/,
+  );
+
+  const tooBig = makeResult();
+  tooBig.metrics.headCoverage.totalMissed = 1000000001;
+  assert.throws(
+    () => validateMetricsResult(tooBig),
+    /must be an integer from 0 to 1000000000/,
+  );
+});
+
+test('reports the exact bound for run attempt numbers', () => {
+  const tooSmall = makeResult();
+  tooSmall.provenance.runAttempt = 0;
+  assert.throws(
+    () => validateMetricsResult(tooSmall),
+    /provenance\.runAttempt must be an integer from 1 to 1000/,
+  );
+
+  const tooBig = makeResult();
+  tooBig.provenance.runAttempt = 1001;
+  assert.throws(
+    () => validateMetricsResult(tooBig),
+    /provenance\.runAttempt must be an integer from 1 to 1000/,
+  );
+});
+
+test('rejects a mismatched schema version literal', () => {
+  const result = makeResult();
+  result.schemaVersion = 2;
+  assert.throws(
+    () => validateMetricsResult(result),
+    /schemaVersion has an invalid value/,
+  );
+});
+
 test('rejects unsafe declarations and oversized declaration lists', () => {
   const unsafe = makeResult();
   unsafe.metrics.apiSurface.added[0] = 'public fun visible(): String `malicious`';

@@ -14,6 +14,15 @@ import {
 } from './metrics-result-contract.js';
 import type { JsonValue } from './metrics-result-contract.js';
 
+/**
+ * Parses `value` against `schema` and returns the original input reference on
+ * success, never the parsed output. Reference identity is a contract: the
+ * publisher asserts `validateMetricsResult(result) === result` in
+ * `pr-metrics-publisher.test.js`. This is sound while every schema is a plain
+ * shape and bounds check with no `.transform()`, `.default()`, `.prefault()`,
+ * or `.catch()` — the parsed output is structurally identical to the input. A
+ * schema that converts values must switch this function to `result.data`.
+ */
 function parseOrThrow<T>(schema: z.ZodType<T>, value: unknown): T {
   const result = schema.safeParse(value, {
     error: (issue) => {
@@ -27,16 +36,11 @@ function parseOrThrow<T>(schema: z.ZodType<T>, value: unknown): T {
           if (issue.expected === 'string') return 'must be a string';
           return issue.message;
         case 'too_small':
-        case 'too_big': {
+        case 'too_big':
           if (issue.origin === 'array') return 'has too many entries';
-          if (issue.origin === 'number') {
-            const minimum = 'minimum' in issue ? issue.minimum : 0;
-            const maximum = 'maximum' in issue ? issue.maximum : Number.MAX_SAFE_INTEGER;
-            return `must be an integer from ${minimum} to ${maximum}`;
-          }
           if (issue.origin === 'string') return 'has an invalid value';
           return issue.message;
-        }
+        case 'invalid_value':
         case 'invalid_format':
           return 'has an invalid value';
         default:
@@ -55,7 +59,19 @@ function parseOrThrow<T>(schema: z.ZodType<T>, value: unknown): T {
   return value as T;
 }
 
-const boundedCountSchema = z.number().int().min(0).max(MAX_COUNT);
+/**
+ * Builds an integer schema whose bound failures report the exact range in the
+ * message. Schema-level error messages take precedence over the parse-level
+ * map, so both `too_small` and `too_big` report the same literal.
+ */
+function boundedInt(minimum: number, maximum: number): z.ZodNumber {
+  const message = `must be an integer from ${minimum} to ${maximum}`;
+  return z.number().int()
+    .min(minimum, { error: () => message })
+    .max(maximum, { error: () => message });
+}
+
+const boundedCountSchema = boundedInt(0, MAX_COUNT);
 
 const moduleNameSchema = z.string().regex(MODULE_PATTERN);
 
@@ -77,7 +93,7 @@ const coverageSchema = z.strictObject({
 const jarSchema = z.strictObject({
   module: moduleNameSchema,
   size: boundedCountSchema,
-  classes: z.number().int().min(0).max(MAX_COUNT).nullable(),
+  classes: boundedInt(0, MAX_COUNT).nullable(),
 });
 
 const jarsSchema = z.array(jarSchema).max(MAX_MODULES).refine(
@@ -88,7 +104,7 @@ const jarsSchema = z.array(jarSchema).max(MAX_MODULES).refine(
 const buildMetricsSchema = z.strictObject({
   tests: boundedCountSchema,
   skipped: boundedCountSchema,
-  durationSeconds: z.number().int().min(0).max(MAX_COUNT).nullable(),
+  durationSeconds: boundedInt(0, MAX_COUNT).nullable(),
 });
 
 const patchCoverageSchema = z.strictObject({
@@ -115,9 +131,9 @@ const provenanceSchema = z.strictObject({
   repository: z.string().regex(REPOSITORY_PATTERN),
   workflow: z.string().refine((value): boolean => value === WORKFLOW_NAME, { message: `must be ${WORKFLOW_NAME}` }),
   event: z.string().refine((value): boolean => value === 'pull_request', { message: 'must be pull_request' }),
-  runId: z.number().int().min(1).max(Number.MAX_SAFE_INTEGER),
-  runAttempt: z.number().int().min(1).max(1000),
-  pullRequest: z.number().int().min(1).max(Number.MAX_SAFE_INTEGER),
+  runId: boundedInt(1, Number.MAX_SAFE_INTEGER),
+  runAttempt: boundedInt(1, 1000),
+  pullRequest: boundedInt(1, Number.MAX_SAFE_INTEGER),
   baseRepository: z.string().regex(REPOSITORY_PATTERN),
   baseRef: refSchema,
   baseSha: z.string().regex(SHA_PATTERN),
