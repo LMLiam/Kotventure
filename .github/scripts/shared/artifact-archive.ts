@@ -32,12 +32,12 @@ export async function extractSingleEntryArchive(
   options: ExtractSingleEntryArchiveOptions,
 ): Promise<Buffer> {
   const { errorPrefix, expectedFileName, maxArchiveBytes, maxBytes } = options;
-  const { requireInteger, requireString } = createValidators((message: string): never => {
+  const { requireBoundedInteger, requireString } = createValidators((message: string): never => {
     throw new Error(`archive extraction options ${message}`);
   });
   requireString(errorPrefix, 'error prefix');
-  requireInteger(maxArchiveBytes, 'maximum archive bytes');
-  requireInteger(maxBytes, 'maximum entry bytes');
+  requireBoundedInteger(maxArchiveBytes, 'maximum archive bytes');
+  requireBoundedInteger(maxBytes, 'maximum entry bytes');
   if (!Buffer.isBuffer(expectedFileName)
     && (typeof expectedFileName !== 'string' || expectedFileName.length === 0)) {
     throw new Error('archive extraction options expected file name is invalid');

@@ -34,10 +34,10 @@ export function validateArtifactBinding(
   reject: ValidatorReject,
   { artifact, expected, maxBytes, label }: ArtifactBindingOptions,
 ): void {
-  const { requireEqual, requireInteger, requireObject } = createValidators(reject);
+  const { requireBoundedInteger, requireEqual, requireObject } = createValidators(reject);
 
   if (artifact.expired !== false) reject(`${label} is expired`);
-  requireInteger(artifact.size_in_bytes, `${label} size`, 1, maxBytes);
+  requireBoundedInteger(artifact.size_in_bytes, `${label} size`, 1, maxBytes);
 
   const workflowRun = requireObject<ArtifactWorkflowRunBinding>(artifact.workflow_run, `${label} workflow run`);
   requireEqual(workflowRun.id, expected.runId, `${label} workflow run id`);

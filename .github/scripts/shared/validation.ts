@@ -11,7 +11,7 @@ export function createValidators(reject: ValidatorReject) {
     return actual;
   }
 
-  function requireInteger(value: unknown, label: string, minimum = 1, maximum = Number.MAX_SAFE_INTEGER): number {
+  function requireBoundedInteger(value: unknown, label: string, minimum = 1, maximum = Number.MAX_SAFE_INTEGER): number {
     if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < minimum || value > maximum) {
       reject(`${label} is invalid`);
     }
@@ -34,8 +34,8 @@ export function createValidators(reject: ValidatorReject) {
   }
 
   return {
+    requireBoundedInteger,
     requireEqual,
-    requireInteger,
     requireObject,
     requireSha,
     requireString,

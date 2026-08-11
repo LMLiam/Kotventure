@@ -20,7 +20,7 @@ function reject(message) {
 
 const {
   requireEqual,
-  requireInteger: requirePositiveInteger,
+  requireBoundedInteger: requirePositiveInteger,
   requireObject,
   requireSha,
 } = createValidators(reject);

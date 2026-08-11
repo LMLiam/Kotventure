@@ -21,7 +21,7 @@ const MAX_SARIF_BYTES = 16 * 1024 * 1024;
 const MAX_SARIF_RESULTS = 50_000;
 
 const {
-  requireInteger: requirePositiveInteger,
+  requireBoundedInteger: requirePositiveInteger,
   requireSha,
 } = createValidators((message) => {
   throw new Error(message);
