@@ -32,6 +32,10 @@ jobs:
           ref: ${{ github.sha }}
           persist-credentials: false
 
+      - name: Install CI tooling dependencies
+        working-directory: .github
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
       - name: Validate the current Qodana source
         id: publication
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
