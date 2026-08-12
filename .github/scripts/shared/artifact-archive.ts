@@ -1,7 +1,5 @@
-'use strict';
-
-const yauzl = require('yauzl');
-const { createValidators } = require('./validation.js');
+import * as yauzl from 'yauzl';
+import { createValidators } from './validation.js';
 
 const END_OF_CENTRAL_DIRECTORY_SIGNATURE = 0x06054b50;
 const CENTRAL_DIRECTORY_SIGNATURE = 0x02014b50;
@@ -18,18 +16,28 @@ const DATA_DESCRIPTOR_FLAG = 0x0008;
 const STORED_COMPRESSION = 0;
 const DEFLATE_COMPRESSION = 8;
 
-async function extractSingleEntryArchive(archive, {
-  errorPrefix,
-  expectedFileName,
-  maxArchiveBytes,
-  maxBytes,
-}) {
-  const { requireInteger, requireString } = createValidators((message) => {
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+export interface ExtractSingleEntryArchiveOptions {
+  errorPrefix: string;
+  expectedFileName: string | Buffer;
+  maxArchiveBytes: number;
+  maxBytes: number;
+}
+
+export async function extractSingleEntryArchive(
+  archive: Buffer,
+  options: ExtractSingleEntryArchiveOptions,
+): Promise<Buffer> {
+  const { errorPrefix, expectedFileName, maxArchiveBytes, maxBytes } = options;
+  const { requireBoundedInteger, requireString } = createValidators((message: string): never => {
     throw new Error(`archive extraction options ${message}`);
   });
   requireString(errorPrefix, 'error prefix');
-  requireInteger(maxArchiveBytes, 'maximum archive bytes');
-  requireInteger(maxBytes, 'maximum entry bytes');
+  requireBoundedInteger(maxArchiveBytes, 'maximum archive bytes');
+  requireBoundedInteger(maxBytes, 'maximum entry bytes');
   if (!Buffer.isBuffer(expectedFileName)
     && (typeof expectedFileName !== 'string' || expectedFileName.length === 0)) {
     throw new Error('archive extraction options expected file name is invalid');
@@ -39,12 +47,11 @@ async function extractSingleEntryArchive(archive, {
     ? expectedFileName
     : Buffer.from(expectedFileName, 'utf8');
 
-  function rejectArchive(message) {
+  function rejectArchive(message: string): never {
     throw new Error(`${errorPrefix} ${message}`);
   }
 
-  function rejectParse(error) {
-    const message = error instanceof Error ? error.message : String(error);
+  function rejectParse(message: string): never {
     rejectArchive(`cannot be parsed: ${message}`);
   }
 
@@ -56,24 +63,25 @@ async function extractSingleEntryArchive(archive, {
 
   const { centralDirectoryOffset } = readEndOfCentralDirectory(archive, rejectArchive);
 
-  let zipfile;
+  let zipfile: yauzl.ZipFile;
   try {
     zipfile = await yauzl.fromBufferPromise(archive, { decodeStrings: false });
   } catch (error) {
-    rejectParse(error);
+    rejectParse(errorMessage(error));
   }
 
   if (zipfile.entryCount !== 1) rejectArchive('must contain exactly one file');
 
-  let entry;
+  let entry: yauzl.Entry | undefined;
   try {
     for await (const candidate of zipfile.eachEntry()) {
       entry = candidate;
       break;
     }
   } catch (error) {
-    rejectParse(error);
+    rejectParse(errorMessage(error));
   }
+  if (entry == null) rejectArchive('must contain exactly one file');
 
   if (!entry.fileNameRaw.equals(expectedName)) {
     rejectArchive(`must contain only ${expectedName.toString('utf8')}`);
@@ -100,11 +108,11 @@ async function extractSingleEntryArchive(archive, {
     rejectArchive('has an invalid local file header offset');
   }
 
-  let localHeader;
+  let localHeader: yauzl.LocalFileHeader;
   try {
     localHeader = await zipfile.readLocalFileHeaderPromise(entry);
   } catch (error) {
-    rejectParse(error);
+    rejectParse(errorMessage(error));
   }
 
   if (localHeader.generalPurposeBitFlag !== entry.generalPurposeBitFlag
@@ -126,7 +134,7 @@ async function extractSingleEntryArchive(archive, {
     rejectArchive('has compressed data outside the file entry');
   }
 
-  const chunks = [];
+  const chunks: Buffer[] = [];
   let total = 0;
   try {
     const readStream = await zipfile.openReadStreamPromise(entry);
@@ -136,7 +144,7 @@ async function extractSingleEntryArchive(archive, {
       total += chunk.length;
     }
   } catch (error) {
-    rejectParse(error);
+    rejectParse(errorMessage(error));
   }
 
   const result = Buffer.concat(chunks, total);
@@ -145,7 +153,10 @@ async function extractSingleEntryArchive(archive, {
   return result;
 }
 
-function readEndOfCentralDirectory(archive, rejectArchive) {
+function readEndOfCentralDirectory(
+  archive: Buffer,
+  rejectArchive: (message: string) => never,
+): { centralDirectoryOffset: number } {
   const firstOffset = Math.max(
     0,
     archive.length - END_OF_CENTRAL_DIRECTORY_LENGTH - MAX_ZIP_COMMENT_LENGTH,
@@ -214,5 +225,3 @@ function readEndOfCentralDirectory(archive, rejectArchive) {
 
   return { centralDirectoryOffset };
 }
-
-module.exports = { extractSingleEntryArchive };

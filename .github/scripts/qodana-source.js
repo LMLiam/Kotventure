@@ -20,8 +20,8 @@ function reject(message, stale = false) {
 }
 
 const {
+  requireBoundedInteger,
   requireEqual,
-  requireInteger: requirePositiveInteger,
   requireObject,
   requireSha,
 } = createValidators(reject);
@@ -109,7 +109,7 @@ async function completePullRequestSource({
   const headRepository = requireObject(pullRequest.head?.repo, 'pull request head repository');
   const source = {
     repository: repository.full_name,
-    pullRequest: requirePositiveInteger(pullRequest.number, 'pull request number'),
+    pullRequest: requireBoundedInteger(pullRequest.number, 'pull request number'),
     pathClassification,
     sourceKind,
     baseRepository: pullRequest.base.repo.full_name,
@@ -192,7 +192,7 @@ async function resolvePullRequestEventSource({ github, context, qodanaRunId, qod
   const repository = await fetchRepository({ github, owner, repo });
   requireEqual(pullRequestEvent.base?.repo?.full_name, repository.full_name, 'pull request base repository');
   requireEqual(pullRequestEvent.base?.repo?.id, repository.id, 'pull request base repository id');
-  const pullNumber = requirePositiveInteger(pullRequestEvent.number, 'pull request number');
+  const pullNumber = requireBoundedInteger(pullRequestEvent.number, 'pull request number');
   const response = await github.rest.pulls.get({ owner, repo, pull_number: pullNumber });
   const pullRequest = requireObject(response.data, 'pull request');
   validatePullRequestState({ pullRequest, repository, expectedHeadSha: eventHeadSha });
@@ -208,8 +208,8 @@ async function resolvePullRequestEventSource({ github, context, qodanaRunId, qod
     ...source,
     artifactName: buildArtifactName({
       sourceKind: source.sourceKind,
-      qodanaRunId: requirePositiveInteger(qodanaRunId, 'Qodana workflow run id'),
-      qodanaRunAttempt: requirePositiveInteger(qodanaRunAttempt, 'Qodana workflow run attempt'),
+      qodanaRunId: requireBoundedInteger(qodanaRunId, 'Qodana workflow run id'),
+      qodanaRunAttempt: requireBoundedInteger(qodanaRunAttempt, 'Qodana workflow run attempt'),
       headSha: source.headSha,
       baseSha: source.baseSha,
     }),

@@ -21,7 +21,7 @@ const MAX_SARIF_BYTES = 16 * 1024 * 1024;
 const MAX_SARIF_RESULTS = 50_000;
 
 const {
-  requireInteger: requirePositiveInteger,
+  requireBoundedInteger,
   requireSha,
 } = createValidators((message) => {
   throw new Error(message);
@@ -35,7 +35,7 @@ function buildArtifactName({
   baseSha,
 }) {
   if (!['code', 'documentation', 'release'].includes(sourceKind)) throw new Error('Qodana source kind is invalid');
-  return `${QODANA_ARTIFACT_PREFIX}${sourceKind}-${requirePositiveInteger(qodanaRunId, 'Qodana workflow run id')}-${requirePositiveInteger(qodanaRunAttempt, 'Qodana workflow run attempt')}-${requireSha(headSha, 'head SHA')}-${requireSha(baseSha, 'base SHA')}`;
+  return `${QODANA_ARTIFACT_PREFIX}${sourceKind}-${requireBoundedInteger(qodanaRunId, 'Qodana workflow run id')}-${requireBoundedInteger(qodanaRunAttempt, 'Qodana workflow run attempt')}-${requireSha(headSha, 'head SHA')}-${requireSha(baseSha, 'base SHA')}`;
 }
 
 function parseArtifactName(name) {

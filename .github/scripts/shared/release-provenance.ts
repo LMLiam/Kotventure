@@ -1,24 +1,23 @@
-'use strict';
-
-const { createValidators } = require('./validation.js');
+import type { JobItem, Octokit, PullRequestData, WorkflowData, WorkflowRunListItem } from './action-context.js';
 
 const RELEASE_PROVENANCE_WORKFLOW_ID = 'release-provenance.yml';
 const RELEASE_PROVENANCE_WORKFLOW_PATH = '.github/workflows/release-provenance.yml';
 const TRUSTED_PROVENANCE_JOB_NAME = 'Trusted release provenance';
 
-const { requireObject } = createValidators((message) => {
-  throw new Error(message);
-});
+export interface FindReleaseProvenanceRunOptions {
+  github: Octokit;
+  owner: string;
+  repo: string;
+  repository: string | { readonly full_name?: string } | null;
+  headSha: string;
+  headRef: string;
+  pullNumber: number;
+}
 
-async function findReleaseProvenanceRun({
-  github,
-  owner,
-  repo,
-  repository,
-  headSha,
-  headRef,
-  pullNumber,
-}) {
+export async function findReleaseProvenanceRun(
+  options: FindReleaseProvenanceRunOptions,
+): Promise<WorkflowRunListItem | undefined> {
+  const { github, owner, repo, repository, headSha, headRef, pullNumber } = options;
   const runs = await github.paginate(github.rest.actions.listWorkflowRuns, {
     owner,
     repo,
@@ -27,6 +26,8 @@ async function findReleaseProvenanceRun({
     per_page: 100,
   });
   const repositoryName = typeof repository === 'string' ? repository : repository?.full_name;
+
+  if (!repositoryName) return undefined;
 
   return runs
     .filter((run) => {
@@ -38,24 +39,37 @@ async function findReleaseProvenanceRun({
         && (associatedPullRequests.length === 0
           || associatedPullRequests.some((item) => item.number === pullNumber));
     })
-    .sort((left, right) => new Date(right.created_at) - new Date(left.created_at))[0];
+    .sort((left, right) => new Date(right.created_at).getTime() - new Date(left.created_at).getTime())[0];
 }
 
-async function readTrustedReleaseProvenance({ github, owner, repo, repository, pullRequest }) {
-  let workflow;
+export type ReleaseProvenanceStatus = 'success' | 'pending' | 'failed' | 'missing';
+
+export interface ReadTrustedReleaseProvenanceOptions {
+  github: Octokit;
+  owner: string;
+  repo: string;
+  repository: string | { readonly full_name?: string } | null;
+  pullRequest: PullRequestData;
+}
+
+export async function readTrustedReleaseProvenance(
+  options: ReadTrustedReleaseProvenanceOptions,
+): Promise<ReleaseProvenanceStatus> {
+  const { github, owner, repo, repository, pullRequest } = options;
+  let workflow: WorkflowData;
   try {
     const response = await github.rest.actions.getWorkflow({
       owner,
       repo,
       workflow_id: RELEASE_PROVENANCE_WORKFLOW_ID,
     });
-    workflow = requireObject(response.data, 'release provenance workflow');
+    workflow = response.data;
   } catch {
     return 'missing';
   }
   if (workflow.path !== RELEASE_PROVENANCE_WORKFLOW_PATH) return 'missing';
 
-  let candidate;
+  let candidate: WorkflowRunListItem | undefined;
   try {
     candidate = await findReleaseProvenanceRun({
       github,
@@ -74,7 +88,7 @@ async function readTrustedReleaseProvenance({ github, owner, repo, repository, p
   if (candidate.status !== 'completed') return 'pending';
   if (candidate.conclusion !== 'success') return 'failed';
 
-  let jobs;
+  let jobs: JobItem[];
   try {
     jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
       owner,
@@ -90,11 +104,15 @@ async function readTrustedReleaseProvenance({ github, owner, repo, repository, p
   return trustedJob?.status === 'completed' ? 'failed' : 'pending';
 }
 
-function wait(milliseconds) {
+export interface HasTrustedReleaseProvenanceOptions extends ReadTrustedReleaseProvenanceOptions {
+  waitForReleaseProvenance?: boolean;
+}
+
+function wait(milliseconds: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
-async function hasTrustedReleaseProvenance(options) {
+export async function hasTrustedReleaseProvenance(options: HasTrustedReleaseProvenanceOptions): Promise<boolean> {
   const attempts = options.waitForReleaseProvenance === false ? 1 : 6;
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     const status = await readTrustedReleaseProvenance(options);
@@ -103,9 +121,3 @@ async function hasTrustedReleaseProvenance(options) {
   }
   return false;
 }
-
-module.exports = {
-  findReleaseProvenanceRun,
-  hasTrustedReleaseProvenance,
-  readTrustedReleaseProvenance,
-};
