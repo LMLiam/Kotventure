@@ -198,6 +198,14 @@ jobs:
       - name: Test pr-metrics-comment action
         run: node --test .github/actions/pr-metrics-comment/test/*.test.js .github/scripts/pr-metrics-publisher.test.js .github/scripts/qodana-*.test.js .github/scripts/workflow-run-check.test.js
 
+      - name: Verify generated JavaScript is not tracked
+        run: |
+          if git ls-files '.github/scripts/**/*.js' '.github/actions/pr-metrics-comment/**/*.js' | grep -q .; then
+            echo "Generated JavaScript must not be tracked." >&2
+            exit 1
+          fi
+          git check-ignore -q .github/scripts/ci-gate.js && echo "ignored ok"
+
   build:
     name: Build (${{ matrix.shard }})
     needs: [triage]

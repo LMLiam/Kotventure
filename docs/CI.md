@@ -360,7 +360,7 @@ repository automation tests use `node --test`.
 
 | Script | Role |
 |--------|------|
-| `ci-gate.js` | Gate decision: pure-release, trusted provenance, `release-provenance.yml` polling (`decideGate`) |
+| `ci-gate.ts` | Gate decision: pure-release, trusted provenance, `release-provenance.yml` polling (`decideGate`) |
 | `validate-conventional-title.sh` | Title/commit subject format |
 | `check-one-declaration-per-file.sh` | One top-level class/interface/object per main-source file |
 | `normalize-qodana-sarif.sh` | Fix 0-based SARIF regions and remove scanner-owned automation metadata before upload |
@@ -369,12 +369,14 @@ repository automation tests use `node --test`.
 | `download-base-metrics.sh` | PR feedback: fetch base coverage/jars/metrics from the base commit's CI run |
 | `build-base-jars.sh` | PR feedback: last-resort jar-only Gradle build of the base SHA |
 | `collect-ci-metrics.sh` | Aggregate: test/skipped counts + longest shard and Aggregate coverage durations → `ci-metrics.json` |
-| `pr-metrics-publisher.js` | Trusted workflow_run publisher: validates the source run and renders the metrics comment |
-| `qodana-source.js` | Trusted `pull_request_target` source resolution and path classification for Qodana |
-| `qodana-publisher.js` | Trusted Qodana publication source validation |
-| `qodana-publisher-archive.js` | Bounded single-file SARIF archive extraction |
-| `qodana-publisher-storage.js` | Bounded artifact download and SARIF validation |
-| `workflow-run-check.js` | Creates, validates, and completes source-bound workflow checks |
+| `pr-metrics-publisher.ts` | Trusted workflow_run publisher: validates the source run and renders the metrics comment |
+| `pr-metrics-publisher-storage.ts` | Bounded result artifact download and validation |
+| `qodana-source.ts` | Trusted `pull_request_target` source resolution and path classification for Qodana |
+| `qodana-publisher.ts` | Trusted Qodana publication source validation |
+| `qodana-publisher-archive.ts` | Bounded single-file SARIF archive extraction |
+| `qodana-publisher-storage.ts` | Bounded artifact download and SARIF validation |
+| `qodana-attestation.ts` | Create the trusted QDJVM attestation |
+| `workflow-run-check.ts` | Creates, validates, and completes source-bound workflow checks |
 
 The `.github/package.json` manifest and its committed `package-lock.json` hold the npm
 dependencies of the CI tooling. Eight jobs install them: Triage, Lint (Actions), PR
@@ -382,7 +384,22 @@ feedback, CodeQL Gate, Qodana register, the Qodana attestation job (non-code sou
 kinds only), PR metrics publication, and Qodana publication. Each runs
 `npm ci --ignore-scripts --no-audit --no-fund` from `.github` and then builds the
 TypeScript tooling with `npm run build`; the trusted publishers and the Qodana jobs
-install against the default-branch lockfile. Release provenance remains dependency-free.
+install against the default-branch lockfile. Release provenance, the `pr.yml` jobs, and
+the Qodana code-scan path remain dependency-free.
+
+### Node tooling
+
+`npm run build` compiles the TypeScript sources in `.github/scripts/` and
+`.github/actions/pr-metrics-comment/` in place with `tsc -p tsconfig.json`. The
+`tsconfig.json` uses NodeNext module resolution and full strict mode and emits no source
+maps. `npm run typecheck` runs `tsc --noEmit` to check types without emitting files.
+
+Every job that runs the tooling installs with `npm ci` and builds before it references a
+compiled script, so a fresh checkout — which contains no generated `.js` — always builds
+before any script runs. The generated `.js` files are gitignored and never committed.
+Lint (Actions) enforces this: no `.js` may be tracked under `.github/scripts/` or
+`.github/actions/pr-metrics-comment/`, and `git check-ignore` must confirm a
+representative output file is ignored.
 
 ## Action pins and Dependabot
 
