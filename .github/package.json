@@ -12,7 +12,8 @@
     "@xmldom/xmldom": "0.9.10",
     "adm-zip": "0.6.0",
     "diff": "9.0.0",
-    "yauzl": "3.4.0"
+    "yauzl": "3.4.0",
+    "zod": "4.4.3"
   },
   "devDependencies": {
     "@actions/core": "3.0.1",

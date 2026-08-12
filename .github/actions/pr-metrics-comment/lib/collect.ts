@@ -23,7 +23,7 @@ function readCoverage(reportPath: string | undefined): CoverageData | null {
 function readMetrics(metricsPath: string | undefined): BuildMetrics | null {
   if (!metricsPath || !fs.existsSync(metricsPath)) return null;
   try {
-    return validateBuildMetrics(JSON.parse(fs.readFileSync(metricsPath, 'utf8')), 'build metrics');
+    return validateBuildMetrics(JSON.parse(fs.readFileSync(metricsPath, 'utf8')));
   } catch {
     return null;
   }

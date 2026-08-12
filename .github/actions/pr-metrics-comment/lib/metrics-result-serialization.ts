@@ -1,5 +1,5 @@
+import { z } from 'zod';
 import {
-  isObject,
   MAX_RESULT_BYTES,
   SCHEMA_VERSION,
   WORKFLOW_NAME,
@@ -39,28 +39,28 @@ function serializeJars(jars: Map<string, JarInfo>): JarValue[] {
   }));
 }
 
-type PullRequestBase = {
-  readonly repo: { readonly full_name: string };
-  readonly ref: string;
-  readonly sha: string;
-};
+const pullRequestPayloadSchema = z.object({
+  number: z.number(),
+  base: z.object({
+    repo: z.object({ full_name: z.string() }),
+    ref: z.string(),
+    sha: z.string(),
+  }),
+  head: z.object({
+    repo: z.object({ full_name: z.string() }),
+    ref: z.string(),
+    sha: z.string(),
+  }),
+});
 
-type PullRequestPayload = {
-  readonly number: number;
-  readonly base: PullRequestBase;
-  readonly head: PullRequestBase;
-};
+type PullRequestPayload = z.infer<typeof pullRequestPayloadSchema>;
 
 function requirePullRequest(context: ActionContext['context']): PullRequestPayload {
-  const pullRequest = context.payload?.pull_request;
-  if (!isObject(pullRequest)
-    || !isObject(pullRequest.base)
-    || !isObject(pullRequest.base.repo)
-    || !isObject(pullRequest.head)
-    || !isObject(pullRequest.head.repo)) {
+  const parsed = pullRequestPayloadSchema.safeParse(context.payload?.pull_request);
+  if (!parsed.success) {
     throw new Error('serializeMetricsResult requires a pull_request payload with base and head repositories');
   }
-  return pullRequest as PullRequestPayload;
+  return parsed.data;
 }
 
 export interface SerializeMetricsResultOptions {
