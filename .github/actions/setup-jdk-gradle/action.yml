@@ -10,6 +10,10 @@ inputs:
     description: Publish a Gradle Build Scan (Develocity injection). Off by default — turns off local build-cache hits.
     required: false
     default: 'false'
+  cache-encryption-key:
+    description: Base64 AES key that encrypts the Gradle configuration cache for save/restore.
+    required: false
+    default: ''
 
 runs:
   using: composite
@@ -27,7 +31,10 @@ runs:
         build-scan-publish: true
         build-scan-terms-of-use-url: https://gradle.com/terms-of-service
         build-scan-terms-of-use-agree: 'yes'
+        cache-encryption-key: ${{ inputs.cache-encryption-key }}
 
     - name: Set up Gradle
       if: inputs.build-scan-publish != 'true'
       uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+      with:
+        cache-encryption-key: ${{ inputs.cache-encryption-key }}

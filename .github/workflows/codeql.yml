@@ -193,6 +193,8 @@ jobs:
       - name: Set up JDK and Gradle
         if: matrix.build-mode == 'manual'
         uses: ./.github/actions/setup-jdk-gradle
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
       - name: Build for CodeQL
         if: matrix.build-mode == 'manual'
