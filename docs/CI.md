@@ -37,7 +37,7 @@ CI
 │   └─ Dokka             (dokkaGenerate, parallel with Build)
 │
 ├─ CodeQL (independent workflow `codeql.yml`, parallel with CI) ──
-│   └─ CodeQL            (actions + java-kotlin matrix; own Gate + Detect changes jobs, not gated on Triage)
+│   └─ CodeQL            (actions + java-kotlin, per-language path gating; own Gate + Detect changes jobs, not gated on Triage)
 │
 ├─ Tier 2: Aggregate (after Build shards) ─────────────────────────
 │   ├─ Aggregate         (consume shard Kover hand-off → koverXmlReport/koverHtmlReport/koverVerify, metrics, baseline cache — no test re-run)

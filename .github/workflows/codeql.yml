@@ -69,7 +69,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
-      code: ${{ steps.resolve.outputs.code }}
+      jvm: ${{ steps.resolve.outputs.jvm }}
+      tooling: ${{ steps.resolve.outputs.tooling }}
       vanilla: ${{ steps.resolve.outputs.vanilla }}
       documentation_only: ${{ steps.resolve.outputs.documentation_only }}
     steps:
@@ -85,7 +86,7 @@ jobs:
         uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         with:
           filters: |
-            code:
+            jvm:
               - 'modules/**'
               - 'gradle/**'
               - 'build.gradle'
@@ -100,6 +101,7 @@ jobs:
               - 'qodana.yaml'
               - 'jitpack.yml'
               - 'release-please-config.json'
+            tooling:
               - '.github/workflows/**'
               - '.github/actions/**'
               - '.github/scripts/**'
@@ -120,7 +122,8 @@ jobs:
         id: resolve
         env:
           EVENT_NAME: ${{ github.event_name }}
-          FILTER_CODE: ${{ steps.filter.outputs.code }}
+          FILTER_JVM: ${{ steps.filter.outputs.jvm }}
+          FILTER_TOOLING: ${{ steps.filter.outputs.tooling }}
           FILTER_VANILLA: ${{ steps.filter.outputs.vanilla }}
           RELEASE_CANDIDATE: ${{ needs.gate.outputs.release_candidate }}
           DOCUMENTATION_ONLY: ${{ needs.gate.outputs.documentation_only }}
@@ -128,56 +131,53 @@ jobs:
           set -euo pipefail
           if [[ "$EVENT_NAME" == "pull_request" && "$RELEASE_CANDIDATE" == "true" ]]; then
             {
-              echo "code=true"
+              echo "jvm=true"
+              echo "tooling=true"
               echo "vanilla=true"
               echo "documentation_only=false"
             } >> "$GITHUB_OUTPUT"
           elif [[ "$EVENT_NAME" == "pull_request" ]]; then
             if [[ "$DOCUMENTATION_ONLY" == "true" ]]; then
               {
-                echo "code=false"
+                echo "jvm=false"
+                echo "tooling=false"
                 echo "vanilla=false"
                 echo "documentation_only=true"
               } >> "$GITHUB_OUTPUT"
             else
               {
-                echo "code=true"
+                echo "jvm=${FILTER_JVM}"
+                echo "tooling=${FILTER_TOOLING}"
                 echo "vanilla=${FILTER_VANILLA}"
                 echo "documentation_only=false"
               } >> "$GITHUB_OUTPUT"
             fi
           elif [[ "$EVENT_NAME" == "push" ]]; then
             {
-              echo "code=${FILTER_CODE}"
+              echo "jvm=${FILTER_JVM}"
+              echo "tooling=${FILTER_TOOLING}"
               echo "vanilla=${FILTER_VANILLA}"
               echo "documentation_only=false"
             } >> "$GITHUB_OUTPUT"
           else
             {
-              echo "code=true"
+              echo "jvm=true"
+              echo "tooling=true"
               echo "vanilla=true"
               echo "documentation_only=false"
             } >> "$GITHUB_OUTPUT"
           fi
 
-  codeql:
-    name: CodeQL (${{ matrix.language }})
+  codeql-actions:
+    name: CodeQL (actions)
     needs: [gate, changes]
-    if: needs.gate.outputs.run == 'true' && needs.changes.outputs.code == 'true'
+    if: needs.gate.outputs.run == 'true' && needs.changes.outputs.tooling == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
       actions: read
       contents: read
       security-events: write
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - language: actions
-            build-mode: none
-          - language: java-kotlin
-            build-mode: manual
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -187,17 +187,42 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@5595ccaf912efad79be6eef63a5619ff05969be3 # v4
         with:
-          languages: ${{ matrix.language }}
-          build-mode: ${{ matrix.build-mode }}
+          languages: actions
+          build-mode: none
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@5595ccaf912efad79be6eef63a5619ff05969be3 # v4
+        with:
+          category: "/language:actions"
+
+  codeql-java-kotlin:
+    name: CodeQL (java-kotlin)
+    needs: [gate, changes]
+    if: needs.gate.outputs.run == 'true' && needs.changes.outputs.jvm == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@5595ccaf912efad79be6eef63a5619ff05969be3 # v4
+        with:
+          languages: java-kotlin
+          build-mode: manual
 
       - name: Set up JDK and Gradle
-        if: matrix.build-mode == 'manual'
         uses: ./.github/actions/setup-jdk-gradle
         with:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
       - name: Build for CodeQL
-        if: matrix.build-mode == 'manual'
         run: >-
           ./gradlew classes testClasses -x test -Pkotlin.incremental=false
           -Pkotlin.daemon.jvmargs=-Xmx4g --no-build-cache --rerun-tasks
@@ -205,4 +230,4 @@ jobs:
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@5595ccaf912efad79be6eef63a5619ff05969be3 # v4
         with:
-          category: "/language:${{ matrix.language }}"
+          category: "/language:java-kotlin"
