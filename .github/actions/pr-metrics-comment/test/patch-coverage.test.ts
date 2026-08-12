@@ -1,12 +1,11 @@
-'use strict';
-
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const { computePatchCoverage } = require('../lib/patch-coverage.js');
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { computePatchCoverage } from '../lib/patch-coverage.js';
+import type { ParsedPatch } from '../lib/patch.js';
 
 const pkg = 'io/github/lmliam/kotventure/core/text';
 
-function patchFor(path, lineNumbers) {
+function patchFor(path: string, lineNumbers: number[]): ParsedPatch {
   return { path, addedLines: lineNumbers.map((line) => ({ line, text: 'x' })), removedText: [] };
 }
 
@@ -29,7 +28,9 @@ test('groups non-consecutive missed lines into separate ranges', () => {
   ]);
   const patches = [patchFor(`modules/core/src/main/kotlin/${pkg}/Foo.kt`, [1, 2, 5])];
   const result = computePatchCoverage(patches, coverageFiles);
-  assert.deepEqual(result.uncovered[0].ranges, [[1, 2], [5, 5]]);
+  const uncovered = result.uncovered[0];
+  assert.ok(uncovered);
+  assert.deepEqual(uncovered.ranges, [[1, 2], [5, 5]]);
 });
 
 test('ignores test sources, non-kotlin files, and files absent from the report', () => {

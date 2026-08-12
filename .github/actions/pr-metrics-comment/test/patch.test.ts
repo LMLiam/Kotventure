@@ -1,8 +1,19 @@
-'use strict';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { parsePatch } from 'diff';
+import { parsePatches, type ParsedPatch, type PullRequestFile } from '../lib/patch.js';
+import { asApiData } from '../../../scripts/test-support/mocks.js';
 
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const { parsePatches } = require('../lib/patch.js');
+function makePullRequestFile(filename: string, status: string, patch?: string): PullRequestFile {
+  return asApiData<PullRequestFile>({ filename, status, patch });
+}
+
+function singlePatch(files: PullRequestFile[]): ParsedPatch {
+  const parsed = parsePatches(files);
+  const file = parsed[0];
+  assert.ok(file, 'expected exactly one parsed patch');
+  return file;
+}
 
 test('tracks added line numbers across context and removals', () => {
   const patch = [
@@ -13,7 +24,7 @@ test('tracks added line numbers across context and removals', () => {
     '+second new',
     ' more context',
   ].join('\n');
-  const [file] = parsePatches([{ filename: 'Foo.kt', status: 'modified', patch }]);
+  const file = singlePatch([makePullRequestFile('Foo.kt', 'modified', patch)]);
   assert.deepEqual(file.addedLines, [
     { line: 2, text: 'new line' },
     { line: 3, text: 'second new' },
@@ -32,34 +43,33 @@ test('handles multiple hunks with correct offsets', () => {
     '+y',
     ' z',
   ].join('\n');
-  const [file] = parsePatches([{ filename: 'Foo.kt', status: 'modified', patch }]);
+  const file = singlePatch([makePullRequestFile('Foo.kt', 'modified', patch)]);
   assert.deepEqual(file.addedLines.map((l) => l.line), [2, 12]);
 });
 
 test('handles single-line hunk headers without counts', () => {
   const patch = ['@@ -0,0 +1 @@', '+only line'].join('\n');
-  const [file] = parsePatches([{ filename: 'New.kt', status: 'added', patch }]);
+  const file = singlePatch([makePullRequestFile('New.kt', 'added', patch)]);
   assert.deepEqual(file.addedLines, [{ line: 1, text: 'only line' }]);
 });
 
 test('ignores no-newline markers', () => {
   const patch = ['@@ -1 +1 @@', '-old', '+new', '\\ No newline at end of file'].join('\n');
-  const [file] = parsePatches([{ filename: 'Foo.kt', status: 'modified', patch }]);
+  const file = singlePatch([makePullRequestFile('Foo.kt', 'modified', patch)]);
   assert.deepEqual(file.addedLines, [{ line: 1, text: 'new' }]);
 });
 
 test('skips removed files and files without a patch', () => {
   const files = [
-    { filename: 'Gone.kt', status: 'removed', patch: '@@ -1 +0,0 @@\n-x' },
-    { filename: 'big.bin', status: 'modified' },
-    { filename: 'Kept.kt', status: 'modified', patch: '@@ -1 +1 @@\n-a\n+b' },
+    makePullRequestFile('Gone.kt', 'removed', '@@ -1 +0,0 @@\n-x'),
+    makePullRequestFile('big.bin', 'modified'),
+    makePullRequestFile('Kept.kt', 'modified', '@@ -1 +1 @@\n-a\n+b'),
   ];
   const parsed = parsePatches(files);
   assert.deepEqual(parsed.map((f) => f.path), ['Kept.kt']);
 });
 
 test('jsdiff parses GitHub REST hunk-only patches without file headers', () => {
-  const { parsePatch } = require('diff');
   const patch = [
     '@@ -1,3 +1,4 @@',
     ' context',
@@ -69,9 +79,12 @@ test('jsdiff parses GitHub REST hunk-only patches without file headers', () => {
     ' more context',
   ].join('\n');
   const [file] = parsePatch(patch);
+  assert.ok(file);
   assert.equal(file.oldFileName, undefined);
   assert.equal(file.newFileName, undefined);
-  assert.deepEqual(file.hunks[0].lines, [
+  const hunk = file.hunks[0];
+  assert.ok(hunk);
+  assert.deepEqual(hunk.lines, [
     ' context',
     '-old line',
     '+new line',
@@ -89,5 +102,5 @@ test('rejects a hunk whose declared counts do not match its body', () => {
     '+second new',
     ' more context',
   ].join('\n');
-  assert.throws(() => parsePatches([{ filename: 'Foo.kt', status: 'modified', patch }]));
+  assert.throws(() => parsePatches([makePullRequestFile('Foo.kt', 'modified', patch)]));
 });

@@ -1,8 +1,6 @@
-'use strict';
-
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const { parseCoverage } = require('../lib/coverage.js');
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { parseCoverage } from '../lib/coverage.js';
 
 const sampleXml = [
   '<report name="kotventure">',
@@ -61,6 +59,7 @@ test('skips packages without a LINE counter', () => {
 test('exposes per-sourcefile line coverage keyed by package path', () => {
   const result = parseCoverage(sampleXml);
   const lines = result.files.get('io/github/lmliam/kotventure/core/text/Texts.kt');
+  assert.ok(lines);
   assert.deepEqual([...lines.entries()], [[5, true], [6, false]]);
 });
 

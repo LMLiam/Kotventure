@@ -1,12 +1,11 @@
-'use strict';
-
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const { computeApiSurface } = require('../lib/api-surface.js');
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { computeApiSurface } from '../lib/api-surface.js';
+import type { ParsedPatch } from '../lib/patch.js';
 
 const path = 'modules/core/src/main/kotlin/io/github/lmliam/kotventure/core/text/Texts.kt';
 
-function patch(filePath, addedTexts, removedTexts = []) {
+function patch(filePath: string, addedTexts: string[], removedTexts: string[] = []): ParsedPatch {
   return {
     path: filePath,
     addedLines: addedTexts.map((text, i) => ({ line: i + 1, text })),
@@ -54,6 +53,8 @@ test('ignores test sources and non-kotlin files', () => {
 test('truncates very long signatures', () => {
   const long = `public fun long(${'a: Int, '.repeat(30)})`;
   const result = computeApiSurface([patch(path, [long])]);
-  assert.equal(result.added[0].length, 118);
-  assert.ok(result.added[0].endsWith('…'));
+  const added = result.added[0];
+  assert.ok(added);
+  assert.equal(added.length, 118);
+  assert.ok(added.endsWith('…'));
 });

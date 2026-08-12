@@ -1,58 +1,109 @@
-'use strict';
+import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
+import test from 'node:test';
+import AdmZip from 'adm-zip';
 
-const assert = require('node:assert/strict');
-const { execFileSync } = require('node:child_process');
-const fs = require('node:fs');
-const os = require('node:os');
-const path = require('node:path');
-const test = require('node:test');
-const AdmZip = require('adm-zip');
-
-const {
+import {
   MAX_ARTIFACT_BYTES,
   buildArtifactName,
   classifyChangedFiles,
   parseArtifactName,
-} = require('./qodana-contract.js');
-const { createAttestation } = require('./qodana-attestation.js');
-const { extractQodanaSarifArchive } = require('./qodana-publisher-archive.js');
-const {
+} from './qodana-contract.js';
+import {
+  createAttestation,
+  type QodanaSarifDocument,
+  type QodanaSarifRun,
+} from './qodana-attestation.js';
+import { extractQodanaSarifArchive } from './qodana-publisher-archive.js';
+import {
   selectQodanaArtifact,
   selectQodanaRunArtifact,
   validateQodanaSarif,
-} = require('./qodana-publisher-validation.js');
-const { resolvePublication } = require('./qodana-publisher.js');
-const { downloadQodanaArtifact } = require('./qodana-publisher-storage.js');
-const {
+} from './qodana-publisher-validation.js';
+import { resolvePublication } from './qodana-publisher.js';
+import { downloadQodanaArtifact } from './qodana-publisher-storage.js';
+import {
   resolvePullRequestEventSource,
   resolvePullRequestSource,
   QodanaSourceRejectedError,
-} = require('./qodana-source.js');
+} from './qodana-source.js';
+import type { PullRequestSource } from './qodana-source.js';
+import type { RepositoryData, WorkflowRunArtifact, WorkflowRunData } from './shared/action-context.js';
+import type { ChangedFileRecord } from './shared/path-classification.js';
+import type { JsonObject } from './shared/json.js';
+import {
+  asApiData,
+  mockContext,
+  mockFetchImpl,
+  mockOctokit,
+  type MockFetchOptions,
+} from './test-support/mocks.js';
 
 const HEAD_SHA = 'a'.repeat(40);
 const BASE_SHA = 'b'.repeat(40);
 const MERGE_BASE_SHA = 'c'.repeat(40);
 const QODANA_RUN_ID = 900;
 const QODANA_RUN_ATTEMPT = 3;
-const REPOSITORY = {
+
+interface RepositoryRecord {
+  full_name: string;
+  id: number;
+  default_branch?: string;
+}
+
+const REPOSITORY: RepositoryRecord = {
   full_name: 'LMLiam/Kotventure',
   id: 1,
   default_branch: 'master',
 };
-const HEAD_REPOSITORY = {
+
+const HEAD_REPOSITORY: RepositoryRecord = {
   full_name: 'LMLiam/Kotventure',
   id: 1,
 };
 
+interface PullRequestRecord {
+  number: number;
+  state: string;
+  changed_files: number;
+  base: {
+    repo: RepositoryRecord;
+    ref: string;
+    sha: string;
+  };
+  head: {
+    repo: RepositoryRecord;
+    ref: string;
+    sha: string;
+  };
+  user?: {
+    login: string;
+    type: string;
+  };
+}
+
+interface MakePullRequestOptions {
+  baseRef?: string;
+  files?: ChangedFileRecord[];
+  state?: string;
+  baseSha?: string;
+  headRepository?: RepositoryRecord;
+  headRef?: string;
+  headSha?: string;
+}
+
 function makePullRequest({
-  baseRef = REPOSITORY.default_branch,
+  baseRef = REPOSITORY.default_branch ?? 'master',
   files = [{ filename: 'src/Main.kt' }],
   state = 'open',
   baseSha = BASE_SHA,
   headRepository = HEAD_REPOSITORY,
   headRef = 'feature/security',
   headSha = HEAD_SHA,
-} = {}) {
+}: MakePullRequestOptions = {}): PullRequestRecord {
   return {
     number: 42,
     state,
@@ -74,12 +125,19 @@ function makePullRequest({
   };
 }
 
+interface MakeGithubOptions {
+  pullRequest?: PullRequestRecord;
+  files?: ChangedFileRecord[];
+  associatedPullRequests?: PullRequestRecord[];
+  releaseProvenance?: string;
+}
+
 function makeGithub({
   pullRequest = makePullRequest(),
   files,
   associatedPullRequests,
   releaseProvenance = 'success',
-} = {}) {
+}: MakeGithubOptions = {}) {
   const changedFiles = files || [{ filename: 'src/Main.kt' }];
   const listFiles = async () => changedFiles;
   const listAssociatedPullRequests = async () => associatedPullRequests ?? [pullRequest];
@@ -99,7 +157,14 @@ function makeGithub({
     pull_requests: [{ number: pullRequest.number }],
     created_at: '2026-08-09T00:00:00Z',
   }];
-  return {
+  const paginate = async (method: (...args: never[]) => unknown) => {
+    if (method === listFiles) return changedFiles;
+    if (method === listAssociatedPullRequests) return listAssociatedPullRequests();
+    if (method === listJobs) return listJobs();
+    if (method === listReleaseRuns) return listReleaseRuns();
+    throw new Error('unexpected pagination method');
+  };
+  return mockOctokit({
     rest: {
       repos: {
         get: async () => ({ data: REPOSITORY }),
@@ -117,17 +182,11 @@ function makeGithub({
         listFiles,
       },
     },
-    paginate: async (method) => {
-      if (method === listFiles) return changedFiles;
-      if (method === listAssociatedPullRequests) return listAssociatedPullRequests();
-      if (method === listJobs) return listJobs();
-      if (method === listReleaseRuns) return listReleaseRuns();
-      throw new Error('unexpected pagination method');
-    },
-  };
+    paginate,
+  });
 }
 
-function makeStoredZip(content, fileName = 'qodana.sarif.json') {
+function makeStoredZip(content: Buffer, fileName = 'qodana.sarif.json'): Buffer {
   const name = Buffer.from(fileName, 'utf8');
   const zip = new AdmZip();
   const entry = zip.addFile('x'.repeat(name.length), content);
@@ -139,7 +198,7 @@ function makeStoredZip(content, fileName = 'qodana.sarif.json') {
   return archive;
 }
 
-function makeDeflateZip(content, declaredSize) {
+function makeDeflateZip(content: Buffer, declaredSize: number): Buffer {
   const zip = new AdmZip();
   zip.addFile('qodana.sarif.json', content);
   const archive = zip.toBuffer();
@@ -149,12 +208,19 @@ function makeDeflateZip(content, declaredSize) {
   return archive;
 }
 
+interface PublicationGithubOptions {
+  delayedReleaseProvenance?: boolean;
+  includeSarif?: boolean;
+  qodanaConclusion?: string;
+  staleSource?: boolean;
+}
+
 function makePublicationGithub({
   delayedReleaseProvenance = false,
   includeSarif = true,
   qodanaConclusion = 'success',
   staleSource = false,
-} = {}) {
+}: PublicationGithubOptions = {}) {
   const qodanaRun = {
     id: QODANA_RUN_ID,
     run_attempt: QODANA_RUN_ATTEMPT,
@@ -212,9 +278,9 @@ function makePublicationGithub({
     pull_requests: [{ number: pullRequest.number }],
     created_at: '2026-08-09T00:00:00Z',
   }];
-  const artifacts = [];
+  const artifacts: WorkflowRunArtifact[] = [];
   if (qodanaConclusion === 'success' && includeSarif) {
-    artifacts.push({
+    artifacts.push(asApiData<WorkflowRunArtifact>({
       id: 700,
       name: buildArtifactName({
         sourceKind: 'code',
@@ -232,16 +298,24 @@ function makePublicationGithub({
         head_branch: qodanaRun.head_branch,
         head_sha: qodanaRun.head_sha,
       },
-    });
+    }));
   }
   const listArtifacts = async () => artifacts;
+  const paginate = async (method: (...args: never[]) => unknown) => {
+    if (method === listArtifacts) return listArtifacts();
+    if (method === listFiles) return files;
+    if (method === listJobs) return listJobs();
+    if (method === listReleaseRuns) return listReleaseRuns();
+    if (method === listAssociatedPullRequests) return listAssociatedPullRequests();
+    throw new Error('unexpected publication pagination method');
+  };
   return {
     artifacts,
-    context: {
+    context: mockContext({
       repo: { owner: 'LMLiam', repo: 'Kotventure' },
       payload: { workflow_run: qodanaEvent },
-    },
-    github: {
+    }),
+    github: mockOctokit({
       rest: {
         repos: {
           get: async () => ({ data: REPOSITORY }),
@@ -252,7 +326,7 @@ function makePublicationGithub({
         },
         actions: {
           getWorkflowRun: async () => ({ data: qodanaRun }),
-          getWorkflow: async ({ workflow_id: workflowId }) => ({
+          getWorkflow: async ({ workflow_id: workflowId }: { workflow_id: number | string }) => ({
             data: workflowId === qodanaRun.workflow_id
               ? { id: 77, name: 'Qodana', path: '.github/workflows/qodana.yml' }
               : workflowId === 'release-provenance.yml'
@@ -268,15 +342,8 @@ function makePublicationGithub({
           listFiles,
         },
       },
-      paginate: async (method) => {
-        if (method === listArtifacts) return listArtifacts();
-        if (method === listFiles) return files;
-        if (method === listJobs) return listJobs();
-        if (method === listReleaseRuns) return listReleaseRuns();
-        if (method === listAssociatedPullRequests) return listAssociatedPullRequests();
-        throw new Error('unexpected publication pagination method');
-      },
-    },
+      paginate,
+    }),
     qodanaRun,
   };
 }
@@ -344,10 +411,12 @@ test('binds Qodana artifacts to the Qodana run and the source SHAs', () => {
 });
 
 test('creates valid zero-result attestations from trusted code', () => {
-  for (const sourceKind of ['documentation', 'release']) {
+  for (const sourceKind of ['documentation', 'release'] as const) {
     const document = createAttestation({ sourceKind, headSha: HEAD_SHA });
     assert.equal(validateQodanaSarif(Buffer.from(JSON.stringify(document))).version, '2.1.0');
-    assert.equal(document.runs[0].results.length, 0);
+    const run = document.runs[0];
+    assert.ok(run);
+    assert.equal(run.results.length, 0);
   }
 });
 
@@ -407,42 +476,51 @@ test('rejects a deflate entry that expands beyond its declared size', async () =
   );
 });
 
+function firstResult(run: QodanaSarifRun): JsonObject {
+  const result = run.results[0];
+  if (result === undefined) throw new Error('SARIF test run must have a result');
+  return result;
+}
+
 test('rejects malformed SARIF and every standard project traversal location', () => {
   assert.throws(() => validateQodanaSarif(Buffer.from('{')), /not valid JSON/);
   const document = createAttestation({ sourceKind: 'documentation', headSha: HEAD_SHA });
-  document.runs.push(structuredClone(document.runs[0]));
+  const run = document.runs[0];
+  assert.ok(run);
+  document.runs.push(structuredClone(run));
   assert.throws(() => validateQodanaSarif(Buffer.from(JSON.stringify(document))), /exactly one run/);
 
-  const traversalCases = [
-    (run) => { run.results[0].locations = [{ physicalLocation: { artifactLocation: { uri: '../secret.txt' } } }]; },
-    (run) => { run.results[0].relatedLocations = [{ physicalLocation: { artifactLocation: { uri: '/etc/passwd' } } }]; },
-    (run) => { run.results[0].fixes = [{ artifactChanges: [{ artifactLocation: { uri: 'file:///etc/passwd' } }] }]; },
+  const traversalCases: Array<(run: QodanaSarifRun) => void> = [
+    (run) => { firstResult(run).locations = [{ physicalLocation: { artifactLocation: { uri: '../secret.txt' } } }]; },
+    (run) => { firstResult(run).relatedLocations = [{ physicalLocation: { artifactLocation: { uri: '/etc/passwd' } } }]; },
+    (run) => { firstResult(run).fixes = [{ artifactChanges: [{ artifactLocation: { uri: 'file:///etc/passwd' } }] }]; },
     (run) => {
-      run.results[0].codeFlows = [{
+      firstResult(run).codeFlows = [{
         threadFlows: [{
           locations: [{ location: { physicalLocation: { artifactLocation: { uri: '..\\secret.txt' } } } }],
         }],
       }];
     },
     (run) => {
-      run.results[0].stacks = [{
+      firstResult(run).stacks = [{
         frames: [{ location: { physicalLocation: { artifactLocation: { uri: 'C:\\secret.txt' } } } }],
       }];
     },
     (run) => { run.artifacts = [{ location: { uri: 'https://attacker.example/source.kt' } }]; },
     (run) => { run.originalUriBaseIds = { SRCROOT: { uri: '../../outside/' } }; },
-    (run) => { run.invocations = [{ workingDirectory: { uri: '/untrusted/workspace' } }]; },
-    (run) => { run.results[0].analysisTarget = { uri: 'file:///untrusted/source.kt' }; },
+    (run) => { (run as JsonObject).invocations = [{ workingDirectory: { uri: '/untrusted/workspace' } }]; },
+    (run) => { firstResult(run).analysisTarget = { uri: 'file:///untrusted/source.kt' }; },
   ];
   for (const mutate of traversalCases) {
+    const testRun = asApiData<QodanaSarifRun>({
+      tool: { driver: { name: 'QDJVM' } },
+      results: [{}],
+    });
     const resultDocument = {
       version: '2.1.0',
-      runs: [{
-        tool: { driver: { name: 'QDJVM' } },
-        results: [{}],
-      }],
+      runs: [testRun],
     };
-    mutate(resultDocument.runs[0]);
+    mutate(testRun);
     assert.throws(
       () => validateQodanaSarif(Buffer.from(JSON.stringify(resultDocument))),
       /artifact location|escapes the project/,
@@ -451,12 +529,12 @@ test('rejects malformed SARIF and every standard project traversal location', ()
 });
 
 test('selects only the artifact bound to the trusted Qodana workflow run', () => {
-  const source = {
+  const source = asApiData<PullRequestSource>({
     sourceKind: 'code',
     headSha: HEAD_SHA,
     baseSha: BASE_SHA,
-  };
-  const artifact = {
+  });
+  const artifact = asApiData<WorkflowRunArtifact>({
     id: 700,
     name: buildArtifactName({
       ...source,
@@ -472,26 +550,27 @@ test('selects only the artifact bound to the trusted Qodana workflow run', () =>
       head_branch: 'feature/security',
       head_sha: HEAD_SHA,
     },
-  };
-  const qodanaRun = {
+  });
+  const qodanaRun = asApiData<WorkflowRunData>({
     id: QODANA_RUN_ID,
     run_attempt: QODANA_RUN_ATTEMPT,
     head_repository: REPOSITORY,
     head_branch: 'feature/security',
     head_sha: HEAD_SHA,
-  };
+  });
+  const repository = asApiData<RepositoryData>(REPOSITORY);
   assert.equal(selectQodanaArtifact({
     artifacts: [artifact],
     qodanaRun,
     source,
-    repository: REPOSITORY,
+    repository,
   }).id, 700);
   assert.throws(
     () => selectQodanaArtifact({
       artifacts: [artifact, structuredClone(artifact)],
       qodanaRun,
       source,
-      repository: REPOSITORY,
+      repository,
     }),
     /exactly one/,
   );
@@ -506,12 +585,28 @@ test('selects only the artifact bound to the trusted Qodana workflow run', () =>
     artifacts: [priorAttempt, artifact],
     qodanaRun,
     source,
-    repository: REPOSITORY,
+    repository,
   }).id, 700);
 });
 
-test('rejects missing, duplicate, expired, and oversized SARIF artifacts', () => {
-  const makeArtifact = (overrides = {}) => ({
+interface ArtifactWorkflowRunRecord {
+  id: number;
+  repository_id: number;
+  head_repository_id?: number;
+  head_branch: string;
+  head_sha: string;
+}
+
+interface ArtifactRecord {
+  id: number;
+  name: string;
+  expired: boolean;
+  size_in_bytes: number;
+  workflow_run?: ArtifactWorkflowRunRecord | null;
+}
+
+function makeArtifact(overrides: Partial<ArtifactRecord> = {}): WorkflowRunArtifact {
+  return asApiData<WorkflowRunArtifact>({
     id: 700,
     name: buildArtifactName({
       sourceKind: 'code',
@@ -531,14 +626,18 @@ test('rejects missing, duplicate, expired, and oversized SARIF artifacts', () =>
     },
     ...overrides,
   });
-  const qodanaRun = {
+}
+
+test('rejects missing, duplicate, expired, and oversized SARIF artifacts', () => {
+  const qodanaRun = asApiData<WorkflowRunData>({
     id: QODANA_RUN_ID,
     run_attempt: QODANA_RUN_ATTEMPT,
     head_repository: REPOSITORY,
     head_branch: 'feature/security',
     head_sha: HEAD_SHA,
-  };
-  const cases = [
+  });
+  const repository = asApiData<RepositoryData>(REPOSITORY);
+  const cases: Array<[WorkflowRunArtifact[], RegExp]> = [
     [[], /exactly one Qodana SARIF artifact, found 0/],
     [[makeArtifact(), makeArtifact()], /exactly one Qodana SARIF artifact, found 2/],
     [[makeArtifact({ expired: true })], /Qodana SARIF artifact is expired/],
@@ -557,7 +656,7 @@ test('rejects missing, duplicate, expired, and oversized SARIF artifacts', () =>
       () => selectQodanaRunArtifact({
         artifacts,
         qodanaRun,
-        repository: REPOSITORY,
+        repository,
       }),
       expected,
     );
@@ -631,6 +730,7 @@ test('reports a missing successful Qodana artifact as publication failure', asyn
     context: inputs.context,
   });
   assert.equal(publication.publish, false);
+  assert.ok(publication.rejection);
   assert.match(publication.rejection.message, /exactly one Qodana SARIF artifact/);
 });
 
@@ -644,7 +744,7 @@ test('resolves a pull-request source by head SHA and computes its merge base', a
   assert.equal(source.sourceKind, 'code');
   assert.equal(source.mergeBaseSha, MERGE_BASE_SHA);
   assert.equal(source.pullRequest, 42);
-  assert.equal(source.runId, undefined);
+  assert.equal('runId' in source, false);
 });
 
 test('resolves same-repository and fork pull-request heads', async () => {
@@ -683,10 +783,10 @@ test('registers a stacked pull request from the pull_request_target event', asyn
   const pullRequest = makePullRequest({ baseRef: stackedBase });
   const source = await resolvePullRequestEventSource({
     github: makeGithub({ pullRequest }),
-    context: {
+    context: mockContext({
       repo: { owner: 'LMLiam', repo: 'Kotventure' },
       payload: { pull_request: pullRequest },
-    },
+    }),
     qodanaRunId: QODANA_RUN_ID,
     qodanaRunAttempt: QODANA_RUN_ATTEMPT,
   });
@@ -719,10 +819,10 @@ test('resolves the pull_request_target event source for the register job', async
   const pullRequest = makePullRequest();
   const source = await resolvePullRequestEventSource({
     github: makeGithub({ pullRequest }),
-    context: {
+    context: mockContext({
       repo: { owner: 'LMLiam', repo: 'Kotventure' },
       payload: { pull_request: pullRequest },
-    },
+    }),
     qodanaRunId: QODANA_RUN_ID,
     qodanaRunAttempt: QODANA_RUN_ATTEMPT,
   });
@@ -764,10 +864,10 @@ test('downloads, bounds, and validates the single SARIF artifact', async () => {
       outputDirectory: directory,
       apiUrl: 'https://api.github.test',
       token: 'test-token',
-      fetchImpl: async (location, options) => {
+      fetchImpl: mockFetchImpl(async (location, options: MockFetchOptions) => {
         if (location === 'https://api.github.test/repos/LMLiam/Kotventure/actions/artifacts/700/zip') {
           assert.equal(options.redirect, 'manual');
-          assert.equal(options.headers.authorization, 'Bearer test-token');
+          assert.equal(options.headers?.authorization, 'Bearer test-token');
           return {
             status: 302,
             headers: { location: 'https://artifact.example/qodana.zip' },
@@ -780,7 +880,7 @@ test('downloads, bounds, and validates the single SARIF artifact', async () => {
           headers: { 'content-length': String(archive.length) },
           arrayBuffer: async () => archive,
         };
-      },
+      }),
     });
     assert.equal(filePath, path.join(directory, 'qodana.sarif.json'));
     assert.deepEqual(JSON.parse(fs.readFileSync(filePath, 'utf8')), document);
@@ -842,10 +942,10 @@ test('marks a changed base or advanced event head as stale', async () => {
   await assert.rejects(
     resolvePullRequestEventSource({
       github: makeGithub({ pullRequest: current }),
-      context: {
+      context: mockContext({
         repo: { owner: 'LMLiam', repo: 'Kotventure' },
         payload: { pull_request: makePullRequest() },
-      },
+      }),
       qodanaRunId: QODANA_RUN_ID,
       qodanaRunAttempt: QODANA_RUN_ATTEMPT,
     }),

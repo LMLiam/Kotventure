@@ -1,9 +1,7 @@
-'use strict';
-
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const { countClassEntries } = require('../lib/zip.js');
-const { buildZip } = require('./helpers/zip-fixture.js');
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { countClassEntries } from '../lib/zip.js';
+import { buildZip } from './helpers/zip-fixture.js';
 
 test('counts .class entries in the central directory', async () => {
   const zip = buildZip([

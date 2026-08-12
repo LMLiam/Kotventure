@@ -1,8 +1,6 @@
-'use strict';
-
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const { deltaVerticalBars } = require('../lib/mermaid.js');
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { deltaVerticalBars } from '../lib/mermaid.js';
 
 test('renders a fenced xychart with rounded values', () => {
   const chart = deltaVerticalBars({
@@ -12,6 +10,7 @@ test('renders a fenced xychart with rounded values', () => {
     yLabel: 'Δ pp',
     color: '#a78bfa',
   });
+  assert.ok(chart);
   assert.ok(chart.startsWith('```mermaid'));
   assert.ok(chart.endsWith('```'));
   assert.ok(chart.includes('xychart-beta'));
@@ -28,10 +27,13 @@ test('y-axis range always spans zero with padding', () => {
     deltas: [2],
     yLabel: 'y',
   });
-  const match = chart.match(/y-axis "y" (-?[\d.]+) --> (-?[\d.]+)/);
+  const match = chart?.match(/y-axis "y" (-?[\d.]+) --> (-?[\d.]+)/);
   assert.ok(match);
-  assert.ok(Number(match[1]) < 0);
-  assert.ok(Number(match[2]) > 2);
+  const low = match[1];
+  const high = match[2];
+  assert.ok(low !== undefined && high !== undefined);
+  assert.ok(Number(low) < 0);
+  assert.ok(Number(high) > 2);
 });
 
 test('returns null when there are no labels', () => {
