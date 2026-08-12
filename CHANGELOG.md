@@ -6,6 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any release.
 
+## [0.26.7](https://github.com/LMLiam/Kotventure/compare/0.26.6...0.26.7) (2026-08-12)
+
+
+### 🐛 Fixes
+
+* **ci:** run gating workflows for every pull request ([#551](https://github.com/LMLiam/Kotventure/issues/551)) ([39adf13](https://github.com/LMLiam/Kotventure/commit/39adf131fb94cc5a86b63d10f1beb9c6073691ac))
+* **ci:** trust the system CA in the release-please job ([#552](https://github.com/LMLiam/Kotventure/issues/552)) ([b6136d7](https://github.com/LMLiam/Kotventure/commit/b6136d79536ca4c32745f3833529e35446b4b4b3))
+
+
+### 🔧 Refactors
+
+* **ci:** add TypeScript foundation for CI tooling ([#542](https://github.com/LMLiam/Kotventure/issues/542)) ([2e89db0](https://github.com/LMLiam/Kotventure/commit/2e89db0c85cf0b9aec6ffa4f32045e12e444b1a2))
+* **ci:** convert PR metrics library to TypeScript ([#545](https://github.com/LMLiam/Kotventure/issues/545)) ([a9872a4](https://github.com/LMLiam/Kotventure/commit/a9872a4adc9191336c26b9001ec9cdbaf48c5c28))
+* **ci:** convert shared modules to strict TypeScript ([#543](https://github.com/LMLiam/Kotventure/issues/543)) ([910a548](https://github.com/LMLiam/Kotventure/commit/910a5481b97b86623328de77093fa003a9b3c2d9))
+* **ci:** convert test suites to strict TypeScript ([#549](https://github.com/LMLiam/Kotventure/issues/549)) ([1247e3d](https://github.com/LMLiam/Kotventure/commit/1247e3d194740755cf5a8f9b4cffed4290bf51f7))
+* **ci:** migrate scripts and publishers to TypeScript ([#548](https://github.com/LMLiam/Kotventure/issues/548)) ([be3e10d](https://github.com/LMLiam/Kotventure/commit/be3e10d7be3d37f1c6d8db68fc5e0e001f85567e))
+* **ci:** validate metrics result JSON with zod v4 ([#547](https://github.com/LMLiam/Kotventure/issues/547)) ([578cd29](https://github.com/LMLiam/Kotventure/commit/578cd2962cc96ed7da98320043581b0c5c1d5578))
+
+
+### 📝 Documentation
+
+* **ci:** document TypeScript tooling and enforce untracked output ([#550](https://github.com/LMLiam/Kotventure/issues/550)) ([ffad1d1](https://github.com/LMLiam/Kotventure/commit/ffad1d146c646a87fb700964a0d399e1c4856dd3))
+
 ## [0.26.6](https://github.com/LMLiam/Kotventure/compare/0.26.5...0.26.6) (2026-08-11)
 
 
