@@ -393,6 +393,8 @@ the Qodana code-scan path remain dependency-free.
 `.github/actions/pr-metrics-comment/` in place with `tsc -p tsconfig.json`. The
 `tsconfig.json` uses NodeNext module resolution and full strict mode and emits no source
 maps. `npm run typecheck` runs `tsc --noEmit` to check types without emitting files.
+Node 22 is pinned and the npm store is cached through `actions/setup-node` in every job
+that installs the tooling.
 
 Every job that runs the tooling installs with `npm ci` and builds before it references a
 compiled script, so a fresh checkout — which contains no generated `.js` — always builds
@@ -480,6 +482,7 @@ Pull requests show many checks. Only the checks in the **Master** ruleset block 
 | PR metrics baselines | Uses the `actions/cache` key `ci-baseline-<sha>` on a master push. Downloads an artefact as a fallback. Rebuilds the JAR only as the last option |
 | Kover coverage hand-off | Shards upload `kover-handoff-<shard>`; Aggregate restores them and runs `:koverXmlReport :koverHtmlReport :koverVerify -Pkover.externalBinariesDir=modules`. No test re-run in Aggregate |
 | Qodana caches | The Qodana analyse jobs restore the Gradle caches read-only (`cache-read-only: true`) and restore and save the Qodana inspection cache (`use-caches: true`). The action installs the qodana CLI executable into the runner tool cache (`RUNNER_TOOL_CACHE/qodana/<version>/<arch>`); the IDE distribution (`qodana-jvm-community`) is a separate download that the `cache-dir` override pins inside `${{ runner.temp }}/qodana`, cached under `qodana-ide-<os>-v2026.2.0`. Only trusted triggers (push, schedule, dispatch) may write default-branch caches, so the trusted workflow saves the IDE distribution and pull-request-triggered runs restore it with `actions/cache/restore` |
+| npm tooling cache | The eight tooling jobs restore the npm store with `actions/setup-node` (`cache: npm`, keyed on `.github/package-lock.json`, Node 22 pinned). `npm ci` verifies lockfile integrity hashes, so a cached store cannot install wrong content |
 
 ### Artefacts
 
