@@ -1,17 +1,15 @@
-'use strict';
-
-const fs = require('node:fs');
-const path = require('node:path');
-const test = require('node:test');
-const assert = require('node:assert/strict');
+import assert from 'node:assert/strict';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import test from 'node:test';
 
 const repositoryRoot = path.resolve(__dirname, '..', '..');
 
-function readRepositoryFile(relativePath) {
+function readRepositoryFile(relativePath: string): string {
   return fs.readFileSync(path.join(repositoryRoot, relativePath), 'utf8');
 }
 
-function readJob(workflow, name, nextName) {
+function readJob(workflow: string, name: string, nextName?: string): string {
   const start = workflow.indexOf(`  ${name}:\n`);
   assert.notEqual(start, -1, `job ${name} is missing`);
   const end = nextName == null ? workflow.length : workflow.indexOf(`  ${nextName}:\n`, start);

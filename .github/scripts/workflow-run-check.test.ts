@@ -1,26 +1,52 @@
-'use strict';
-
-const assert = require('node:assert/strict');
-const test = require('node:test');
-
-const {
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import {
   buildCheckExternalId,
   completeWorkflowCheck,
   createWorkflowCheck,
   workflowResultConclusion,
-} = require('./workflow-run-check.js');
+} from './workflow-run-check.js';
+import type { WorkflowRunCheckContext } from './workflow-run-check.js';
+import { mockOctokit } from './test-support/mocks.js';
 
 const HEAD_SHA = 'a'.repeat(40);
-const CONTEXT = {
+const CONTEXT: WorkflowRunCheckContext = {
   repo: { owner: 'LMLiam', repo: 'Kotventure' },
   runId: 123,
   runAttempt: 2,
   serverUrl: 'https://github.com',
 };
 
-function makeGithub() {
-  const calls = [];
-  const check = {
+interface CheckParameters {
+  owner: string;
+  repo: string;
+  check_run_id?: number;
+  name?: string;
+  head_sha?: string;
+  status?: string;
+  conclusion?: string;
+  external_id?: string;
+  details_url?: string;
+  started_at?: string;
+  completed_at?: string;
+  output?: { title: string; summary: string };
+}
+
+interface CreatedCheckRecord {
+  id: number;
+  name: string;
+  head_sha: string;
+  external_id: string;
+  app: { slug: string };
+}
+
+function makeGithub(): {
+  calls: Array<[string, CheckParameters]>;
+  check: CreatedCheckRecord;
+  github: ReturnType<typeof mockOctokit>;
+} {
+  const calls: Array<[string, CheckParameters]> = [];
+  const check: CreatedCheckRecord = {
     id: 700,
     name: 'Qodana / trusted ref',
     head_sha: HEAD_SHA,
@@ -30,24 +56,24 @@ function makeGithub() {
   return {
     calls,
     check,
-    github: {
+    github: mockOctokit({
       rest: {
         checks: {
-          create: async (parameters) => {
+          create: async (parameters: CheckParameters) => {
             calls.push(['create', parameters]);
             return { data: check };
           },
-          get: async (parameters) => {
+          get: async (parameters: CheckParameters) => {
             calls.push(['get', parameters]);
             return { data: check };
           },
-          update: async (parameters) => {
+          update: async (parameters: CheckParameters) => {
             calls.push(['update', parameters]);
             return { data: { ...check, ...parameters } };
           },
         },
       },
-    },
+    }),
   };
 }
 
@@ -74,7 +100,9 @@ test('creates an in-progress check against the validated source SHA', async () =
     headSha: HEAD_SHA,
     name: fixture.check.name,
   });
-  const [operation, parameters] = fixture.calls[0];
+  const first = fixture.calls[0];
+  assert.ok(first);
+  const [operation, parameters] = first;
   assert.equal(operation, 'create');
   assert.deepEqual({ ...parameters, started_at: '<timestamp>' }, {
     owner: 'LMLiam',
@@ -90,7 +118,9 @@ test('creates an in-progress check against the validated source SHA', async () =
       summary: 'Qodana is analysing the validated trusted source.',
     },
   });
-  assert.doesNotThrow(() => new Date(parameters.started_at).toISOString());
+  const startedAt = parameters.started_at;
+  assert.ok(startedAt);
+  assert.doesNotThrow(() => new Date(startedAt).toISOString());
 });
 
 test('rejects a created check from a foreign application', async () => {
@@ -172,7 +202,9 @@ test('validates and completes the registered check', async () => {
     repo: 'Kotventure',
     check_run_id: fixture.check.id,
   }]);
-  const [operation, parameters] = fixture.calls[1];
+  const second = fixture.calls[1];
+  assert.ok(second);
+  const [operation, parameters] = second;
   assert.equal(operation, 'update');
   assert.deepEqual({ ...parameters, completed_at: '<timestamp>' }, {
     owner: 'LMLiam',
@@ -187,7 +219,9 @@ test('validates and completes the registered check', async () => {
       summary: 'Qodana analysed the validated trusted source.',
     },
   });
-  assert.doesNotThrow(() => new Date(parameters.completed_at).toISOString());
+  const completedAt = parameters.completed_at;
+  assert.ok(completedAt);
+  assert.doesNotThrow(() => new Date(completedAt).toISOString());
 });
 
 test('rejects a check that is not bound to the expected source', async () => {

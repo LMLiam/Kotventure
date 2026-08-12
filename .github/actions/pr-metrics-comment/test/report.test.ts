@@ -1,18 +1,18 @@
-'use strict';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { buildReport, type BuildReportOptions } from '../lib/report.js';
+import type { CoverageData } from '../lib/coverage.js';
+import type { JarInfo } from '../lib/jars.js';
 
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const { buildReport } = require('../lib/report.js');
-
-function coverage(modules, totalMissed, totalCovered) {
+function coverage(modules: Record<string, { missed: number; covered: number }>, totalMissed: number, totalCovered: number): CoverageData {
   return { modules: new Map(Object.entries(modules)), totalMissed, totalCovered, files: new Map() };
 }
 
-function jars(entries) {
+function jars(entries: Record<string, number>): Map<string, JarInfo> {
   return new Map(Object.entries(entries).map(([m, size]) => [m, { size, classes: null }]));
 }
 
-const defaults = {
+const defaults: BuildReportOptions = {
   headCoverage: null,
   baseCoverage: null,
   headJars: new Map(),

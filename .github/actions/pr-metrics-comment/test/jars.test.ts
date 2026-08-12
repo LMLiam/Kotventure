@@ -1,14 +1,12 @@
-'use strict';
+import assert from 'node:assert/strict';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
+import test from 'node:test';
+import { collectJars } from '../lib/jars.js';
+import { buildZip } from './helpers/zip-fixture.js';
 
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const fs = require('fs');
-const os = require('os');
-const path = require('path');
-const { collectJars } = require('../lib/jars.js');
-const { buildZip } = require('./helpers/zip-fixture.js');
-
-function makeTree(files) {
+function makeTree(files: Record<string, Buffer | number | string>): string {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'jars-test-'));
   for (const [relative, content] of Object.entries(files)) {
     const full = path.join(root, relative);
@@ -24,8 +22,8 @@ test('collects module jar sizes from a nested tree', async () => {
     'other/kotventure-minimessage-1.2.3.jar': 200,
   });
   const jars = await collectJars(root);
-  assert.equal(jars.get('core').size, 100);
-  assert.equal(jars.get('minimessage').size, 200);
+  assert.equal(jars.get('core')?.size, 100);
+  assert.equal(jars.get('minimessage')?.size, 200);
 });
 
 test('prefers the highest version, comparing segments numerically', async () => {
@@ -34,7 +32,7 @@ test('prefers the highest version, comparing segments numerically', async () => 
     'kotventure-core-1.10.0.jar': 300,
     'kotventure-core-0.9.9.jar': 50,
   });
-  assert.equal((await collectJars(root)).get('core').size, 300);
+  assert.equal((await collectJars(root)).get('core')?.size, 300);
 });
 
 test('counts classes for real archives and reports null otherwise', async () => {
@@ -43,8 +41,8 @@ test('counts classes for real archives and reports null otherwise', async () => 
     'kotventure-minimessage-1.2.3.jar': 100,
   });
   const jars = await collectJars(root);
-  assert.equal(jars.get('core').classes, 2);
-  assert.equal(jars.get('minimessage').classes, null);
+  assert.equal(jars.get('core')?.classes, 2);
+  assert.equal(jars.get('minimessage')?.classes, null);
 });
 
 test('ignores sources, javadoc, and non-kotventure jars', async () => {
