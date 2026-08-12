@@ -19,7 +19,7 @@ jobs:
       && (github.event.review.state == 'approved'
       || github.event.review.state == 'changes_requested'
       || github.event.review.state == 'dismissed'))
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 5
     permissions:
       contents: read

@@ -32,7 +32,7 @@ jobs:
 
   triage:
     name: Triage
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 5
     permissions:
       actions: read
@@ -165,7 +165,7 @@ jobs:
     name: Lint (Kotlin)
     needs: [triage]
     if: needs.triage.outputs.run == 'true' && needs.triage.outputs.code == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 15
     steps:
       - name: Checkout
@@ -184,7 +184,7 @@ jobs:
     name: Lint (Actions)
     needs: [triage]
     if: needs.triage.outputs.run == 'true' && needs.triage.outputs.code == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 5
     steps:
       - name: Checkout
@@ -235,7 +235,7 @@ jobs:
             tasks: :minimessage:koverBinaryReport :serializer:koverBinaryReport :minimessage:jar :serializer:jar
           - shard: runtime
             tasks: :coroutines:koverBinaryReport :paper:koverBinaryReport :test:koverBinaryReport :test-snapshot:koverBinaryReport :bom:build :coroutines:jar :paper:jar :test:jar :test-snapshot:jar
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 20
     permissions:
       checks: write
@@ -361,7 +361,7 @@ jobs:
     name: Aggregate
     needs: [build]
     if: needs.build.result == 'success'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 15
     permissions:
       contents: read
@@ -495,7 +495,7 @@ jobs:
     name: Dokka
     needs: [triage]
     if: needs.triage.outputs.run == 'true' && needs.triage.outputs.code == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 10
     permissions:
       contents: read
@@ -529,7 +529,7 @@ jobs:
       && github.event_name == 'pull_request'
       && needs.aggregate.result != 'cancelled'
       && needs.aggregate.result != 'skipped'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 25
     permissions:
       actions: read
@@ -660,7 +660,7 @@ jobs:
     name: Vanilla conformance
     needs: [triage]
     if: needs.triage.outputs.run == 'true' && needs.triage.outputs.vanilla == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 20
     permissions:
       checks: write
@@ -717,7 +717,7 @@ jobs:
   dependencies:
     name: Dependencies
     if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 10
     steps:
       - name: Checkout
@@ -734,7 +734,7 @@ jobs:
   commits:
     name: Commits
     if: github.event_name == 'push'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 10
     steps:
       - name: Checkout
@@ -764,7 +764,7 @@ jobs:
     name: Status
     if: always()
     needs: [triage, lint-kotlin, lint-actions, build, aggregate, dokka, vanilla, dependencies]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 5
     steps:
       - name: Evaluate
