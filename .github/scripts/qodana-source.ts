@@ -1,21 +1,26 @@
-'use strict';
-
-const {
+import {
   buildArtifactName,
   classifyChangedFiles,
-} = require('./qodana-contract.js');
-const { createValidators } = require('./shared/validation.js');
-const { hasTrustedReleaseProvenance } = require('./shared/release-provenance.js');
+} from './qodana-contract.js';
+import type {
+  QodanaPathClassification,
+  QodanaSourceKind,
+} from './qodana-contract.js';
+import type { ActionContext, Octokit, PullRequestData, PullRequestFile, RepositoryData } from './shared/action-context.js';
+import { createValidators } from './shared/validation.js';
+import { hasTrustedReleaseProvenance } from './shared/release-provenance.js';
 
-class QodanaSourceRejectedError extends Error {
-  constructor(message, { stale = false } = {}) {
+export class QodanaSourceRejectedError extends Error {
+  readonly stale: boolean;
+
+  constructor(message: string, { stale = false }: { stale?: boolean } = {}) {
     super(message);
     this.name = 'QodanaSourceRejectedError';
     this.stale = stale;
   }
 }
 
-function reject(message, stale = false) {
+function reject(message: string, stale = false): never {
   throw new QodanaSourceRejectedError(message, { stale });
 }
 
@@ -24,16 +29,26 @@ const {
   requireEqual,
   requireObject,
   requireSha,
+  requireString,
 } = createValidators(reject);
 
-async function fetchRepository({ github, owner, repo }) {
+async function fetchRepository({ github, owner, repo }: {
+  github: Octokit;
+  owner: string;
+  repo: string;
+}): Promise<RepositoryData> {
   const repositoryResponse = await github.rest.repos.get({ owner, repo });
-  const repository = requireObject(repositoryResponse.data, 'repository');
+  const repository = requireObject<RepositoryData>(repositoryResponse.data, 'repository');
   requireEqual(repository.full_name, `${owner}/${repo}`, 'repository identity');
   return repository;
 }
 
-async function getChangedFiles({ github, owner, repo, pullRequest }) {
+async function getChangedFiles({ github, owner, repo, pullRequest }: {
+  github: Octokit;
+  owner: string;
+  repo: string;
+  pullRequest: PullRequestData;
+}): Promise<PullRequestFile[]> {
   const files = await github.paginate(github.rest.pulls.listFiles, {
     owner,
     repo,
@@ -49,7 +64,10 @@ async function getChangedFiles({ github, owner, repo, pullRequest }) {
   return files;
 }
 
-function hasTrustedReleaseMetadata({ repository, pullRequest }) {
+function hasTrustedReleaseMetadata({ repository, pullRequest }: {
+  repository: RepositoryData;
+  pullRequest: PullRequestData;
+}): boolean {
   return pullRequest.base?.repo?.full_name === repository.full_name
     && pullRequest.base?.ref === repository.default_branch
     && pullRequest.head?.repo?.full_name === repository.full_name
@@ -58,7 +76,13 @@ function hasTrustedReleaseMetadata({ repository, pullRequest }) {
     && pullRequest.user?.type === 'Bot';
 }
 
-async function resolveMergeBase({ github, owner, repo, baseSha, headSha }) {
+async function resolveMergeBase({ github, owner, repo, baseSha, headSha }: {
+  github: Octokit;
+  owner: string;
+  repo: string;
+  baseSha: string;
+  headSha: string;
+}): Promise<string> {
   const response = await github.rest.repos.compareCommitsWithBasehead({
     owner,
     repo,
@@ -73,7 +97,12 @@ function validatePullRequestState({
   repository,
   expectedHeadSha = null,
   expectedBaseSha = null,
-}) {
+}: {
+  pullRequest: PullRequestData;
+  repository: RepositoryData;
+  expectedHeadSha?: string | null;
+  expectedBaseSha?: string | null;
+}): void {
   requireEqual(pullRequest.state, 'open', 'pull request state', true);
   requireEqual(pullRequest.base?.repo?.full_name, repository.full_name, 'pull request base repository', true);
   requireEqual(pullRequest.base?.repo?.id, repository.id, 'pull request base repository id', true);
@@ -83,6 +112,22 @@ function validatePullRequestState({
   if (expectedBaseSha != null) requireEqual(pullRequest.base.sha, expectedBaseSha, 'pull request base SHA', true);
 }
 
+export interface PullRequestSource {
+  repository: string;
+  pullRequest: number;
+  pathClassification: QodanaPathClassification;
+  sourceKind: QodanaSourceKind;
+  baseRepository: string;
+  baseRepositoryId: number;
+  baseRef: string;
+  baseSha: string;
+  headRepository: string;
+  headRepositoryId: number;
+  headRef: string;
+  headSha: string;
+  mergeBaseSha?: string;
+}
+
 async function completePullRequestSource({
   github,
   owner,
@@ -90,10 +135,17 @@ async function completePullRequestSource({
   repository,
   pullRequest,
   waitForReleaseProvenance = true,
-}) {
+}: {
+  github: Octokit;
+  owner: string;
+  repo: string;
+  repository: RepositoryData;
+  pullRequest: PullRequestData;
+  waitForReleaseProvenance?: boolean;
+}): Promise<PullRequestSource> {
   const files = await getChangedFiles({ github, owner, repo, pullRequest });
   const pathClassification = classifyChangedFiles(files);
-  let sourceKind = pathClassification;
+  let sourceKind: QodanaSourceKind;
   if (pathClassification === 'release-candidate') {
     const trusted = hasTrustedReleaseMetadata({ repository, pullRequest })
       && await hasTrustedReleaseProvenance({
@@ -105,21 +157,24 @@ async function completePullRequestSource({
         waitForReleaseProvenance,
       });
     sourceKind = trusted ? 'release' : 'code';
+  } else {
+    sourceKind = pathClassification;
   }
-  const headRepository = requireObject(pullRequest.head?.repo, 'pull request head repository');
-  const source = {
+  const baseRepository = requireObject<RepositoryData>(pullRequest.base?.repo, 'pull request base repository');
+  const headRepository = requireObject<RepositoryData>(pullRequest.head?.repo, 'pull request head repository');
+  const source: PullRequestSource = {
     repository: repository.full_name,
     pullRequest: requireBoundedInteger(pullRequest.number, 'pull request number'),
     pathClassification,
     sourceKind,
-    baseRepository: pullRequest.base.repo.full_name,
-    baseRepositoryId: pullRequest.base.repo.id,
-    baseRef: pullRequest.base.ref,
-    baseSha: pullRequest.base.sha,
+    baseRepository: baseRepository.full_name,
+    baseRepositoryId: requireBoundedInteger(baseRepository.id, 'pull request base repository id'),
+    baseRef: requireString(pullRequest.base?.ref, 'pull request base branch'),
+    baseSha: requireSha(pullRequest.base?.sha, 'pull request base SHA'),
     headRepository: headRepository.full_name,
-    headRepositoryId: headRepository.id,
-    headRef: pullRequest.head.ref,
-    headSha: pullRequest.head.sha,
+    headRepositoryId: requireBoundedInteger(headRepository.id, 'pull request head repository id'),
+    headRef: requireString(pullRequest.head?.ref, 'pull request head branch'),
+    headSha: requireSha(pullRequest.head?.sha, 'pull request head SHA'),
   };
   if (sourceKind === 'code') {
     source.mergeBaseSha = await resolveMergeBase({
@@ -133,7 +188,13 @@ async function completePullRequestSource({
   return source;
 }
 
-async function findPullRequestForHeadSha({ github, owner, repo, repository, headSha }) {
+async function findPullRequestForHeadSha({ github, owner, repo, repository, headSha }: {
+  github: Octokit;
+  owner: string;
+  repo: string;
+  repository: RepositoryData;
+  headSha: string;
+}): Promise<number> {
   const associatedPullRequests = await github.paginate(
     github.rest.repos.listPullRequestsAssociatedWithCommit,
     {
@@ -152,7 +213,11 @@ async function findPullRequestForHeadSha({ github, owner, repo, repository, head
   if (matchingPullRequests.length !== 1) {
     reject('pull request head SHA does not identify exactly one open pull request', true);
   }
-  return matchingPullRequests[0].number;
+  const pullRequest = matchingPullRequests[0];
+  if (pullRequest == null) {
+    reject('pull request head SHA does not identify exactly one open pull request', true);
+  }
+  return pullRequest.number;
 }
 
 async function resolvePullRequestSource({
@@ -162,12 +227,19 @@ async function resolvePullRequestSource({
   headSha,
   expectedBaseSha = null,
   waitForReleaseProvenance = true,
-}) {
+}: {
+  github: Octokit;
+  owner: string;
+  repo: string;
+  headSha: string;
+  expectedBaseSha?: string | null;
+  waitForReleaseProvenance?: boolean;
+}): Promise<PullRequestSource> {
   requireSha(headSha, 'pull request head SHA');
   const repository = await fetchRepository({ github, owner, repo });
   const pullNumber = await findPullRequestForHeadSha({ github, owner, repo, repository, headSha });
   const response = await github.rest.pulls.get({ owner, repo, pull_number: pullNumber });
-  const pullRequest = requireObject(response.data, 'pull request');
+  const pullRequest = requireObject<PullRequestData>(response.data, 'pull request');
   validatePullRequestState({
     pullRequest,
     repository,
@@ -184,8 +256,28 @@ async function resolvePullRequestSource({
   });
 }
 
-async function resolvePullRequestEventSource({ github, context, qodanaRunId, qodanaRunAttempt }) {
-  const pullRequestEvent = requireObject(context.payload?.pull_request, 'pull_request event');
+interface PullRequestEventRecord {
+  number: number;
+  head: { sha: string };
+  base: { repo: { full_name: string; id: number } | null } | null;
+}
+
+export interface PullRequestEventSource extends PullRequestSource {
+  artifactName: string;
+}
+
+async function resolvePullRequestEventSource({
+  github,
+  context,
+  qodanaRunId,
+  qodanaRunAttempt,
+}: {
+  github: Octokit;
+  context: ActionContext['context'];
+  qodanaRunId: number;
+  qodanaRunAttempt: number;
+}): Promise<PullRequestEventSource> {
+  const pullRequestEvent = requireObject<PullRequestEventRecord>(context.payload?.pull_request, 'pull_request event');
   const eventHeadSha = requireSha(pullRequestEvent.head?.sha, 'pull request event head SHA');
   const owner = context.repo.owner;
   const repo = context.repo.repo;
@@ -194,7 +286,7 @@ async function resolvePullRequestEventSource({ github, context, qodanaRunId, qod
   requireEqual(pullRequestEvent.base?.repo?.id, repository.id, 'pull request base repository id');
   const pullNumber = requireBoundedInteger(pullRequestEvent.number, 'pull request number');
   const response = await github.rest.pulls.get({ owner, repo, pull_number: pullNumber });
-  const pullRequest = requireObject(response.data, 'pull request');
+  const pullRequest = requireObject<PullRequestData>(response.data, 'pull request');
   validatePullRequestState({ pullRequest, repository, expectedHeadSha: eventHeadSha });
   const source = await completePullRequestSource({
     github,
@@ -216,8 +308,7 @@ async function resolvePullRequestEventSource({ github, context, qodanaRunId, qod
   };
 }
 
-module.exports = {
-  QodanaSourceRejectedError,
+export {
   hasTrustedReleaseMetadata,
   resolvePullRequestEventSource,
   resolvePullRequestSource,

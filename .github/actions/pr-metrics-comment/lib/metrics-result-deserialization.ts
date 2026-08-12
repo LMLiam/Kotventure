@@ -1,5 +1,3 @@
-import { validateMetricsResult } from './metrics-result-validation.js';
-import type { JsonValue } from './metrics-result-contract.js';
 import type { BuildMetrics, CoverageValue, JarValue, MetricsResultValue } from './metrics-result-validation.js';
 import type { CoverageData, ModuleCounters } from './coverage.js';
 import type { JarInfo } from './jars.js';
@@ -33,18 +31,17 @@ function deserializeJars(jars: JarValue[]): Map<string, JarInfo> {
   return new Map(jars.map(({ module, size, classes }) => [module, { size, classes }]));
 }
 
-export function deserializeMetricsResult(result: JsonValue): DeserializedMetricsResult {
-  const validated = validateMetricsResult(result);
+export function deserializeMetricsResult(result: MetricsResultValue): DeserializedMetricsResult {
   return {
-    headCoverage: deserializeCoverage(validated.metrics.headCoverage),
-    baseCoverage: deserializeCoverage(validated.metrics.baseCoverage),
-    headJars: deserializeJars(validated.metrics.headJars),
-    baseJars: deserializeJars(validated.metrics.baseJars),
-    headMetrics: validated.metrics.headMetrics,
-    baseMetrics: validated.metrics.baseMetrics,
-    patchCoverage: validated.metrics.patchCoverage
-      ? { ...validated.metrics.patchCoverage, uncovered: [] }
+    headCoverage: deserializeCoverage(result.metrics.headCoverage),
+    baseCoverage: deserializeCoverage(result.metrics.baseCoverage),
+    headJars: deserializeJars(result.metrics.headJars),
+    baseJars: deserializeJars(result.metrics.baseJars),
+    headMetrics: result.metrics.headMetrics,
+    baseMetrics: result.metrics.baseMetrics,
+    patchCoverage: result.metrics.patchCoverage
+      ? { ...result.metrics.patchCoverage, uncovered: [] }
       : null,
-    apiSurface: validated.metrics.apiSurface,
+    apiSurface: result.metrics.apiSurface,
   };
 }

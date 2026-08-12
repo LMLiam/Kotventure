@@ -6,6 +6,9 @@ export interface WorkflowRunEventRecord {
   run_attempt: number;
   head_sha: string;
   workflow_id: number | null;
+  event?: string;
+  status?: string;
+  conclusion?: string | null;
 }
 
 export interface WorkflowRunContext {

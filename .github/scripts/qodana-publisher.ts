@@ -1,23 +1,41 @@
-'use strict';
-
-const { resolvePullRequestSource, QodanaSourceRejectedError } = require('./qodana-source.js');
-const {
+import { resolvePullRequestSource, QodanaSourceRejectedError } from './qodana-source.js';
+import type { PullRequestSource } from './qodana-source.js';
+import type { QodanaSourceKind } from './qodana-contract.js';
+import {
   QodanaPublicationRejectedError,
   selectQodanaRunArtifact,
   validateQodanaArtifactSource,
   validateQodanaWorkflowSource,
-} = require('./qodana-publisher-validation.js');
-const { createValidators } = require('./shared/validation.js');
-const { fetchWorkflowRunContext } = require('./shared/run-context.js');
+} from './qodana-publisher-validation.js';
+import type { ArtifactSelection } from './qodana-publisher-validation.js';
+import type { ActionContext, Octokit } from './shared/action-context.js';
+import { createValidators } from './shared/validation.js';
+import { fetchWorkflowRunContext } from './shared/run-context.js';
+import type { WorkflowRunEventRecord } from './shared/run-context.js';
 
-function rejectPublication(message) {
+function rejectPublication(message: string): never {
   throw new QodanaPublicationRejectedError(message);
 }
 
 const { requireObject } = createValidators(rejectPublication);
 
-async function resolvePublication({ github, context }) {
-  const eventRun = requireObject(context.payload?.workflow_run, 'workflow_run event');
+export interface QodanaPublication {
+  artifactId: number | null;
+  headSha: string | null;
+  pullNumber: number | null;
+  publish: boolean;
+  rejection: Error | null;
+  sourceKind: QodanaSourceKind | null;
+}
+
+async function resolvePublication({
+  github,
+  context,
+}: {
+  github: Octokit;
+  context: ActionContext['context'];
+}): Promise<QodanaPublication> {
+  const eventRun = requireObject<WorkflowRunEventRecord>(context.payload?.workflow_run, 'workflow_run event');
   const owner = context.repo.owner;
   const repo = context.repo.repo;
   const { repository, run: qodanaRun, workflow } = await fetchWorkflowRunContext(rejectPublication, {
@@ -49,7 +67,7 @@ async function resolvePublication({ github, context }) {
     run_id: qodanaRun.id,
     per_page: 100,
   });
-  let selection;
+  let selection: ArtifactSelection;
   try {
     selection = selectQodanaRunArtifact({ artifacts, qodanaRun, repository });
   } catch (error) {
@@ -67,7 +85,7 @@ async function resolvePublication({ github, context }) {
   }
   const { artifact, descriptor } = selection;
 
-  let source;
+  let source: PullRequestSource;
   try {
     source = await resolvePullRequestSource({
       github,
@@ -118,7 +136,15 @@ async function resolvePublication({ github, context }) {
   };
 }
 
-async function writePublicationOutputs({ github, context, core }) {
+async function writePublicationOutputs({
+  github,
+  context,
+  core,
+}: {
+  github: Octokit;
+  context: ActionContext['context'];
+  core: ActionContext['core'];
+}): Promise<QodanaPublication | null> {
   try {
     const publication = await resolvePublication({ github, context });
     core.setOutput('publish', String(publication.publish));
@@ -142,7 +168,7 @@ async function writePublicationOutputs({ github, context, core }) {
   }
 }
 
-module.exports = {
+export {
   QodanaPublicationRejectedError,
   resolvePublication,
   writePublicationOutputs,

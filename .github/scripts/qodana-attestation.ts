@@ -1,9 +1,56 @@
-'use strict';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import type { JsonObject } from './shared/json.js';
 
-const fs = require('node:fs');
-const path = require('node:path');
+export type AttestationSourceKind = 'documentation' | 'release';
 
-function attestationFor(sourceKind) {
+export type QodanaSarifLocation = {
+  uri?: string | null;
+  uriBaseId?: string | null;
+};
+
+export type QodanaSarifRule = {
+  id: string;
+  name: string;
+  shortDescription: { text: string };
+  fullDescription: { text: string };
+  defaultConfiguration: { level: string };
+};
+
+export type QodanaSarifArtifact = {
+  location?: QodanaSarifLocation | null;
+};
+
+export type QodanaSarifRun = {
+  tool: {
+    driver: {
+      name: string;
+      version: string;
+      rules: QodanaSarifRule[];
+    };
+  };
+  results: JsonObject[];
+  artifacts?: QodanaSarifArtifact[];
+  originalUriBaseIds?: Record<string, QodanaSarifLocation>;
+};
+
+export type QodanaSarifDocument = {
+  $schema: string;
+  version: string;
+  runs: QodanaSarifRun[];
+};
+
+interface AttestationRuleDetails {
+  version: string;
+  rule: {
+    id: string;
+    name: string;
+    shortDescription: string;
+    fullDescription: string;
+  };
+}
+
+function attestationFor(sourceKind: AttestationSourceKind): AttestationRuleDetails {
   if (sourceKind === 'documentation') {
     return {
       version: 'trusted-documentation-only-attestation',
@@ -29,7 +76,12 @@ function attestationFor(sourceKind) {
   throw new Error(`Cannot create an attestation for source kind ${sourceKind}`);
 }
 
-function createAttestation({ sourceKind, headSha }) {
+export interface CreateAttestationOptions {
+  sourceKind: AttestationSourceKind;
+  headSha: string;
+}
+
+export function createAttestation({ sourceKind, headSha }: CreateAttestationOptions): QodanaSarifDocument {
   if (typeof headSha !== 'string' || !/^[0-9a-f]{40}$/.test(headSha)) {
     throw new Error('attestation head SHA is invalid');
   }
@@ -56,10 +108,12 @@ function createAttestation({ sourceKind, headSha }) {
   };
 }
 
-function writeAttestation({ sourceKind, headSha, outputPath }) {
+export interface WriteAttestationOptions extends CreateAttestationOptions {
+  outputPath: string;
+}
+
+export function writeAttestation({ sourceKind, headSha, outputPath }: WriteAttestationOptions): void {
   if (typeof outputPath !== 'string' || outputPath.length === 0) throw new Error('attestation output path is required');
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
   fs.writeFileSync(outputPath, JSON.stringify(createAttestation({ sourceKind, headSha })));
 }
-
-module.exports = { createAttestation, writeAttestation };

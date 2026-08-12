@@ -18,3 +18,5 @@ export type PullRequestData = Awaited<ReturnType<Octokit['rest']['pulls']['get']
 export type PullRequestFile = Awaited<ReturnType<Octokit['rest']['pulls']['listFiles']>>['data'][number];
 export type WorkflowRunListItem = Awaited<ReturnType<Octokit['rest']['actions']['listWorkflowRuns']>>['data']['workflow_runs'][number];
 export type JobItem = Awaited<ReturnType<Octokit['rest']['actions']['listJobsForWorkflowRun']>>['data']['jobs'][number];
+export type WorkflowRunArtifact = Awaited<ReturnType<Octokit['rest']['actions']['listWorkflowRunArtifacts']>>['data']['artifacts'][number];
+export type CheckRunData = Awaited<ReturnType<Octokit['rest']['checks']['create']>>['data'];

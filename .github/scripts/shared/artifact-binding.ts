@@ -1,25 +1,25 @@
 import { createValidators, type ValidatorReject } from './validation.js';
 
 export interface ArtifactWorkflowRunBinding {
-  id: number;
-  repository_id: number;
-  head_repository_id: number;
-  head_branch: string;
-  head_sha: string;
+  id?: number;
+  repository_id?: number;
+  head_repository_id?: number;
+  head_branch?: string;
+  head_sha?: string;
 }
 
 export interface ArtifactBindingRecord {
   id: number;
   expired: boolean;
   size_in_bytes: number;
-  workflow_run: ArtifactWorkflowRunBinding | null;
+  workflow_run?: ArtifactWorkflowRunBinding | null;
 }
 
 export interface ArtifactBindingExpectation {
   runId: number;
   repositoryId: number;
-  headRepositoryId: number | null | undefined;
-  headBranch: string;
+  headRepositoryId: number;
+  headBranch: string | null;
   headSha: string;
 }
 
@@ -42,7 +42,9 @@ export function validateArtifactBinding(
   const workflowRun = requireObject<ArtifactWorkflowRunBinding>(artifact.workflow_run, `${label} workflow run`);
   requireEqual(workflowRun.id, expected.runId, `${label} workflow run id`);
   requireEqual(workflowRun.repository_id, expected.repositoryId, `${label} repository id`);
-  requireEqual(workflowRun.head_repository_id, expected.headRepositoryId, `${label} head repository id`);
+  const headRepositoryId = requireBoundedInteger(workflowRun.head_repository_id, `${label} head repository id`);
+  requireBoundedInteger(expected.headRepositoryId, `${label} head repository id`);
+  requireEqual(headRepositoryId, expected.headRepositoryId, `${label} head repository id`);
   requireEqual(workflowRun.head_branch, expected.headBranch, `${label} head branch`);
   requireEqual(workflowRun.head_sha, expected.headSha, `${label} head SHA`);
 }

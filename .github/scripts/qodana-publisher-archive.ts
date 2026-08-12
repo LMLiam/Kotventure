@@ -1,13 +1,11 @@
-'use strict';
-
-const {
+import {
   MAX_ARTIFACT_BYTES,
   MAX_SARIF_BYTES,
   QODANA_SARIF_FILE_NAME,
-} = require('./qodana-contract.js');
-const { extractSingleEntryArchive } = require('./shared/artifact-archive.js');
+} from './qodana-contract.js';
+import { extractSingleEntryArchive } from './shared/artifact-archive.js';
 
-async function extractQodanaSarifArchive(archive) {
+export async function extractQodanaSarifArchive(archive: Buffer): Promise<Buffer> {
   return extractSingleEntryArchive(archive, {
     errorPrefix: 'Qodana artifact archive',
     expectedFileName: QODANA_SARIF_FILE_NAME,
@@ -15,5 +13,3 @@ async function extractQodanaSarifArchive(archive) {
     maxBytes: MAX_SARIF_BYTES,
   });
 }
-
-module.exports = { extractQodanaSarifArchive };

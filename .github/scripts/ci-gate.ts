@@ -1,26 +1,35 @@
-'use strict';
-
-const {
+import {
   RELEASE_ONLY_FILES,
   isDocumentationPath,
-} = require('./shared/path-classification.js');
-const { findReleaseProvenanceRun } = require('./shared/release-provenance.js');
+} from './shared/path-classification.js';
+import { findReleaseProvenanceRun } from './shared/release-provenance.js';
+import type { ActionContext, JobItem, Octokit, PullRequestFile, WorkflowRunListItem } from './shared/action-context.js';
 
-function setAlways(core, documentationOnly = false) {
+export { RELEASE_ONLY_FILES, isDocumentationPath };
+
+function setAlways(core: ActionContext['core'], documentationOnly = false): void {
   core.setOutput('run', 'true');
   core.setOutput('release_only', 'false');
   core.setOutput('release_candidate', 'false');
   core.setOutput('documentation_only', documentationOnly ? 'true' : 'false');
 }
 
-function setForceFull(core) {
+function setForceFull(core: ActionContext['core']): void {
   core.setOutput('run', 'true');
   core.setOutput('release_only', 'false');
   core.setOutput('release_candidate', 'true');
   core.setOutput('documentation_only', 'false');
 }
 
-async function decideGate({ github, context, core }) {
+async function decideGate({
+  github,
+  context,
+  core,
+}: {
+  github: Octokit;
+  context: ActionContext['context'];
+  core: ActionContext['core'];
+}): Promise<void> {
   if (context.eventName === 'push') {
     setAlways(core);
     return;
@@ -33,8 +42,14 @@ async function decideGate({ github, context, core }) {
   }
 
   const pullRequest = context.payload.pull_request;
+  if (!pullRequest) {
+    core.warning('Pull request payload is missing; run full CI.');
+    setAlways(core);
+    return;
+  }
+
   const repository = `${context.repo.owner}/${context.repo.repo}`;
-  let files;
+  let files: PullRequestFile[];
   try {
     files = await github.paginate(github.rest.pulls.listFiles, {
       owner: context.repo.owner,
@@ -58,11 +73,11 @@ async function decideGate({ github, context, core }) {
     return;
   }
 
-  const unexpected = [...new Set(files
-    .flatMap((file) => [file.filename, file.previous_filename].filter(Boolean))
-    .filter((name) => !RELEASE_ONLY_FILES.has(name)))].sort();
   const changedPaths = files
-    .flatMap((file) => [file.filename, file.previous_filename].filter(Boolean));
+    .flatMap((file) => [file.filename, file.previous_filename])
+    .filter((name): name is string => Boolean(name));
+  const unexpected = [...new Set(changedPaths
+    .filter((name) => !RELEASE_ONLY_FILES.has(name)))].sort();
   const documentationOnly = changedPaths.length > 0
     && changedPaths.every(isDocumentationPath);
   core.setOutput('documentation_only', documentationOnly ? 'true' : 'false');
@@ -80,8 +95,8 @@ async function decideGate({ github, context, core }) {
     && pullRequest.base.ref === 'master'
     && pullRequest.head.repo?.full_name === repository
     && pullRequest.head.ref === 'release-please--branches--master'
-    && pullRequest.user.login === 'release-please-kotventure[bot]'
-    && pullRequest.user.type === 'Bot'
+    && pullRequest.user?.login === 'release-please-kotventure[bot]'
+    && pullRequest.user?.type === 'Bot'
     && context.payload.sender?.login === 'release-please-kotventure[bot]'
     && context.payload.sender?.type === 'Bot';
 
@@ -95,7 +110,7 @@ async function decideGate({ github, context, core }) {
     return;
   }
 
-  let provenanceRun;
+  let provenanceRun: WorkflowRunListItem | undefined;
   try {
     for (let attempt = 0; attempt < 6; attempt += 1) {
       provenanceRun = await findReleaseProvenanceRun({
@@ -123,7 +138,7 @@ async function decideGate({ github, context, core }) {
     return;
   }
 
-  let jobs;
+  let jobs: JobItem[];
   try {
     jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
       owner: context.repo.owner,
@@ -151,8 +166,6 @@ async function decideGate({ github, context, core }) {
   setForceFull(core);
 }
 
-module.exports = {
-  RELEASE_ONLY_FILES,
+export {
   decideGate,
-  isDocumentationPath,
 };
