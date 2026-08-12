@@ -1,12 +1,22 @@
-'use strict';
+import { chartLabel } from '../names.js';
+import { deltaVerticalBars } from '../mermaid.js';
+import { pct, formatPct, formatSigned, detailsTable, sortedDeltas } from './format.js';
+import type { SectionResult } from './format.js';
+import type { CoverageData } from '../coverage.js';
 
-const { chartLabel } = require('../names.js');
-const { deltaVerticalBars } = require('../mermaid.js');
-const { pct, formatPct, formatSigned, detailsTable, sortedDeltas } = require('./format.js');
+interface ModuleRowMembership {
+  changed: boolean;
+}
 
-function moduleRows(headCoverage, baseCoverage, deltaLabels, deltaVals, membership) {
+function moduleRows(
+  headCoverage: CoverageData,
+  baseCoverage: CoverageData | null,
+  deltaLabels: string[],
+  deltaVals: number[],
+  membership: ModuleRowMembership,
+): string {
   const hasBase = !!baseCoverage;
-  const names = new Set([...headCoverage.modules.keys()]);
+  const names = new Set<string>([...headCoverage.modules.keys()]);
   if (hasBase) {
     for (const name of baseCoverage.modules.keys()) {
       names.add(name);
@@ -17,7 +27,7 @@ function moduleRows(headCoverage, baseCoverage, deltaLabels, deltaVals, membersh
     : '| Module | Coverage |\n|--------|----------|\n';
   for (const name of [...names].sort((a, b) => a.localeCompare(b))) {
     const head = headCoverage.modules.get(name);
-    const base = hasBase ? baseCoverage.modules.get(name) : null;
+    const base = hasBase ? baseCoverage.modules.get(name) : undefined;
     const headPct = head ? pct(head.covered, head.missed) : null;
     const basePct = base ? pct(base.covered, base.missed) : null;
     if (headPct != null && basePct != null) {
@@ -40,16 +50,22 @@ function moduleRows(headCoverage, baseCoverage, deltaLabels, deltaVals, membersh
   return table;
 }
 
-function coverageSection({ headCoverage, baseCoverage, gateThreshold }) {
+export interface CoverageSectionOptions {
+  headCoverage: CoverageData;
+  baseCoverage: CoverageData | null;
+  gateThreshold: number | null | undefined;
+}
+
+export function coverageSection({ headCoverage, baseCoverage, gateThreshold }: CoverageSectionOptions): SectionResult {
   const hasBase = !!baseCoverage;
-  const deltaLabels = [];
-  const deltaVals = [];
-  const membership = { changed: false };
+  const deltaLabels: string[] = [];
+  const deltaVals: number[] = [];
+  const membership: ModuleRowMembership = { changed: false };
   let table = moduleRows(headCoverage, baseCoverage, deltaLabels, deltaVals, membership);
 
   const headTotal = pct(headCoverage.totalCovered, headCoverage.totalMissed);
-  const warnings = [];
-  let totalDelta = null;
+  const warnings: string[] = [];
+  let totalDelta: number | null = null;
   if (hasBase) {
     const baseTotal = pct(baseCoverage.totalCovered, baseCoverage.totalMissed);
     totalDelta = headTotal - baseTotal;
@@ -69,13 +85,14 @@ function coverageSection({ headCoverage, baseCoverage, gateThreshold }) {
   else if (deltaLabels.length === 0) lines.push('_No per-module coverage delta (≥ 0.05pp) — chart omitted._', '');
   else {
     const sorted = sortedDeltas(deltaLabels, deltaVals);
-    lines.push(deltaVerticalBars({
+    const chart = deltaVerticalBars({
       title: 'Coverage delta (pp, PR − base)',
       labels: sorted.labels,
       deltas: sorted.values,
       yLabel: 'Δ pp',
       color: '#a78bfa',
-    }), '');
+    });
+    if (chart) lines.push(chart, '');
   }
   lines.push(detailsTable('Coverage data table', table), '');
 
@@ -88,8 +105,6 @@ function coverageSection({ headCoverage, baseCoverage, gateThreshold }) {
     lines,
     verdictPart,
     warnings,
-    changed: hasBase && (deltaLabels.length > 0 || membership.changed || Math.abs(totalDelta) >= 0.05),
+    changed: hasBase && (deltaLabels.length > 0 || membership.changed || Math.abs(totalDelta ?? 0) >= 0.05),
   };
 }
-
-module.exports = { coverageSection };

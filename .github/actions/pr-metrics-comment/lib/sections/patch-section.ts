@@ -1,12 +1,12 @@
-'use strict';
+import { formatPct } from './format.js';
+import type { SectionResult } from './format.js';
+import type { PatchCoverage } from '../patch-coverage.js';
 
-const { formatPct } = require('./format.js');
-
-function formatRanges(ranges) {
+function formatRanges(ranges: ReadonlyArray<readonly [number, number]>): string {
   return ranges.map(([start, end]) => (start === end ? `${start}` : `${start}–${end}`)).join(', ');
 }
 
-function patchSection(patchCoverage) {
+export function patchSection(patchCoverage: PatchCoverage): SectionResult {
   const total = patchCoverage.covered + patchCoverage.missed;
   if (total === 0) {
     return {
@@ -35,5 +35,3 @@ function patchSection(patchCoverage) {
     changed: true,
   };
 }
-
-module.exports = { patchSection };

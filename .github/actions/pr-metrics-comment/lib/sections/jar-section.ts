@@ -1,14 +1,14 @@
-'use strict';
+import { chartLabel } from '../names.js';
+import { deltaVerticalBars } from '../mermaid.js';
+import { formatSigned, formatCount, detailsTable, sortedDeltas } from './format.js';
+import type { SectionResult } from './format.js';
+import type { JarInfo } from '../jars.js';
 
-const { chartLabel } = require('../names.js');
-const { deltaVerticalBars } = require('../mermaid.js');
-const { formatSigned, formatCount, detailsTable, sortedDeltas } = require('./format.js');
-
-function kb(bytes) {
+function kb(bytes: number): string {
   return `${(bytes / 1024).toFixed(1)} KB`;
 }
 
-function classCell(head, base) {
+function classCell(head: JarInfo | undefined, base: JarInfo | null | undefined): string {
   if (head?.classes == null) return '—';
   if (base?.classes != null && base.classes !== head.classes) {
     return `${head.classes} (${formatCount(head.classes - base.classes)})`;
@@ -16,11 +16,17 @@ function classCell(head, base) {
   return `${head.classes}`;
 }
 
-function jarSection({ headJars, baseJars, growthThreshold }) {
-  const warnings = [];
+export interface JarSectionOptions {
+  headJars: Map<string, JarInfo>;
+  baseJars: Map<string, JarInfo>;
+  growthThreshold: number;
+}
+
+export function jarSection({ headJars, baseJars, growthThreshold }: JarSectionOptions): SectionResult {
+  const warnings: string[] = [];
   const modules = [...new Set([...headJars.keys(), ...baseJars.keys()])].sort((a, b) => a.localeCompare(b));
-  const deltaLabels = [];
-  const deltaVals = [];
+  const deltaLabels: string[] = [];
+  const deltaVals: number[] = [];
   let hasAnyBase = false;
   let membershipChanged = false;
   let headTotal = 0;
@@ -45,7 +51,7 @@ function jarSection({ headJars, baseJars, growthThreshold }) {
       }
     } else if (head) {
       membershipChanged = true;
-      table += `| ${mod} | ${kb(head.size)} | — | new | ${classCell(head, null)} |\n`;
+      table += `| ${mod} | ${kb(head.size)} | — | new | ${classCell(head, undefined)} |\n`;
     } else if (base) {
       hasAnyBase = true;
       membershipChanged = true;
@@ -58,22 +64,21 @@ function jarSection({ headJars, baseJars, growthThreshold }) {
   else if (deltaLabels.length === 0) lines.push('_No per-module size delta (≥ 0.05%) — chart omitted._', '');
   else {
     const sorted = sortedDeltas(deltaLabels, deltaVals);
-    lines.push(deltaVerticalBars({
+    const chart = deltaVerticalBars({
       title: 'JAR size delta (%, PR − base)',
       labels: sorted.labels,
       deltas: sorted.values,
       yLabel: 'Δ %',
       color: '#34d399',
-    }), '');
+    });
+    if (chart) lines.push(chart, '');
   }
   lines.push(detailsTable('Artifact size data table', table), '');
 
-  let verdictPart = null;
+  let verdictPart: string | null = null;
   if (hasAnyBase && baseTotal > 0) {
     verdictPart = `📦 jars ${formatSigned(((headTotal - baseTotal) / baseTotal) * 100, '%')}`;
   }
 
   return { lines, verdictPart, warnings, changed: deltaLabels.length > 0 || membershipChanged };
 }
-
-module.exports = { jarSection };

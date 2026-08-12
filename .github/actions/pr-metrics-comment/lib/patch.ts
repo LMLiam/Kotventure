@@ -1,10 +1,22 @@
-'use strict';
+import { parsePatch } from 'diff';
+import type { PullRequestFile } from '../../../scripts/shared/action-context.js';
 
-const { parsePatch } = require('diff');
+export type { PullRequestFile };
 
-function parseHunks(patch) {
-  const addedLines = [];
-  const removedText = [];
+export interface AddedLine {
+  readonly line: number;
+  readonly text: string;
+}
+
+export interface ParsedPatch {
+  readonly path: string;
+  readonly addedLines: AddedLine[];
+  readonly removedText: string[];
+}
+
+function parseHunks(patch: string): { addedLines: AddedLine[]; removedText: string[] } {
+  const addedLines: AddedLine[] = [];
+  const removedText: string[] = [];
   for (const file of parsePatch(patch)) {
     for (const hunk of file.hunks) {
       let newLine = hunk.newStart;
@@ -23,13 +35,11 @@ function parseHunks(patch) {
   return { addedLines, removedText };
 }
 
-function parsePatches(files) {
-  const parsed = [];
+export function parsePatches(files: PullRequestFile[]): ParsedPatch[] {
+  const parsed: ParsedPatch[] = [];
   for (const file of files) {
     if (!file.patch || file.status === 'removed') continue;
     parsed.push({ path: file.filename, ...parseHunks(file.patch) });
   }
   return parsed;
 }
-
-module.exports = { parsePatches };
