@@ -13,6 +13,10 @@ inputs:
     description: Publish a Gradle Build Scan (slow — disables effective local build-cache reuse). Default off.
     required: false
     default: 'false'
+  cache-encryption-key:
+    description: Base64 AES key that encrypts the Gradle configuration cache for save/restore.
+    required: false
+    default: ''
 
 runs:
   using: composite
@@ -22,6 +26,7 @@ runs:
       with:
         java-version: ${{ inputs.java-version }}
         build-scan-publish: ${{ inputs.build-scan }}
+        cache-encryption-key: ${{ inputs.cache-encryption-key }}
 
     - name: Run Gradle
       id: gradle
