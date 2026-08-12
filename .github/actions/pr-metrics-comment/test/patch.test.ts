@@ -10,8 +10,9 @@ function makePullRequestFile(filename: string, status: string, patch?: string): 
 
 function singlePatch(files: PullRequestFile[]): ParsedPatch {
   const parsed = parsePatches(files);
+  assert.equal(parsed.length, 1, 'expected exactly one parsed patch');
   const file = parsed[0];
-  assert.ok(file, 'expected exactly one parsed patch');
+  assert.ok(file);
   return file;
 }
 

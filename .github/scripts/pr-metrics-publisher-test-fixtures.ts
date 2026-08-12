@@ -188,6 +188,7 @@ export interface MakeGithubOptions {
   associatedPullRequests?: PullRequestData[];
   artifacts?: WorkflowRunArtifact[];
   pullRequest?: PullRequestData;
+  workflow?: WorkflowData;
 }
 
 export function makeGithubMock({
@@ -195,6 +196,7 @@ export function makeGithubMock({
   associatedPullRequests = [],
   artifacts = [],
   pullRequest = makeInputs().pullRequest,
+  workflow = makeInputs().workflow,
 }: MakeGithubOptions = {}): TestGithubMock {
   const listAssociatedPullRequests = async () => [];
   const listWorkflowRunArtifacts = async () => artifacts;
@@ -217,11 +219,7 @@ export function makeGithubMock({
           data: run,
         }),
         getWorkflow: async () => ({
-          data: {
-            id: 55,
-            name: 'CI',
-            path: '.github/workflows/ci.yml',
-          },
+          data: workflow,
         }),
         listWorkflowRunArtifacts,
       },

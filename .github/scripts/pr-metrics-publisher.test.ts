@@ -496,13 +496,15 @@ describe('metrics artifact storage', () => {
   });
 
   test('rejects invalid artifact directory contents', async (t) => {
-    const cases: Array<[string, (directory: string) => void]> = [
+    const cases: Array<[string, RegExp, (directory: string) => void]> = [
       [
         'missing result',
+        /must contain only/,
         () => {},
       ],
       [
         'unexpected file',
+        /must contain only/,
         (directory) => {
           fs.writeFileSync(
             path.join(directory, 'other.json'),
@@ -512,6 +514,7 @@ describe('metrics artifact storage', () => {
       ],
       [
         'malformed JSON',
+        /is not valid JSON/,
         (directory) => {
           fs.writeFileSync(
             path.join(directory, RESULT_FILE_NAME),
@@ -521,6 +524,7 @@ describe('metrics artifact storage', () => {
       ],
       [
         'oversized result',
+        new RegExp(`exceeds ${MAX_RESULT_BYTES} bytes`),
         (directory) => {
           fs.writeFileSync(
             path.join(directory, RESULT_FILE_NAME),
@@ -530,11 +534,12 @@ describe('metrics artifact storage', () => {
       ],
       [
         'symbolic link',
+        /must be a regular file/,
         (directory) => {
-          const target = path.join(
-            directory,
-            'target.json',
+          const targetDirectory = fs.mkdtempSync(
+            path.join(path.dirname(directory), 'pr-metrics-target-'),
           );
+          const target = path.join(targetDirectory, 'target.json');
 
           fs.writeFileSync(
             target,
@@ -549,7 +554,7 @@ describe('metrics artifact storage', () => {
       ],
     ];
 
-    for (const [name, setup] of cases) {
+    for (const [name, expected, setup] of cases) {
       await t.test(name, (subtest) => {
         const directory = makeTempDirectory(
           subtest,
@@ -560,6 +565,7 @@ describe('metrics artifact storage', () => {
 
         assert.throws(
           () => readMetricsArtifact(directory),
+          expected,
         );
       });
     }
