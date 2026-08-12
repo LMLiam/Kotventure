@@ -17,6 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions: {}
+    env:
+      NODE_OPTIONS: --use-system-ca
     steps:
       - name: Generate Release Please App token
         id: release-please-app-token
