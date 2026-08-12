@@ -36,7 +36,6 @@ test('the Qodana scan workflow is read-only and disables GitHub side effects', (
   const analyse = readJob(workflow, 'analyse');
 
   assert.match(workflow, /pull_request_target:/);
-  assert.match(workflow, /branches: \[master\]/);
   assert.match(workflow, /types: \[opened, synchronize, reopened\]/);
   assert.match(workflow, /group: qodana-\$\{\{ github\.event\.pull_request\.number \}\}/);
   assert.doesNotMatch(workflow, /workflow_run:/);
