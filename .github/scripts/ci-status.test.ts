@@ -7,7 +7,6 @@ import {
   STATUS_POLICY_ROWS,
   type CiStatusResults,
   type CiStatusInput,
-  type StatusJobName,
 } from './ci-status.js';
 
 const ALL_SUCCESS: CiStatusResults = {
@@ -21,24 +20,11 @@ const ALL_SUCCESS: CiStatusResults = {
   dependencies: 'success',
 };
 
-interface MutableCiStatusInput {
-  eventName: string;
-  triage: {
-    run?: string;
-    releaseOnly?: string;
-    releaseCandidate?: string;
-    documentationOnly?: string;
-    code?: string;
-    vanilla?: string;
-  };
-  results: CiStatusResults;
-}
-
 function booleanOutput(value: boolean): string {
   return value ? 'true' : 'false';
 }
 
-function fixtureForPolicy(policyName: string): MutableCiStatusInput {
+function fixtureForPolicy(policyName: string): CiStatusInput {
   const policy = STATUS_POLICY_ROWS.find((candidate) => candidate.name === policyName);
   assert.ok(policy, `missing policy fixture: ${policyName}`);
   const eventName = policy.events[0];
@@ -61,7 +47,7 @@ function fixtureForPolicy(policyName: string): MutableCiStatusInput {
   };
 }
 
-function copyInput(input: CiStatusInput | MutableCiStatusInput): MutableCiStatusInput {
+function copyInput(input: CiStatusInput): CiStatusInput {
   const results = input.results;
   return {
     eventName: input.eventName,
