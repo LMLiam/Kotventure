@@ -765,10 +765,37 @@ jobs:
     if: always()
     needs: [triage, lint-kotlin, lint-actions, build, aggregate, dokka, vanilla, dependencies]
     runs-on: ubuntu-24.04-arm
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: .github/package-lock.json
+
+      - name: Install CI tooling dependencies
+        working-directory: .github
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Build CI tooling
+        working-directory: .github
+        run: npm run build
+
       - name: Evaluate
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
+          TRIAGE_RUN: ${{ needs.triage.outputs.run }}
+          TRIAGE_RELEASE_ONLY: ${{ needs.triage.outputs.release_only }}
+          TRIAGE_RELEASE_CANDIDATE: ${{ needs.triage.outputs.release_candidate }}
+          TRIAGE_DOCUMENTATION_ONLY: ${{ needs.triage.outputs.documentation_only }}
+          TRIAGE_CODE: ${{ needs.triage.outputs.code }}
+          TRIAGE_VANILLA: ${{ needs.triage.outputs.vanilla }}
           TRIAGE_RESULT: ${{ needs.triage.result }}
           LINT_KOTLIN_RESULT: ${{ needs.lint-kotlin.result }}
           LINT_ACTIONS_RESULT: ${{ needs.lint-actions.result }}
@@ -776,70 +803,34 @@ jobs:
           AGGREGATE_RESULT: ${{ needs.aggregate.result }}
           DOKKA_RESULT: ${{ needs.dokka.result }}
           VANILLA_RESULT: ${{ needs.vanilla.result }}
-          DEPS_RESULT: ${{ needs.dependencies.result }}
-          TRIAGE_RUN: ${{ needs.triage.outputs.run }}
-          CODE_CHANGED: ${{ needs.triage.outputs.code }}
-        run: |
-          set -euo pipefail
-          triage="$TRIAGE_RESULT"
-          lint_kotlin="$LINT_KOTLIN_RESULT"
-          lint_actions="$LINT_ACTIONS_RESULT"
-          build="$BUILD_RESULT"
-          aggregate="$AGGREGATE_RESULT"
-          dokka="$DOKKA_RESULT"
-          vanilla="$VANILLA_RESULT"
-          deps="$DEPS_RESULT"
-          run="$TRIAGE_RUN"
-          code="$CODE_CHANGED"
+          DEPENDENCIES_RESULT: ${{ needs.dependencies.result }}
+        with:
+          script: |
+            const { evaluateCiStatus } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/ci-status.js`);
 
-          if [[ "$triage" == "failure" || "$triage" == "cancelled" ]]; then
-            echo "::error::Triage failed ($triage)"
-            exit 1
-          fi
-
-          if [[ "$run" != "true" ]]; then
-            echo "::notice::Skipped (trusted pure Release Please PR)."
-            exit 0
-          fi
-
-          if [[ "$code" != "true" ]]; then
-            echo "::notice::Skipped (no code paths changed)."
-            exit 0
-          fi
-
-          if [[ "$lint_kotlin" != "success" ]]; then
-            echo "::error::Lint (Kotlin): $lint_kotlin"
-            exit 1
-          fi
-
-          if [[ "$lint_actions" != "success" ]]; then
-            echo "::error::Lint (Actions): $lint_actions"
-            exit 1
-          fi
-
-          if [[ "$build" != "success" ]]; then
-            echo "::error::Build: $build"
-            exit 1
-          fi
-
-          if [[ "$aggregate" != "success" ]]; then
-            echo "::error::Aggregate: $aggregate"
-            exit 1
-          fi
-
-          if [[ "$dokka" != "success" && "$dokka" != "skipped" ]]; then
-            echo "::error::Dokka: $dokka"
-            exit 1
-          fi
-
-          if [[ "$vanilla" != "success" && "$vanilla" != "skipped" ]]; then
-            echo "::error::Vanilla conformance: $vanilla"
-            exit 1
-          fi
-
-          if [[ "$deps" != "success" && "$deps" != "skipped" ]]; then
-            echo "::error::Dependencies: $deps"
-            exit 1
-          fi
-
-          echo "::notice::All required checks passed."
+            try {
+              const evaluation = evaluateCiStatus({
+                eventName: context.eventName,
+                triage: {
+                  run: process.env.TRIAGE_RUN,
+                  releaseOnly: process.env.TRIAGE_RELEASE_ONLY,
+                  releaseCandidate: process.env.TRIAGE_RELEASE_CANDIDATE,
+                  documentationOnly: process.env.TRIAGE_DOCUMENTATION_ONLY,
+                  code: process.env.TRIAGE_CODE || undefined,
+                  vanilla: process.env.TRIAGE_VANILLA || undefined,
+                },
+                results: {
+                  triage: process.env.TRIAGE_RESULT,
+                  lintKotlin: process.env.LINT_KOTLIN_RESULT,
+                  lintActions: process.env.LINT_ACTIONS_RESULT,
+                  build: process.env.BUILD_RESULT,
+                  aggregate: process.env.AGGREGATE_RESULT,
+                  dokka: process.env.DOKKA_RESULT,
+                  vanilla: process.env.VANILLA_RESULT,
+                  dependencies: process.env.DEPENDENCIES_RESULT,
+                },
+              });
+              core.notice(evaluation.summary);
+            } catch (error) {
+              core.setFailed(error instanceof Error ? error.message : String(error));
+            }

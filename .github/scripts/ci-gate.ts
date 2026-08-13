@@ -159,6 +159,7 @@ async function decideGate({
     core.setOutput('run', 'false');
     core.setOutput('release_only', 'true');
     core.setOutput('release_candidate', 'true');
+    core.setOutput('documentation_only', 'false');
     return;
   }
 
