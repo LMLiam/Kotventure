@@ -31,6 +31,7 @@ const JOB_LABELS = {
 const WORKFLOW_RESULTS = ['success', 'failure', 'cancelled', 'skipped'] as const;
 
 const OPTIONAL_NON_TRIAGE_JOBS = STATUS_JOB_NAMES.filter((job) => job !== 'triage');
+const ALL_JOBS_EXCEPT_VANILLA = STATUS_JOB_NAMES.filter((job) => job !== 'vanilla');
 
 export type CiEvent = typeof SUPPORTED_EVENTS[number];
 export type StatusJobName = typeof STATUS_JOB_NAMES[number];
@@ -119,7 +120,7 @@ export const STATUS_POLICY_ROWS: readonly StatusPolicyRow[] = [
     documentationOnly: false,
     code: true,
     vanilla: false,
-    required: [...REQUIRED_TRIAGE, 'lintKotlin', 'lintActions', 'build', 'aggregate', 'dokka', 'dependencies'],
+    required: ALL_JOBS_EXCEPT_VANILLA,
     optional: ['vanilla'],
   },
   {
@@ -152,7 +153,7 @@ export const STATUS_POLICY_ROWS: readonly StatusPolicyRow[] = [
     documentationOnly: false,
     code: true,
     vanilla: false,
-    required: [...REQUIRED_TRIAGE, 'lintKotlin', 'lintActions', 'build', 'aggregate', 'dokka', 'dependencies'],
+    required: ALL_JOBS_EXCEPT_VANILLA,
     optional: ['vanilla'],
   },
   {
@@ -163,7 +164,7 @@ export const STATUS_POLICY_ROWS: readonly StatusPolicyRow[] = [
     documentationOnly: false,
     code: true,
     vanilla: true,
-    required: [...REQUIRED_TRIAGE, 'lintKotlin', 'lintActions', 'build', 'aggregate', 'dokka', 'vanilla', 'dependencies'],
+    required: STATUS_JOB_NAMES,
     optional: [],
   },
   {

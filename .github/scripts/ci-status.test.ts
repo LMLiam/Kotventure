@@ -162,7 +162,7 @@ for (const fixture of POLICY_FIXTURES) {
 
     assert.equal(evaluation.policy, fixture.policy);
     assert.deepEqual(evaluation.acceptedSkips, fixture.optional);
-    assert.match(evaluation.summary, new RegExp(evaluation.policy));
+    assert.ok(evaluation.summary.includes(fixture.policy), evaluation.summary);
   });
 }
 
@@ -225,6 +225,7 @@ for (const job of STATUS_JOB_NAMES) {
 test('classifies every owned job exactly once in every policy row', () => {
   for (const policy of STATUS_POLICY_ROWS) {
     const classifiedJobs = [...policy.required, ...policy.optional];
+    assert.equal(classifiedJobs.length, STATUS_JOB_NAMES.length, policy.name);
     assert.equal(new Set(classifiedJobs).size, STATUS_JOB_NAMES.length, policy.name);
     assert.deepEqual([...new Set(classifiedJobs)].sort(), [...STATUS_JOB_NAMES].sort(), policy.name);
   }
@@ -275,6 +276,46 @@ test('rejects contradictory documentation flags', () => {
   assert.throws(
     () => evaluateCiStatus(input),
     /documentation-only pull requests cannot set code or vanilla to true/,
+  );
+});
+
+test('rejects release_only when CI runs', () => {
+  const input = copyInput(fixtureNamed('code-pr-without-vanilla').input);
+  input.triage.releaseOnly = 'true';
+
+  assert.throws(
+    () => evaluateCiStatus(input),
+    /triage\.release_only must be false when CI runs/,
+  );
+});
+
+test('rejects documentation_only outside a pull request', () => {
+  const input = copyInput(fixtureNamed('push-without-code').input);
+  input.triage.documentationOnly = 'true';
+
+  assert.throws(
+    () => evaluateCiStatus(input),
+    /documentation_only is supported only for pull requests/,
+  );
+});
+
+test('rejects vanilla without code', () => {
+  const input = copyInput(fixtureNamed('push-without-code').input);
+  input.triage.vanilla = 'true';
+
+  assert.throws(
+    () => evaluateCiStatus(input),
+    /triage\.vanilla cannot be true when triage\.code is false/,
+  );
+});
+
+test('rejects path flags on a skipped trusted release pull request', () => {
+  const input = copyInput(fixtureNamed('trusted-release-pr').input);
+  input.triage.code = 'true';
+
+  assert.throws(
+    () => evaluateCiStatus(input),
+    /triage\.code and triage\.vanilla must be missing/,
   );
 });
 
