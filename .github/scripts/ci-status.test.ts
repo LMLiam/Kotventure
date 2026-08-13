@@ -5,16 +5,33 @@ import {
   JOB_LABELS,
   STATUS_JOB_NAMES,
   STATUS_POLICY_ROWS,
+  type CiStatusResults,
   type CiStatusInput,
   type StatusJobName,
 } from './ci-status.js';
 
-const ALL_SUCCESS = Object.fromEntries(STATUS_JOB_NAMES.map((job) => [job, 'success'])) as Record<StatusJobName, string>;
+const ALL_SUCCESS: CiStatusResults = {
+  triage: 'success',
+  lintKotlin: 'success',
+  lintActions: 'success',
+  build: 'success',
+  aggregate: 'success',
+  dokka: 'success',
+  vanilla: 'success',
+  dependencies: 'success',
+};
 
 interface MutableCiStatusInput {
-  eventName: unknown;
-  triage: Record<string, unknown>;
-  results: Record<StatusJobName, unknown>;
+  eventName: string;
+  triage: {
+    run?: string;
+    releaseOnly?: string;
+    releaseCandidate?: string;
+    documentationOnly?: string;
+    code?: string;
+    vanilla?: string;
+  };
+  results: CiStatusResults;
 }
 
 function booleanOutput(value: boolean): string {
@@ -45,10 +62,20 @@ function fixtureForPolicy(policyName: string): MutableCiStatusInput {
 }
 
 function copyInput(input: CiStatusInput | MutableCiStatusInput): MutableCiStatusInput {
+  const results = input.results;
   return {
     eventName: input.eventName,
     triage: { ...input.triage },
-    results: { ...input.results },
+    results: {
+      triage: results?.triage,
+      lintKotlin: results?.lintKotlin,
+      lintActions: results?.lintActions,
+      build: results?.build,
+      aggregate: results?.aggregate,
+      dokka: results?.dokka,
+      vanilla: results?.vanilla,
+      dependencies: results?.dependencies,
+    },
   };
 }
 
@@ -71,7 +98,7 @@ for (const policy of STATUS_POLICY_ROWS) {
 
       assert.throws(
         () => evaluateCiStatus(input),
-        (error: unknown) => error instanceof Error
+        (error) => error instanceof Error
           && error.message.includes(`${JOB_LABELS[job]} result is skipped`),
       );
     });
@@ -96,7 +123,7 @@ for (const policy of STATUS_POLICY_ROWS) {
 
         assert.throws(
           () => evaluateCiStatus(input),
-          (error: unknown) => error instanceof Error
+          (error) => error instanceof Error
             && error.message.includes(`${JOB_LABELS[job]} result must not be ${result}`),
         );
       });
@@ -112,7 +139,7 @@ for (const job of STATUS_JOB_NAMES) {
 
         assert.throws(
           () => evaluateCiStatus(input),
-          (error: unknown) => error instanceof Error
+          (error) => error instanceof Error
             && error.message.includes(`${JOB_LABELS[job]} result is invalid`),
         );
     });
@@ -127,7 +154,7 @@ test('rejects an unknown event and still validates all job results', () => {
 
   assert.throws(
     () => evaluateCiStatus(input),
-    (error: unknown) => {
+    (error) => {
       assert.ok(error instanceof Error);
       assert.match(error.message, /eventName must be one of/);
       assert.match(error.message, /Build result must not be failure/);
@@ -186,7 +213,7 @@ test('reports multiple invalid job results in one error', () => {
 
   assert.throws(
     () => evaluateCiStatus(input),
-    (error: unknown) => {
+    (error) => {
       assert.ok(error instanceof Error);
       assert.match(error.message, /Build result must not be failure/);
       assert.match(error.message, /Aggregate result must not be cancelled/);

@@ -17,7 +17,7 @@ const STATUS_JOB_NAMES = [
   'dependencies',
 ] as const;
 
-const JOB_LABELS: Record<StatusJobName, string> = {
+const JOB_LABELS = {
   triage: 'Triage',
   lintKotlin: 'Lint (Kotlin)',
   lintActions: 'Lint (Actions)',
@@ -26,7 +26,7 @@ const JOB_LABELS: Record<StatusJobName, string> = {
   dokka: 'Dokka',
   vanilla: 'Vanilla conformance',
   dependencies: 'Dependencies',
-};
+} as const satisfies { [Job in StatusJobName]: string };
 
 const WORKFLOW_RESULTS = ['success', 'failure', 'cancelled', 'skipped'] as const;
 
@@ -36,17 +36,23 @@ export type CiEvent = typeof SUPPORTED_EVENTS[number];
 export type StatusJobName = typeof STATUS_JOB_NAMES[number];
 export type WorkflowResult = typeof WORKFLOW_RESULTS[number];
 
+export interface CiStatusTriage {
+  run?: string;
+  releaseOnly?: string;
+  releaseCandidate?: string;
+  documentationOnly?: string;
+  code?: string;
+  vanilla?: string;
+}
+
+export type CiStatusResults = {
+  [Job in StatusJobName]: string | undefined;
+};
+
 export interface CiStatusInput {
-  readonly eventName: unknown;
-  readonly triage: {
-    readonly run?: unknown;
-    readonly releaseOnly?: unknown;
-    readonly releaseCandidate?: unknown;
-    readonly documentationOnly?: unknown;
-    readonly code?: unknown;
-    readonly vanilla?: unknown;
-  };
-  readonly results: Readonly<Record<StatusJobName, unknown>>;
+  eventName: string;
+  triage: CiStatusTriage;
+  results: CiStatusResults;
 }
 
 export interface CiStatusEvaluation {
@@ -173,21 +179,12 @@ export const STATUS_POLICY_ROWS: readonly StatusPolicyRow[] = [
   },
 ];
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
-}
-
-function displayValue(value: unknown): string {
+function displayValue(value: string | undefined): string {
   if (value === undefined) return 'missing';
-  if (typeof value === 'string') return JSON.stringify(value);
-  try {
-    return JSON.stringify(value) ?? String(value);
-  } catch {
-    return String(value);
-  }
+  return JSON.stringify(value);
 }
 
-function parseEvent(value: unknown, errors: string[]): CiEvent | undefined {
+function parseEvent(value: string | undefined, errors: string[]): CiEvent | undefined {
   if (typeof value === 'string' && (SUPPORTED_EVENTS as readonly string[]).includes(value)) {
     return value as CiEvent;
   }
@@ -196,7 +193,7 @@ function parseEvent(value: unknown, errors: string[]): CiEvent | undefined {
 }
 
 function parseBooleanOutput(
-  value: unknown,
+  value: string | undefined,
   name: string,
   errors: string[],
   allowMissing = false,
@@ -208,26 +205,35 @@ function parseBooleanOutput(
   return undefined;
 }
 
-function parseResults(input: CiStatusInput, errors: string[]): Partial<Record<StatusJobName, WorkflowResult>> {
-  const results: Record<string, unknown> = isRecord(input?.results) ? input.results : {};
-  if (!isRecord(input?.results)) errors.push(`results must be an object (got ${displayValue(input?.results)})`);
-
-  const parsed: Partial<Record<StatusJobName, WorkflowResult>> = {};
-  for (const job of STATUS_JOB_NAMES) {
-    const value = results[job];
-    if (typeof value === 'string' && (WORKFLOW_RESULTS as readonly string[]).includes(value)) {
-      parsed[job] = value as WorkflowResult;
-    } else {
-      errors.push(`${JOB_LABELS[job]} result is invalid (got ${displayValue(value)})`);
-    }
+function parseResult(value: string | undefined, job: StatusJobName, errors: string[]): WorkflowResult | undefined {
+  if ((WORKFLOW_RESULTS as readonly string[]).includes(value ?? '')) {
+    return value as WorkflowResult;
   }
-  return parsed;
+  errors.push(`${JOB_LABELS[job]} result is invalid (got ${displayValue(value)})`);
+  return undefined;
+}
+
+type ParsedCiStatusResults = {
+  [Job in StatusJobName]: WorkflowResult | undefined;
+};
+
+function parseResults(input: CiStatusInput, errors: string[]): ParsedCiStatusResults {
+  const results = input.results;
+  return {
+    triage: parseResult(results.triage, 'triage', errors),
+    lintKotlin: parseResult(results.lintKotlin, 'lintKotlin', errors),
+    lintActions: parseResult(results.lintActions, 'lintActions', errors),
+    build: parseResult(results.build, 'build', errors),
+    aggregate: parseResult(results.aggregate, 'aggregate', errors),
+    dokka: parseResult(results.dokka, 'dokka', errors),
+    vanilla: parseResult(results.vanilla, 'vanilla', errors),
+    dependencies: parseResult(results.dependencies, 'dependencies', errors),
+  };
 }
 
 function resolveFlags(input: CiStatusInput, errors: string[]): ResolvedFlags | undefined {
-  const eventName = parseEvent(input?.eventName, errors);
-  const triage = isRecord(input?.triage) ? input.triage : {};
-  if (!isRecord(input?.triage)) errors.push(`triage outputs must be an object (got ${displayValue(input?.triage)})`);
+  const eventName = parseEvent(input.eventName, errors);
+  const triage = input.triage;
 
   const run = parseBooleanOutput(triage.run, 'triage.run', errors);
   const releaseOnly = parseBooleanOutput(triage.releaseOnly, 'triage.release_only', errors);
@@ -295,7 +301,7 @@ function findPolicy(flags: ResolvedFlags, errors: string[]): StatusPolicyRow | u
 
 function validateJobResults(
   row: StatusPolicyRow | undefined,
-  results: Partial<Record<StatusJobName, WorkflowResult>>,
+  results: ParsedCiStatusResults,
   errors: string[],
 ): StatusJobName[] {
   const acceptedSkips: StatusJobName[] = [];
