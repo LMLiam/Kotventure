@@ -152,8 +152,8 @@ export const STATUS_POLICY_ROWS: readonly StatusPolicyRow[] = [
     documentationOnly: false,
     code: true,
     vanilla: false,
-    required: [...REQUIRED_TRIAGE, 'lintKotlin', 'lintActions', 'build', 'aggregate', 'dokka'],
-    optional: ['vanilla', 'dependencies'],
+    required: [...REQUIRED_TRIAGE, 'lintKotlin', 'lintActions', 'build', 'aggregate', 'dokka', 'dependencies'],
+    optional: ['vanilla'],
   },
   {
     name: 'push-with-code-and-vanilla',
@@ -163,8 +163,8 @@ export const STATUS_POLICY_ROWS: readonly StatusPolicyRow[] = [
     documentationOnly: false,
     code: true,
     vanilla: true,
-    required: [...REQUIRED_TRIAGE, 'lintKotlin', 'lintActions', 'build', 'aggregate', 'dokka', 'vanilla'],
-    optional: ['dependencies'],
+    required: [...REQUIRED_TRIAGE, 'lintKotlin', 'lintActions', 'build', 'aggregate', 'dokka', 'vanilla', 'dependencies'],
+    optional: [],
   },
   {
     name: 'full-validation',
@@ -174,8 +174,8 @@ export const STATUS_POLICY_ROWS: readonly StatusPolicyRow[] = [
     documentationOnly: false,
     code: true,
     vanilla: true,
-    required: [...STATUS_JOB_NAMES].filter((job) => job !== 'dependencies'),
-    optional: ['dependencies'],
+    required: STATUS_JOB_NAMES,
+    optional: [],
   },
 ];
 
@@ -316,8 +316,8 @@ function validateJobResults(
     if (result === 'skipped') {
       if (row?.optional.includes(job)) {
         acceptedSkips.push(job);
-      } else if (row?.required.includes(job)) {
-        errors.push(`${JOB_LABELS[job]} result is skipped but the policy requires success`);
+      } else {
+        errors.push(`${JOB_LABELS[job]} result is skipped but the policy does not permit skipping`);
       }
     }
   }
