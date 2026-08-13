@@ -51,7 +51,7 @@ CI
 │   └─ Release attestation (trusted release-please PRs)
 │
 └─ Status (required merge-gate check) ─────────────────────────────
-    └─ Aggregates Tier 1 + Vanilla + Dependencies
+    └─ Evaluates Triage, lint, Build, Aggregate, Dokka, Vanilla, and Dependencies
 
 Qodana security pipeline (parallel with CI)
 ├─ Qodana            (pull_request_target, read-only PR-head analysis or trusted attestation artefact)
@@ -67,7 +67,29 @@ All heavy CI jobs (`Lint`, `Build` shards, `Vanilla`, `Dokka`) start in parallel
 from the default branch. A documentation-only pull request receives a trusted QDJVM attestation. The attestation does
 not check out or analyse code. The scan may analyse code before CI finishes; results publish when the scan completes,
 and the merge stays gated on the `Status` check. `Aggregate` consumes the shard coverage hand-off without re-running
-tests. The Status job always starts. It reports one required check that controls merges.
+tests. The `Status` job always starts. It evaluates every owned job result before it reports one required check.
+
+### Status policy
+
+`Status` is the required merge check for the CI jobs that it owns. It uses the event and path flags from `Triage` to
+select one policy row. A required job must report `success`. An optional job may report `success` or `skipped`. A
+`failure`, `cancelled`, missing, or unknown result fails `Status`. The evaluator reports every invalid result in one
+message.
+
+| Event and path | Required jobs | Jobs that may be skipped |
+|----------------|---------------|--------------------------|
+| Trusted Release Please pull request | `Triage` | Kotlin lint, Actions lint, Build, Aggregate, Dokka, Vanilla, Dependencies |
+| Documentation-only pull request | `Triage` | Kotlin lint, Actions lint, Build, Aggregate, Dokka, Vanilla, Dependencies |
+| Code pull request without Vanilla paths | `Triage`, both lint jobs, Build, Aggregate, Dokka, Dependencies | Vanilla |
+| Code pull request with Vanilla paths | `Triage`, both lint jobs, Build, Aggregate, Dokka, Vanilla, Dependencies | None |
+| Push without code paths | `Triage` | All other owned jobs |
+| Push with code and without Vanilla paths | `Triage`, both lint jobs, Build, Aggregate, Dokka | Vanilla, Dependencies |
+| Push with code and Vanilla paths | `Triage`, both lint jobs, Build, Aggregate, Dokka, Vanilla | Dependencies |
+| Merge group, schedule, or manual run | `Triage`, both lint jobs, Build, Aggregate, Dokka, Vanilla | Dependencies |
+
+Dependency review applies to pull requests. `Status` accepts a skipped `Dependencies` job on other events because
+GitHub does not provide pull-request dependency changes for those events. This policy does not add another dependency
+scanner.
 
 Each Build shard executes its tests under Kover and uploads a `kover-handoff-<shard>` artefact with the binary `.ic`
 reports and the compiled classes. `Aggregate` restores that data and generates the XML/HTML reports and the `koverVerify`
@@ -261,7 +283,7 @@ and dependent module compilation.
 The CI configuration supports a merge queue. Both `ci.yml` and `pr.yml` listen for `merge_group`. Queue batches do not
 use the path filter. They start the full pipeline, which includes Vanilla conformance. The Title and Commits jobs report
 successful placeholders to keep their required checks present. Dependency review operates only on pull requests. The
-Status job accepts a skipped dependency review on other events.
+`Status` accepts a skipped dependency review on other events.
 
 When the account supports the feature, enable the queue in the **Master** ruleset or in branch protection. Configure
 `merge_queue` and squash merges. Until then, use the usual pull-request squash merge.
@@ -351,7 +373,7 @@ The Title and Commits jobs are required status checks.
 | **pr-metrics-comment** | `.github/actions/pr-metrics-comment` | CI (PR feedback): computes one bounded metrics result artefact |
 
 Before Spotless and ktlint, Lint starts two additional checks. The declaration script permits one top-level type in
-each main-source file. The `pr-metrics-comment` tests use `node --test`.
+each main-source file. The `ci-status` and `pr-metrics-comment` tests use `node --test`.
 
 PR feedback does not control a merge because it uses `continue-on-error`. A failure does not fail Build or Status. The
 repository automation tests use `node --test`.
@@ -361,6 +383,7 @@ repository automation tests use `node --test`.
 | Script | Role |
 |--------|------|
 | `ci-gate.ts` | Gate decision: pure-release, trusted provenance, `release-provenance.yml` polling (`decideGate`) |
+| `ci-status.ts` | Evaluates owned CI job results against the event and path policy |
 | `validate-conventional-title.sh` | Title/commit subject format |
 | `check-one-declaration-per-file.sh` | One top-level class/interface/object per main-source file |
 | `normalize-qodana-sarif.sh` | Fix 0-based SARIF regions and remove scanner-owned automation metadata before upload |
@@ -422,7 +445,7 @@ The **Master** repository ruleset protects the default branch. The rulesets API 
 - Block force pushes, branch deletion, and direct pushes. Update the branch only through a pull request.
 - Require one approval and a code-owner review. Dismiss stale reviews and resolve conversations. Permit only squash
   merges.
-- Require **Status**, **Title**, **Commits**, and **Dependencies**. Require them to be current with the base branch.
+- Require **Status**, **Title**, **Commits**, and **Maintainer approval**. Require them to be current with the base branch.
 - Block Qodana (`QDJVM`) alerts that have medium or higher security severity, or error severity. A pure release PR uses
   the release attestation after the gate verifies that no source files changed.
 - Permit maintainers to bypass the rules in an emergency.
@@ -458,10 +481,10 @@ Pull requests show many checks. Only the checks in the **Master** ruleset block 
 
 | Check | Merge gate | Notes |
 |-------|:----------:|-------|
-| **Status** | **Required** | Aggregates lint, build, Aggregate coverage, Dokka, vanilla, and dependencies. Green when skipped for docs-only or release-please changes |
+| **Status** | **Required** | Evaluates lint, build, Aggregate coverage, Dokka, Vanilla, and Dependencies against the event and path policy |
 | **Title** | **Required** | Conventional PR title (from `pr.yml`) |
 | **Commits** | **Required** | Conventional commit subjects (from `pr.yml`) |
-| **Dependencies** | **Required** | Dependency review |
+| **Dependencies** | No | Evaluated by `Status` for code pull requests; not applicable to other events |
 | Lint / Build | No | Under the Status aggregator |
 | PR feedback | No | Metrics comment only. Not part of Status |
 | Vanilla conformance | No | Under the Status aggregator. Uses a path filter |

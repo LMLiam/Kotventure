@@ -17,14 +17,14 @@ reproduce the failure locally. Do not push a commit only to start the check agai
 
 | Red check | Cause | Fix |
 |---|---|---|
-| **Status** (aggregator) | Lint, Build, or Dependencies failed | Open the failed nested job below |
+| **Status** (aggregator) | One or more owned results failed, were cancelled, were missing, or were invalid | Read every named result in the Status error, then open each failed nested job |
 | Lint: declaration check | More than one top-level class/interface/object in a main-source file | Split the file. Refer to section 5 of AGENTS.md. Reproduce with `.github/scripts/check-one-declaration-per-file.sh`. |
 | Lint | `spotlessCheck` / `ktlintCheck` | Run `./gradlew ktlintFormat` or `spotlessApply`, and commit the result. Continuation indents have eight spaces. The ktlint indent rule is disabled, so use the IDE or edit indentation manually. |
 | Build: test failure | Kotest suite failed | Run `./gradlew test` locally. Failed-run artefacts include HTML test reports. |
 | Build: `koverVerify` | Aggregated line coverage below 85 percent | Add tests. Do not decrease the threshold. Run `./gradlew koverHtmlReport` and open `build/reports/kover/html/index.html` to find uncovered lines. Refer to the policy in `.github/CONTRIBUTING.md` before you increase the threshold. |
 | Build: compile | Public API frequently has no visibility or return type | Add explicit modifiers and KDoc. Refer to `documenting-public-api`. |
 | **Title** / **Commits** | Does not match `verb(area): something` | Edit the pull-request title. For commits, use `git rebase` and force-push the feature branch. The pattern is `^[a-z]+\([a-z0-9][a-z0-9-]*\): \S.*$`. |
-| **Dependencies** | New or updated dependency has a moderate or higher advisory | Update to a corrected version, replace the dependency, or give a justification. This check starts on each pull request. |
+| **Dependencies** | A code pull request has a moderate or higher dependency advisory | Update to a corrected version, replace the dependency, or give a justification. `Status` owns this result for code pull requests. |
 
 ## Known non-errors
 
@@ -63,3 +63,5 @@ fixtures. The cache uses the server bundle SHA-1. You can start the check again 
 - A documentation-only pull request correctly skips resource-intensive jobs. A green Status check with skipped jobs is
   correct. Markdown under `modules/**` uses the documentation path only when the file is the module root
   `README.md`; other module paths count as code.
+- `Status` evaluates one event and path policy. A skipped job is valid only when that policy permits it. A failure,
+  cancellation, missing result, or unknown result is not valid. Read all named failures before you rerun a job.
