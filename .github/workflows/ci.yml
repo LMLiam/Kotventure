@@ -211,7 +211,7 @@ jobs:
         run: bash .github/scripts/check-one-declaration-per-file.sh
 
       - name: Test pr-metrics-comment action
-        run: node --test .github/actions/pr-metrics-comment/test/*.test.js .github/scripts/pr-metrics-publisher.test.js .github/scripts/qodana-*.test.js .github/scripts/workflow-run-check.test.js
+        run: node --test .github/actions/pr-metrics-comment/test/*.test.js .github/scripts/ci-status.test.js .github/scripts/pr-metrics-publisher.test.js .github/scripts/qodana-*.test.js .github/scripts/workflow-run-check.test.js
 
       - name: Verify generated JavaScript is not tracked
         run: |
