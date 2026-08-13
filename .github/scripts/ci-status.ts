@@ -32,6 +32,9 @@ const WORKFLOW_RESULTS = ['success', 'failure', 'cancelled', 'skipped'] as const
 
 const OPTIONAL_NON_TRIAGE_JOBS = STATUS_JOB_NAMES.filter((job) => job !== 'triage');
 const ALL_JOBS_EXCEPT_VANILLA = STATUS_JOB_NAMES.filter((job) => job !== 'vanilla');
+const ALL_JOBS_EXCEPT_VANILLA_AND_DEPENDENCIES = STATUS_JOB_NAMES.filter(
+  (job) => job !== 'vanilla' && job !== 'dependencies',
+);
 
 export type CiEvent = typeof SUPPORTED_EVENTS[number];
 export type StatusJobName = typeof STATUS_JOB_NAMES[number];
@@ -153,8 +156,8 @@ export const STATUS_POLICY_ROWS: readonly StatusPolicyRow[] = [
     documentationOnly: false,
     code: true,
     vanilla: false,
-    required: ALL_JOBS_EXCEPT_VANILLA,
-    optional: ['vanilla'],
+    required: ALL_JOBS_EXCEPT_VANILLA_AND_DEPENDENCIES,
+    optional: ['vanilla', 'dependencies'],
   },
   {
     name: 'push-with-code-and-vanilla',
@@ -164,8 +167,8 @@ export const STATUS_POLICY_ROWS: readonly StatusPolicyRow[] = [
     documentationOnly: false,
     code: true,
     vanilla: true,
-    required: STATUS_JOB_NAMES,
-    optional: [],
+    required: STATUS_JOB_NAMES.filter((job) => job !== 'dependencies'),
+    optional: ['dependencies'],
   },
   {
     name: 'full-validation',
@@ -175,8 +178,8 @@ export const STATUS_POLICY_ROWS: readonly StatusPolicyRow[] = [
     documentationOnly: false,
     code: true,
     vanilla: true,
-    required: STATUS_JOB_NAMES,
-    optional: [],
+    required: STATUS_JOB_NAMES.filter((job) => job !== 'dependencies'),
+    optional: ['dependencies'],
   },
 ];
 
