@@ -716,25 +716,20 @@ jobs:
 
   dependencies:
     name: Dependencies
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 10
     steps:
       - name: Checkout
-        if: github.event_name == 'pull_request'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       - name: Run dependency review
-        if: github.event_name == 'pull_request'
         uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
         with:
           fail-on-severity: moderate
           fail-on-scopes: runtime,development,unknown
-
-      - name: Report dependency review not applicable
-        if: github.event_name != 'pull_request'
-        run: echo "Dependency review is not applicable outside pull requests."
 
   commits:
     name: Commits
