@@ -45,7 +45,7 @@ CI
 │   └─ (Vanilla/Dokka already completed in Tier 1)
 │
 ├─ Policy (independent of tiers) ──────────────────────────────────
-│   ├─ Dependencies      (dependency-review-action, PRs only)
+│   ├─ Dependencies      (dependency-review-action on PRs; explicit success otherwise)
 │   ├─ Commits           (push-to-master subject validation)
 │   ├─ Release provenance (default-branch metadata check)
 │   └─ Release attestation (trusted release-please PRs)
@@ -83,13 +83,13 @@ message.
 | Code pull request without Vanilla paths | `Triage`, both lint jobs, Build, Aggregate, Dokka, Dependencies | Vanilla |
 | Code pull request with Vanilla paths | `Triage`, both lint jobs, Build, Aggregate, Dokka, Vanilla, Dependencies | None |
 | Push without code paths | `Triage` | All other owned jobs |
-| Push with code and without Vanilla paths | `Triage`, both lint jobs, Build, Aggregate, Dokka | Vanilla, Dependencies |
-| Push with code and Vanilla paths | `Triage`, both lint jobs, Build, Aggregate, Dokka, Vanilla | Dependencies |
-| Merge group, schedule, or manual run | `Triage`, both lint jobs, Build, Aggregate, Dokka, Vanilla | Dependencies |
+| Push with code and without Vanilla paths | `Triage`, both lint jobs, Build, Aggregate, Dokka, Dependencies | Vanilla |
+| Push with code and Vanilla paths | `Triage`, both lint jobs, Build, Aggregate, Dokka, Vanilla, Dependencies | None |
+| Merge group, schedule, or manual run | `Triage`, both lint jobs, Build, Aggregate, Dokka, Vanilla, Dependencies | None |
 
-Dependency review applies to pull requests. `Status` accepts a skipped `Dependencies` job on other events because
-GitHub does not provide pull-request dependency changes for those events. This policy does not add another dependency
-scanner.
+The `Dependencies` job runs on every supported event. It performs dependency review only for pull requests. On other
+events, it reports success because GitHub does not provide a pull-request dependency diff. This policy does not add
+another dependency scanner.
 
 Each Build shard executes its tests under Kover and uploads a `kover-handoff-<shard>` artefact with the binary `.ic`
 reports and the compiled classes. `Aggregate` restores that data and generates the XML/HTML reports and the `koverVerify`
@@ -282,8 +282,8 @@ and dependent module compilation.
 
 The CI configuration supports a merge queue. Both `ci.yml` and `pr.yml` listen for `merge_group`. Queue batches do not
 use the path filter. They start the full pipeline, which includes Vanilla conformance. The Title and Commits jobs report
-successful placeholders to keep their required checks present. Dependency review operates only on pull requests. The
-`Status` accepts a skipped dependency review on other events.
+successful placeholders to keep their required checks present. The Dependencies job reports successful not-applicable
+status on merge groups. `Status` requires that result.
 
 When the account supports the feature, enable the queue in the **Master** ruleset or in branch protection. Configure
 `merge_queue` and squash merges. Until then, use the usual pull-request squash merge.
@@ -445,7 +445,9 @@ The **Master** repository ruleset protects the default branch. The rulesets API 
 - Block force pushes, branch deletion, and direct pushes. Update the branch only through a pull request.
 - Require one approval and a code-owner review. Dismiss stale reviews and resolve conversations. Permit only squash
   merges.
-- Require **Status**, **Title**, **Commits**, and **Maintainer approval**. Require them to be current with the base branch.
+- Require **Status**, **Title**, **Commits**, **Dependencies**, and **Maintainer approval**. Require them to be current
+  with the base branch. After this change lands, remove the duplicate **Dependencies** requirement because `Status`
+  owns that result.
 - Block Qodana (`QDJVM`) alerts that have medium or higher security severity, or error severity. A pure release PR uses
   the release attestation after the gate verifies that no source files changed.
 - Permit maintainers to bypass the rules in an emergency.
@@ -484,7 +486,7 @@ Pull requests show many checks. Only the checks in the **Master** ruleset block 
 | **Status** | **Required** | Evaluates lint, build, Aggregate coverage, Dokka, Vanilla, and Dependencies against the event and path policy |
 | **Title** | **Required** | Conventional PR title (from `pr.yml`) |
 | **Commits** | **Required** | Conventional commit subjects (from `pr.yml`) |
-| **Dependencies** | No | Evaluated by `Status` for code pull requests; not applicable to other events |
+| **Dependencies** | **Required** | Dependency review for pull requests. The job reports successful not-applicable status on other events. Remove this separate requirement after the post-landing ruleset update. |
 | Lint / Build | No | Under the Status aggregator |
 | PR feedback | No | Metrics comment only. Not part of Status |
 | Vanilla conformance | No | Under the Status aggregator. Uses a path filter |
