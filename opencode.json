@@ -1,0 +1,10 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "references": {
+    "adventure": {
+      "repository": "PaperMC/adventure",
+      "branch": "main",
+      "description": "Authoritative Adventure API implementation and behavior"
+    }
+  }
+}
