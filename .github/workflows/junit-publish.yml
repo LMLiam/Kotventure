@@ -1,0 +1,59 @@
+name: JUnit publication
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [in_progress, completed]
+
+permissions: {}
+
+concurrency:
+  group: junit-publication-${{ github.event.workflow_run.id }}-${{ github.event.workflow_run.run_attempt }}
+  cancel-in-progress: true
+
+env:
+  NODE_OPTIONS: --use-system-ca
+
+jobs:
+  publish:
+    name: Publish JUnit reports
+    if: github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 55
+    permissions:
+      actions: read
+      checks: write
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout trusted publication code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: .github/package-lock.json
+
+      - name: Install CI tooling dependencies
+        working-directory: .github
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Build CI tooling
+        working-directory: .github
+        run: npm run build
+
+      - name: Publish trusted JUnit reports
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          retries: 3
+          retry-exempt-status-codes: 400,401,403,404,422
+          script: |
+            const { writeJunitPublicationOutputs } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/junit-publisher.js`);
+            await writeJunitPublicationOutputs({ github, context, core });

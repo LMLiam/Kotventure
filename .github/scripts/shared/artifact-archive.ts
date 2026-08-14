@@ -27,6 +27,155 @@ export interface ExtractSingleEntryArchiveOptions {
   maxBytes: number;
 }
 
+export interface ExtractArchiveEntriesOptions {
+  errorPrefix: string;
+  maxArchiveBytes: number;
+  maxEntries: number;
+  maxEntryBytes: number;
+  maxTotalBytes: number;
+}
+
+export interface ExtractedArchiveEntry {
+  fileName: string;
+  content: Buffer;
+}
+
+const MAX_ARCHIVE_PATH_LENGTH = 4096;
+
+function rejectArchiveOptions(options: ExtractArchiveEntriesOptions): (message: string) => never {
+  const { errorPrefix, maxArchiveBytes, maxEntries, maxEntryBytes, maxTotalBytes } = options;
+  const { requireBoundedInteger, requireString } = createValidators((message: string): never => {
+    throw new Error(`archive extraction options ${message}`);
+  });
+  requireString(errorPrefix, 'error prefix');
+  requireBoundedInteger(maxArchiveBytes, 'maximum archive bytes');
+  requireBoundedInteger(maxEntries, 'maximum entries');
+  requireBoundedInteger(maxEntryBytes, 'maximum entry bytes');
+  requireBoundedInteger(maxTotalBytes, 'maximum total bytes');
+  return (message: string): never => {
+    throw new Error(`${errorPrefix} ${message}`);
+  };
+}
+
+function safeArchivePath(fileName: Buffer, rejectArchive: (message: string) => never): string {
+  const decoded = fileName.toString('utf8');
+  if (decoded.length < 1 || decoded.length > MAX_ARCHIVE_PATH_LENGTH
+    || !Buffer.from(decoded, 'utf8').equals(fileName)
+    || decoded.includes('\u0000')
+    || decoded.includes('\\')
+    || decoded.startsWith('/')
+    || /^[A-Za-z]:/.test(decoded)
+    || decoded.split('/').some((segment) => segment === '' || segment === '.' || segment === '..')) {
+    rejectArchive('contains an unsafe entry path');
+  }
+  return decoded;
+}
+
+function validateArchiveEntry(
+  zipfile: yauzl.ZipFile,
+  entry: yauzl.Entry,
+  archive: Buffer,
+  centralDirectoryOffset: number,
+  maxEntryBytes: number,
+  rejectArchive: (message: string) => never,
+): Promise<Buffer> {
+  const fileName = safeArchivePath(entry.fileNameRaw, rejectArchive);
+  if (fileName.endsWith('/') || entry.isEncrypted()
+    || (entry.compressionMethod !== STORED_COMPRESSION && entry.compressionMethod !== DEFLATE_COMPRESSION)
+    || entry.extraFields.some((field) => field.id === ZIP64_EXTRA_FIELD_ID)) {
+    rejectArchive('contains an unsupported entry');
+  }
+  const fileType = (entry.externalFileAttributes >>> 16) & 0o170000;
+  if (fileType === 0o120000) rejectArchive('contains a symbolic link');
+  if (entry.compressedSize < 1
+    || entry.compressedSize > archive.length
+    || entry.uncompressedSize < 1
+    || entry.uncompressedSize > maxEntryBytes
+    || entry.relativeOffsetOfLocalHeader >= centralDirectoryOffset) {
+    rejectArchive('contains an entry outside the size limit');
+  }
+
+  return (async () => {
+    let localHeader: yauzl.LocalFileHeader;
+    try {
+      localHeader = await zipfile.readLocalFileHeaderPromise(entry);
+    } catch (error) {
+      rejectArchive(`contains an invalid local header: ${errorMessage(error)}`);
+    }
+    if (localHeader.generalPurposeBitFlag !== entry.generalPurposeBitFlag
+      || localHeader.compressionMethod !== entry.compressionMethod
+      || !localHeader.fileName.equals(entry.fileNameRaw)) {
+      rejectArchive('contains inconsistent entry metadata');
+    }
+    if ((localHeader.generalPurposeBitFlag & DATA_DESCRIPTOR_FLAG) === 0
+      && (localHeader.compressedSize !== entry.compressedSize
+        || localHeader.uncompressedSize !== entry.uncompressedSize)) {
+      rejectArchive('contains inconsistent entry sizes');
+    }
+    if (localHeader.fileDataStart + entry.compressedSize > centralDirectoryOffset) {
+      rejectArchive('contains entry data outside the archive');
+    }
+
+    const chunks: Buffer[] = [];
+    let total = 0;
+    try {
+      const stream = await zipfile.openReadStreamPromise(entry);
+      for await (const chunk of stream) {
+        if (!(chunk instanceof Buffer) || total + chunk.length > maxEntryBytes) {
+          rejectArchive('decompresses to an invalid size');
+        }
+        chunks.push(chunk);
+        total += chunk.length;
+      }
+    } catch (error) {
+      rejectArchive(`cannot be decompressed: ${errorMessage(error)}`);
+    }
+    if (total !== entry.uncompressedSize) rejectArchive('decompresses to an invalid size');
+    return Buffer.concat(chunks, total);
+  })();
+}
+
+export async function extractArchiveEntries(
+  archive: Buffer,
+  options: ExtractArchiveEntriesOptions,
+): Promise<ExtractedArchiveEntry[]> {
+  const rejectArchive = rejectArchiveOptions(options);
+  const { maxArchiveBytes, maxEntries, maxEntryBytes, maxTotalBytes } = options;
+  if (!Buffer.isBuffer(archive) || archive.length < END_OF_CENTRAL_DIRECTORY_LENGTH || archive.length > maxArchiveBytes) {
+    rejectArchive('is not a ZIP archive');
+  }
+  const { centralDirectoryOffset } = readEndOfCentralDirectory(archive, rejectArchive, false);
+  const zipfile = await yauzl.fromBufferPromise(archive, { decodeStrings: false })
+    .catch((error): never => rejectArchive(`cannot be parsed: ${errorMessage(error)}`));
+  if (zipfile.entryCount < 1 || zipfile.entryCount > maxEntries) rejectArchive('contains too many entries');
+
+  const entries: ExtractedArchiveEntry[] = [];
+  let totalBytes = 0;
+  try {
+    for await (const entry of zipfile.eachEntry()) {
+      const fileName = safeArchivePath(entry.fileNameRaw, rejectArchive);
+      if (entries.some((candidate) => candidate.fileName === fileName)) rejectArchive('contains duplicate entry paths');
+      if (totalBytes + entry.uncompressedSize > maxTotalBytes) rejectArchive('exceeds the total size limit');
+      const content = await validateArchiveEntry(
+        zipfile,
+        entry,
+        archive,
+        centralDirectoryOffset,
+        maxEntryBytes,
+        rejectArchive,
+      );
+      totalBytes += content.length;
+      entries.push({ fileName, content });
+    }
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith(options.errorPrefix)) throw error;
+    rejectArchive(`cannot be parsed: ${errorMessage(error)}`);
+  } finally {
+    zipfile.close();
+  }
+  return entries;
+}
+
 export async function extractSingleEntryArchive(
   archive: Buffer,
   options: ExtractSingleEntryArchiveOptions,
@@ -156,6 +305,7 @@ export async function extractSingleEntryArchive(
 function readEndOfCentralDirectory(
   archive: Buffer,
   rejectArchive: (message: string) => never,
+  requireSingleEntry = true,
 ): { centralDirectoryOffset: number } {
   const firstOffset = Math.max(
     0,
@@ -196,7 +346,12 @@ function readEndOfCentralDirectory(
     rejectArchive('uses unsupported ZIP64 or multi-disk metadata');
   }
 
-  if (entriesOnDisk !== 1 || totalEntries !== 1) rejectArchive('must contain exactly one file');
+  if (requireSingleEntry && (entriesOnDisk !== 1 || totalEntries !== 1)) {
+    rejectArchive('must contain exactly one file');
+  }
+  if (!requireSingleEntry && (entriesOnDisk !== totalEntries || totalEntries < 1)) {
+    rejectArchive('has invalid entry counts');
+  }
 
   if (centralDirectoryOffset + centralDirectorySize > archive.length) {
     rejectArchive('central directory is outside the archive');
@@ -208,6 +363,8 @@ function readEndOfCentralDirectory(
     || archive.readUInt32LE(centralDirectoryOffset) !== CENTRAL_DIRECTORY_SIGNATURE) {
     rejectArchive('has an invalid central directory');
   }
+
+  if (!requireSingleEntry) return { centralDirectoryOffset };
 
   const fileNameLength = archive.readUInt16LE(centralDirectoryOffset + 28);
   const extraLength = archive.readUInt16LE(centralDirectoryOffset + 30);

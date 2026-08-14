@@ -114,7 +114,6 @@ jobs:
               - '.github/scripts/vanilla-fixture-cache-key.sh'
               - '.github/workflows/ci.yml'
               - '.github/actions/setup-jdk-gradle/**'
-              - '.github/actions/publish-junit-report/**'
 
       - name: Resolve flags
         id: resolve
@@ -163,7 +162,103 @@ jobs:
   codeql:
     name: CodeQL (${{ matrix.language }})
     needs: [gate, changes]
-    if: needs.gate.outputs.run == 'true' && needs.changes.outputs.code == 'true'
+    if: >-
+      needs.gate.outputs.run == 'true'
+      && needs.changes.outputs.code == 'true'
+      && (github.event_name == 'pull_request' || github.event_name == 'merge_group')
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      actions: read
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: actions
+            build-mode: none
+          - language: java-kotlin
+            build-mode: manual
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@5595ccaf912efad79be6eef63a5619ff05969be3 # v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+
+      - name: Set up JDK and Gradle
+        if: matrix.build-mode == 'manual'
+        uses: ./.github/actions/setup-jdk-gradle
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+
+      - name: Build for CodeQL
+        if: matrix.build-mode == 'manual'
+        run: >-
+          ./gradlew classes testClasses -x test -Pkotlin.incremental=false
+          -Pkotlin.daemon.jvmargs=-Xmx4g --no-build-cache --rerun-tasks
+
+      - name: Perform CodeQL analysis
+        id: analyze
+        uses: github/codeql-action/analyze@5595ccaf912efad79be6eef63a5619ff05969be3 # v4
+        with:
+          category: "/language:${{ matrix.language }}"
+          upload: never
+          upload-database: false
+          post-processed-sarif-path: ${{ runner.temp }}/codeql-sarif
+
+      - name: Stage CodeQL SARIF hand-off
+        if: always()
+        env:
+          SARIF_DIRECTORY: ${{ steps.analyze.outputs.sarif-output }}
+        run: |
+          set -euo pipefail
+          rm -rf codeql-handoff
+          mkdir -p codeql-handoff
+          if [[ ! -d "$SARIF_DIRECTORY" ]]; then
+            echo "CodeQL SARIF directory is missing: $SARIF_DIRECTORY" >&2
+            exit 1
+          fi
+          mapfile -t sarif_files < <(find "$SARIF_DIRECTORY" -type f -name '*.sarif' -print)
+          if [[ "${#sarif_files[@]}" -ne 1 ]]; then
+            echo "Expected one post-processed CodeQL SARIF file, found ${#sarif_files[@]}" >&2
+            exit 1
+          fi
+          cp "${sarif_files[0]}" codeql-handoff/codeql.sarif
+
+      - name: Resolve CodeQL workflow identity
+        id: workflow
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          workflow_id="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" --jq '.workflow_id')"
+          [[ "$workflow_id" =~ ^[0-9]+$ ]]
+          echo "workflow_id=$workflow_id" >> "$GITHUB_OUTPUT"
+
+      - name: Upload CodeQL SARIF hand-off
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: codeql-sarif-${{ matrix.language }}-${{ steps.workflow.outputs.workflow_id }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.event.pull_request.head.sha || github.sha }}
+          path: codeql-handoff/codeql.sarif
+          if-no-files-found: ignore
+          retention-days: 2
+
+  codeql-trusted:
+    name: CodeQL trusted (${{ matrix.language }})
+    needs: [gate, changes]
+    if: >-
+      needs.gate.outputs.run == 'true'
+      && needs.changes.outputs.code == 'true'
+      && github.event_name != 'pull_request'
+      && github.event_name != 'merge_group'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
@@ -202,7 +297,7 @@ jobs:
           ./gradlew classes testClasses -x test -Pkotlin.incremental=false
           -Pkotlin.daemon.jvmargs=-Xmx4g --no-build-cache --rerun-tasks
 
-      - name: Perform CodeQL analysis
+      - name: Perform trusted CodeQL analysis
         uses: github/codeql-action/analyze@5595ccaf912efad79be6eef63a5619ff05969be3 # v4
         with:
           category: "/language:${{ matrix.language }}"
