@@ -1,0 +1,106 @@
+name: CodeQL publication
+
+on:
+  workflow_run:
+    workflows: [CodeQL]
+    types: [in_progress, completed]
+
+permissions: {}
+
+concurrency:
+  group: codeql-publication-${{ github.event.workflow_run.id }}-${{ github.event.workflow_run.run_attempt }}
+  cancel-in-progress: true
+
+env:
+  NODE_OPTIONS: --use-system-ca
+
+jobs:
+  publish:
+    name: Publish CodeQL results
+    if: >-
+      github.event.workflow_run.event == 'pull_request'
+      || github.event.workflow_run.event == 'merge_group'
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 15
+    permissions:
+      actions: read
+      checks: write
+      contents: read
+      pull-requests: read
+      security-events: write
+    steps:
+      - name: Checkout trusted publication code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: .github/package-lock.json
+
+      - name: Install CI tooling dependencies
+        working-directory: .github
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Build CI tooling
+        working-directory: .github
+        run: npm run build
+
+      - name: Prepare trusted CodeQL publication
+        id: prepare
+        continue-on-error: true
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          retries: 3
+          retry-exempt-status-codes: 400,401,403,404,422
+          script: |
+            const { prepareCodeqlPublicationOutputs } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/codeql-publisher.js`);
+            await prepareCodeqlPublicationOutputs({ github, context, core });
+
+      - name: Upload actions CodeQL SARIF
+        id: upload_actions
+        if: steps.prepare.outputs.actions_path != ''
+        uses: github/codeql-action/upload-sarif@5595ccaf912efad79be6eef63a5619ff05969be3 # v4
+        with:
+          sarif_file: ${{ steps.prepare.outputs.actions_path }}
+          checkout_path: ${{ runner.temp }}/codeql-publication
+          ref: ${{ steps.prepare.outputs.upload_ref }}
+          sha: ${{ steps.prepare.outputs.head_sha }}
+          category: /language:actions
+
+      - name: Upload Java and Kotlin CodeQL SARIF
+        id: upload_java_kotlin
+        if: steps.prepare.outputs.java_kotlin_path != ''
+        uses: github/codeql-action/upload-sarif@5595ccaf912efad79be6eef63a5619ff05969be3 # v4
+        with:
+          sarif_file: ${{ steps.prepare.outputs.java_kotlin_path }}
+          checkout_path: ${{ runner.temp }}/codeql-publication
+          ref: ${{ steps.prepare.outputs.upload_ref }}
+          sha: ${{ steps.prepare.outputs.head_sha }}
+          category: /language:java-kotlin
+
+      - name: Complete trusted CodeQL publication
+        if: always()
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          ACTIONS_OUTCOME: ${{ steps.prepare.outputs.actions_path == '' && 'missing' || steps.upload_actions.outcome == 'success' && 'success' || 'failure' }}
+          JAVA_KOTLIN_OUTCOME: ${{ steps.prepare.outputs.java_kotlin_path == '' && 'missing' || steps.upload_java_kotlin.outcome == 'success' && 'success' || 'failure' }}
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          retries: 3
+          retry-exempt-status-codes: 400,401,403,404,422
+          script: |
+            const { completeCodeqlPublicationOutputs } = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/codeql-publisher.js`);
+            await completeCodeqlPublicationOutputs({
+              github,
+              context,
+              core,
+              actionsOutcome: process.env.ACTIONS_OUTCOME,
+              javaKotlinOutcome: process.env.JAVA_KOTLIN_OUTCOME,
+            });
