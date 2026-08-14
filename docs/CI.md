@@ -11,7 +11,9 @@ For local development commands, see [CONTRIBUTING.md](../.github/CONTRIBUTING.md
 | Workflow | File | Triggers | Purpose |
 |----------|------|----------|---------|
 | **CI** | `ci.yml` | PR, push, `merge_group`, weekly schedule, `workflow_dispatch` | Gate, path filter, parallel lint (Kotlin + Actions), sharded build (`core | text | runtime` → Aggregate), Vanilla. Always reports the required status check |
+| **JUnit publication** | `junit-publish.yml` | `workflow_run` for CI (`in_progress`, `completed`) | Uses default-branch code to publish the Build and Vanilla JUnit checks from bounded XML artefacts |
 | **CodeQL** | `codeql.yml` | PR, push, `merge_group`, weekly schedule | CodeQL analysis (`actions` + `java-kotlin` matrix), parallel with CI |
+| **CodeQL publication** | `codeql-publish.yml` | `workflow_run` for CodeQL (`in_progress`, `completed`) | Uses default-branch code to validate and upload PR and merge-group SARIF artefacts |
 | **PR metrics publication** | `pr-metrics-publish.yml` | `workflow_run` after CI | Validates the CI result and publishes one metrics comment with default-branch code |
 | **Qodana** | `qodana.yml` | `pull_request_target` (in parallel with PR CI) | Runs Qodana with read-only permissions, restores the cached Qodana IDE distribution, and creates one bounded SARIF artefact |
 | **Qodana publication** | `qodana-publish.yml` | `workflow_run` after Qodana | Validates the current PR and publishes SARIF with default-branch code |
@@ -31,7 +33,7 @@ CI
 │
 ├─ Tier 1: Core (parallel, fast feedback — all gated on Triage) ──
 │   ├─ Lint (Kotlin)     (spotlessCheck + ktlintCheck)
-│   ├─ Lint (Actions)    (declaration check + pr-metrics-comment tests)
+│   ├─ Lint (Actions)    (declaration check + CI tooling tests)
 │   ├─ Build             (sharded: core | text (`minimessage` + `serializer`) | runtime (`coroutines` + `paper` + `test` + `test-snapshot` + `bom`) — each `koverBinaryReport` + test results)
 │   ├─ Vanilla           (MC-backed selector tests, path-filtered)
 │   └─ Dokka             (dokkaGenerate, parallel with Build)
@@ -61,6 +63,14 @@ Qodana security pipeline (parallel with CI)
 PR metrics publication (workflow_run)
 └─ Validates the completed CI run, result artefact, and current PR
    └─ Publishes one non-gating metrics comment with default-branch code
+
+Trusted report publication (workflow_run)
+├─ JUnit publication (in-progress observer + completed reconciliation)
+│  ├─ Test Report (Build shards aggregated)
+│  └─ Vanilla Conformance Report
+└─ CodeQL publication (completed SARIF upload)
+   ├─ CodeQL publication (actions)
+   └─ CodeQL publication (java-kotlin)
 ```
 
 All heavy CI jobs (`Lint`, `Build` shards, `Vanilla`, `Dokka`) start in parallel after `Triage` (gated only on `triage.outputs.code`/`vanilla`), not serially. Vanilla was already parallel to the build before this change. CodeQL runs from its own `codeql.yml` workflow with its own gate and path filter, parallel to CI rather than gated on `Triage`. The Qodana security pipeline triggers on `pull_request_target` and runs in parallel with CI
@@ -93,6 +103,33 @@ a pull-request diff. `Status` permits that job to be skipped outside pull reques
 Each Build shard executes its tests under Kover and uploads a `kover-handoff-<shard>` artefact with the binary `.ic`
 reports and the compiled classes. `Aggregate` restores that data and generates the XML/HTML reports and the `koverVerify`
 gate from it. It does not re-run tests: the Aggregate Gradle invocation contains no test tasks.
+
+### Trusted report publication
+
+Pull-request-controlled `CI` and `CodeQL` jobs do not create checks, annotations, comments, or code-scanning results.
+They keep their normal source jobs, build and analyse the pull-request revision, and upload only bounded hand-off
+artefacts. The trusted `workflow_run` publishers check out the default branch and validate the source run, repository,
+run attempt, current head, artefact binding, and report contents before they write.
+
+`junit-publish.yml` listens for both `in_progress` and `completed` CI events. It registers `Test Report` and
+`Vanilla Conformance Report` checks against the validated head. Build shards remain parallel. The publisher observes
+only the three Build jobs and the Vanilla job, so it can publish before Aggregate, Dokka, PR feedback, or `Status`
+finish. Build results aggregate into one `Test Report`. A check is `queued` while the source job waits, `in_progress`
+while trusted code validates the artefact, and terminal when publication finishes. Source failures map to `failure`,
+cancellation to `cancelled`, timeouts to `timed_out`, and proven non-applicability to `skipped`.
+
+JUnit artefacts contain only test XML. The publisher accepts at most 200 files, 16 MiB per archive, 4 MiB per XML
+file, 12 MiB total uncompressed XML, 100,000 test cases, and 50 annotations per Checks API update. It rejects
+document type declarations, malformed XML, unsafe paths, duplicate entries, symlinks, expired artefacts, and stale
+pull-request heads. It resolves source file and line annotations from Gradle failure stack frames when the XML does
+not provide them. The checks are advisory in this issue. `Status` remains the required CI merge check.
+
+`codeql-publish.yml` registers `CodeQL publication (actions)` and `CodeQL publication (java-kotlin)` on source-run
+start. It validates one exact SARIF artefact per category on completion, uploads from a non-Git temporary directory,
+and completes each visible check. PR and merge-group source jobs have no `security-events: write`; trusted push,
+schedule, and manual CodeQL jobs retain direct publication. Documentation-only and trusted release pull requests
+complete the publication checks as `skipped` because CodeQL is not applicable. The publication checks report
+transport status only. The required aggregate `Analysis` policy remains owned by issue #396.
 
 The workflow listens for `merge_group` events. Merge groups, schedules, and manual dispatches do not use the path
 filter. They always start the full pipeline: Build (sharded → Aggregate with `koverVerify` at 85%), Vanilla, Dokka, and CodeQL (own workflow). The `Qodana trusted` workflow analyses a
@@ -345,7 +382,10 @@ For an occasional diagnostic scan, give `build-scan: true` to `gradle-job`. The 
 | Qodana publication | Uses `actions: read`, `contents: read`, `pull-requests: read`, and `security-events: write`. It runs default-branch code, validates the artefacts, and uploads SARIF to code scanning |
 | Qodana trusted | Uses `actions: read`, `contents: read`, and `security-events: write`. Runs only on push, schedule, and manual-dispatch refs for the repository default branch. Has no `checks: write` |
 | Release workflow | Uses an installation token from `release-please-kotventure`. Its `GITHUB_TOKEN` has no permissions |
-| Build job | Uses `checks: write` and `contents: read`. Cannot write to pull requests. Clears `GITHUB_TOKEN` for Gradle |
+| Build and Vanilla jobs | Use `actions: read` and `contents: read`. They upload bounded JUnit and existing test artefacts. They cannot create Checks API results |
+| JUnit publication | Runs default-branch code with `actions: read`, `checks: write`, `contents: read`, and `pull-requests: read`. It validates source jobs and XML before publishing the two non-gating checks |
+| CodeQL PR and merge-group jobs | Use `actions: read` and `contents: read`. They save post-processed SARIF and cannot upload to code scanning |
+| CodeQL publication | Runs default-branch code with `actions: read`, `checks: write`, `contents: read`, `pull-requests: read`, and `security-events: write`. It validates each SARIF artefact before upload |
 | PR feedback job | Uses `actions: read`, `pull-requests: read`, and `contents: read`. Computes a bounded result artefact and cannot write to pull requests. Uses the cache or artefacts before a base JAR-only build. Clears `GITHUB_TOKEN` for Gradle |
 | PR metrics publication | Runs default-branch code after CI. Uses `actions: read`, `checks: write`, `contents: read`, and `pull-requests: write`. Validates the source workflow, run attempt, current PR head and base, exact artefact, and result provenance before it creates the check or posts the comment |
 | Build scans | Off by default. Enable with `build-scan: true` |
@@ -368,7 +408,6 @@ The Title and Commits jobs are required status checks.
 |--------|------|---------|
 | **gradle-job** | `.github/actions/gradle-job` | CI (Lint, Build): JDK and Gradle setup, tasks, Build Scan, and job summary |
 | **setup-jdk-gradle** | `.github/actions/setup-jdk-gradle` | gradle-job, Vanilla, CodeQL, PR feedback fallback: JDK, Gradle caches, and scan TOS |
-| **publish-junit-report** | `.github/actions/publish-junit-report` | CI (Build, Vanilla): JUnit XML to Checks annotations |
 | **pr-metrics-comment** | `.github/actions/pr-metrics-comment` | CI (PR feedback): computes one bounded metrics result artefact |
 
 Before Spotless and ktlint, Lint starts two additional checks. The declaration script permits one top-level type in
@@ -393,6 +432,15 @@ repository automation tests use `node --test`.
 | `collect-ci-metrics.sh` | Aggregate: test/skipped counts + longest shard and Aggregate coverage durations → `ci-metrics.json` |
 | `pr-metrics-publisher.ts` | Trusted workflow_run publisher: validates the source run and renders the metrics comment |
 | `pr-metrics-publisher-storage.ts` | Bounded result artifact download and validation |
+| `junit-publisher.ts` | Trusted in-progress observer and completed JUnit publisher |
+| `junit-publisher-storage.ts` | Exact JUnit artefact selection, bounded archive extraction, and XML loading |
+| `junit-parser.ts` | Bounded JUnit XML parsing, aggregation, summaries, and annotations |
+| `codeql-publisher.ts` | Trusted CodeQL check registration, SARIF hand-off, upload coordination, and completion |
+| `codeql-validation.ts` | CodeQL workflow, artefact, and SARIF validation |
+| `codeql-publisher-storage.ts` | Bounded CodeQL SARIF artefact download |
+| `workflow-trust-policy.ts` | YAML 1.2 structural trust-boundary checks for repository workflows |
+| `shared/artifact-archive.ts` | Bounded single-entry and multi-entry ZIP validation |
+| `shared/artifact-download.ts` | Bounded GitHub artefact archive download |
 | `qodana-source.ts` | Trusted `pull_request_target` source resolution and path classification for Qodana |
 | `qodana-publisher.ts` | Trusted Qodana publication source validation |
 | `qodana-publisher-archive.ts` | Bounded single-file SARIF archive extraction |
@@ -401,9 +449,9 @@ repository automation tests use `node --test`.
 | `workflow-run-check.ts` | Creates, validates, and completes source-bound workflow checks |
 
 The `.github/package.json` manifest and its committed `package-lock.json` hold the npm
-dependencies of the CI tooling. Eight jobs install them: Triage, Lint (Actions), PR
+dependencies of the CI tooling. Ten jobs install them: Triage, Lint (Actions), PR
 feedback, CodeQL Gate, Qodana register, the Qodana attestation job (non-code source
-kinds only), PR metrics publication, and Qodana publication. Each runs
+kinds only), PR metrics publication, Qodana publication, JUnit publication, and CodeQL publication. Each runs
 `npm ci --ignore-scripts --no-audit --no-fund` from `.github` and then builds the
 TypeScript tooling with `npm run build`; the trusted publishers and the Qodana jobs
 install against the default-branch lockfile. Release provenance, the `pr.yml` jobs, and
