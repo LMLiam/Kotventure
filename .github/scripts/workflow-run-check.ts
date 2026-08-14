@@ -14,6 +14,8 @@ const WORKFLOW_RESULTS = new Set([
 type WorkflowResult = 'success' | 'failure' | 'cancelled' | 'skipped' | 'timed_out';
 const WORKFLOW_CHECK_STATUSES = new Set(['queued', 'in_progress']);
 type WorkflowCheckStatus = 'queued' | 'in_progress';
+const MAX_CHECK_RUNS = 1_000;
+const MAX_CHECK_ANNOTATIONS = 50;
 
 const {
   requireBoundedInteger,
@@ -129,16 +131,22 @@ async function findWorkflowCheck({
   const trustedHeadSha = requireSha(headSha, 'check head SHA');
   const trustedName = requireText(name, 'check name', 100);
   const trustedExternalId = requireText(externalId, 'check external id', 256);
-  const response = await github.rest.checks.listForRef({
-    owner,
-    repo,
-    ref: trustedHeadSha,
-    check_name: trustedName,
-    filter: 'all',
-    per_page: 100,
-  });
-  if (response.data.total_count > response.data.check_runs.length) throw new Error('workflow check list exceeds the validation bound');
-  const matches = response.data.check_runs.filter((check) => check.external_id === trustedExternalId);
+  const checkRuns = await github.paginate(
+    github.rest.checks.listForRef,
+    {
+      owner,
+      repo,
+      ref: trustedHeadSha,
+      check_name: trustedName,
+      filter: 'all',
+      per_page: 100,
+    },
+    (response) => {
+      if (response.data.total_count > MAX_CHECK_RUNS) throw new Error('workflow check list exceeds the validation bound');
+      return response.data;
+    },
+  );
+  const matches = checkRuns.filter((check) => check.external_id === trustedExternalId);
   if (matches.length > 1) throw new Error('duplicate workflow check external id');
   const match = matches[0];
   if (match == null) return null;
@@ -215,6 +223,8 @@ async function ensureWorkflowCheck({
   summary: string;
   status?: WorkflowCheckStatus;
 }): Promise<WorkflowCheckReference> {
+  // GitHub has no conditional Check Run creation. The owning workflow must
+  // serialise calls for one external ID before using this find-or-create path.
   const existing = await findWorkflowCheck({
     github,
     context,
@@ -275,18 +285,20 @@ async function updateWorkflowCheck({
   });
   requireEqual(check.app?.slug, CHECK_APP_SLUG, 'check application');
   if (check.status === 'completed') return;
-  await github.rest.checks.update({
-    owner,
-    repo,
-    check_run_id: trustedCheckId,
-    status: trustedStatus,
-    details_url: workflowRunUrl(context),
-    output: {
-      title: trustedName,
-      summary: trustedSummary,
-      ...(annotations == null ? {} : { annotations }),
-    },
-  });
+  for (const annotationBatch of annotationBatches(annotations)) {
+    await github.rest.checks.update({
+      owner,
+      repo,
+      check_run_id: trustedCheckId,
+      status: trustedStatus,
+      details_url: workflowRunUrl(context),
+      output: {
+        title: trustedName,
+        summary: trustedSummary,
+        ...(annotationBatch == null ? {} : { annotations: annotationBatch }),
+      },
+    });
+  }
 }
 
 function workflowResultConclusion(result: string): WorkflowResult {
@@ -340,20 +352,39 @@ async function completeWorkflowCheck({
     return;
   }
 
-  await github.rest.checks.update({
-    owner,
-    repo,
-    check_run_id: trustedCheckId,
-    status: 'completed',
-    conclusion: trustedConclusion,
-    completed_at: new Date().toISOString(),
-    details_url: workflowRunUrl(context),
-    output: {
-      title: trustedName,
-      summary: trustedSummary,
-      ...(annotations == null ? {} : { annotations }),
-    },
-  });
+  const annotationBatchesForCompletion = annotationBatches(annotations);
+  for (const [index, annotationBatch] of annotationBatchesForCompletion.entries()) {
+    const finalBatch = index === annotationBatchesForCompletion.length - 1;
+    await github.rest.checks.update({
+      owner,
+      repo,
+      check_run_id: trustedCheckId,
+      ...(finalBatch
+        ? {
+          status: 'completed' as const,
+          conclusion: trustedConclusion,
+          completed_at: new Date().toISOString(),
+        }
+        : { status: 'in_progress' as const }),
+      details_url: workflowRunUrl(context),
+      output: {
+        title: trustedName,
+        summary: trustedSummary,
+        ...(annotationBatch == null ? {} : { annotations: annotationBatch }),
+      },
+    });
+  }
+}
+
+function annotationBatches(
+  annotations: WorkflowCheckAnnotation[] | undefined,
+): Array<WorkflowCheckAnnotation[] | undefined> {
+  if (annotations == null || annotations.length <= MAX_CHECK_ANNOTATIONS) return [annotations];
+  const batches: WorkflowCheckAnnotation[][] = [];
+  for (let index = 0; index < annotations.length; index += MAX_CHECK_ANNOTATIONS) {
+    batches.push(annotations.slice(index, index + MAX_CHECK_ANNOTATIONS));
+  }
+  return batches;
 }
 
 export {

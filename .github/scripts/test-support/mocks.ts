@@ -28,7 +28,7 @@ const TOOLING_ENDPOINTS = [
 
 export interface TestGithubMock {
   rest: { [area: string]: { [method: string]: unknown } };
-  paginate?: (method: (...args: never[]) => unknown, ...parameters: never[]) => Promise<unknown>;
+  paginate?: (method: (...args: never[]) => object, ...parameters: never[]) => Promise<object[]>;
 }
 
 function mockEndpointValue(mock: TestGithubMock, endpoint: string): unknown {
