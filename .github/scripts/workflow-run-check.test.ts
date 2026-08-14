@@ -4,10 +4,12 @@ import {
   buildCheckExternalId,
   completeWorkflowCheck,
   createWorkflowCheck,
+  ensureWorkflowCheck,
+  findWorkflowCheck,
   workflowResultConclusion,
 } from './workflow-run-check.js';
 import type { WorkflowRunCheckContext } from './workflow-run-check.js';
-import { mockOctokit } from './test-support/mocks.js';
+import { asApiData, mockOctokit } from './test-support/mocks.js';
 
 const HEAD_SHA = 'a'.repeat(40);
 const CONTEXT: WorkflowRunCheckContext = {
@@ -37,6 +39,8 @@ interface CreatedCheckRecord {
   name: string;
   head_sha: string;
   external_id: string;
+  status?: string;
+  conclusion?: string | null;
   app: { slug: string };
 }
 
@@ -51,6 +55,8 @@ function makeGithub(): {
     name: 'Qodana / trusted ref',
     head_sha: HEAD_SHA,
     external_id: 'workflow-run-check:qodana-trusted:123:2:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    status: 'in_progress',
+    conclusion: null,
     app: { slug: 'github-actions' },
   };
   return {
@@ -71,6 +77,7 @@ function makeGithub(): {
             calls.push(['update', parameters]);
             return { data: { ...check, ...parameters } };
           },
+          listForRef: async () => ({ data: { check_runs: [] } }),
         },
       },
     }),
@@ -99,6 +106,8 @@ test('creates an in-progress check against the validated source SHA', async () =
     externalId,
     headSha: HEAD_SHA,
     name: fixture.check.name,
+    status: 'in_progress',
+    conclusion: null,
   });
   const first = fixture.calls[0];
   assert.ok(first);
@@ -242,6 +251,79 @@ test('rejects a check that is not bound to the expected source', async () => {
     /check head SHA does not match/,
   );
   assert.equal(fixture.calls.length, 1);
+});
+
+test('reuses the one existing check for an external id', async () => {
+  const fixture = makeGithub();
+  const externalId = fixture.check.external_id;
+  Object.assign(fixture.github.rest.checks, {
+    listForRef: async () => asApiData<Awaited<ReturnType<typeof fixture.github.rest.checks.listForRef>>>({
+      data: {
+        total_count: 1,
+        check_runs: [{
+          ...fixture.check,
+          status: 'queued',
+          conclusion: null,
+        }],
+      },
+    }),
+  });
+
+  const result = await ensureWorkflowCheck({
+    github: fixture.github,
+    context: CONTEXT,
+    name: fixture.check.name,
+    headSha: HEAD_SHA,
+    externalId,
+    summary: 'Waiting for the trusted publisher.',
+  });
+
+  assert.equal(result.id, fixture.check.id);
+  assert.equal(result.status, 'queued');
+  assert.equal(fixture.calls.length, 0);
+});
+
+test('rejects duplicate existing checks for an external id', async () => {
+  const fixture = makeGithub();
+  Object.assign(fixture.github.rest.checks, {
+    listForRef: async () => asApiData<Awaited<ReturnType<typeof fixture.github.rest.checks.listForRef>>>({
+      data: {
+        total_count: 2,
+        check_runs: [fixture.check, { ...fixture.check, id: fixture.check.id + 1 }],
+      },
+    }),
+  });
+
+  await assert.rejects(
+    () => findWorkflowCheck({
+      github: fixture.github,
+      context: CONTEXT,
+      name: fixture.check.name,
+      headSha: HEAD_SHA,
+      externalId: fixture.check.external_id,
+    }),
+    /duplicate workflow check external id/,
+  );
+});
+
+test('completing an already completed check with the same conclusion is idempotent', async () => {
+  const fixture = makeGithub();
+  fixture.check.status = 'completed';
+  fixture.check.conclusion = 'success';
+
+  await completeWorkflowCheck({
+    github: fixture.github,
+    context: CONTEXT,
+    checkId: fixture.check.id,
+    name: fixture.check.name,
+    headSha: HEAD_SHA,
+    externalId: fixture.check.external_id,
+    conclusion: 'success',
+    summary: 'The trusted publication succeeded.',
+  });
+
+  assert.equal(fixture.calls.length, 1);
+  assert.equal(fixture.calls[0]?.[0], 'get');
 });
 
 test('maps workflow results to supported check conclusions', () => {

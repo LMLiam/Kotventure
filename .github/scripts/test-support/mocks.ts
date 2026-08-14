@@ -15,6 +15,7 @@ const TOOLING_ENDPOINTS = [
   'actions.listWorkflowRuns',
   'checks.create',
   'checks.get',
+  'checks.listForRef',
   'checks.update',
   'issues.createComment',
   'issues.listComments',
