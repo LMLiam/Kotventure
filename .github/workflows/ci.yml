@@ -209,7 +209,7 @@ jobs:
       - name: Check one type declaration per file
         run: bash .github/scripts/check-one-declaration-per-file.sh
 
-      - name: Test pr-metrics-comment action
+      - name: Test Actions tooling
         run: node --test .github/actions/pr-metrics-comment/test/*.test.js .github/scripts/*.test.js
 
       - name: Verify generated JavaScript is not tracked
