@@ -54,6 +54,18 @@ test('maps Build shard failures, cancellation, and timeout', () => {
   assert.equal(observationForBuild(timedOut, run('completed', 'timed_out')).result, 'timed_out');
 });
 
+test('reports a missing Build shard as failure or skipped for a completed run', () => {
+  const jobs = [
+    job('Build (core)', 'completed', 'success'),
+    job('Build (text)', 'completed', 'success'),
+  ];
+  const failed = observationForBuild(jobs, run('completed', 'success'));
+  assert.equal(failed.ready, true);
+  assert.equal(failed.result, 'failure');
+  const skipped = observationForBuild(jobs, run('completed', 'skipped'));
+  assert.equal(skipped.result, 'skipped');
+});
+
 test('observes Vanilla independently from Build', () => {
   const pending = observationForVanilla([job('Vanilla conformance', 'in_progress', null)], run('in_progress'));
   assert.equal(pending.ready, false);

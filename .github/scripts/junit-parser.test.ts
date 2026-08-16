@@ -98,5 +98,5 @@ test('builds and parses a bound JUnit artefact name', () => {
     runAttempt: 2,
     headSha: HEAD_SHA,
   });
-  assert.equal(parseJunitArtifactName('junit-results-build-vanilla-123-2-' + HEAD_SHA), null);
+  assert.equal(parseJunitArtifactName('junit-results-build-vanilla-99-123-2-' + HEAD_SHA), null);
 });
