@@ -20,3 +20,4 @@ export type WorkflowRunListItem = Awaited<ReturnType<Octokit['rest']['actions'][
 export type JobItem = Awaited<ReturnType<Octokit['rest']['actions']['listJobsForWorkflowRun']>>['data']['jobs'][number];
 export type WorkflowRunArtifact = Awaited<ReturnType<Octokit['rest']['actions']['listWorkflowRunArtifacts']>>['data']['artifacts'][number];
 export type CheckRunData = Awaited<ReturnType<Octokit['rest']['checks']['create']>>['data'];
+export type CheckRunListItem = Awaited<ReturnType<Octokit['rest']['checks']['listForRef']>>['data']['check_runs'][number];
