@@ -10,6 +10,19 @@ const VALIDATION_ENTRY_POINTS = [
   'qodana-publisher',
   'pr-metrics-publisher',
 ];
+const UNTRUSTED_EVENT_MEMBERS = [
+  'pull_request',
+  'pull_request_review',
+  'pull_request_review_comment',
+  'issue',
+  'issue_comment',
+  'discussion',
+  'discussion_comment',
+  'commit_comment',
+  'workflow_run',
+  'client_payload',
+];
+const UNTRUSTED_EVENT_EXPRESSION = new RegExp(`\\$\\{\\{\\s*github\\.event\\.(?:${UNTRUSTED_EVENT_MEMBERS.join('|')})\\b`);
 
 type RecordValue = Record<string, unknown>;
 
@@ -76,7 +89,7 @@ function isTrustedCheckout(step: RecordValue): boolean {
 
 function containsUntrustedRunExpression(step: RecordValue): boolean {
   if (typeof step.run !== 'string') return false;
-  return /\$\{\{\s*github\.event\.(?:pull_request|workflow_run|issue|comment|review|inputs)\b/.test(step.run);
+  return UNTRUSTED_EVENT_EXPRESSION.test(step.run);
 }
 
 function hasExecution(jobSteps: RecordValue[]): boolean {

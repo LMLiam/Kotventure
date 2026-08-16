@@ -116,6 +116,29 @@ test('rejects untrusted event interpolation in a write-capable trusted job', () 
   assert.deepEqual(messages(source), ['run command interpolates untrusted event text']);
 });
 
+test('ignores trusted dispatch inputs and flags remaining untrusted payloads', () => {
+  const base = `
+    on: [workflow_run]
+    jobs:
+      publish:
+        permissions:
+          checks: write
+        steps:
+          - uses: actions/checkout@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+            with:
+              ref: \${{ github.sha }}
+          - uses: actions/github-script@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+            with:
+              script: node junit-publisher.js
+  `;
+  assert.deepEqual(messages(base + '\n          - run: echo ${{ github.event.inputs.tasks }}\n'), []);
+  for (const field of ['client_payload', 'issue_comment', 'pull_request_review']) {
+    assert.deepEqual(messages(base + `\n          - run: echo \${{ github.event.${field}.body }}\n`), [
+      'run command interpolates untrusted event text',
+    ]);
+  }
+});
+
 test('the repository workflows satisfy the trust policy', () => {
   const workflowDirectory = path.resolve(
     process.cwd(),
