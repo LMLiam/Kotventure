@@ -114,7 +114,6 @@ jobs:
               - '.github/scripts/vanilla-fixture-cache-key.sh'
               - '.github/workflows/ci.yml'
               - '.github/actions/setup-jdk-gradle/**'
-              - '.github/actions/publish-junit-report/**'
 
       - name: Resolve flags
         id: resolve
@@ -210,8 +209,8 @@ jobs:
       - name: Check one type declaration per file
         run: bash .github/scripts/check-one-declaration-per-file.sh
 
-      - name: Test pr-metrics-comment action
-        run: node --test .github/actions/pr-metrics-comment/test/*.test.js .github/scripts/ci-status.test.js .github/scripts/pr-metrics-publisher.test.js .github/scripts/qodana-*.test.js .github/scripts/workflow-run-check.test.js
+      - name: Test Actions tooling
+        run: node --test .github/actions/pr-metrics-comment/test/*.test.js .github/scripts/*.test.js
 
       - name: Verify generated JavaScript is not tracked
         run: |
@@ -238,7 +237,7 @@ jobs:
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 20
     permissions:
-      checks: write
+      actions: read
       contents: read
     steps:
       - name: Resolve Gradle tasks
@@ -283,12 +282,36 @@ jobs:
           tasks: ${{ steps.tasks.outputs.tasks }}
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
-      - name: Publish JUnit test report
+      - name: Stage XML-only JUnit hand-off
         if: always()
-        uses: ./.github/actions/publish-junit-report
+        run: |
+          set -euo pipefail
+          rm -rf junit-handoff
+          while IFS= read -r report; do
+            target="junit-handoff/$report"
+            mkdir -p "$(dirname "$target")"
+            cp "$report" "$target"
+          done < <(find modules -type f -path '*/build/test-results/test/TEST-*.xml' -print)
+
+      - name: Resolve CI workflow identity
+        id: workflow
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          workflow_id="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" --jq '.workflow_id')"
+          [[ "$workflow_id" =~ ^[0-9]+$ ]]
+          echo "workflow_id=$workflow_id" >> "$GITHUB_OUTPUT"
+
+      - name: Upload XML-only JUnit hand-off
+        if: always() && steps.workflow.outputs.workflow_id != ''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          check_name: Test Report
-          report_paths: modules/*/build/test-results/test/TEST-*.xml
+          name: junit-results-build-${{ matrix.shard }}-${{ steps.workflow.outputs.workflow_id }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.event.pull_request.head.sha || github.sha }}
+          path: junit-handoff
+          if-no-files-found: ignore
+          retention-days: 2
 
       - name: Upload test results and reports
         if: always()
@@ -364,6 +387,7 @@ jobs:
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 15
     permissions:
+      actions: read
       contents: read
     steps:
       - name: Checkout
@@ -663,7 +687,7 @@ jobs:
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 20
     permissions:
-      checks: write
+      actions: read
       contents: read
     steps:
       - name: Checkout
@@ -707,12 +731,36 @@ jobs:
       - name: Run vanilla conformance suites
         run: ./gradlew :core:vanillaConformanceTest
 
-      - name: Publish JUnit test report
+      - name: Stage XML-only JUnit hand-off
         if: always()
-        uses: ./.github/actions/publish-junit-report
+        run: |
+          set -euo pipefail
+          rm -rf junit-handoff
+          while IFS= read -r report; do
+            target="junit-handoff/$report"
+            mkdir -p "$(dirname "$target")"
+            cp "$report" "$target"
+          done < <(find modules/core -type f -path '*/build/test-results/vanillaConformanceTest/TEST-*.xml' -print)
+
+      - name: Resolve CI workflow identity
+        id: workflow
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          workflow_id="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" --jq '.workflow_id')"
+          [[ "$workflow_id" =~ ^[0-9]+$ ]]
+          echo "workflow_id=$workflow_id" >> "$GITHUB_OUTPUT"
+
+      - name: Upload XML-only JUnit hand-off
+        if: always() && steps.workflow.outputs.workflow_id != ''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          check_name: Vanilla Conformance Report
-          report_paths: modules/core/build/test-results/vanillaConformanceTest/TEST-*.xml
+          name: junit-results-vanilla-vanilla-${{ steps.workflow.outputs.workflow_id }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.event.pull_request.head.sha || github.sha }}
+          path: junit-handoff
+          if-no-files-found: ignore
+          retention-days: 2
 
   dependencies:
     name: Dependencies

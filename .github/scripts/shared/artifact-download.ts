@@ -143,10 +143,103 @@ export interface DownloadSingleFileArtifactOptions {
   maxArchiveBytes: number;
   maxBytes: number;
   label: string;
-  apiUrl?: string;
-  token?: string;
-  fetchImpl?: typeof fetch;
+  apiUrl?: string | undefined;
+  token?: string | undefined;
+  fetchImpl?: typeof fetch | undefined;
   validateResult?: (result: Buffer) => void;
+}
+
+export interface DownloadArtifactArchiveOptions {
+  owner: string;
+  repo: string;
+  artifactId: number;
+  maxArchiveBytes: number;
+  label: string;
+  apiUrl?: string | undefined;
+  token?: string | undefined;
+  fetchImpl?: typeof fetch | undefined;
+}
+
+function validateArchiveDownloadOptions(options: DownloadArtifactArchiveOptions & { apiUrl: string }): void {
+  const {
+    owner,
+    repo,
+    artifactId,
+    maxArchiveBytes,
+    label,
+    apiUrl,
+    token,
+    fetchImpl,
+  } = options;
+  if (typeof owner !== 'string' || owner.length === 0
+    || typeof repo !== 'string' || repo.length === 0) {
+    throw new Error(`${label} download requires a repository`);
+  }
+  let parsedApiUrl: URL;
+  try {
+    parsedApiUrl = new URL(apiUrl);
+  } catch {
+    throw new Error(`${label} download API URL is invalid`);
+  }
+  if (parsedApiUrl.protocol !== 'https:') throw new Error(`${label} download API URL is invalid`);
+  if (!Number.isSafeInteger(artifactId) || artifactId < 1) throw new Error(`${label} id is invalid`);
+  if (!Number.isSafeInteger(maxArchiveBytes) || maxArchiveBytes < 1) {
+    throw new Error(`${label} download archive size limit is invalid`);
+  }
+  if (typeof token !== 'string' || token.length === 0) throw new Error(`${label} download requires a GitHub token`);
+  if (typeof fetchImpl !== 'function') throw new Error(`${label} download requires fetch`);
+}
+
+export async function downloadArtifactArchive(options: DownloadArtifactArchiveOptions): Promise<Buffer> {
+  const {
+    owner,
+    repo,
+    artifactId,
+    maxArchiveBytes,
+    label,
+    apiUrl = process.env.GITHUB_API_URL || 'https://api.github.com',
+    token = process.env.GITHUB_TOKEN,
+    fetchImpl = globalThis.fetch,
+  } = options;
+  validateArchiveDownloadOptions({
+    owner,
+    repo,
+    artifactId,
+    maxArchiveBytes,
+    label,
+    apiUrl,
+    token,
+    fetchImpl,
+  });
+
+  const baseApiUrl = apiUrl.replace(/\/+$/, '');
+  const response = await fetchImpl(
+    `${baseApiUrl}/repos/${owner}/${repo}/actions/artifacts/${artifactId}/zip`,
+    {
+      headers: {
+        accept: 'application/vnd.github+json',
+        authorization: `Bearer ${token}`,
+      },
+      redirect: 'manual',
+      signal: AbortSignal.timeout(ARTIFACT_API_TIMEOUT_MS),
+    },
+  );
+  if (response.status !== 302) throw new Error(`${label} download returned HTTP ${response.status}`);
+
+  const location = getHeader(response.headers, 'location');
+  let artifactUrl: URL;
+  try {
+    artifactUrl = new URL(location ?? '');
+  } catch {
+    throw new Error(`${label} download redirect is invalid`);
+  }
+  if (artifactUrl.protocol !== 'https:') throw new Error(`${label} download redirect is invalid`);
+
+  const archiveResponse = await fetchImpl(artifactUrl.href, {
+    redirect: 'follow',
+    signal: AbortSignal.timeout(ARTIFACT_STORAGE_TIMEOUT_MS),
+  });
+  return readResponseBytes(archiveResponse, maxArchiveBytes, label);
 }
 
 export async function downloadSingleFileArtifact(options: DownloadSingleFileArtifactOptions): Promise<string> {
@@ -178,39 +271,16 @@ export async function downloadSingleFileArtifact(options: DownloadSingleFileArti
     label,
   });
 
-  const baseApiUrl = apiUrl.replace(/\/+$/, '');
-
-  const response = await fetchImpl(
-    `${baseApiUrl}/repos/${owner}/${repo}/actions/artifacts/${artifactId}/zip`,
-    {
-      headers: {
-        accept: 'application/vnd.github+json',
-        authorization: `Bearer ${token}`,
-      },
-      redirect: 'manual',
-      signal: AbortSignal.timeout(ARTIFACT_API_TIMEOUT_MS),
-    },
-  );
-
-  if (response.status !== 302) throw new Error(`${label} download returned HTTP ${response.status}`);
-
-  const location = getHeader(response.headers, 'location');
-  let artifactUrl: URL;
-
-  try {
-    artifactUrl = new URL(location ?? '');
-  } catch {
-    throw new Error(`${label} download redirect is invalid`);
-  }
-
-  if (artifactUrl.protocol !== 'https:') throw new Error(`${label} download redirect is invalid`);
-
-  const archiveResponse = await fetchImpl(artifactUrl.href, {
-    redirect: 'follow',
-    signal: AbortSignal.timeout(ARTIFACT_STORAGE_TIMEOUT_MS),
+  const archive = await downloadArtifactArchive({
+    owner,
+    repo,
+    artifactId,
+    maxArchiveBytes,
+    label,
+    apiUrl,
+    token,
+    fetchImpl,
   });
-
-  const archive = await readResponseBytes(archiveResponse, maxArchiveBytes, label);
   const result = await extractSingleEntryArchive(archive, {
     errorPrefix: `${label} archive`,
     expectedFileName: fileName,
