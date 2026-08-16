@@ -1,7 +1,10 @@
+package io.github.lmliam.kotventure.build
+
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.StandardCopyOption
 import java.nio.file.StandardOpenOption
+import java.nio.channels.FileChannel
+import java.nio.ByteBuffer
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
@@ -25,6 +28,10 @@ import java.security.MessageDigest
 @DisableCachingByDefault(because = "Downloads a checksum-pinned external fixture")
 abstract class DownloadVerifiedFile extends DefaultTask {
 
+    DownloadVerifiedFile() {
+        outputs.upToDateWhen { false }
+    }
+
     @Input
     abstract Property<String> getSourceUrl()
 
@@ -39,7 +46,6 @@ abstract class DownloadVerifiedFile extends DefaultTask {
 
     @TaskAction
     void download() {
-        // Validate early
         def src = sourceUrl.get()
         def expected = expectedSha1.get()?.toLowerCase()?.trim()
         if (!src) {
@@ -52,65 +58,77 @@ abstract class DownloadVerifiedFile extends DefaultTask {
         def target = destination.get().asFile.toPath()
         Files.createDirectories(target.parent)
 
-        def temporary = target.resolveSibling("${target.fileName}.part")
+        if (verifyExistingTarget(target, expected)) {
+            logger.lifecycle("Verified existing ${target}")
+            return
+        }
 
         Exception lastFailure = null
         for (int attempt = 1; attempt <= ATTEMPTS; attempt++) {
-            // ensure clean temporary file
-            try {
-                Files.deleteIfExists(temporary)
-            } catch (Exception ignored) {
-            }
+            Path temporary = null
 
             try {
                 logger.lifecycle("Downloading ${src} (attempt $attempt)...")
+                temporary = Files.createTempFile(target.parent, "${target.fileName}.", '.part')
                 URI uri = new URI(src)
                 def conn = uri.toURL().openConnection()
                 conn.connectTimeout = 30_000
                 conn.readTimeout = 120_000
 
-                // Stream download to temporary file
                 conn.inputStream.withCloseable { inStream ->
-                    // Open temporary for writing (replace if exists)
-                    Files.newOutputStream(temporary, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING).withCloseable { outStream ->
+                    FileChannel.open(temporary, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING).withCloseable { outStream ->
                         byte[] buf = new byte[BUFFER_SIZE]
                         int r
                         while ((r = inStream.read(buf)) != -1) {
-                            outStream.write(buf, 0, r)
+                            ByteBuffer buffer = ByteBuffer.wrap(buf, 0, r)
+                            while (buffer.hasRemaining()) {
+                                outStream.write(buffer)
+                            }
                         }
+                        outStream.force(true)
                     }
                 }
 
-                // Compute SHA-1 from temporary file (streaming)
                 def actualSha1 = computeSha1Hex(temporary)
                 if (actualSha1 != expected) {
                     throw new GradleException("Checksum mismatch for ${src}: expected ${expected}, got ${actualSha1}")
                 }
 
-                // Move into place (attempt atomic move, fall back to replace)
-                try {
-                    Files.move(temporary, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
-                } catch (UnsupportedOperationException ignored) {
-                    Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING)
-                }
+                VerifiedFileReplacement.replace(temporary, target)
 
                 logger.lifecycle("Downloaded and verified ${target}")
                 return
             } catch (Exception e) {
                 lastFailure = e
                 logger.warn("Download attempt $attempt failed: ${e.class.simpleName}: ${e.message}")
-                try {
-                    Files.deleteIfExists(temporary)
-                } catch (Exception ignored) {
-                }
                 if (attempt < ATTEMPTS) {
-                    // simple backoff
                     sleep(attempt * 1000L)
+                }
+            } finally {
+                if (temporary != null) {
+                    Files.deleteIfExists(temporary)
                 }
             }
         }
 
         throw new GradleException("Failed to download ${src} after ${ATTEMPTS} attempts.", lastFailure)
+    }
+
+    private static boolean verifyExistingTarget(Path target, String expected) {
+        if (!Files.exists(target)) {
+            return false
+        }
+
+        try {
+            if (computeSha1Hex(target) == expected) {
+                return true
+            }
+        } catch (Exception failure) {
+            throw new GradleException("Could not verify existing fixture ${target}.", failure)
+        }
+
+        Files.delete(target)
+        return false
     }
 
     private static String computeSha1Hex(Path path) {
@@ -124,7 +142,6 @@ abstract class DownloadVerifiedFile extends DefaultTask {
             }
         }
         byte[] digest = md.digest()
-        // convert to lower-case hex
         StringBuilder sb = new StringBuilder(digest.length * 2)
         for (byte b : digest) {
             sb.append(String.format("%02x", b & 0xff))

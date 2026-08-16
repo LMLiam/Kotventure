@@ -229,7 +229,7 @@ jobs:
       matrix:
         include:
           - shard: core
-            tasks: :core:koverBinaryReport :core:jar
+            tasks: :buildSrc:test :core:koverBinaryReport :core:jar
           - shard: text
             tasks: :minimessage:koverBinaryReport :serializer:koverBinaryReport :minimessage:jar :serializer:jar
           - shard: runtime
@@ -319,6 +319,7 @@ jobs:
         with:
           name: gradle-test-results-${{ matrix.shard }}
           path: |
+            buildSrc/build/test-results/test
             modules/*/build/test-results/test
             modules/*/build/reports/tests/test
           if-no-files-found: ignore
