@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { parseDocument } from 'yaml';
+import { z } from 'zod';
 
 const WRITE_PERMISSIONS = new Set(['write', 'write-all']);
 const TRUSTED_EVENTS = new Set(['pull_request_target', 'workflow_run']);
@@ -24,90 +25,107 @@ const UNTRUSTED_EVENT_MEMBERS = [
 ];
 const UNTRUSTED_EVENT_EXPRESSION = new RegExp(`\\$\\{\\{\\s*github\\.event\\.(?:${UNTRUSTED_EVENT_MEMBERS.join('|')})\\b`);
 
-type RecordValue = Record<string, unknown>;
-
 export interface WorkflowTrustViolation {
   file: string;
   job: string;
   message: string;
 }
 
-function isRecord(value: unknown): value is RecordValue {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
+const permissionLevelSchema = z.enum(['read', 'write', 'none', 'read-all', 'write-all']);
+
+const permissionsSchema = z.union([
+  permissionLevelSchema,
+  z.record(z.string(), permissionLevelSchema),
+]);
+
+const eventNamesSchema = z.union([
+  z.string(),
+  z.array(z.string()),
+  z.object({}).passthrough(),
+]).transform((trigger): string[] => {
+  if (typeof trigger === 'string') return [trigger];
+  if (Array.isArray(trigger)) return trigger;
+  return Object.keys(trigger);
+});
+
+const stepSchema = z.object({
+  uses: z.string().optional(),
+  run: z.string().optional(),
+  with: z.object({
+    ref: z.string().optional(),
+    script: z.string().optional(),
+  }).passthrough().optional(),
+}).passthrough();
+
+const jobSchema = z.object({
+  if: z.string().optional(),
+  permissions: permissionsSchema.optional(),
+  steps: z.array(stepSchema).optional(),
+}).passthrough();
+
+const workflowSchema = z.object({
+  on: eventNamesSchema,
+  permissions: permissionsSchema.optional(),
+  jobs: z.record(z.string(), jobSchema),
+}).passthrough();
+
+type WorkflowDocument = z.infer<typeof workflowSchema>;
+type Job = z.infer<typeof jobSchema>;
+type Step = z.infer<typeof stepSchema>;
+type Permissions = z.infer<typeof permissionsSchema>;
+
+function grantsWrite(permissions: Permissions): boolean {
+  if (typeof permissions === 'string') return WRITE_PERMISSIONS.has(permissions);
+  return Object.values(permissions).some((level) => WRITE_PERMISSIONS.has(level));
 }
 
-function asRecord(value: unknown): RecordValue {
-  return isRecord(value) ? value : {};
+function writeCapable(workflow: WorkflowDocument, job: Job): boolean {
+  const permissions = job.permissions ?? workflow.permissions;
+  return permissions !== undefined && grantsWrite(permissions);
 }
 
-function workflowEvents(value: unknown): Set<string> {
-  if (typeof value === 'string') return new Set([value]);
-  if (Array.isArray(value)) return new Set(value.filter((entry): entry is string => typeof entry === 'string'));
-  if (!isRecord(value)) return new Set();
-  return new Set(Object.keys(value));
-}
-
-function hasWritePermission(value: unknown): boolean {
-  if (value === 'write-all') return true;
-  if (!isRecord(value)) return false;
-  return Object.values(value).some((permission) => typeof permission === 'string' && WRITE_PERMISSIONS.has(permission));
-}
-
-function permissionForJob(workflow: RecordValue, job: RecordValue): unknown {
-  return job.permissions === undefined ? workflow.permissions : job.permissions;
-}
-
-function steps(job: RecordValue): RecordValue[] {
-  if (!Array.isArray(job.steps)) return [];
-  return job.steps.filter(isRecord);
-}
-
-function stepUses(step: RecordValue): string | null {
-  return typeof step.uses === 'string' ? step.uses : null;
-}
-
-function isCheckout(step: RecordValue): boolean {
-  const uses = stepUses(step);
-  return uses != null && uses.startsWith('actions/checkout@');
-}
-
-function isLocalAction(step: RecordValue): boolean {
-  const uses = stepUses(step);
-  return uses != null && uses.startsWith('./');
-}
-
-function checkoutRef(step: RecordValue): string | null {
-  const withValues = asRecord(step.with);
-  return typeof withValues.ref === 'string' ? withValues.ref : null;
-}
-
-function isTrustedCheckout(step: RecordValue): boolean {
-  const ref = checkoutRef(step);
-  return ref === '${{ github.sha }}'
-    || ref === '${{ github.event.repository.default_branch }}';
-}
-
-function containsUntrustedRunExpression(step: RecordValue): boolean {
-  if (typeof step.run !== 'string') return false;
-  return UNTRUSTED_EVENT_EXPRESSION.test(step.run);
-}
-
-function hasExecution(jobSteps: RecordValue[]): boolean {
-  return jobSteps.some((step) => typeof step.run === 'string' || stepUses(step) != null);
-}
-
-function hasValidationEntryPoint(jobSteps: RecordValue[]): boolean {
-  const source = jobSteps.map((step) => JSON.stringify(step)).join('\n');
-  return VALIDATION_ENTRY_POINTS.some((entryPoint) => source.includes(entryPoint));
-}
-
-function eventsForJob(job: RecordValue, events: Set<string>): Set<string> {
-  const condition = typeof job.if === 'string' ? job.if : '';
+function eventsForJob(job: Job, events: ReadonlySet<string>): Set<string> {
+  const condition = job.if ?? '';
   return new Set([...events].filter((event) => {
     if (event === 'pull_request' && /github\.event_name\s*!=\s*'pull_request'/.test(condition)) return false;
     if (event === 'merge_group' && /github\.event_name\s*!=\s*'merge_group'/.test(condition)) return false;
     return true;
   }));
+}
+
+function hasExecution(steps: Step[]): boolean {
+  return steps.some((step) => step.run !== undefined || step.uses !== undefined);
+}
+
+function hasValidationEntryPoint(steps: Step[]): boolean {
+  return steps.some((step) => {
+    const searchable = [step.uses, step.run, step.with?.script].filter(
+      (value): value is string => value !== undefined,
+    );
+    return VALIDATION_ENTRY_POINTS.some((entryPoint) =>
+      searchable.some((text) => text.includes(entryPoint)));
+  });
+}
+
+function containsUntrustedRunExpression(step: Step): boolean {
+  return step.run !== undefined && UNTRUSTED_EVENT_EXPRESSION.test(step.run);
+}
+
+function isCheckout(step: Step): boolean {
+  return step.uses !== undefined && step.uses.startsWith('actions/checkout@');
+}
+
+function isLocalAction(step: Step): boolean {
+  return step.uses !== undefined && step.uses.startsWith('./');
+}
+
+function isTrustedCheckout(step: Step): boolean {
+  return step.with?.ref === '${{ github.sha }}'
+    || step.with?.ref === '${{ github.event.repository.default_branch }}';
+}
+
+function eventsHaveTrustedBoundary(events: ReadonlySet<string>): boolean {
+  return [...TRUSTED_EVENTS].some((event) => events.has(event));
 }
 
 function inspectJob({
@@ -116,16 +134,15 @@ function inspectJob({
   job,
   events,
 }: {
-  workflow: RecordValue;
+  workflow: WorkflowDocument;
   jobName: string;
-  job: RecordValue;
-  events: Set<string>;
+  job: Job;
+  events: ReadonlySet<string>;
 }): WorkflowTrustViolation[] {
   const violations: WorkflowTrustViolation[] = [];
-  const jobSteps = steps(job);
+  const jobSteps = job.steps ?? [];
   const jobEvents = eventsForJob(job, events);
-  const writeCapable = hasWritePermission(permissionForJob(workflow, job));
-  if (!writeCapable || !hasExecution(jobSteps)) return violations;
+  if (!writeCapable(workflow, job) || !hasExecution(jobSteps)) return violations;
 
   if (jobEvents.has('pull_request')) {
     violations.push({
@@ -136,13 +153,13 @@ function inspectJob({
   }
 
   for (const step of jobSteps) {
-    if (isLocalAction(step) && (jobEvents.has('pull_request') || eventsHasTrustedBoundary(jobEvents))) {
+    if (isLocalAction(step) && (jobEvents.has('pull_request') || eventsHaveTrustedBoundary(jobEvents))) {
       violations.push({ file: '', job: jobName, message: 'write-capable trusted job invokes a local action' });
     }
-    if (containsUntrustedRunExpression(step) && (jobEvents.has('pull_request') || eventsHasTrustedBoundary(jobEvents))) {
+    if (containsUntrustedRunExpression(step) && (jobEvents.has('pull_request') || eventsHaveTrustedBoundary(jobEvents))) {
       violations.push({ file: '', job: jobName, message: 'run command interpolates untrusted event text' });
     }
-    if (isCheckout(step) && eventsHasTrustedBoundary(jobEvents) && !isTrustedCheckout(step)) {
+    if (isCheckout(step) && eventsHaveTrustedBoundary(jobEvents) && !isTrustedCheckout(step)) {
       violations.push({ file: '', job: jobName, message: 'write-capable trusted job checks out an untrusted ref' });
     }
   }
@@ -153,17 +170,10 @@ function inspectJob({
   return violations;
 }
 
-function eventsHasTrustedBoundary(events: Set<string>): boolean {
-  return [...TRUSTED_EVENTS].some((event) => events.has(event));
-}
-
-export function validateWorkflowDocument(value: unknown, file = '<workflow>'): WorkflowTrustViolation[] {
-  const workflow = asRecord(value);
-  const events = workflowEvents(workflow.on);
-  const jobs = asRecord(workflow.jobs);
+function validateWorkflowDocument(workflow: WorkflowDocument, file = '<workflow>'): WorkflowTrustViolation[] {
+  const events = new Set(workflow.on);
   const violations: WorkflowTrustViolation[] = [];
-  for (const [jobName, valueForJob] of Object.entries(jobs)) {
-    const job = asRecord(valueForJob);
+  for (const [jobName, job] of Object.entries(workflow.jobs)) {
     for (const violation of inspectJob({ workflow, jobName, job, events })) {
       violations.push({ ...violation, file });
     }
@@ -171,12 +181,12 @@ export function validateWorkflowDocument(value: unknown, file = '<workflow>'): W
   return violations;
 }
 
-export function parseWorkflowDocument(source: string, file = '<workflow>'): unknown {
+function parseWorkflowDocument(source: string, file = '<workflow>'): WorkflowDocument {
   const document = parseDocument(source, { stringKeys: true });
   if (document.errors.length > 0) {
     throw new Error(`${file}: ${document.errors.map((error) => error.message).join('; ')}`);
   }
-  return document.toJS();
+  return workflowSchema.parse(document.toJS());
 }
 
 export function validateWorkflowSource(source: string, file = '<workflow>'): WorkflowTrustViolation[] {
@@ -193,9 +203,3 @@ export function validateWorkflowDirectory(directory: string): WorkflowTrustViola
   }
   return violations;
 }
-
-export {
-  containsUntrustedRunExpression,
-  hasWritePermission,
-  isTrustedCheckout,
-};
