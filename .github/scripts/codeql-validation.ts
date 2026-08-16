@@ -9,6 +9,7 @@ import {
   CODEQL_WORKFLOW_PATH,
   MAX_CODEQL_ARTIFACT_BYTES,
   MAX_CODEQL_RESULTS,
+  MAX_CODEQL_SARIF_BYTES,
   parseCodeqlArtifactName,
 } from './codeql-contract.js';
 import type { CodeqlCategory, ParsedCodeqlArtifactName } from './codeql-contract.js';
@@ -34,6 +35,11 @@ const {
 
 const VALID_EVENTS = new Set(['pull_request', 'merge_group']);
 const URI_BASE_ID_PATTERN = /^(?:[A-Za-z0-9_.-]{1,128}|%[A-Za-z0-9_.-]{1,126}%)$/;
+// A result expands into message, location, region, and URI nodes. Budget
+// enough nodes per result so the structural guard never fires before the
+// declared result bound; the byte bound remains the hard resource limit.
+const MAX_SARIF_NODES_PER_RESULT = 40;
+const MAX_SARIF_TRAVERSAL_NODES = MAX_CODEQL_RESULTS * MAX_SARIF_NODES_PER_RESULT;
 
 export interface TrustedCodeqlRun {
   runId: number;
@@ -116,8 +122,7 @@ export function selectCodeqlArtifact({
       && candidate.descriptor.runAttempt === run.run_attempt
       && candidate.descriptor.headSha === trustedHeadSha);
   if (candidates.length !== 1) reject(`expected exactly one CodeQL ${category} artefact, found ${candidates.length}`);
-  const candidate = candidates[0];
-  if (candidate == null) reject(`expected exactly one CodeQL ${category} artefact, found 0`);
+  const candidate = candidates[0] as CodeqlArtifactSelection;
   validateArtifactBinding(reject, {
     artifact: candidate.artifact,
     expected: {
@@ -192,7 +197,7 @@ function validateSarifLocations(root: JsonValue): void {
     const entry = pending.pop();
     if (entry == null) continue;
     visited += 1;
-    if (visited > 250_000 || entry.depth > 100) reject('SARIF structure is too complex');
+    if (visited > MAX_SARIF_TRAVERSAL_NODES || entry.depth > 100) reject('SARIF structure is too complex');
     if (entry.value === null || typeof entry.value !== 'object') continue;
     if (Array.isArray(entry.value)) {
       for (const child of entry.value) pending.push({ value: child, depth: entry.depth + 1 });
@@ -222,7 +227,7 @@ export interface CodeqlSarifDocument {
 
 export function validateCodeqlSarif(value: Buffer | string): CodeqlSarifDocument {
   const bytes = Buffer.isBuffer(value) ? value : Buffer.from(String(value), 'utf8');
-  if (bytes.length < 1 || bytes.length > 16 * 1024 * 1024) reject('SARIF size is invalid');
+  if (bytes.length < 1 || bytes.length > MAX_CODEQL_SARIF_BYTES) reject('SARIF size is invalid');
   let document: CodeqlSarifDocument;
   try {
     document = requireObject<CodeqlSarifDocument>(JSON.parse(bytes.toString('utf8')), 'SARIF document');

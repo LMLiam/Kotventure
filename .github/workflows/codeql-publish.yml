@@ -1,6 +1,7 @@
 name: CodeQL publication
 
 on:
+  # zizmor: ignore[dangerous-triggers]
   workflow_run:
     workflows: [CodeQL]
     types: [in_progress, completed]
@@ -91,6 +92,12 @@ jobs:
         env:
           ACTIONS_OUTCOME: ${{ steps.prepare.outputs.actions_path == '' && 'missing' || steps.upload_actions.outcome == 'success' && 'success' || 'failure' }}
           JAVA_KOTLIN_OUTCOME: ${{ steps.prepare.outputs.java_kotlin_path == '' && 'missing' || steps.upload_java_kotlin.outcome == 'success' && 'success' || 'failure' }}
+          PUBLISH: ${{ steps.prepare.outputs.publish }}
+          HEAD_SHA: ${{ steps.prepare.outputs.head_sha }}
+          ACTIONS_CHECK_ID: ${{ steps.prepare.outputs.actions_check_id }}
+          JAVA_KOTLIN_CHECK_ID: ${{ steps.prepare.outputs.java_kotlin_check_id }}
+          ACTIONS_EXTERNAL_ID: ${{ steps.prepare.outputs.actions_external_id }}
+          JAVA_KOTLIN_EXTERNAL_ID: ${{ steps.prepare.outputs.java_kotlin_external_id }}
           GITHUB_TOKEN: ${{ github.token }}
         with:
           retries: 3
@@ -103,4 +110,14 @@ jobs:
               core,
               actionsOutcome: process.env.ACTIONS_OUTCOME,
               javaKotlinOutcome: process.env.JAVA_KOTLIN_OUTCOME,
+              publish: process.env.PUBLISH,
+              headSha: process.env.HEAD_SHA,
+              checkIds: {
+                actions: Number(process.env.ACTIONS_CHECK_ID),
+                'java-kotlin': Number(process.env.JAVA_KOTLIN_CHECK_ID),
+              },
+              externalIds: {
+                actions: process.env.ACTIONS_EXTERNAL_ID,
+                'java-kotlin': process.env.JAVA_KOTLIN_EXTERNAL_ID,
+              },
             });

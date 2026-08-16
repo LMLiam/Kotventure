@@ -160,13 +160,14 @@ export interface DownloadArtifactArchiveOptions {
   fetchImpl?: typeof fetch | undefined;
 }
 
-function validateArchiveDownloadOptions(options: DownloadArtifactArchiveOptions): void {
+function validateArchiveDownloadOptions(options: DownloadArtifactArchiveOptions & { apiUrl: string }): void {
   const {
     owner,
     repo,
     artifactId,
     maxArchiveBytes,
     label,
+    apiUrl,
     token,
     fetchImpl,
   } = options;
@@ -174,6 +175,13 @@ function validateArchiveDownloadOptions(options: DownloadArtifactArchiveOptions)
     || typeof repo !== 'string' || repo.length === 0) {
     throw new Error(`${label} download requires a repository`);
   }
+  let parsedApiUrl: URL;
+  try {
+    parsedApiUrl = new URL(apiUrl);
+  } catch {
+    throw new Error(`${label} download API URL is invalid`);
+  }
+  if (parsedApiUrl.protocol !== 'https:') throw new Error(`${label} download API URL is invalid`);
   if (!Number.isSafeInteger(artifactId) || artifactId < 1) throw new Error(`${label} id is invalid`);
   if (!Number.isSafeInteger(maxArchiveBytes) || maxArchiveBytes < 1) {
     throw new Error(`${label} download archive size limit is invalid`);
@@ -199,6 +207,7 @@ export async function downloadArtifactArchive(options: DownloadArtifactArchiveOp
     artifactId,
     maxArchiveBytes,
     label,
+    apiUrl,
     token,
     fetchImpl,
   });

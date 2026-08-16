@@ -157,7 +157,9 @@ function parseDocument(xml: Buffer): Document {
   let document: Document;
   try {
     document = new DOMParser({
-      onError: (_level, message) => { parserError = message; },
+      onError: (level, message) => {
+        if (level === 'error' || level === 'fatalError') parserError = message;
+      },
     }).parseFromString(text, 'text/xml');
   } catch (error) {
     reject(`XML is malformed: ${error instanceof Error ? error.message : String(error)}`);

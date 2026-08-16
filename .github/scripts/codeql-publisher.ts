@@ -5,6 +5,7 @@ import type { WorkflowRunEventRecord } from './shared/run-context.js';
 import {
   CODEQL_CATEGORIES,
   CODEQL_WORKFLOW_NAME,
+  MAX_CODEQL_ARTIFACTS,
 } from './codeql-contract.js';
 import type { CodeqlCategory } from './codeql-contract.js';
 import type { QodanaSourceKind } from './qodana-contract.js';
@@ -20,7 +21,6 @@ import {
   completeWorkflowCheck,
   ensureWorkflowCheck,
   updateWorkflowCheck,
-  workflowResultConclusion,
 } from './workflow-run-check.js';
 import type { WorkflowCheckReference, WorkflowRunCheckContext } from './workflow-run-check.js';
 
@@ -33,6 +33,7 @@ const {
   requireBoundedInteger,
   requireObject,
   requireSha,
+  requireString,
 } = createValidators((message: string): never => {
   throw new CodeqlPublicationRejectedError(message);
 });
@@ -69,6 +70,12 @@ function checkContext(context: ActionContext['context'], run: CodeqlSourceContex
 
 function codeqlAnalysisApplies(sourceKind: QodanaSourceKind | null): boolean {
   return sourceKind == null || sourceKind === 'code';
+}
+
+function runConclusion(result: string | null): string {
+  if (result === 'success' || result === 'failure' || result === 'cancelled'
+    || result === 'skipped' || result === 'timed_out') return result;
+  return 'failure';
 }
 
 async function resolveSource({
@@ -170,7 +177,7 @@ async function listArtifacts(github: Octokit, context: ActionContext['context'],
     owner: context.repo.owner,
     repo: context.repo.repo,
     run_id: runId,
-    per_page: 100,
+    per_page: MAX_CODEQL_ARTIFACTS,
   });
   if (response.data.total_count > response.data.artifacts.length) {
     throw new CodeqlPublicationRejectedError('CodeQL artefact list exceeds the validation bound');
@@ -205,13 +212,9 @@ async function prepareCodeql({
     setOutput(core, `${outputKey(category)}_external_id`, checks[category].externalId);
   }
   setOutput(core, 'head_sha', source.sourceHeadSha);
-  setOutput(core, 'run_id', source.run.id);
-  setOutput(core, 'run_attempt', requireBoundedInteger(source.run.run_attempt, 'workflow run attempt'));
-  setOutput(core, 'pull_number', source.pullNumber ?? '');
   setOutput(core, 'upload_ref', source.pullNumber == null
     ? `refs/heads/${source.run.head_branch}`
     : `refs/pull/${source.pullNumber}/head`);
-  setOutput(core, 'stale', source.stale);
   if (source.stale) {
     await completeAll({ github, context, source, checks, conclusion: 'cancelled', summary: 'The pull request head is no longer current or open.' });
     setOutput(core, 'publish', false);
@@ -228,7 +231,7 @@ async function prepareCodeql({
     return { checks, source };
   }
   if (source.run.conclusion !== 'success') {
-    const conclusion = source.run.conclusion == null ? 'failure' : workflowResultConclusion(source.run.conclusion);
+    const conclusion = runConclusion(source.run.conclusion);
     await completeAll({ github, context, source, checks, conclusion, summary: `The CodeQL source workflow ended with ${conclusion}.` });
     setOutput(core, 'publish', false);
     return { checks, source };
@@ -254,7 +257,7 @@ async function prepareCodeql({
       });
       setOutput(core, `${outputKey(category)}_path`, filePath);
     } catch (error) {
-      setOutput(core, `${outputKey(category)}_error`, error instanceof Error ? error.message : String(error));
+      core.warning(`CodeQL ${category} artefact was not published: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
   await updateAll({ github, context, source, checks, summary: 'Trusted code is publishing validated CodeQL SARIF.' });
@@ -319,26 +322,29 @@ async function completeAll({
 async function completeCodeql({
   github,
   context,
-  core,
   actionsOutcome,
   javaKotlinOutcome,
+  publish,
+  headSha,
+  checkIds,
+  externalIds,
 }: ActionContext & {
   actionsOutcome: string;
   javaKotlinOutcome: string;
+  publish: string;
+  headSha: string;
+  checkIds: Record<CodeqlCategory, number>;
+  externalIds: Record<CodeqlCategory, string>;
 }): Promise<void> {
+  if (publish !== 'true') return;
   const eventRun = requireObject<WorkflowRunEventRecord>(context.payload?.workflow_run, 'workflow_run event');
-  const source = await resolveSource({ github, context, eventRun });
-  const checks = await registerChecks({ github, context, source });
-  if (source.stale) {
-    await completeAll({ github, context, source, checks, conclusion: 'cancelled', summary: 'The pull request head is no longer current or open.' });
-    return;
-  }
-  if (!codeqlAnalysisApplies(source.sourceKind)) {
-    await completeAll({ github, context, source, checks, conclusion: 'skipped', summary: 'CodeQL analysis is not applicable to this pull request.' });
-    return;
-  }
-  if (eventRun.status !== 'completed' || source.run.conclusion !== 'success') return;
-  const checkContextValue = checkContext(context, source.run);
+  const checkContextValue: WorkflowRunCheckContext = {
+    serverUrl: context.serverUrl,
+    repo: context.repo,
+    runId: requireBoundedInteger(eventRun.id, 'workflow run id'),
+    runAttempt: requireBoundedInteger(eventRun.run_attempt, 'workflow run attempt'),
+  };
+  const trustedHeadSha = requireSha(headSha, 'CodeQL analysed SHA');
   const outcomes: Record<CodeqlCategory, string> = {
     actions: actionsOutcome,
     'java-kotlin': javaKotlinOutcome,
@@ -349,10 +355,10 @@ async function completeCodeql({
     return completeWorkflowCheck({
       github,
       context: checkContextValue,
-      checkId: checks[category].reference.id,
-      name: checks[category].name,
-      headSha: source.sourceHeadSha,
-      externalId: checks[category].externalId,
+      checkId: requireBoundedInteger(checkIds[category], `${category} check id`),
+      name: CHECK_NAMES[category],
+      headSha: trustedHeadSha,
+      externalId: requireString(externalIds[category], `${category} check external id`),
       conclusion: outcome === 'success' ? 'success' : 'failure',
       summary: `Trusted CodeQL SARIF publication completed.${error}`,
     });
@@ -370,6 +376,10 @@ async function prepareCodeqlPublicationOutputs(action: ActionContext): Promise<v
 async function completeCodeqlPublicationOutputs(action: ActionContext & {
   actionsOutcome: string;
   javaKotlinOutcome: string;
+  publish: string;
+  headSha: string;
+  checkIds: Record<CodeqlCategory, number>;
+  externalIds: Record<CodeqlCategory, string>;
 }): Promise<void> {
   try {
     await completeCodeql(action);

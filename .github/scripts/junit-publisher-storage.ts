@@ -65,6 +65,7 @@ export function selectJunitArtifact({
   kind,
   shard,
   headSha,
+  allowMissing = false,
 }: {
   artifacts: WorkflowRunArtifact[];
   run: WorkflowRunData;
@@ -72,14 +73,17 @@ export function selectJunitArtifact({
   kind: JunitReportKind;
   shard: JunitArtifactShard;
   headSha?: string;
-}): JunitArtifactSelection {
+  allowMissing?: boolean;
+}): JunitArtifactSelection | null {
   if (!Array.isArray(artifacts)) reject('workflow artifacts are missing');
   const trustedHeadSha = requireSha(headSha ?? run.head_sha, 'JUnit head SHA');
   const name = expectedArtifactName({ kind, shard, run, headSha: trustedHeadSha });
   const candidates = artifacts.filter((artifact) => artifact.name === name);
-  if (candidates.length !== 1) reject(`expected exactly one ${name}, found ${candidates.length}`);
-  const artifact = candidates[0];
-  if (artifact == null) reject(`expected exactly one ${name}, found 0`);
+  if (candidates.length !== 1) {
+    if (allowMissing && candidates.length === 0) return null;
+    reject(`expected exactly one ${name}, found ${candidates.length}`);
+  }
+  const artifact = candidates[0] as WorkflowRunArtifact;
   const descriptor = parseJunitArtifactName(artifact.name);
   if (descriptor == null || descriptor.kind !== kind || descriptor.shard !== shard) {
     reject('JUnit artefact name is invalid');

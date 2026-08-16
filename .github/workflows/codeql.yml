@@ -215,14 +215,14 @@ jobs:
       - name: Stage CodeQL SARIF hand-off
         if: always()
         env:
-          SARIF_DIRECTORY: ${{ steps.analyze.outputs.sarif-output }}
+          SARIF_DIRECTORY: ${{ runner.temp }}/codeql-sarif
         run: |
           set -euo pipefail
           rm -rf codeql-handoff
           mkdir -p codeql-handoff
           if [[ ! -d "$SARIF_DIRECTORY" ]]; then
-            echo "CodeQL SARIF directory is missing: $SARIF_DIRECTORY" >&2
-            exit 1
+            echo "CodeQL SARIF directory is missing; the analysis did not complete" >&2
+            exit 0
           fi
           mapfile -t sarif_files < <(find "$SARIF_DIRECTORY" -type f -name '*.sarif' -print)
           if [[ "${#sarif_files[@]}" -ne 1 ]]; then

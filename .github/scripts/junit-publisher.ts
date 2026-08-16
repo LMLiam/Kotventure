@@ -74,7 +74,6 @@ interface ReportObservation {
   ready: boolean;
   result: string | null;
   jobs: JobItem[];
-  reason: string | null;
 }
 
 function sourceEvent(eventRun: WorkflowRunEventRecord, run: WorkflowRunData, workflow: WorkflowData, repository: RepositoryData): void {
@@ -234,8 +233,8 @@ function buildResult(jobs: JobItem[], run: WorkflowRunData): string | null {
 function observationForBuild(jobs: JobItem[], run: WorkflowRunData): ReportObservation {
   const buildJobs = JUNIT_BUILD_SHARDS.map((shard) => exactJob(jobs, BUILD_JOB_NAMES.get(shard) ?? ''));
   if (buildJobs.some((job) => job == null)) {
-    if (run.status !== 'completed') return { ready: false, result: null, jobs: [], reason: null };
-    return { ready: true, result: run.conclusion === 'skipped' ? 'skipped' : 'failure', jobs: [], reason: 'one or more Build jobs are missing' };
+    if (run.status !== 'completed') return { ready: false, result: null, jobs: [] };
+    return { ready: true, result: run.conclusion === 'skipped' ? 'skipped' : 'failure', jobs: [] };
   }
   const resolvedJobs = buildJobs.filter((job): job is JobItem => job != null);
   const result = buildResult(resolvedJobs, run);
@@ -243,22 +242,20 @@ function observationForBuild(jobs: JobItem[], run: WorkflowRunData): ReportObser
     ready: result != null,
     result,
     jobs: resolvedJobs,
-    reason: result == null ? null : null,
   };
 }
 
 function observationForVanilla(jobs: JobItem[], run: WorkflowRunData): ReportObservation {
   const job = exactJob(jobs, VANILLA_JOB_NAME);
   if (job == null) {
-    if (run.status !== 'completed') return { ready: false, result: null, jobs: [], reason: null };
-    return { ready: true, result: run.conclusion === 'skipped' ? 'skipped' : 'failure', jobs: [], reason: 'Vanilla conformance job is missing' };
+    if (run.status !== 'completed') return { ready: false, result: null, jobs: [] };
+    return { ready: true, result: run.conclusion === 'skipped' ? 'skipped' : 'failure', jobs: [] };
   }
   const result = jobResult(job);
   return {
     ready: result != null,
     result,
     jobs: [job],
-    reason: result == null ? null : null,
   };
 }
 
@@ -284,13 +281,16 @@ async function loadReports({
   source,
   kind,
   shards,
+  tolerateMissing,
 }: {
   github: Octokit;
   context: ActionContext['context'];
   source: JunitSourceContext;
   kind: JunitReportKind;
   shards: readonly JunitBuildShard[] | readonly ['vanilla'];
+  tolerateMissing: boolean;
 }): Promise<JunitAggregate> {
+  const token = requireString(process.env.GITHUB_TOKEN, 'GITHUB_TOKEN');
   const response = await github.rest.actions.listWorkflowRunArtifacts({
     owner: context.repo.owner,
     repo: context.repo.repo,
@@ -309,13 +309,15 @@ async function loadReports({
       kind,
       shard,
       headSha: source.source?.headSha ?? source.run.head_sha,
+      allowMissing: tolerateMissing,
     });
+    if (selection == null) return [];
     return downloadJunitReports({
       owner: context.repo.owner,
       repo: context.repo.repo,
       artifact: selection.artifact,
       kind,
-      token: process.env.GITHUB_TOKEN ?? '',
+      token,
     });
   }));
   return aggregateJunitArtifactReports(reportSets);
@@ -344,7 +346,7 @@ async function publishReport({
       context: checkContextValue,
       checkId: check.reference.id,
       name: check.name,
-       headSha,
+      headSha,
       externalId: check.externalId,
       conclusion: result,
       summary: `${check.name} was ${result} by the trusted source workflow.`,
@@ -357,7 +359,7 @@ async function publishReport({
     context: checkContextValue,
     checkId: check.reference.id,
     name: check.name,
-     headSha,
+    headSha,
     externalId: check.externalId,
     status: 'in_progress',
     summary: `Trusted code is validating ${check.name}.`,
@@ -372,6 +374,7 @@ async function publishReport({
       source,
       kind: check.kind,
       shards: check.kind === 'build' ? JUNIT_BUILD_SHARDS : ['vanilla'],
+      tolerateMissing: result !== 'success',
     });
   } catch (error) {
     publicationError = errorMessage(error);
@@ -396,7 +399,7 @@ async function publishReport({
     context: checkContextValue,
     checkId: check.reference.id,
     name: check.name,
-     headSha,
+    headSha,
     externalId: check.externalId,
     conclusion,
     summary: junitSummary(check.name, report, annotationData.omitted) + details,
@@ -473,7 +476,7 @@ async function observeAndPublish({
       context,
       source,
       check: checks.build,
-      observation: { ready: true, result: inProgress ? 'timed_out' : 'failure', jobs: [], reason: 'trusted observation deadline expired' },
+      observation: { ready: true, result: inProgress ? 'timed_out' : 'failure', jobs: [] },
     });
     if (error != null) errors.push(`Build: ${error}`);
   }
@@ -483,7 +486,7 @@ async function observeAndPublish({
       context,
       source,
       check: checks.vanilla,
-      observation: { ready: true, result: inProgress ? 'timed_out' : 'failure', jobs: [], reason: 'trusted observation deadline expired' },
+      observation: { ready: true, result: inProgress ? 'timed_out' : 'failure', jobs: [] },
     });
     if (error != null) errors.push(`Vanilla: ${error}`);
   }

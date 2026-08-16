@@ -118,11 +118,13 @@ function validateArchiveEntry(
 
     const chunks: Buffer[] = [];
     let total = 0;
+    let oversized = false;
     try {
       const stream = await zipfile.openReadStreamPromise(entry);
       for await (const chunk of stream) {
         if (!(chunk instanceof Buffer) || total + chunk.length > maxEntryBytes) {
-          rejectArchive('decompresses to an invalid size');
+          oversized = true;
+          break;
         }
         chunks.push(chunk);
         total += chunk.length;
@@ -130,6 +132,7 @@ function validateArchiveEntry(
     } catch (error) {
       rejectArchive(`cannot be decompressed: ${errorMessage(error)}`);
     }
+    if (oversized) rejectArchive('decompresses to an invalid size');
     if (total !== entry.uncompressedSize) rejectArchive('decompresses to an invalid size');
     return Buffer.concat(chunks, total);
   })();
@@ -241,6 +244,9 @@ export async function extractSingleEntryArchive(
       && entry.compressionMethod !== DEFLATE_COMPRESSION)) {
     rejectArchive('uses unsupported compression or metadata');
   }
+
+  const fileType = (entry.externalFileAttributes >>> 16) & 0o170000;
+  if (fileType === 0o120000) rejectArchive('contains a symbolic link');
 
   if (entry.extraFields.some((field) => field.id === ZIP64_EXTRA_FIELD_ID)) {
     rejectArchive('uses unsupported ZIP64 or multi-disk metadata');
