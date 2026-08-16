@@ -17,7 +17,7 @@ class DownloadVerifiedFileFunctionalTest :
                     Files.createDirectories(destination.parent)
                     Files.writeString(destination, "fixture bytes")
                     copyBuildLogic(directory)
-                    writeBuildFiles(directory, sha1(destination))
+                    writeBuildFiles(directory, sha1(destination), sha256(destination))
 
                     val first = runGradle(directory)
                     first.task(":download")?.outcome shouldBe TaskOutcome.SUCCESS
@@ -33,11 +33,29 @@ class DownloadVerifiedFileFunctionalTest :
                     val destination = directory.resolve("build/fixture.jar")
                     Files.createDirectories(destination)
                     copyBuildLogic(directory)
-                    writeBuildFiles(directory, "0".repeat(40))
+                    writeBuildFiles(directory, "0".repeat(40), "0".repeat(64))
 
                     runGradleAndExpectFailure(directory)
 
                     Files.isDirectory(destination) shouldBe true
+                }
+            }
+
+            "rejects a malformed SHA-256 before touching a valid destination" {
+                withTemporaryDirectory { directory ->
+                    val destination = directory.resolve("build/fixture.jar")
+                    Files.createDirectories(destination.parent)
+                    Files.writeString(destination, "fixture bytes")
+                    copyBuildLogic(directory)
+                    writeBuildFiles(
+                        directory,
+                        sha1(destination),
+                        "0".repeat(63) + "A",
+                    )
+
+                    runGradleAndExpectFailure(directory)
+
+                    Files.readString(destination) shouldBe "fixture bytes"
                 }
             }
         },
@@ -66,10 +84,10 @@ private fun copyBuildLogic(directory: Path) {
     Files.createDirectories(buildLogicRoot.resolve("src/main/groovy"))
     Files.walk(sourceRoot).use { paths ->
         paths.filter { path -> path.toString().endsWith(".groovy") }.forEach { source ->
-        val relativePath = sourceRoot.relativize(source)
-        val destination = buildLogicRoot.resolve("src/main/groovy").resolve(relativePath.toString())
-        Files.createDirectories(destination.parent)
-        Files.copy(source, destination)
+            val relativePath = sourceRoot.relativize(source)
+            val destination = buildLogicRoot.resolve("src/main/groovy").resolve(relativePath.toString())
+            Files.createDirectories(destination.parent)
+            Files.copy(source, destination)
         }
     }
     Files.writeString(
@@ -86,7 +104,7 @@ private fun copyBuildLogic(directory: Path) {
     )
 }
 
-private fun writeBuildFiles(directory: Path, expectedSha1: String) {
+private fun writeBuildFiles(directory: Path, expectedSha1: String, expectedSha256: String) {
     Files.writeString(directory.resolve("settings.gradle"), "rootProject.name = 'fixture-test'\n")
     Files.writeString(
         directory.resolve("build.gradle"),
@@ -96,14 +114,19 @@ private fun writeBuildFiles(directory: Path, expectedSha1: String) {
         tasks.register('download', DownloadVerifiedFile) {
             sourceUrl.set('https://fixture.test/fixture')
             expectedSha1.set('$expectedSha1')
+            expectedSha256.set('$expectedSha256')
             destination.set(layout.buildDirectory.file('fixture.jar'))
         }
         """.trimIndent(),
     )
 }
 
-private fun sha1(path: Path): String {
-    val digest = MessageDigest.getInstance("SHA-1")
+private fun sha1(path: Path): String = digest(path, "SHA-1")
+
+private fun sha256(path: Path): String = digest(path, "SHA-256")
+
+private fun digest(path: Path, algorithm: String): String {
+    val digest = MessageDigest.getInstance(algorithm)
     Files.newInputStream(path).use { input ->
         val buffer = ByteArray(8 * 1024)
         while (true) {

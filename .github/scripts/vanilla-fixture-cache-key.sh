@@ -5,6 +5,7 @@ set -euo pipefail
 readonly DEFAULT_PINS_FILE='gradle/vanilla-conformance.gradle'
 readonly VERSION_PATTERN="^final String targetMinecraftVersion = '([^']+)'$"
 readonly SHA1_PATTERN="^final String serverBundleSha1 = '([0-9a-f]{40})'$"
+readonly SHA256_PATTERN="^final String serverBundleSha256 = '([0-9a-f]{64})'$"
 
 if (( $# > 1 )); then
     printf 'Usage: %s [pins-file]\n' "${0##*/}" >&2
@@ -20,6 +21,7 @@ fi
 
 version=
 sha1=
+sha256=
 
 while IFS= read -r line || [[ -n $line ]]; do
     if [[ $line =~ $VERSION_PATTERN ]]; then
@@ -36,14 +38,22 @@ while IFS= read -r line || [[ -n $line ]]; do
         }
 
         sha1=${BASH_REMATCH[1]}
+    elif [[ $line =~ $SHA256_PATTERN ]]; then
+        [[ -z $sha256 ]] || {
+            printf 'Multiple serverBundleSha256 declarations in %s\n' "$pins_file" >&2
+            exit 1
+        }
+
+        sha256=${BASH_REMATCH[1]}
     fi
 done < "$pins_file"
 
-if [[ -z $version || -z $sha1 ]]; then
-    printf 'Could not parse targetMinecraftVersion and serverBundleSha1 from %s\n' "$pins_file" >&2
+if [[ -z $version || -z $sha1 || -z $sha256 ]]; then
+    printf 'Could not parse targetMinecraftVersion, serverBundleSha1, and serverBundleSha256 from %s\n' "$pins_file" >&2
     exit 1
 fi
 
 printf 'version=%s\n' "$version"
 printf 'sha1=%s\n' "$sha1"
-printf 'key=vanilla-mc-%s-%s\n' "$version" "$sha1"
+printf 'sha256=%s\n' "$sha256"
+printf 'key=vanilla-mc-%s-%s-%s\n' "$version" "$sha1" "$sha256"

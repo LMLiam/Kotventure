@@ -12,6 +12,7 @@ import java.io.InputStream
 import java.net.InetSocketAddress
 import java.net.SocketTimeoutException
 import java.net.URI
+import java.security.MessageDigest
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -211,6 +212,29 @@ class BoundedHttpsDownloadTest :
                 timeout.readTimeoutValue shouldBe 47
                 timeout.disconnected shouldBe 1
             }
+
+            "updates all supplied digests while copying the response" {
+                val sha1 = MessageDigest.getInstance("SHA-1")
+                val sha256 = MessageDigest.getInstance("SHA-256")
+                val output = ByteArrayOutputStream()
+                val response = connection(body = "fixture bytes")
+
+                BoundedHttpsDownload.download(
+                    "https://fixture.test/file",
+                    output,
+                    { response },
+                    100,
+                    3,
+                    1,
+                    2,
+                    sha1,
+                    sha256,
+                )
+
+                output.toString(StandardCharsets.UTF_8) shouldBe "fixture bytes"
+                sha1.digest().toHex() shouldBe "72f3d43d19a345ea7ceff688eb4cde9b323bf8e4"
+                sha256.digest().toHex() shouldBe "06ef5892a96037b4eaac8d9b3dd5ee8765933a1f199b36cea53d2a163e091ae0"
+            }
         },
     ) {
     class RecordingConnection(
@@ -321,4 +345,8 @@ private fun respond(exchange: HttpExchange, status: Int, body: String) {
     val bytes = body.toByteArray(StandardCharsets.UTF_8)
     exchange.sendResponseHeaders(status, bytes.size.toLong())
     exchange.responseBody.use { output -> output.write(bytes) }
+}
+
+private fun ByteArray.toHex(): String = joinToString("") { byte ->
+    (byte.toInt() and 0xff).toString(16).padStart(2, '0')
 }
