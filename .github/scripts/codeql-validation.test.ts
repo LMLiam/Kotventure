@@ -74,7 +74,12 @@ test('validates a CodeQL SARIF document and relative locations', () => {
   const document = validateCodeqlSarif(JSON.stringify({
     version: '2.1.0',
     runs: [{
-      tool: { driver: { name: 'CodeQL' } },
+      tool: {
+        driver: { name: 'CodeQL' },
+        extensions: [{
+          locations: [{ uri: 'file:///opt/hostedtoolcache/CodeQL/qlpacks/codeql/java-queries/qlpack.yml' }],
+        }],
+      },
       originalUriBaseIds: {
         '%SRCROOT%': { uri: 'file:///home/runner/work/Kotventure/Kotventure/' },
       },

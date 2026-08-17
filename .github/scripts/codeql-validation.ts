@@ -211,6 +211,8 @@ function validateSarifLocations(root: JsonValue): void {
         validateOriginalUriBaseIds(child);
         continue;
       }
+      // CodeQL records absolute qlpack paths in tool extensions. They are metadata, not source locations.
+      if (key === 'extensions' && Object.hasOwn(entry.value, 'driver')) continue;
       if (key === 'artifactLocation') validateLocation(child);
       pending.push({ value: child, depth: entry.depth + 1 });
     }
