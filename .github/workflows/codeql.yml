@@ -229,7 +229,7 @@ jobs:
             echo "Expected one post-processed CodeQL SARIF file, found ${#sarif_files[@]}" >&2
             exit 1
           fi
-          cp "${sarif_files[0]}" codeql-handoff/codeql.sarif
+          jq '(.runs[]?.tool.extensions[]?.locations) = []' "${sarif_files[0]}" > codeql-handoff/codeql.sarif
 
       - name: Resolve CodeQL workflow identity
         id: workflow
