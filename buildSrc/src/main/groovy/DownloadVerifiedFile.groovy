@@ -5,6 +5,7 @@ import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 import java.nio.channels.FileChannel
 import java.nio.ByteBuffer
+import java.nio.channels.Channels
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
@@ -54,6 +55,7 @@ abstract class DownloadVerifiedFile extends DefaultTask {
         if (!expected || !(expected ==~ /^[0-9a-f]{40}$/)) {
             throw new GradleException("expectedSha1 must be a 40-character hex SHA-1")
         }
+        BoundedHttpsDownload.requireHttpsUri(src)
 
         def target = destination.get().asFile.toPath()
         Files.createDirectories(target.parent)
@@ -70,23 +72,9 @@ abstract class DownloadVerifiedFile extends DefaultTask {
             try {
                 logger.lifecycle("Downloading ${src} (attempt $attempt)...")
                 temporary = Files.createTempFile(target.parent, "${target.fileName}.", '.part')
-                URI uri = new URI(src)
-                def conn = uri.toURL().openConnection()
-                conn.connectTimeout = 30_000
-                conn.readTimeout = 120_000
-
-                conn.inputStream.withCloseable { inStream ->
-                    FileChannel.open(temporary, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING).withCloseable { outStream ->
-                        byte[] buf = new byte[BUFFER_SIZE]
-                        int r
-                        while ((r = inStream.read(buf)) != -1) {
-                            ByteBuffer buffer = ByteBuffer.wrap(buf, 0, r)
-                            while (buffer.hasRemaining()) {
-                                outStream.write(buffer)
-                            }
-                        }
-                        outStream.force(true)
-                    }
+                FileChannel.open(temporary, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING).withCloseable { outStream ->
+                    BoundedHttpsDownload.download(src, Channels.newOutputStream(outStream))
+                    outStream.force(true)
                 }
 
                 def actualSha1 = computeSha1Hex(temporary)
