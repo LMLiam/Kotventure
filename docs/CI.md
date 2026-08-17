@@ -547,7 +547,7 @@ Pull requests show many checks. Only the checks in the **Master** ruleset block 
 |-----------|--------|
 | Configuration cache + local build cache | Configured in `gradle.properties`. CI restores it with `setup-gradle` |
 | Dependency / wrapper caches | `setup-gradle` defaults in `.github/actions/setup-jdk-gradle` |
-| Minecraft conformance fixtures | Uses `actions/cache`. The key comes from `targetMinecraftVersion` and `serverBundleSha1` |
+| Minecraft conformance fixtures | Uses `actions/cache`. The key comes from `targetMinecraftVersion`, `serverBundleSha1`, and the reviewed `serverBundleSha256` |
 | PR metrics baselines | Uses the `actions/cache` key `ci-baseline-<sha>` on a master push. Downloads an artefact as a fallback. Rebuilds the JAR only as the last option |
 | Kover coverage hand-off | Shards upload `kover-handoff-<shard>`; Aggregate restores them and runs `:koverXmlReport :koverHtmlReport :koverVerify -Pkover.externalBinariesDir=modules`. No test re-run in Aggregate |
 | Qodana caches | The Qodana analyse jobs restore the Gradle caches read-only (`cache-read-only: true`) and restore and save the Qodana inspection cache (`use-caches: true`). The action installs the qodana CLI executable into the runner tool cache (`RUNNER_TOOL_CACHE/qodana/<version>/<arch>`); the IDE distribution (`qodana-jvm-community`) is a separate download that the `cache-dir` override pins inside `${{ runner.temp }}/qodana`, cached under `qodana-ide-<os>-v2026.2.0`. Only trusted triggers (push, schedule, dispatch) may write default-branch caches, so the trusted workflow saves the IDE distribution and pull-request-triggered runs restore it with `actions/cache/restore` |

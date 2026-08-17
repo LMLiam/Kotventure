@@ -6,6 +6,7 @@ import java.io.OutputStream
 import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URISyntaxException
+import java.security.MessageDigest
 
 final class BoundedHttpsDownload {
 
@@ -93,6 +94,19 @@ final class BoundedHttpsDownload {
         )
     }
 
+    static void download(String sourceUrl, OutputStream output, MessageDigest... digests) {
+        download(
+            sourceUrl,
+            output,
+            DEFAULT_CONNECTION,
+            MAXIMUM_BYTES,
+            MAXIMUM_REDIRECTS,
+            CONNECT_TIMEOUT_MILLIS,
+            READ_TIMEOUT_MILLIS,
+            digests,
+        )
+    }
+
     static void download(
         String sourceUrl,
         OutputStream output,
@@ -100,7 +114,8 @@ final class BoundedHttpsDownload {
         long maximumBytes,
         int maximumRedirects,
         int connectTimeoutMillis,
-        int readTimeoutMillis
+        int readTimeoutMillis,
+        MessageDigest... digests
     ) {
         if (maximumBytes < 0) {
             throw new IllegalArgumentException('maximumBytes must not be negative')
@@ -135,7 +150,7 @@ final class BoundedHttpsDownload {
                 }
 
                 rejectOversizedContentLength(connection.header('Content-Length'), maximumBytes)
-                copyBounded(connection.inputStream(), output, maximumBytes)
+                copyBounded(connection.inputStream(), output, maximumBytes, digests)
                 return
             } finally {
                 if (connection != null) {
@@ -177,7 +192,12 @@ final class BoundedHttpsDownload {
         }
     }
 
-    private static void copyBounded(InputStream input, OutputStream output, long maximumBytes) {
+    private static void copyBounded(
+        InputStream input,
+        OutputStream output,
+        long maximumBytes,
+        MessageDigest[] digests
+    ) {
         try {
             byte[] buffer = new byte[BUFFER_SIZE]
             long total = 0
@@ -187,6 +207,7 @@ final class BoundedHttpsDownload {
                     throw new IOException("Downloaded content exceeds the ${maximumBytes}-byte limit")
                 }
                 output.write(buffer, 0, count)
+                digests.each { digest -> digest.update(buffer, 0, count) }
                 total += count
             }
         } finally {

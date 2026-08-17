@@ -715,19 +715,21 @@ jobs:
         run: |
           set -euo pipefail
           version="${{ steps.fixture.outputs.version }}"
-          expected="${{ steps.fixture.outputs.sha1 }}"
+          expected_sha1="${{ steps.fixture.outputs.sha1 }}"
+          expected_sha256="${{ steps.fixture.outputs.sha256 }}"
           bundle="modules/core/build/vanilla-conformance/${version}/server-${version}-bundle.jar"
           if [[ ! -f "$bundle" ]]; then
             echo "No cached server bundle at $bundle; Gradle will download and verify."
             exit 0
           fi
-          actual="$(shasum -a 1 "$bundle" | awk '{ print $1 }')"
-          if [[ "$actual" != "$expected" ]]; then
-            echo "Cached fixture SHA-1 mismatch (expected $expected, got $actual); removing corrupted cache entry."
+          actual_sha1="$(shasum -a 1 "$bundle" | awk '{ print $1 }')"
+          actual_sha256="$(shasum -a 256 "$bundle" | awk '{ print $1 }')"
+          if [[ "$actual_sha1" != "$expected_sha1" || "$actual_sha256" != "$expected_sha256" ]]; then
+            echo "Cached fixture digest mismatch (expected SHA-1 $expected_sha1 / SHA-256 $expected_sha256, got SHA-1 $actual_sha1 / SHA-256 $actual_sha256); removing corrupted cache entry."
             rm -f "$bundle"
             exit 0
           fi
-          echo "Cached fixture SHA-1 matches $expected."
+          echo "Cached fixture SHA-1 and SHA-256 match the reviewed pins."
 
       - name: Run vanilla conformance suites
         run: ./gradlew :core:vanillaConformanceTest
