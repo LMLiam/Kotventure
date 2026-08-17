@@ -10,7 +10,7 @@ For local development commands, see [CONTRIBUTING.md](../.github/CONTRIBUTING.md
 
 | Workflow | File | Triggers | Purpose |
 |----------|------|----------|---------|
-| **CI** | `ci.yml` | PR, push, `merge_group`, weekly schedule, `workflow_dispatch` | Gate, path filter, parallel lint (Kotlin + Actions), sharded build (`core | text | runtime` → Aggregate), Vanilla. Always reports the required status check |
+| **CI** | `ci.yml` | PR, push, `merge_group`, weekly schedule, `workflow_dispatch` | Gate, path filter, parallel lint (Kotlin + Actions), sharded build (`core (including buildSrc tests) | text | runtime` → Aggregate), Vanilla. Always reports the required status check |
 | **JUnit publication** | `junit-publish.yml` | `workflow_run` for CI (`in_progress`, `completed`) | Uses default-branch code to publish the Build and Vanilla JUnit checks from bounded XML artefacts |
 | **CodeQL** | `codeql.yml` | PR, push, `merge_group`, weekly schedule | CodeQL analysis (`actions` + `java-kotlin` matrix), parallel with CI |
 | **CodeQL publication** | `codeql-publish.yml` | `workflow_run` for CodeQL (`in_progress`, `completed`) | Uses default-branch code to validate and upload PR and merge-group SARIF artefacts |
@@ -34,7 +34,7 @@ CI
 ├─ Tier 1: Core (parallel, fast feedback — all gated on Triage) ──
 │   ├─ Lint (Kotlin)     (spotlessCheck + ktlintCheck)
 │   ├─ Lint (Actions)    (declaration check + CI tooling tests)
-│   ├─ Build             (sharded: core | text (`minimessage` + `serializer`) | runtime (`coroutines` + `paper` + `test` + `test-snapshot` + `bom`) — each `koverBinaryReport` + test results)
+│   ├─ Build             (sharded: core (`buildSrc:test` + `core`) | text (`minimessage` + `serializer`) | runtime (`coroutines` + `paper` + `test` + `test-snapshot` + `bom`) — each `koverBinaryReport` + test results)
 │   ├─ Vanilla           (MC-backed selector tests, path-filtered)
 │   └─ Dokka             (dokkaGenerate, parallel with Build)
 │
@@ -308,7 +308,7 @@ reports zero alerts. This lets GitHub treat the tool as configured.
 ### Full builds
 
 Pull requests, pushes, merge groups, schedules, and manual dispatches run the complete pipeline. The Build matrix shards
-the work: `core` (`:core:koverBinaryReport` + `:core:jar`), `text` (`minimessage` + `serializer`), and `runtime`
+the work: `core` (`:buildSrc:test` + `:core:koverBinaryReport` + `:core:jar`), `text` (`minimessage` + `serializer`), and `runtime`
 (`coroutines` + `paper` + `test` + `test-snapshot` + `bom`). Dokka runs in its own parallel job. Aggregate consumes the
 shard coverage hand-off and enforces the 85% `koverVerify` gate. Path filters control whether the full CI pipeline
 starts. They do not control which modules compile. Thus, each code pull request includes the coverage gate, BOM checks,
