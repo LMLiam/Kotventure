@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 once it reaches `1.0.0`. During the `0.x` line, breaking changes may land in any release.
 
+## [0.26.8](https://github.com/LMLiam/Kotventure/compare/0.26.7...0.26.8) (2026-08-22)
+
+
+### 🐛 Fixes
+
+* **ci:** add trusted workflow check lifecycle ([#567](https://github.com/LMLiam/Kotventure/issues/567)) ([510b6dc](https://github.com/LMLiam/Kotventure/commit/510b6dcd2bde95cc9e2cddc3e1656c200a467c81))
+* **ci:** enforce aggregate status policy ([#564](https://github.com/LMLiam/Kotventure/issues/564)) ([5079a51](https://github.com/LMLiam/Kotventure/commit/5079a515eff4fb64c4c89c32fce86af21c818296))
+* **ci:** publish bounded JUnit and CodeQL reports ([#568](https://github.com/LMLiam/Kotventure/issues/568)) ([af47f3a](https://github.com/LMLiam/Kotventure/commit/af47f3acd6dbede2f4b5dd4a245e17af86c93f16))
+* **ci:** validate CodeQL SARIF locations ([#579](https://github.com/LMLiam/Kotventure/issues/579)) ([28e7c90](https://github.com/LMLiam/Kotventure/commit/28e7c9062b9a4c4f4873774449af3d3ce7175cf3))
+
+
+### 📝 Documentation
+
+* **ci:** document trusted publication boundaries ([#570](https://github.com/LMLiam/Kotventure/issues/570)) ([9ba7121](https://github.com/LMLiam/Kotventure/commit/9ba712133359479f27df532f39849f9960213202))
+
 ## [0.26.7](https://github.com/LMLiam/Kotventure/compare/0.26.6...0.26.7) (2026-08-12)
 
 
