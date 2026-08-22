@@ -74,7 +74,12 @@ test('validates a CodeQL SARIF document and relative locations', () => {
   const document = validateCodeqlSarif(JSON.stringify({
     version: '2.1.0',
     runs: [{
-      tool: { driver: { name: 'CodeQL' } },
+      tool: {
+        driver: { name: 'CodeQL' },
+        extensions: [{
+          locations: [{ uri: 'file:///opt/hostedtoolcache/CodeQL/qlpacks/codeql/java-queries/qlpack.yml' }],
+        }],
+      },
       originalUriBaseIds: {
         '%SRCROOT%': { uri: 'file:///home/runner/work/Kotventure/Kotventure/' },
       },
@@ -128,10 +133,84 @@ test('rejects malformed, foreign-driver, and escaping CodeQL SARIF', () => {
       runs: [{
         tool: { driver: { name: 'CodeQL' } },
         results: [],
+        originalUriBaseIds: { SRCROOT: { uri: '..%2Foutside' } },
+      }],
+    })),
+    /SARIF base URI escapes the project/,
+  );
+  assert.throws(
+    () => validateCodeqlSarif(JSON.stringify({
+      version: '2.1.0',
+      runs: [{
+        tool: { driver: { name: 'CodeQL' } },
+        results: [],
         originalUriBaseIds: { '%SRCROOT%': { uri: 'https://example.com/' } },
       }],
     })),
     /SARIF base URI escapes the project/,
+  );
+});
+
+test('rejects encoded and absolute CodeQL source locations', () => {
+  const invalidLocations = [
+    '..%2Foutside.kt',
+    '%2Foutside.kt',
+    'file:///outside.kt',
+    'C:\\outside.kt',
+  ];
+  for (const uri of invalidLocations) {
+    assert.throws(
+      () => validateCodeqlSarif(JSON.stringify({
+        version: '2.1.0',
+        runs: [{
+          tool: { driver: { name: 'CodeQL' } },
+          results: [{ locations: [{ physicalLocation: { artifactLocation: { uri } } }] }],
+        }],
+      })),
+      /SARIF location escapes the project/,
+    );
+  }
+  for (const uri of ['invalid%2', 'source%00.kt']) {
+    assert.throws(
+      () => validateCodeqlSarif(JSON.stringify({
+        version: '2.1.0',
+        runs: [{
+          tool: { driver: { name: 'CodeQL' } },
+          results: [{ locations: [{ physicalLocation: { artifactLocation: { uri } } }] }],
+        }],
+      })),
+      /SARIF location is invalid/,
+    );
+  }
+});
+
+test('rejects indexed and nested extension source location escapes', () => {
+  assert.throws(
+    () => validateCodeqlSarif(JSON.stringify({
+      version: '2.1.0',
+      runs: [{
+        tool: { driver: { name: 'CodeQL' } },
+        artifacts: [{ location: { uri: '..%2Foutside.kt' } }],
+        results: [{ locations: [{ physicalLocation: { artifactLocation: { index: 0 } } }] }],
+      }],
+    })),
+    /SARIF location escapes the project/,
+  );
+  assert.throws(
+    () => validateCodeqlSarif(JSON.stringify({
+      version: '2.1.0',
+      runs: [{
+        tool: {
+          driver: { name: 'CodeQL' },
+          extensions: [{
+            locations: [{ uri: 'file:///opt/hostedtoolcache/CodeQL/qlpacks/codeql/java-queries/qlpack.yml' }],
+            properties: { artifactLocation: { uri: '../outside.kt' } },
+          }],
+        },
+        results: [],
+      }],
+    })),
+    /SARIF location escapes the project/,
   );
 });
 

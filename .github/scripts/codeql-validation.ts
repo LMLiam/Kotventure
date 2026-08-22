@@ -142,6 +142,20 @@ function validateUriBaseId(value: JsonValue): void {
   if (typeof value !== 'string' || !URI_BASE_ID_PATTERN.test(value)) reject('SARIF location base id is invalid');
 }
 
+function decodeUri(value: string, label: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    reject(`${label} is invalid`);
+  }
+}
+
+function uriEscapesProject(value: string): boolean {
+  return value.startsWith('/') || /^[A-Za-z]:[\\/]/.test(value)
+    || /^[A-Za-z][A-Za-z0-9+.-]*:/.test(value)
+    || value.split(/[\\/]/).includes('..');
+}
+
 function validateBaseUri(value: JsonValue): void {
   if (typeof value !== 'string' || value.length > 4096 || value.includes('\u0000')) reject('SARIF base URI is invalid');
   if (value.startsWith('file:')) {
@@ -154,16 +168,14 @@ function validateBaseUri(value: JsonValue): void {
     if (url.protocol !== 'file:' || (url.hostname !== '' && url.hostname !== 'localhost')) {
       reject('SARIF base URI is invalid');
     }
-    try {
-      if (decodeURIComponent(url.pathname).split(/[\\/]/).includes('..')) reject('SARIF base URI escapes the project');
-    } catch {
-      reject('SARIF base URI is invalid');
-    }
+    const path = decodeUri(url.pathname, 'SARIF base URI');
+    if (path.includes('\u0000')) reject('SARIF base URI is invalid');
+    if (path.split(/[\\/]/).includes('..')) reject('SARIF base URI escapes the project');
     return;
   }
-  if (value.startsWith('/') || /^[A-Za-z]:[\\/]/.test(value)
-    || /^[A-Za-z][A-Za-z0-9+.-]*:/.test(value)
-    || value.split(/[\\/]/).includes('..')) reject('SARIF base URI escapes the project');
+  const decoded = decodeUri(value, 'SARIF base URI');
+  if (decoded.includes('\u0000')) reject('SARIF base URI is invalid');
+  if (uriEscapesProject(decoded)) reject('SARIF base URI escapes the project');
 }
 
 function validateOriginalUriBaseIds(value: JsonValue): void {
@@ -185,12 +197,26 @@ function validateLocation(location: JsonValue): void {
   const { uri, uriBaseId } = location;
   if (uriBaseId != null) validateUriBaseId(uriBaseId);
   if (uri == null) return;
-  if (typeof uri !== 'string' || uri.length > 4096 || uri.includes('\u0000')
-    || uri.startsWith('/') || /^[A-Za-z]:[\\/]/.test(uri) || /^[A-Za-z][A-Za-z0-9+.-]*:/.test(uri)
-    || uri.split(/[\\/]/).includes('..')) reject('SARIF location escapes the project');
+  if (typeof uri !== 'string' || uri.length > 4096 || uri.includes('\u0000')) reject('SARIF location is invalid');
+  const decoded = decodeUri(uri, 'SARIF location');
+  if (decoded.includes('\u0000')) reject('SARIF location is invalid');
+  if (uriEscapesProject(decoded)) reject('SARIF location escapes the project');
+}
+
+function toolExtensionComponents(root: JsonValue): Set<JsonValue> {
+  const components = new Set<JsonValue>();
+  if (root === null || typeof root !== 'object' || Array.isArray(root) || !Array.isArray(root.runs)) return components;
+  for (const run of root.runs) {
+    if (run === null || typeof run !== 'object' || Array.isArray(run)) continue;
+    const tool = run.tool;
+    if (tool === null || typeof tool !== 'object' || Array.isArray(tool) || !Array.isArray(tool.extensions)) continue;
+    for (const component of tool.extensions) components.add(component);
+  }
+  return components;
 }
 
 function validateSarifLocations(root: JsonValue): void {
+  const toolExtensions = toolExtensionComponents(root);
   const pending: Array<{ value: JsonValue; depth: number }> = [{ value: root, depth: 0 }];
   let visited = 0;
   while (pending.length > 0) {
@@ -211,6 +237,7 @@ function validateSarifLocations(root: JsonValue): void {
         validateOriginalUriBaseIds(child);
         continue;
       }
+      if (toolExtensions.has(entry.value) && key === 'locations') continue;
       if (key === 'artifactLocation') validateLocation(child);
       pending.push({ value: child, depth: entry.depth + 1 });
     }
