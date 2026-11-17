@@ -11,6 +11,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import net.kyori.adventure.text.format.NamedTextColor
+import net.kyori.adventure.text.format.TextColor
 
 class GradientDslTest :
     StringSpec(
@@ -45,6 +46,27 @@ class GradientDslTest :
                 message.childAt(3) shouldHaveColor interpolate(0.5f, gold, aqua)
                 message.childAt(4) shouldContainText "e"
                 message.childAt(4) shouldHaveColor aqua
+            }
+
+            "samples gradient colours at endpoints, outside the range, and within a segment" {
+                val gradient = gradient(NamedTextColor.RED, NamedTextColor.GREEN, NamedTextColor.BLUE)
+
+                gradient.colorAt(-1f) shouldBe NamedTextColor.RED
+                gradient.colorAt(0f) shouldBe NamedTextColor.RED
+                gradient.colorAt(0.25f) shouldBe
+                    TextColor.lerp(0.5f, NamedTextColor.RED, NamedTextColor.GREEN)
+                gradient.colorAt(1f) shouldBe NamedTextColor.BLUE
+                gradient.colorAt(2f) shouldBe NamedTextColor.BLUE
+
+                shouldThrow<IllegalArgumentException> {
+                    gradient.colorAt(Float.NaN)
+                }
+                shouldThrow<IllegalArgumentException> {
+                    gradient.colorAt(Float.POSITIVE_INFINITY)
+                }
+                shouldThrow<IllegalArgumentException> {
+                    gradient.colorAt(Float.NEGATIVE_INFINITY)
+                }
             }
 
             "handles empty single character and supplementary code point text deterministically" {
