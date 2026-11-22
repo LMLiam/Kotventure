@@ -53,3 +53,6 @@ bin/
 .github/scripts/**/*.js.map
 .github/actions/pr-metrics-comment/**/*.js
 .github/actions/pr-metrics-comment/**/*.js.map
+
+# graphify knowledge graph, rebuilt locally by its git hooks
+graphify-out/
